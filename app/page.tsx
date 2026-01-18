@@ -1,11 +1,15 @@
-import { Button } from "@/components/ui/button";
-
 // Default Page
+
+import Header from "@/app/_components/Header";
+import Hero from "@/app/_components/Hero";
 
 export default function Home() {
   return (
     <div>
-      <Button className="font-inter text-2xl">Hello test</Button>
+      {/*Header / Navbar*/}
+      <Header />
+      {/*Hero Section */}
+      <Hero />
     </div>
   );
 }
