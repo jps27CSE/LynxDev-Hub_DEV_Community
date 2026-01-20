@@ -66,7 +66,10 @@ function Header() {
       </NavigationMenu>
 
       {/*Signup button */}
-      <Button className="font-game text-2xl" variant={"pixel"}>
+      <Button
+        className="font-mono font-bold text-xl cursor-pointer"
+        variant={"pixel"}
+      >
         Signup
       </Button>
     </div>
