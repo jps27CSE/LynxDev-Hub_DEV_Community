@@ -1,6 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 function Hero() {
   return (
@@ -29,13 +30,14 @@ function Hero() {
           Beginner-friendly coding courses, projects, and a supportive developer
           community
         </h2>
-
-        <Button
-          className="font-mono text-3xl p-6 mt-7 font-bold cursor-pointer"
-          variant={"pixel"}
-        >
-          GET STARTED
-        </Button>
+        <Link href={"/sign-up"}>
+          <Button
+            className="font-mono text-3xl p-6 mt-7 font-bold cursor-pointer"
+            variant={"pixel"}
+          >
+            GET STARTED
+          </Button>
+        </Link>
       </div>
     </div>
   );
