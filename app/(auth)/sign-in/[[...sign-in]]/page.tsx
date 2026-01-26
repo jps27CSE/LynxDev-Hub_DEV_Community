@@ -34,6 +34,14 @@ export default function SignInPage() {
             <span className="text-black">Login with Google</span>
           </Clerk.Connection>
 
+          {/* GITHUB LOGIN */}
+          <Clerk.Connection
+            name="github"
+            className="flex w-full items-center justify-center gap-3 px-4 py-2 bg-yellow-400 border-2 border-black shadow-[4px_4px_0_0_#000] active:translate-y-[2px] active:shadow-none font-bold text-black"
+          >
+            <span>Login with GitHub</span>
+          </Clerk.Connection>
+
           {/* EMAIL & PASSWORD */}
           <div className="space-y-4">
             <Clerk.Field name="identifier" className="space-y-1">

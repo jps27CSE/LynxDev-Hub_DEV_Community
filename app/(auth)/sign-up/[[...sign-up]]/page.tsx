@@ -26,6 +26,14 @@ export default function SignUpPage() {
 
           <Clerk.GlobalError className="block text-sm text-red-500" />
 
+          {/* GITHUB SIGNUP */}
+          <Clerk.Connection
+            name="github"
+            className="flex w-full items-center justify-center gap-3 px-4 py-2 bg-white border-2 border-black shadow-[4px_4px_0_0_#000] active:translate-y-[2px] active:shadow-none font-bold text-black"
+          >
+            <span>Sign up with GitHub</span>
+          </Clerk.Connection>
+
           <div className="space-y-4">
             <Clerk.Field name="emailAddress" className="space-y-1">
               <Clerk.Label className="font-bold text-yellow-400 uppercase">
