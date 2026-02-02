@@ -5,6 +5,7 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useUser } from "@clerk/nextjs";
 import axios from "axios";
 import { UserDetailContext } from "@/context/UserDetailContext";
+import Header from "./_components/Header";
 
 function Provider({
   children,
@@ -26,7 +27,11 @@ function Provider({
   return (
     <NextThemesProvider {...props}>
       <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
-        {children}
+        <div className="flex flex-col items-center">
+          {/*Header / Navbar*/}
+          <Header />
+          {children}
+        </div>
       </UserDetailContext.Provider>
     </NextThemesProvider>
   );
