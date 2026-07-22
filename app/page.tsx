@@ -1,15 +1,21 @@
-// Default Page
-
 import Header from "@/app/_components/Header";
 import Hero from "@/app/_components/Hero";
+import Features from "@/app/_components/Features";
+import YoutubeCarousel from "@/app/_components/YoutubeCarousel";
+import CoursePreview from "@/app/_components/CoursePreview";
+import Footer from "@/app/_components/Footer";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center">
-      {/*Header / Navbar*/}
+    <div className="flex flex-col min-h-screen">
       <Header />
-      {/*Hero Section */}
-      <Hero />
+      <main>
+        <Hero />
+        <Features />
+        <YoutubeCarousel />
+        <CoursePreview />
+      </main>
+      <Footer />
     </div>
   );
 }

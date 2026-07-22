@@ -4,7 +4,7 @@
 
 | # | Feature | Status | Priority | Notes |
 |---|---------|--------|----------|-------|
-| 1.1 | Homepage redesign | Pending | High | Hero, Features, YouTube carousel, course preview |
+| 1.1 | Homepage redesign | Done | High | Hero, Features, YouTube carousel, course preview |
 | 1.2 | Course catalog | Pending | High | Browse available courses |
 | 1.3 | Course chapters | Pending | High | Left sidebar lessons |
 | 1.4 | Code editor | Pending | High | Right side embedded editor (like freeCodeCamp) |

@@ -1,93 +1,60 @@
 "use client";
 import Image from "next/image";
-import React from "react";
 import { Button } from "@/components/ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
 import Link from "next/link";
 import { UserButton, useUser } from "@clerk/nextjs";
 
-const courses = [
-  {
-    id: 1,
-    name: "HTML",
-    desc: "Learn the fundamentals of HTML and build the structure",
-    path: "/course/1/detail",
-  },
-  {
-    id: 2,
-    name: "CSS",
-    desc: "Learn the fundamentals of CSS and build the style",
-    path: "/course/2/detail",
-  },
+const navLinks = [
+  { label: "Courses", href: "/courses" },
+  { label: "Community", href: "/community" },
+  { label: "Mentor", href: "/mentor" },
+  { label: "Resources", href: "/resources" },
 ];
 
 function Header() {
   const { user } = useUser();
 
   return (
-    <div className="p-4 max-w-7xl flex justify-between items-center w-full ">
-      <div className="flex gap-2 items-center">
-        <Image src={"/logo.png"} alt="logo" width={40} height={40} />
-        <h2 className="font-bold text-3xl font-inter">LynxDev HUB</h2>
-      </div>
-      {/*Navbar*/}
-
-      <NavigationMenu>
-        <NavigationMenuList className="gap-8">
-          <NavigationMenuItem>
-            <NavigationMenuTrigger>Courses</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid md:grid-cols-2 gap-2 sm:w-[400px] md:w-[500px] lg:w-[600px]">
-                {courses.map((course, index) => (
-                  <div
-                    key={index}
-                    className="p-2 hover:bg-accent cursor-pointer rounded-xl"
-                  >
-                    <h2 className="font-medium">{course.name}</h2>
-                    <p className="text-sm text-gray-500">{course.desc}</p>
-                  </div>
-                ))}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <Link href="/projects">Projects</Link>
-          </NavigationMenuLink>
-          <NavigationMenuLink asChild>
-            <Link href="/pricing">Pricing</Link>
-          </NavigationMenuLink>
-          <NavigationMenuLink asChild>
-            <Link href="/contact-us">Contact Us</Link>
-          </NavigationMenuLink>
-        </NavigationMenuList>
-      </NavigationMenu>
-
-      {/*Signup button */}
-      {!user ? (
-        <Link href={"/sign-in"}>
-          <Button
-            className="font-mono font-bold text-xl cursor-pointer"
-            variant={"pixel"}
-          >
-            SignIn
-          </Button>
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/logo.png" alt="LynxDev HUB" width={36} height={36} />
+          <span className="text-xl font-bold font-inter">LynxDev HUB</span>
         </Link>
-      ) : (
-        <div className="flex gap-4 items-center">
-          <Button className="font-game text-2xl" variant={"pixel"}>
-            Dashboard
-          </Button>
-          <UserButton />
+
+        <nav className="hidden md:flex items-center gap-8">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-4">
+          {!user ? (
+            <Link href="/sign-in">
+              <Button variant="default" size="sm">
+                Sign In
+              </Button>
+            </Link>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link href="/dashboard">
+                <Button variant="default" size="sm">
+                  Dashboard
+                </Button>
+              </Link>
+              <UserButton />
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </header>
   );
 }
+
 export default Header;
