@@ -3,34 +3,64 @@ import Link from "next/link";
 
 const videos = [
   {
-    title: "Getting Started with Web Development",
-    thumbnail: "https://img.youtube.com/vi/placeholder1/mqdefault.jpg",
-    url: "https://youtube.com/watch?v=placeholder1",
+    title: "LangChain Runnables Explained: Build AI Pipelines the Easy Way (Bangla)",
+    videoId: "JGsTM8UerAM",
   },
   {
-    title: "React Tutorial for Beginners",
-    thumbnail: "https://img.youtube.com/vi/placeholder2/mqdefault.jpg",
-    url: "https://youtube.com/watch?v=placeholder2",
+    title: "How 'Logout from All Devices' Actually Works | Backend System Design",
+    videoId: "tOm35rmGrfg",
   },
   {
-    title: "JavaScript Fundamentals",
-    thumbnail: "https://img.youtube.com/vi/placeholder3/mqdefault.jpg",
-    url: "https://youtube.com/watch?v=placeholder3",
+    title: "OpenCode Tutorial: Build a Project with AI Agents (Complete Beginner Guide)",
+    videoId: "4wVmDzdCH0M",
   },
   {
-    title: "CSS Grid & Flexbox Masterclass",
-    thumbnail: "https://img.youtube.com/vi/placeholder4/mqdefault.jpg",
-    url: "https://youtube.com/watch?v=placeholder4",
+    title: "Build a PDF RAG Chatbot with LangChain in Bangla (Complete Beginner Project)",
+    videoId: "4HFYZWXctak",
   },
   {
-    title: "Node.js Crash Course",
-    thumbnail: "https://img.youtube.com/vi/placeholder5/mqdefault.jpg",
-    url: "https://youtube.com/watch?v=placeholder5",
+    title: "LangChain Retrievers Explained: Similarity, MMR & MultiQuery Search",
+    videoId: "lgymF9qoVGE",
   },
   {
-    title: "Python for Beginners",
-    thumbnail: "https://img.youtube.com/vi/placeholder6/mqdefault.jpg",
-    url: "https://youtube.com/watch?v=placeholder6",
+    title: "LangChain Vector Store Explained: Store & Search Embeddings for RAG",
+    videoId: "vMV85pHr464",
+  },
+  {
+    title: "LangChain Text Splitting Explained: Chunking for Better RAG",
+    videoId: "eZED4LOUvr8",
+  },
+  {
+    title: "LangChain Document Loaders Explained: Load PDFs, TXT & More for RAG",
+    videoId: "TY6wAx2L3jA",
+  },
+  {
+    title: "RAG Explained: How Retrieval-Augmented Generation Actually Works",
+    videoId: "8_cuad916us",
+  },
+  {
+    title: "LangChain Prompt Templates & Structured Output Explained",
+    videoId: "S6F-jekTkO0",
+  },
+  {
+    title: "Generative AI vs Agentic AI vs AI Agents Explained Simply",
+    videoId: "sCN-DIcZegE",
+  },
+  {
+    title: "Build Your First AI Chatbot with LangChain in Python",
+    videoId: "QndKWRg0LhU",
+  },
+  {
+    title: "What Are Embeddings? The Foundation of RAG & AI Search",
+    videoId: "N2BJwtSFP7s",
+  },
+  {
+    title: "Generative AI Explained for Developers: LLMs, LangChain & AI Apps",
+    videoId: "5yWYv2WjcDU",
+  },
+  {
+    title: "Docker Compose Explained: Run Multiple Containers with One Command",
+    videoId: "ciDV6_vC9-o",
   },
 ];
 
@@ -43,7 +73,7 @@ function YoutubeCarousel() {
             Watch & Learn
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Curated video tutorials from our YouTube channel
+            Curated video tutorials from Code Insights by Jack
           </p>
         </div>
       </div>
@@ -52,7 +82,7 @@ function YoutubeCarousel() {
           {[...videos, ...videos].map((video, index) => (
             <Link
               key={index}
-              href={video.url}
+              href={`https://www.youtube.com/watch?v=${video.videoId}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-shrink-0 w-[280px] group"
@@ -60,7 +90,7 @@ function YoutubeCarousel() {
               <div className="rounded-xl overflow-hidden border border-border/50 group-hover:border-border transition-colors bg-card">
                 <div className="aspect-video relative bg-muted">
                   <Image
-                    src={video.thumbnail}
+                    src={`https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`}
                     alt={video.title}
                     fill
                     className="object-cover"
