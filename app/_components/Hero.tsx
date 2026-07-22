@@ -9,7 +9,7 @@ function Hero() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 lg:py-40">
         <div className="text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center rounded-full border border-border px-4 py-1.5 text-sm font-medium text-muted-foreground mb-8">
-            Your all-in-one developer platform
+            by Jack Pritom Soren &middot; Software Engineer
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
             Learn. Build. Grow.{" "}
@@ -17,7 +17,7 @@ function Hero() {
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
             Interactive coding courses, AI mentorship, developer community, and
-            interview prep -- everything you need to level up your dev career.
+            interview prep -- handcrafted by a software engineer for developers.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/sign-up">

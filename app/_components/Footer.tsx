@@ -8,9 +8,9 @@ const footerLinks = [
 ];
 
 const socialLinks = [
-  { label: "YouTube", href: "https://youtube.com/@lynxdev" },
-  { label: "GitHub", href: "https://github.com/lynxdev" },
-  { label: "Twitter", href: "https://twitter.com/lynxdev" },
+  { label: "YouTube", href: "https://youtube.com/@CodeInsightsByJack" },
+  { label: "GitHub", href: "https://github.com/jps27cse" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/jps27cse" },
 ];
 
 function Footer() {
