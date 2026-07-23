@@ -9,8 +9,8 @@
 | 1.3 | Course chapters | Done | High | Chapter list with navigation; ~52 chapters across all courses |
 | 1.4 | Code editor | Done | High | Editor with run/reset/solution; browser preview for HTML/CSS, console eval for others |
 | 1.5 | Course content | Done | High | Seed data split into config/courses/*.ts; beginner-friendly with real-life analogies |
-| 1.6 | Progress system | Pending | Medium | Stars, points, badges per course |
-| 1.7 | Enrollment flow | Pending | High | Enroll in courses, track enrolled |
+| 1.6 | Progress system | Done | Medium | Stars, points, badges per course |
+| 1.7 | Enrollment flow | Done | High | Enroll in courses, track enrolled |
 
 ## Phase 2 — Interview + Problem Solving
 

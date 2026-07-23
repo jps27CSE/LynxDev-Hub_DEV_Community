@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCourseById, getChaptersByCourseId } from "@/lib/course-data";
-import { CheckCircle, ChevronRight, Lock } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import EnrollButton from "./EnrollButton";
 
 const difficultyColor: Record<string, string> = {
   Beginner: "bg-green-500/10 text-green-500 border-green-500/20",
@@ -98,12 +99,15 @@ export default async function CourseDetailPage({
           </div>
         )}
 
-        <div className="mt-8">
-          <Link href={`/learn/${course.id}/${chapterList[0]?.id || ""}`}>
-            <Button size="lg" className="w-full sm:w-auto">
-              Start Learning
-            </Button>
-          </Link>
+        <div className="mt-8 flex items-center gap-4">
+          <EnrollButton courseId={course.id} />
+          {chapterList.length > 0 && (
+            <Link href={`/learn/${course.id}/${chapterList[0]?.id}`}>
+              <Button size="lg" variant="outline">
+                Start Learning
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </div>

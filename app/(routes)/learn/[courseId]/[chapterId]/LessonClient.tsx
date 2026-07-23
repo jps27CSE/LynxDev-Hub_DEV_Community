@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, RotateCcw, Eye } from "lucide-react";
+import { Play, RotateCcw, Eye, CheckCircle, Loader2, Star } from "lucide-react";
+import axios from "axios";
+import { UserDetailContext } from "@/context/UserDetailContext";
+import { toast } from "sonner";
 
 type ChapterData = {
   id: number;
@@ -25,8 +28,11 @@ export default function LessonClient({
   const [code, setCode] = useState(chapter.content.initialCode);
   const [output, setOutput] = useState("");
   const [showSolution, setShowSolution] = useState(false);
+  const [completed, setCompleted] = useState(false);
+  const [completing, setCompleting] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const isBrowserMode = chapter.content.type === "browser";
+  const { setUserDetail } = useContext(UserDetailContext);
 
   const runCode = () => {
     if (isBrowserMode) {
@@ -71,15 +77,67 @@ export default function LessonClient({
     setShowSolution(true);
   };
 
+  const handleMarkComplete = async () => {
+    setCompleting(true);
+    try {
+      const res = await axios.post("/api/progress", {
+        courseId,
+        chapterId: chapter.id,
+      });
+      setCompleted(true);
+      setUserDetail?.((prev: any) =>
+        prev ? { ...prev, points: res.data.points } : prev
+      );
+      toast(`+${res.data.pointsAwarded} points`, {
+        icon: <Star className="w-4 h-4 text-yellow-500" />,
+      });
+      if (res.data.courseCompleted) {
+        toast("Course completed! You earned a badge!", {
+          icon: "🏆",
+        });
+      }
+    } catch {
+      toast("Already completed or error occurred");
+    } finally {
+      setCompleting(false);
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col lg:flex-row">
       <div className="lg:w-2/5 border-b lg:border-b-0 lg:border-r border-border/40 overflow-y-auto p-6 bg-card">
         <div className="max-w-none">
-          <h2 className="text-lg font-bold mb-4">{chapter.title}</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold">{chapter.title}</h2>
+            {completed && (
+              <span className="text-xs text-green-500 font-medium flex items-center gap-1">
+                <CheckCircle className="w-3.5 h-3.5" />
+                Completed
+              </span>
+            )}
+          </div>
           <div
             className="text-sm leading-relaxed text-muted-foreground lesson-content"
             dangerouslySetInnerHTML={{ __html: chapter.content.instructions }}
           />
+          <div className="mt-6">
+            <Button
+              size="sm"
+              onClick={handleMarkComplete}
+              disabled={completed || completing}
+              variant={completed ? "outline" : "default"}
+              className="w-full"
+            >
+              {completing ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : completed ? (
+                <CheckCircle className="w-4 h-4 mr-2" />
+              ) : (
+                <CheckCircle className="w-4 h-4 mr-2" />
+              )}
+              {completed ? "Completed" : "Mark as Complete"}
+            </Button>
+          </div>
         </div>
       </div>
 
