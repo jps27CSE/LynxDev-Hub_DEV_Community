@@ -51,3 +51,25 @@ export const enrollments = pgTable("enrollments", {
   started_at: timestamp("started_at").defaultNow(),
   completed_at: timestamp("completed_at"),
 });
+
+export const interviewCategories = pgTable("interview_categories", {
+  id: serial("id").primaryKey(),
+  name: varchar({ length: 100 }).notNull(),
+  slug: varchar({ length: 100 }).notNull().unique(),
+  description: text().notNull(),
+  icon: varchar({ length: 10 }),
+  color: varchar({ length: 50 }),
+  order_index: integer("order_index").default(0),
+});
+
+export const interviewQuestions = pgTable("interview_questions", {
+  id: serial("id").primaryKey(),
+  category_id: integer("category_id")
+    .references(() => interviewCategories.id)
+    .notNull(),
+  question: text().notNull(),
+  answer: text().notNull(),
+  difficulty: varchar({ length: 20 }).notNull().default("medium"),
+  tags: jsonb().default([]),
+  is_top50: boolean("is_top50").default(false),
+});

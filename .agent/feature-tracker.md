@@ -16,7 +16,7 @@
 
 | # | Feature | Status | Priority | Notes |
 |---|---------|--------|----------|-------|
-| 2.1 | Interview categories | Pending | High | FE, BE, Fullstack, DevOps, QA, etc. |
+| 2.1 | Interview categories | Done | High | FE, BE, Fullstack, DevOps, QA, etc. |
 | 2.2 | Tag system | Pending | High | Angular, Spring Boot, React, etc. |
 | 2.3 | Question generation | Pending | High | AI-generated 50 questions based on tags |
 | 2.4 | Top 50 questions | Pending | Medium | Curated per category |
