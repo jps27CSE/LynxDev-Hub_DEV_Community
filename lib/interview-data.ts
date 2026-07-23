@@ -1,6 +1,6 @@
 import { db } from "@/config/db";
-import { interviewCategories, interviewQuestions } from "@/config/schema";
-import { eq, count } from "drizzle-orm";
+import { interviewCategories, interviewChapters, interviewQuestions } from "@/config/schema";
+import { eq, asc, count } from "drizzle-orm";
 
 export type InterviewCategory = {
   id: number;
@@ -11,6 +11,21 @@ export type InterviewCategory = {
   color: string | null;
   order_index: number | null;
   questionCount: number;
+};
+
+export type InterviewChapter = {
+  id: number;
+  category_id: number;
+  title: string;
+  content: {
+    overview: string;
+    realLifeScenario: string;
+    explanation: string;
+    keyPoints: string[];
+    tips: string[];
+    sampleQuestions?: string[];
+  };
+  order_index: number | null;
 };
 
 export type InterviewQuestion = {
@@ -85,6 +100,33 @@ export async function getQuestionsByCategorySlug(
     return result.map((q) => ({
       ...q,
       tags: q.tags as string[],
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function getChaptersByCategorySlug(
+  slug: string
+): Promise<InterviewChapter[]> {
+  try {
+    const catResult = await db
+      .select()
+      .from(interviewCategories)
+      .where(eq(interviewCategories.slug, slug))
+      .limit(1);
+
+    if (catResult.length === 0) return [];
+
+    const result = await db
+      .select()
+      .from(interviewChapters)
+      .where(eq(interviewChapters.category_id, catResult[0].id))
+      .orderBy(asc(interviewChapters.order_index));
+
+    return result.map((ch) => ({
+      ...ch,
+      content: ch.content as InterviewChapter["content"],
     }));
   } catch {
     return [];

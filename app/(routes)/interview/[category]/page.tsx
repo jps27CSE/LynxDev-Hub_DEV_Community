@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getCategoryBySlug, getQuestionsByCategorySlug } from "@/lib/interview-data";
+import { getCategoryBySlug, getChaptersByCategorySlug, getQuestionsByCategorySlug } from "@/lib/interview-data";
 import CategoryClient from "./CategoryClient";
 
 export default async function CategoryPage({
@@ -14,7 +14,8 @@ export default async function CategoryPage({
     notFound();
   }
 
+  const chapters = await getChaptersByCategorySlug(slug);
   const questions = await getQuestionsByCategorySlug(slug);
 
-  return <CategoryClient category={cat} questions={questions} />;
+  return <CategoryClient category={cat} chapters={chapters} questions={questions} />;
 }

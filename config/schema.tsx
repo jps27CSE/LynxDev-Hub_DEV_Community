@@ -12,6 +12,8 @@ export const usersTable = mysqlTable("users", {
   id: int().primaryKey().autoincrement(),
   name: varchar({ length: 255 }).notNull(),
   email: varchar({ length: 255 }).notNull().unique(),
+  bio: text(),
+  skills: json(),
   points: int().default(0),
   subscription: varchar({ length: 255 }),
 });
@@ -61,6 +63,16 @@ export const interviewCategories = mysqlTable("interview_categories", {
   order_index: int("order_index").default(0),
 });
 
+export const interviewChapters = mysqlTable("interview_chapters", {
+  id: int().primaryKey().autoincrement(),
+  category_id: int("category_id")
+    .references(() => interviewCategories.id)
+    .notNull(),
+  title: varchar({ length: 255 }).notNull(),
+  content: json().notNull(),
+  order_index: int("order_index").default(0),
+});
+
 export const interviewQuestions = mysqlTable("interview_questions", {
   id: int().primaryKey().autoincrement(),
   category_id: int("category_id")
@@ -71,4 +83,17 @@ export const interviewQuestions = mysqlTable("interview_questions", {
   difficulty: varchar({ length: 20 }).notNull().default("medium"),
   tags: json(),
   is_top50: boolean("is_top50").default(false),
+});
+
+export const problems = mysqlTable("problems", {
+  id: int().primaryKey().autoincrement(),
+  title: varchar({ length: 255 }).notNull(),
+  description: text().notNull(),
+  difficulty: varchar({ length: 20 }).notNull().default("medium"),
+  category: varchar({ length: 100 }),
+  tags: json(),
+  starter_code: text("starter_code"),
+  solution_code: text("solution_code"),
+  test_cases: json("test_cases"),
+  order_index: int("order_index").default(0),
 });
