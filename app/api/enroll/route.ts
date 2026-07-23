@@ -28,12 +28,16 @@ export async function POST(req: NextRequest) {
 
   if (existing.length > 0) return NextResponse.json(existing[0]);
 
-  const result = await db
+  await db
     .insert(enrollments)
-    .values({ user_id: userId, course_id: courseId })
-    .returning();
+    .values({ user_id: userId, course_id: courseId });
 
-  return NextResponse.json(result[0]);
+  const created = await db
+    .select()
+    .from(enrollments)
+    .where(and(eq(enrollments.user_id, userId), eq(enrollments.course_id, courseId)));
+
+  return NextResponse.json(created[0]);
 }
 
 export async function GET() {

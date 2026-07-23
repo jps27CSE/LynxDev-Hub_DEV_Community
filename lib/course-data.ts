@@ -70,22 +70,3 @@ export async function getChaptersByCourseId(
     return [];
   }
 }
-
-export async function getChapterById(
-  chapterId: number
-): Promise<Chapter | null> {
-  try {
-    const result = await db
-      .select()
-      .from(chapters)
-      .where(eq(chapters.id, chapterId))
-      .limit(1);
-    if (!result[0]) return null;
-    return {
-      ...result[0],
-      content: result[0].content as Chapter["content"],
-    };
-  } catch {
-    return null;
-  }
-}

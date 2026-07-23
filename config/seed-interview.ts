@@ -2,15 +2,18 @@ import "dotenv/config";
 import { db } from "./db";
 import { interviewCategories, interviewQuestions } from "./schema";
 import { categoriesData, questionsData } from "./interview/seed-data";
+import { eq } from "drizzle-orm";
 
 async function main() {
   console.log("Seeding interview data...");
 
   for (const cat of categoriesData) {
+    await db.insert(interviewCategories).values(cat);
+
     const [category] = await db
-      .insert(interviewCategories)
-      .values(cat)
-      .returning({ id: interviewCategories.id });
+      .select()
+      .from(interviewCategories)
+      .where(eq(interviewCategories.slug, cat.slug));
 
     console.log(`Created category: ${cat.name} (id: ${category.id})`);
 

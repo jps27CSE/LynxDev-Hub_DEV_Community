@@ -1,6 +1,6 @@
 import { db } from "@/config/db";
 import { interviewCategories, interviewQuestions } from "@/config/schema";
-import { eq, count, and } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 
 export type InterviewCategory = {
   id: number;

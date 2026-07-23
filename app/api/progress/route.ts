@@ -1,8 +1,9 @@
 import { db } from "@/config/db";
-import { enrollments, usersTable, chapters } from "@/config/schema";
+import { enrollments, usersTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { getChaptersByCourseId } from "@/lib/course-data";
 
 export async function POST(req: NextRequest) {
   const clerkUser = await currentUser();
@@ -31,11 +32,14 @@ export async function POST(req: NextRequest) {
 
   let enrollmentRecord = enrollment[0];
   if (!enrollmentRecord) {
-    const [newEnrollment] = await db
+    await db
       .insert(enrollments)
-      .values({ user_id: user.id, course_id: courseId })
-      .returning();
-    enrollmentRecord = newEnrollment;
+      .values({ user_id: user.id, course_id: courseId });
+    const created = await db
+      .select()
+      .from(enrollments)
+      .where(and(eq(enrollments.user_id, user.id), eq(enrollments.course_id, courseId)));
+    enrollmentRecord = created[0];
   }
   const progress = (enrollmentRecord.progress as { completedChapters: number[]; currentChapter: number }) || {
     completedChapters: [],
@@ -49,13 +53,8 @@ export async function POST(req: NextRequest) {
   progress.completedChapters = [...progress.completedChapters, chapterId];
   progress.currentChapter = chapterId;
 
-  const chapter = await db
-    .select()
-    .from(chapters)
-    .where(eq(chapters.id, chapterId))
-    .limit(1);
-
-  const pointsReward = chapter[0]?.points_reward ?? 10;
+  const allChapters = await getChaptersByCourseId(courseId);
+  const pointsReward = allChapters.find((ch) => ch.id === chapterId)?.points_reward ?? 10;
 
   await db
     .update(enrollments)
@@ -67,12 +66,6 @@ export async function POST(req: NextRequest) {
     .update(usersTable)
     .set({ points: newPoints })
     .where(eq(usersTable.id, user.id));
-
-  // check if all chapters done → mark completed_at
-  const allChapters = await db
-    .select()
-    .from(chapters)
-    .where(eq(chapters.course_id, courseId));
 
   const allDone = allChapters.every((ch) => progress.completedChapters.includes(ch.id));
   if (allDone) {
