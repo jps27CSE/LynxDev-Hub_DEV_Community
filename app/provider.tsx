@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useUser } from "@clerk/nextjs";
 import axios from "axios";
+import { Toaster } from "sonner";
 import { UserDetailContext } from "@/context/UserDetailContext";
 
 function Provider({
@@ -27,6 +28,7 @@ function Provider({
     <NextThemesProvider {...props}>
       <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
         {children}
+        <Toaster richColors closeButton />
       </UserDetailContext.Provider>
     </NextThemesProvider>
   );

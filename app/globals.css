@@ -134,6 +134,53 @@
   animation-play-state: paused;
 }
 
+.lesson-content p {
+  margin-bottom: 0.75rem;
+}
+
+.lesson-content code {
+  background: oklch(0.92 0.004 286.32 / 0.5);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+}
+
+.dark .lesson-content code {
+  background: oklch(0.274 0.006 286.033 / 0.6);
+}
+
+.lesson-content strong {
+  color: var(--foreground);
+}
+
+.lesson-content ul,
+.lesson-content ol {
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.lesson-content li {
+  margin-bottom: 0.25rem;
+}
+
+.lesson-content h1,
+.lesson-content h2,
+.lesson-content h3 {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+  color: var(--foreground);
+}
+
+.lesson-content h2 {
+  font-size: 1.125rem;
+}
+
+.lesson-content h3 {
+  font-size: 1rem;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
