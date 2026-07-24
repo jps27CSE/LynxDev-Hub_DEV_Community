@@ -1,4 +1,4 @@
-import { MessageSquare, BookOpen, Brain, Terminal } from "lucide-react";
+import { MessageSquare, BookOpen, Brain, Terminal, Sparkles, User } from "lucide-react";
 import Link from "next/link";
 
 const links = [
@@ -27,12 +27,28 @@ const links = [
     bg: "bg-emerald-500/10",
   },
   {
-    title: "Challenges",
-    description: "Practice & improve skills",
+    title: "Interview",
+    description: "Practice interview questions",
+    icon: Sparkles,
+    href: "/interview",
+    color: "text-purple-500",
+    bg: "bg-purple-500/10",
+  },
+  {
+    title: "Problems",
+    description: "Solve DSA challenges",
     icon: Terminal,
-    href: "/challenges",
+    href: "/problems",
     color: "text-orange-500",
     bg: "bg-orange-500/10",
+  },
+  {
+    title: "Profile",
+    description: "Edit your name, bio & skills",
+    icon: User,
+    href: "/profile",
+    color: "text-foreground",
+    bg: "bg-muted",
   },
 ];
 

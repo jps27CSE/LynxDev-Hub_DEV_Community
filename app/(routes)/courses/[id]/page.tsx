@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { getCourseById, getChaptersByCourseId } from "@/lib/course-data";
 import { ChevronRight } from "lucide-react";
 import EnrollButton from "./EnrollButton";
+import CourseIcon from "@/components/CourseIcon";
 
 const difficultyColor: Record<string, string> = {
   Beginner: "bg-green-500/10 text-green-500 border-green-500/20",
@@ -27,8 +28,7 @@ export default async function CourseDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Link
           href="/courses"
           className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 inline-block"
@@ -38,8 +38,8 @@ export default async function CourseDetailPage({
 
         <div className="rounded-xl border border-border/50 bg-card p-8 mb-8">
           <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center text-3xl flex-shrink-0">
-              {course.icon || "📁"}
+            <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+              <CourseIcon title={course.title} className="w-9 h-9" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
@@ -109,7 +109,6 @@ export default async function CourseDetailPage({
             </Link>
           )}
         </div>
-      </div>
     </div>
   );
 }

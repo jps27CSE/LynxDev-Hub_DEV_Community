@@ -2,36 +2,39 @@ import { db } from "@/config/db";
 import { usersTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
-import { point } from "drizzle-orm/pg-core";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const user = await currentUser();
+  const clerkUser = await currentUser();
 
-  //if user already exist?
-  const users = await db
-    .select()
-    .from(usersTable)
-    //@ts-ignore
-    .where(eq(usersTable.email, user?.primaryEmailAddress?.emailAddress));
-
-  //If not the create new user record
-
-  if (users?.length <= 0) {
-    const email = user?.primaryEmailAddress?.emailAddress;
-
-    if (email) {
-      const newUser = {
-        name: user?.fullName ?? " ",
-        email,
-        points: 0,
-      };
-
-      const result = await db.insert(usersTable).values(newUser).returning();
-
-      return NextResponse.json(result[0]);
-    }
+  if (!clerkUser) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return NextResponse.json(users[0]);
+  const email = clerkUser.primaryEmailAddress?.emailAddress;
+  if (!email) {
+    return NextResponse.json({ error: "No email found" }, { status: 400 });
+  }
+
+  const existing = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, email));
+
+  if (existing.length > 0) {
+    return NextResponse.json(existing[0]);
+  }
+
+  await db.insert(usersTable).values({
+    name: clerkUser.fullName ?? " ",
+    email,
+    points: 0,
+  });
+
+  const created = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, email));
+
+  return NextResponse.json(created[0]);
 }

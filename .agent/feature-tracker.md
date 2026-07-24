@@ -16,11 +16,15 @@
 
 | # | Feature | Status | Priority | Notes |
 |---|---------|--------|----------|-------|
-| 2.1 | Interview categories | Pending | High | FE, BE, Fullstack, DevOps, QA, etc. |
-| 2.2 | Tag system | Pending | High | Angular, Spring Boot, React, etc. |
-| 2.3 | Question generation | Pending | High | AI-generated 50 questions based on tags |
-| 2.4 | Top 50 questions | Pending | Medium | Curated per category |
-| 2.5 | Problem solving list | Pending | High | Important DSA/algorithm problems |
+| 2.1 | Interview categories | Done | High | FE, BE, Fullstack, DevOps, QA, etc. |
+| 2.2 | Tag system | Done | High | Angular, Spring Boot, React, etc. |
+| 2.3 | Question generation | Done | High | POST /api/interview/generate with template-based AI; Generate button on category page |
+| 2.4 | Top 50 questions | Done | Medium | Tab-based toggle (All / Top 50) on category page |
+| 2.5 | Problem solving list | Done | High | /problems page, /problems/[id] editor, 10 DSA problems seeded |
+| 2.6 | Interview docs layout | Done | High | Left sidebar chapter nav + right side content with real-life scenarios, deep dives, code examples |
+| 2.7 | Interview chapter notes | Done | High | 15 chapters across 6 categories with markdown rendering (react-markdown + highlight.js) |
+| 2.8 | Dashboard stats cards | Done | Medium | Interview Prep + Problem Solving stat cards with live DB counts |
+| 2.9 | Pages redesign | Done | Medium | Interview listing and Courses page — hero, dot-grid, gradient headings, color-coded cards with hover lift |
 
 ## Phase 3 — Community + AI
 
@@ -28,7 +32,7 @@
 |---|---------|--------|----------|-------|
 | 3.1 | Community posts | Pending | High | Create, read, like posts |
 | 3.2 | Comment system | Pending | High | Nested or flat comments |
-| 3.3 | AI Mentor chat | Pending | High | Gemini/Groq integration |
+| 3.3 | AI Mentor chat | Done | High | Mistral AI — streaming chat, user context, skill-aware |
 | 3.4 | Developer notebook | Pending | Medium | Notes + code snippets |
 
 ## Phase 4 — Resource Hub + Polish

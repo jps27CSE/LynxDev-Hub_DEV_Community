@@ -2,17 +2,22 @@ import "dotenv/config";
 import { db } from "./db";
 import { courses, chapters } from "./schema";
 import { coursesData } from "./seed-data";
+import { eq } from "drizzle-orm";
 
 async function main() {
-  console.log("Seeding database...");
+  console.log("Seeding courses...");
 
   for (const courseData of coursesData) {
     const { chapters: chapterData, ...courseFields } = courseData;
 
+    await db.insert(courses).values(courseFields);
+
     const [course] = await db
-      .insert(courses)
-      .values(courseFields)
-      .returning({ id: courses.id });
+      .select()
+      .from(courses)
+      .where(eq(courses.title, courseData.title))
+      .orderBy(courses.id)
+      .limit(1);
 
     console.log(`Created course: ${courseData.title} (id: ${course.id})`);
 
@@ -29,7 +34,7 @@ async function main() {
     }
   }
 
-  console.log("Seeding complete!");
+  console.log("Courses seeding complete!");
 }
 
 main().catch(console.error);
