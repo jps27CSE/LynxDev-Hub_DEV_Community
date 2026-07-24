@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { db } from "@/config/db";
 import { courses, chapters } from "@/config/schema";
 import { eq, count, asc } from "drizzle-orm";
+import CourseIcon from "@/components/CourseIcon";
 
 const difficultyConfig: Record<string, { color: string; light: string; badge: string }> = {
   Beginner: {
@@ -42,9 +43,8 @@ export default async function CoursesPage() {
     countMap.set(row.course_id, Number(row.value));
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="relative overflow-hidden border-b border-border/40">
+  return (<>
+    <div className="relative overflow-hidden border-b border-border/40">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]" />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-3xl" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -128,9 +128,9 @@ export default async function CoursesPage() {
 
                   <div className="flex items-start gap-4 relative">
                     <div
-                      className={`w-14 h-14 rounded-2xl ${diff.light} flex items-center justify-center text-3xl flex-shrink-0 ring-1 ring-white/5`}
+                      className={`w-14 h-14 rounded-2xl ${diff.light} flex items-center justify-center flex-shrink-0 ring-1 ring-white/5`}
                     >
-                      {course.icon || "📁"}
+                      <CourseIcon title={course.title} className="w-8 h-8" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h2 className="font-bold text-lg group-hover:text-emerald-500 transition-colors">
@@ -164,7 +164,6 @@ export default async function CoursesPage() {
             })}
           </div>
         )}
-      </div>
     </div>
-  );
+  </>);
 }

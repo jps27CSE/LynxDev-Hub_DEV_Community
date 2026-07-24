@@ -32,7 +32,7 @@
 |---|---------|--------|----------|-------|
 | 3.1 | Community posts | Pending | High | Create, read, like posts |
 | 3.2 | Comment system | Pending | High | Nested or flat comments |
-| 3.3 | AI Mentor chat | Pending | High | Gemini/Groq integration |
+| 3.3 | AI Mentor chat | Done | High | Mistral AI — streaming chat, user context, skill-aware |
 | 3.4 | Developer notebook | Pending | Medium | Notes + code snippets |
 
 ## Phase 4 — Resource Hub + Polish

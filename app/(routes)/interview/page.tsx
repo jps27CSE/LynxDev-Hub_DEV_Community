@@ -56,9 +56,8 @@ export default async function InterviewPage() {
     chapterCountByCategory.set(ch.category_id, (chapterCountByCategory.get(ch.category_id) || 0) + 1);
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="relative overflow-hidden border-b border-border/40">
+  return (<>
+    <div className="relative overflow-hidden border-b border-border/40">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative">
@@ -171,7 +170,6 @@ export default async function InterviewPage() {
             </p>
           </div>
         )}
-      </div>
     </div>
-  );
+  </>);
 }

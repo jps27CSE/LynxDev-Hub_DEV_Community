@@ -85,6 +85,16 @@ export const interviewQuestions = mysqlTable("interview_questions", {
   is_top50: boolean("is_top50").default(false),
 });
 
+export const mentorConversations = mysqlTable("mentor_conversations", {
+  id: int().primaryKey().autoincrement(),
+  user_id: int("user_id")
+    .references(() => usersTable.id)
+    .notNull(),
+  messages: json().notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
 export const problems = mysqlTable("problems", {
   id: int().primaryKey().autoincrement(),
   title: varchar({ length: 255 }).notNull(),

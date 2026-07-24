@@ -11,7 +11,7 @@ export default async function ProblemDetailPage({
 
   if (!problem) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center p-12">
         <p className="text-muted-foreground">Problem not found.</p>
       </div>
     );
