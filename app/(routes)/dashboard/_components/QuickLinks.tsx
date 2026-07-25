@@ -1,31 +1,7 @@
-import { MessageSquare, BookOpen, Brain, Terminal, Sparkles, User } from "lucide-react";
+import { Terminal, Sparkles, User } from "lucide-react";
 import Link from "next/link";
 
 const links = [
-  {
-    title: "Community",
-    description: "Ask questions, share knowledge",
-    icon: MessageSquare,
-    href: "/community",
-    color: "text-blue-500",
-    bg: "bg-blue-500/10",
-  },
-  {
-    title: "AI Mentor",
-    description: "Get coding help & guidance",
-    icon: Brain,
-    href: "/mentor",
-    color: "text-purple-500",
-    bg: "bg-purple-500/10",
-  },
-  {
-    title: "Notes",
-    description: "Save code snippets & ideas",
-    icon: BookOpen,
-    href: "/notes",
-    color: "text-emerald-500",
-    bg: "bg-emerald-500/10",
-  },
   {
     title: "Interview",
     description: "Practice interview questions",

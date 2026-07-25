@@ -44,8 +44,12 @@ const categoryThemes: Record<string, { light: string; medium: string; border: st
   },
 };
 
+const ALLOWED_SLUGS = ["software-engineer", "frontend-engineer", "backend-engineer"];
+
 export default async function InterviewPage() {
-  const categories = await getAllCategories();
+  const categories = (await getAllCategories()).filter((c) =>
+    ALLOWED_SLUGS.includes(c.slug)
+  );
   const [qTotal] = await db.select({ value: count() }).from(interviewQuestions);
   const [chTotal] = await db.select({ value: count() }).from(interviewChapters);
   const allChapters = await db
@@ -64,7 +68,7 @@ export default async function InterviewPage() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs text-muted-foreground mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              6 tracks &middot; {Number(qTotal.value)} questions &middot; {Number(chTotal.value)} chapters
+              {categories.length} tracks &middot; {Number(qTotal.value)} questions &middot; {Number(chTotal.value)} chapters
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
               Interview{" "}

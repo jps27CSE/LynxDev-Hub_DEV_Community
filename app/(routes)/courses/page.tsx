@@ -23,12 +23,25 @@ const difficultyConfig: Record<string, { color: string; light: string; badge: st
   },
 };
 
+const ALLOWED_COURSES = [
+  "HTML & CSS Fundamentals",
+  "JavaScript Essentials",
+  "React Development",
+  "Angular Development",
+  "Node.js Backend",
+  "Express.js API Development",
+];
+
 export default async function CoursesPage() {
   const allCourses = await db
     .select()
     .from(courses)
     .where(eq(courses.is_published!, true))
     .orderBy(asc(courses.order_index));
+
+  const filteredCourses = allCourses.filter((c) =>
+    ALLOWED_COURSES.includes(c.title)
+  );
 
   const chapterCounts = await db
     .select({
@@ -61,7 +74,7 @@ export default async function CoursesPage() {
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs text-muted-foreground mb-6">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                {allCourses.length} courses available
+                {filteredCourses.length} courses available
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
                 Learn to{" "}
@@ -87,15 +100,15 @@ export default async function CoursesPage() {
           </div>
           <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
             <span className="w-2 h-2 rounded-full bg-emerald-500/70" />
-            {allCourses.filter((c) => c.difficulty === "Beginner").length} Beginner
+            {filteredCourses.filter((c) => c.difficulty === "Beginner").length} Beginner
             <span className="mx-1.5 text-muted-foreground/30">&middot;</span>
-            {allCourses.filter((c) => c.difficulty === "Intermediate").length} Intermediate
+            {filteredCourses.filter((c) => c.difficulty === "Intermediate").length} Intermediate
             <span className="mx-1.5 text-muted-foreground/30">&middot;</span>
-            {allCourses.filter((c) => c.difficulty === "Advanced").length} Advanced
+            {filteredCourses.filter((c) => c.difficulty === "Advanced").length} Advanced
           </div>
         </div>
 
-        {allCourses.length === 0 ? (
+        {filteredCourses.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-muted-foreground">
               No courses available yet. Check back soon!
@@ -103,7 +116,7 @@ export default async function CoursesPage() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {allCourses.map((course) => {
+            {filteredCourses.map((course) => {
               const diff = difficultyConfig[course.difficulty] || difficultyConfig["Beginner"];
               const chapterCount = countMap.get(course.id) || 0;
 

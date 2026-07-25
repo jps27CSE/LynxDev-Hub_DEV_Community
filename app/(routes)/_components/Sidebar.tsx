@@ -21,7 +21,6 @@ const links = [
   { label: "Courses", href: "/courses", icon: BookOpen },
   { label: "Interview", href: "/interview", icon: Sparkles },
   { label: "Problems", href: "/problems", icon: Terminal },
-  { label: "Mentor", href: "/mentor", icon: Brain },
 ];
 
 type SidebarProps = {
