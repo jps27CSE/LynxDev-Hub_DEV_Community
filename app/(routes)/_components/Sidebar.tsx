@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
+import { VersionBadge } from "@/components/VersionBadge";
 
 const links = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -116,6 +117,12 @@ export default function Sidebar({ open, collapsed, onToggleCollapse, onClose }: 
             </button>
           </SignOutButton>
         </div>
+
+        {!collapsed && (
+          <div className="flex items-center justify-center py-2 border-t border-border/50">
+            <VersionBadge />
+          </div>
+        )}
 
         <button
           onClick={onToggleCollapse}

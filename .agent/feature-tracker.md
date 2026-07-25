@@ -39,12 +39,25 @@
 
 | # | Feature | Status | Priority | Notes |
 |---|---------|--------|----------|-------|
-| 4.1 | YouTube playlist integration | Pending | Medium | Auto-scrolling carousel |
+| 4.1 | YouTube playlist integration | Done | Medium | Auto-scrolling carousel on homepage |
 | 4.2 | Blog/articles | Pending | Low | Resource hub |
 | 4.3 | Challenge arena | Pending | Low | Weekly challenges |
 | 4.4 | Resume analyzer | Pending | Low | Ephemeral AI analysis |
 | 4.5 | Notifications | Pending | Low | Comment replies, reminders |
 | 4.6 | Admin tools | Pending | Low | Your control panel |
+
+## Phase 5 — Mock Interview + Skills Roadmap
+
+| # | Feature | Status | Priority | Notes |
+|---|---------|--------|----------|-------|
+| 5.1 | Mock interview templates | Pending | High | Readymade junior-level templates (FE, BE, Fullstack) |
+| 5.2 | Custom topic selector | Pending | High | User picks which topics to be interviewed on |
+| 5.3 | AI voice interview (TTS) | Pending | High | Browser Web Speech API for AI interviewer voice |
+| 5.4 | Coding editor in interview | Pending | High | Embedded editor with test validation during interview |
+| 5.5 | Feedback + scoring | Pending | High | Post-interview score (0-100), per-question feedback, improvement suggestions |
+| 5.6 | Weekly limit (1/user) | Pending | Medium | One completed interview per user per week |
+| 5.7 | Skills roadmap tree | Pending | High | Interactive skill nodes with resources (articles, docs, videos) |
+| 5.8 | YouTube video courses | Pending | High | Videos from CodeInsightsByJack channel, mark complete with progress |
 
 ---
 

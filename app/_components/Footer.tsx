@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { VersionBadge } from "@/components/VersionBadge";
 
 const footerLinks = [
   { label: "Courses", href: "/courses" },
@@ -62,6 +63,9 @@ function Footer() {
         <div className="mt-10 pt-6 border-t border-border/40 text-center">
           <p className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} LynxDev HUB. All rights reserved.
+          </p>
+          <p className="text-[11px] text-muted-foreground/60 mt-2">
+            <VersionBadge />
           </p>
         </div>
       </div>

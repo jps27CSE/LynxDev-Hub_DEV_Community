@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import axios from "axios";
 import { Toaster } from "sonner";
 import { UserDetailContext } from "@/context/UserDetailContext";
+import { VersionUpdateNotification } from "@/components/VersionUpdateNotification";
 
 function Provider({
   children,
@@ -28,6 +29,7 @@ function Provider({
     <NextThemesProvider {...props}>
       <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
         {children}
+        <VersionUpdateNotification />
         <Toaster richColors closeButton />
       </UserDetailContext.Provider>
     </NextThemesProvider>
