@@ -75,14 +75,21 @@ export const interviewChapters = mysqlTable("interview_chapters", {
 
 export const interviewQuestions = mysqlTable("interview_questions", {
   id: int().primaryKey().autoincrement(),
-  category_id: int("category_id")
-    .references(() => interviewCategories.id)
-    .notNull(),
   question: text().notNull(),
   answer: text().notNull(),
   difficulty: varchar({ length: 20 }).notNull().default("medium"),
   tags: json(),
   is_top50: boolean("is_top50").default(false),
+});
+
+export const interviewQuestionChapters = mysqlTable("interview_question_chapters", {
+  id: int().primaryKey().autoincrement(),
+  question_id: int("question_id")
+    .references(() => interviewQuestions.id)
+    .notNull(),
+  chapter_id: int("chapter_id")
+    .references(() => interviewChapters.id)
+    .notNull(),
 });
 
 export const mentorConversations = mysqlTable("mentor_conversations", {

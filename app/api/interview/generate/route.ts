@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/config/db";
-import { interviewCategories, interviewQuestions } from "@/config/schema";
+import { interviewCategories } from "@/config/schema";
 import { eq } from "drizzle-orm";
 
 const questionTemplates: Record<string, { question: string; answer: string; difficulty: string; tags: string[] }[]> = {

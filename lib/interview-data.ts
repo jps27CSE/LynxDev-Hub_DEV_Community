@@ -1,6 +1,11 @@
 import { db } from "@/config/db";
-import { interviewCategories, interviewChapters, interviewQuestions } from "@/config/schema";
-import { eq, asc, count } from "drizzle-orm";
+import {
+  interviewCategories,
+  interviewChapters,
+  interviewQuestions,
+  interviewQuestionChapters,
+} from "@/config/schema";
+import { eq, asc, count, inArray } from "drizzle-orm";
 
 export type InterviewCategory = {
   id: number;
@@ -18,19 +23,15 @@ export type InterviewChapter = {
   category_id: number;
   title: string;
   content: {
-    overview: string;
-    realLifeScenario: string;
-    explanation: string;
     keyPoints: string[];
     tips: string[];
-    sampleQuestions?: string[];
+    [key: string]: unknown;
   };
   order_index: number | null;
 };
 
 export type InterviewQuestion = {
   id: number;
-  category_id: number;
   question: string;
   answer: string;
   difficulty: string;
@@ -53,8 +54,16 @@ export async function getAllCategories(): Promise<InterviewCategory[]> {
       })
       .from(interviewCategories)
       .leftJoin(
+        interviewChapters,
+        eq(interviewCategories.id, interviewChapters.category_id)
+      )
+      .leftJoin(
+        interviewQuestionChapters,
+        eq(interviewChapters.id, interviewQuestionChapters.chapter_id)
+      )
+      .leftJoin(
         interviewQuestions,
-        eq(interviewCategories.id, interviewQuestions.category_id)
+        eq(interviewQuestionChapters.question_id, interviewQuestions.id)
       )
       .groupBy(interviewCategories.id)
       .orderBy(interviewCategories.order_index);
@@ -92,15 +101,60 @@ export async function getQuestionsByCategorySlug(
     if (catResult.length === 0) return [];
 
     const result = await db
-      .select()
+      .selectDistinct({
+        id: interviewQuestions.id,
+        question: interviewQuestions.question,
+        answer: interviewQuestions.answer,
+        difficulty: interviewQuestions.difficulty,
+        tags: interviewQuestions.tags,
+        is_top50: interviewQuestions.is_top50,
+      })
       .from(interviewQuestions)
-      .where(eq(interviewQuestions.category_id, catResult[0].id))
+      .innerJoin(
+        interviewQuestionChapters,
+        eq(interviewQuestions.id, interviewQuestionChapters.question_id)
+      )
+      .innerJoin(
+        interviewChapters,
+        eq(interviewQuestionChapters.chapter_id, interviewChapters.id)
+      )
+      .where(eq(interviewChapters.category_id, catResult[0].id))
       .orderBy(interviewQuestions.id);
 
     return result.map((q) => ({
       ...q,
       tags: q.tags as string[],
     }));
+  } catch {
+    return [];
+  }
+}
+
+export async function getQuestionsByCategorySlugAndTags(
+  slug: string,
+  tags: string[]
+): Promise<InterviewQuestion[]> {
+  try {
+    const all = await getQuestionsByCategorySlug(slug);
+    if (tags.length === 0) return all;
+    return all.filter((q) => q.tags.some((t) => tags.includes(t)));
+  } catch {
+    return [];
+  }
+}
+
+export async function getDistinctTagsByCategorySlug(
+  slug: string
+): Promise<string[]> {
+  try {
+    const questions = await getQuestionsByCategorySlug(slug);
+    const tagSet = new Set<string>();
+    for (const q of questions) {
+      for (const tag of q.tags) {
+        tagSet.add(tag);
+      }
+    }
+    return Array.from(tagSet).sort();
   } catch {
     return [];
   }
@@ -127,6 +181,35 @@ export async function getChaptersByCategorySlug(
     return result.map((ch) => ({
       ...ch,
       content: ch.content as InterviewChapter["content"],
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function getQuestionsByChapterId(
+  chapterId: number
+): Promise<InterviewQuestion[]> {
+  try {
+    const result = await db
+      .select({
+        id: interviewQuestions.id,
+        question: interviewQuestions.question,
+        answer: interviewQuestions.answer,
+        difficulty: interviewQuestions.difficulty,
+        tags: interviewQuestions.tags,
+        is_top50: interviewQuestions.is_top50,
+      })
+      .from(interviewQuestions)
+      .innerJoin(
+        interviewQuestionChapters,
+        eq(interviewQuestions.id, interviewQuestionChapters.question_id)
+      )
+      .where(eq(interviewQuestionChapters.chapter_id, chapterId));
+
+    return result.map((q) => ({
+      ...q,
+      tags: q.tags as string[],
     }));
   } catch {
     return [];
