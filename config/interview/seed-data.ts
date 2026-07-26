@@ -17020,31 +17020,970 @@ npx vitest --ui
   ],
   "backend-engineer": [
     {
+      question: "What is the difference between SQL and NoSQL databases?",
+      answer: `SQL databases (PostgreSQL, MySQL, SQL Server) use structured schemas with predefined tables, rows, and columns. They enforce relationships through foreign keys and guarantee ACID transactions. NoSQL databases (MongoDB, DynamoDB, Cassandra, Redis) offer flexible schemas — documents, key-value pairs, wide-columns, or graphs. They prioritize horizontal scaling and high availability, often sacrificing strong consistency for performance.
+
+**Choose SQL when:** data integrity matters, relationships are complex, or you need ACID guarantees (banking, e-commerce orders, accounting).
+
+**Choose NoSQL when:** you need rapid iteration, flexible data shapes, massive scale with low latency, or you're storing session data, user preferences, or denormalized aggregates.`,
+      difficulty: "easy",
+      tags: ["databases"],
+      is_top50: true,
+    },
+    {
+      question: "What is normalization in databases and what are the normal forms?",
+      answer: `Normalization is the process of organizing relational database schemas to reduce data redundancy and improve data integrity. It divides large tables into smaller, related tables and defines relationships between them.
+
+**First Normal Form (1NF):** Each column contains atomic (indivisible) values; each row is unique; each column has a single value per row. No arrays or nested objects in cells.
+
+**Second Normal Form (2NF):** Satisfies 1NF, and every non-key column is fully functionally dependent on the entire primary key (not just part of it). Relevant for composite primary keys.
+
+**Third Normal Form (3NF):** Satisfies 2NF, and no non-key column is transitively dependent on another non-key column. Every non-key column depends directly on the primary key.
+
+**Example — denormalized:**
+A single \`Orders\` table stores \`CustomerName, CustomerEmail, ProductName, ProductPrice\` — customer data repeats for every order.
+
+**Normalized form:**
+\`Customers\` (id, name, email) → \`Orders\` (id, customer_id, date) → \`OrderItems\` (id, order_id, product_id, qty) → \`Products\` (id, name, price)
+
+**Trade-off:** Normalization reduces redundancy and anomalies but increases JOIN complexity. For read-heavy workloads, selective denormalization is often beneficial.`,
+      difficulty: "medium",
+      tags: ["databases"],
+      is_top50: true,
+    },
+    {
+      question: "What is indexing in databases and how does it work?",
+      answer: `An index is a data structure that speeds up data retrieval by providing fast lookup paths, similar to a book's index. Without indexes, the database performs a full table scan — reading every row to find matches (O(n)).
+
+**How it works:** The database maintains a separate structure (usually a B-tree) that maps indexed column values to row locations (physical addresses or primary keys). When you query with a WHERE clause on an indexed column, the database traverses the B-tree in O(log n) time instead of scanning the entire table.
+
+**Index types:**
+- **B-tree index** (default in most databases): Balanced tree, supports equality, range (\>, <, BETWEEN), and prefix matching. Best for high-cardinality columns.
+- **Hash index:** Uses a hash table for equality lookups only (=, IN). Faster than B-tree for exact matches but does not support range queries.
+- **GiST/GIN indexes:** Specialized for full-text search, JSONB, geospatial data (PostgreSQL).
+- **Composite index:** Index on multiple columns. Column order matters — put high-selectivity columns first.
+
+**Example:**
+\`\`\`sql
+CREATE INDEX idx_orders_date ON orders(created_at);
+-- Now WHERE created_at BETWEEN '2024-01-01' AND '2024-01-31' uses the index
+
+CREATE INDEX idx_orders_user_date ON orders(user_id, created_at);
+-- WHERE user_id = 42 AND created_at > '2024-01-01' uses the composite index efficiently
+\`\`\`
+
+**Trade-offs:** Indexes speed up SELECT but slow down INSERT, UPDATE, DELETE because the index must be maintained. Indexes also consume disk space. Every index is a trade-off between read performance and write/maintenance cost.`,
+      difficulty: "medium",
+      tags: ["databases", "performance"],
+      is_top50: true,
+    },
+    {
+      question: "What are ACID properties in databases?",
+      answer: `ACID is a set of properties that guarantee reliable processing of database transactions, especially critical for financial and mission-critical systems.
+
+**Atomicity:** A transaction is all-or-nothing. If any part fails, the entire transaction is rolled back. No partial updates are visible. Example: transferring \$100 from Account A to Account B — both the debit and credit must succeed, or neither happens.
+
+**Consistency:** A transaction brings the database from one valid state to another, preserving all defined rules (constraints, cascades, triggers, data types). No transaction can violate database integrity.
+
+**Isolation:** Concurrent transactions execute as if they were run sequentially. The database provides isolation levels (Read Uncommitted, Read Committed, Repeatable Read, Serializable) that balance consistency against performance.
+
+**Durability:** Once a transaction is committed, its changes persist even after a system crash or power loss. Achieved through write-ahead logging (WAL) — changes are written to a log file before being applied to the data files.
+
+**Real-world example:**
+\`\`\`sql
+BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+COMMIT;
+-- If the server crashes after the first UPDATE, the transaction rolls back entirely
+\`\`\``,
+      difficulty: "medium",
+      tags: ["databases"],
+      is_top50: true,
+    },
+    {
+      question: "What is denormalization and when should you use it?",
+      answer: `Denormalization is the intentional introduction of redundancy into a database schema to improve read performance. It combines data from multiple normalized tables into a single table, reducing the number of JOINs needed for queries.
+
+**When to denormalize:**
+- **Read-heavy workloads:** Dashboards, analytics, reporting, and content delivery where reads vastly outnumber writes
+- **Pre-aggregated data:** Storing computed totals, counts, or averages to avoid expensive aggregations on every read
+- **Frequently accessed relationships:** Joining the same 3-4 tables on every query — collapse them into one table
+- **Caching layer:** Pre-joining data that rarely changes (e.g., username + avatar stored directly on the post table)
+
+**Examples:**
+\`\`\`sql
+-- Normalized: requires JOIN on every read
+SELECT u.name, p.title FROM posts p JOIN users u ON p.user_id = u.id;
+
+-- Denormalized: user_name stored directly on posts table
+SELECT user_name, title FROM posts;
+\`\`\`
+
+**Risks of denormalization:**
+- Data inconsistency — updating the user's name requires updating every row in the posts table
+- Increased storage size
+- More complex write operations (update anomalies)
+- Harder to maintain as the schema evolves
+
+**Best practice:** Start normalized (3NF), profile your slow queries, then selectively denormalize the hot paths. Use materialized views or cache layers as an intermediate step before fully denormalizing the schema.`,
+      difficulty: "medium",
+      tags: ["databases", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "Explain database transactions and isolation levels.",
+      answer: `A transaction is a sequence of database operations treated as a single logical unit. Transactions provide ACID guarantees. Isolation levels control how transactions interact with each other.
+
+**Read phenomena that isolation levels prevent:**
+
+| Phenomenon | Description |
+|---|---|
+| **Dirty Read** | Reading uncommitted changes from another transaction |
+| **Non-repeatable Read** | Same query returns different results within a transaction (another tx committed an update) |
+| **Phantom Read** | Same query returns different rows — new rows inserted by another tx appear |
+
+**Isolation levels (from weakest to strongest):**
+
+**1. Read Uncommitted:** No isolation — dirty reads, non-repeatable reads, and phantoms are all possible. Rarely used in practice.
+
+**2. Read Committed (default in PostgreSQL, SQL Server):** Each query sees only committed data (no dirty reads). Non-repeatable reads and phantoms can occur. Most databases' default — good balance of consistency and performance.
+
+**3. Repeatable Read (default in MySQL/InnoDB):** Ensures that if you read a row twice in the same transaction, you see the same data (no dirty or non-repeatable reads). Phantoms can still occur (except in PostgreSQL's Repeatable Read which also prevents phantoms).
+
+**4. Serializable:** The strongest isolation — transactions execute as if they were run one after another. Complete protection against all phenomena but significantly reduces concurrency.
+
+**Example:**
+\`\`\`sql
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN;
+SELECT balance FROM accounts WHERE id = 1; -- returns 1000
+-- Another transaction updates balance to 900 and commits
+SELECT balance FROM accounts WHERE id = 1; -- still returns 1000 (repeatable read)
+COMMIT;
+\`\`\``,
+      difficulty: "hard",
+      tags: ["databases"],
+      is_top50: false,
+    },
+    {
+      question: "What is the N+1 query problem and how do you solve it?",
+      answer: `The N+1 query problem occurs when code fetches a list of records and then executes a separate query for each record's related data. The result is 1 query for the parent + N queries for children — extremely inefficient.
+
+**Example (bad — N+1):**
+\`\`\`javascript
+// ORM pseudocode
+const users = await User.find();  // 1 query — gets all users
+for (const user of users) {
+  const posts = await Post.find({ userId: user.id });  // N queries — one per user
+}
+// If there are 100 users: 1 + 100 = 101 queries
+\`\`\`
+
+**Solution — eager loading (single JOIN):**
+\`\`\`javascript
+const users = await User.find().include('posts');  // 1 query with JOIN
+// SQL generated: SELECT * FROM users LEFT JOIN posts ON posts.user_id = users.id
+\`\`\`
+
+**Other solutions:**
+- **Batch loading:** Use a tool like DataLoader (GraphQL) that batches requests
+- **Subqueries:** One query with a subquery to fetch related data
+- **Caching:** For data that doesn't change frequently
+
+**Detection:** Most ORMs support logging query counts (Django Debug Toolbar, Laravel Debugbar, Spring Boot's SQL logging). A page should rarely execute more than 10-20 queries. If you see hundreds, N+1 is the likely culprit.`,
+      difficulty: "medium",
+      tags: ["databases", "performance", "orm"],
+      is_top50: false,
+    },
+    {
+      question: "What is the EXPLAIN command and how do you use it for query optimization?",
+      answer: `EXPLAIN (or EXPLAIN ANALYZE) shows the database's query execution plan — how it intends to execute a query, which indexes it uses, join methods, and estimated costs.
+
+**Key information from EXPLAIN:**
+- **Scan type:** Sequential scan (full table) vs index scan vs bitmap index scan
+- **Join type:** Nested Loop, Hash Join, Merge Join
+- **Estimated vs actual rows:** Large discrepancies suggest outdated statistics
+- **Cost:** Relative cost units — higher numbers mean slower operations
+- **Actual time (with ANALYZE):** Real execution time in milliseconds
+
+**Example:**
+\`\`\`sql
+EXPLAIN ANALYZE SELECT u.name, COUNT(o.id)
+FROM users u
+LEFT JOIN orders o ON o.user_id = u.id
+WHERE u.created_at > '2024-01-01'
+GROUP BY u.id;
+\`\`\`
+
+**Output interpretation:**
+\`\`\`
+HashAggregate  (cost=1240.32..1245.45 rows=513 width=42)
+  ->  Hash Left Join  (cost=845.12..1225.18 rows=3028 width=34)
+        Hash Cond: (u.id = o.user_id)
+        ->  Seq Scan on users u  (cost=0.00..345.20 rows=513 width=26)
+              Filter: (created_at > '2024-01-01')
+        ->  Hash  (cost=520.15..520.15 rows=8015 width=8)
+              ->  Seq Scan on orders o  (cost=0.00..520.15 rows=8015 width=8)
+\`\`\`
+
+**Red flags to watch for:**
+- **Seq Scan on large tables** (over 10K rows) — suggests a missing index
+- **Nested Loop with many iterations** — could benefit from Hash Join
+- **Rows estimate is way off** — run ANALYZE to update table statistics
+- **Sort (cost=...) on large datasets** — consider adding an index for the sort order`,
+      difficulty: "hard",
+      tags: ["databases", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between a primary key and a foreign key?",
+      answer: `**Primary key:** A column (or set of columns) that uniquely identifies each row in a table. Every table should have a primary key. Constraints: unique, not null, only one per table. Commonly an auto-incrementing integer (SERIAL, AUTO_INCREMENT) or a UUID.
+
+**Foreign key:** A column that references the primary key of another table. It enforces referential integrity — ensuring that relationships between tables remain valid.
+
+**Example:**
+\`\`\`sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,       -- primary key
+  email VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE orders (
+  id SERIAL PRIMARY KEY,        -- primary key
+  user_id INT NOT NULL,         -- foreign key
+  total DECIMAL(10,2),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+\`\`\`
+
+**Key differences:**
+- Uniqueness: Primary key is always unique; foreign key can have duplicates
+- Nullability: Primary key cannot be NULL; foreign key can be NULL
+- Number per table: Only one primary key; multiple foreign keys allowed
+- Purpose: Primary key identifies rows; foreign key maintains relationships
+
+**Referential actions:**
+- ON DELETE CASCADE: Delete related child rows when parent is deleted
+- ON DELETE SET NULL: Set foreign key to NULL when parent is deleted
+- ON DELETE RESTRICT: Prevent deleting parent if child rows exist.`,
+      difficulty: "easy",
+      tags: ["databases"],
+      is_top50: true,
+    },
+    {
+      question: "Explain the different types of JOINs in SQL.",
+      answer: `JOINs combine rows from two or more tables based on a related column.
+
+**INNER JOIN:** Returns only rows where there is a match in both tables. If a user has no orders, they are excluded.
+\`\`\`sql
+SELECT u.name, o.total
+FROM users u
+INNER JOIN orders o ON u.id = o.user_id;
+\`\`\`
+
+**LEFT JOIN (LEFT OUTER JOIN):** Returns all rows from the left table, and matched rows from the right. Unmatched right-side columns are NULL.
+\`\`\`sql
+SELECT u.name, o.total
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id;
+-- All users appear, even those with no orders
+\`\`\`
+
+**RIGHT JOIN (RIGHT OUTER JOIN):** Returns all rows from the right table, and matched rows from the left. Opposite of LEFT JOIN.
+\`\`\`sql
+SELECT u.name, o.total
+FROM users u
+RIGHT JOIN orders o ON u.id = o.user_id;
+\`\`\`
+
+**FULL OUTER JOIN:** Returns all rows where there is a match in either table. Unmatched rows on either side show NULL.
+\`\`\`sql
+SELECT u.name, o.total
+FROM users u
+FULL OUTER JOIN orders o ON u.id = o.user_id;
+\`\`\`
+
+**CROSS JOIN:** Produces a Cartesian product — every row from table A paired with every row from table B. Use sparingly.
+\`\`\`sql
+SELECT u.name, p.name
+FROM users u
+CROSS JOIN products p;
+-- 100 users × 50 products = 5000 rows
+\`\`\`
+
+**SELF JOIN:** Joining a table with itself. Useful for hierarchical data like employees and managers.
+\`\`\`sql
+SELECT e.name AS employee, m.name AS manager
+FROM employees e
+LEFT JOIN employees m ON e.manager_id = m.id;
+\`\`\``,
+      difficulty: "medium",
+      tags: ["databases", "sql"],
+      is_top50: true,
+    },
+    {
+      question: "What is database sharding and how does it work?",
+      answer: `Sharding is a horizontal partitioning strategy where data is split across multiple independent database servers (shards). Each shard holds a subset of the data and operates as its own database instance.
+
+**Sharding strategies:**
+
+**Hash-based sharding:** Apply a hash function to the shard key, then modulo by the number of shards.
+\`\`\`javascript
+function getShard(userId, totalShards) {
+  return hash(userId) % totalShards;
+  // userId 42 → shard 2, userId 73 → shard 7
+}
+\`\`\`
+Pros: Even distribution. Cons: Resharding requires rehashing all data.
+
+**Range-based sharding:** Assign contiguous ranges of the shard key to each shard.
+Shard 1: users 1-10000, Shard 2: users 10001-20000, etc.
+Pros: Simple, range queries stay on one shard. Cons: Hotspots (the latest shard gets all new writes).
+
+**Directory-based sharding:** A lookup service maps each shard key to its shard.
+Pros: Flexible routing. Cons: Additional hop and potential single point of failure.
+
+**Challenges of sharding:**
+- **Cross-shard queries:** JOINs across shards are expensive or impossible — design around it
+- **Distributed transactions:** Two-phase commit adds latency and complexity
+- **Resharding:** Adding or removing shards requires migrating large amounts of data
+- **Backup and recovery:** Each shard needs its own backup strategy
+- **Global uniqueness:** Auto-increment IDs are not globally unique — use UUIDs or distributed ID generators (Snowflake, ULID)
+
+**When to shard:** When a single database cannot handle the write throughput or the dataset exceeds 1-2TB and vertical scaling is cost-prohibitive. Sharding should be your last resort after trying read replicas, caching, and vertical scaling.`,
+      difficulty: "hard",
+      tags: ["databases", "scalability"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between partitioning and sharding?",
+      answer: `**Partitioning** splits a single table within one database instance. Partitions are transparent to the application — queries still target the same table. Each partition is a separate storage segment but managed by the same database engine.
+
+**Sharding** splits data across multiple independent database instances (servers). The application must know which shard to query.
+
+**Key differences:**
+
+| Aspect | Partitioning | Sharding |
+|---|---|---|
+| Scope | Within a single database instance | Across multiple servers |
+| Transparency | Transparent to queries | Requires application-aware routing |
+| Complexity | Low — built into the database | High — custom routing, cross-shard challenges |
+| Scaling | Up to available disk/memory limits | Virtually unlimited |
+| JOINs across partitions | Possible (same database) | Difficult (different servers) |
+| Maintenance | Standard backup/repair tools | Each shard managed independently |
+
+**Example — partitioning by date:**
+\`\`\`sql
+CREATE TABLE orders (
+  id SERIAL, created_at DATE, total DECIMAL
+) PARTITION BY RANGE (created_at);
+
+CREATE TABLE orders_2024_q1 PARTITION OF orders
+  FOR VALUES FROM ('2024-01-01') TO ('2024-04-01');
+
+CREATE TABLE orders_2024_q2 PARTITION OF orders
+  FOR VALUES FROM ('2024-04-01') TO ('2024-07-01');
+\`\`\`
+
+**When to partition:** Large tables (millions+ rows) where you can drop old partitions for archiving, or when queries consistently filter on the partition key.
+
+**When to shard:** When write throughput exceeds a single server, or dataset exceeds 1TB+ and you've exhausted vertical scaling.`,
+      difficulty: "hard",
+      tags: ["databases", "scalability"],
+      is_top50: false,
+    },
+    {
+      question: "What is connection pooling and why is it important?",
+      answer: `Connection pooling maintains a cache of database connections that can be reused across requests, avoiding the overhead of establishing a new TCP connection for every request.
+
+**Why it matters:**
+Establishing a database connection requires a TCP handshake, SSL negotiation, and authentication — typically 10-50ms of overhead. Without pooling, each request opens and closes a connection, wasting resources and increasing latency.
+
+**How it works:**
+1. On application startup, the pool creates a fixed number of connections (e.g., 20)
+2. When a request needs the database, it borrows a connection from the pool
+3. After the query completes, the connection returns to the pool (not closed)
+4. If all connections are in use, the request waits for one to become available (queue)
+
+**Configuration parameters:**
+- **Min/Max pool size:** Minimum connections kept alive; maximum connections allowed
+- **Idle timeout:** How long an idle connection stays open
+- **Connection timeout:** How long a request waits for a connection
+- **Max lifetime:** Maximum age of a connection before it's recycled
+
+**Popular poolers:**
+- **PgBouncer** (PostgreSQL): Lightweight, transaction-level pooling, handles thousands of connections with minimal overhead
+- **ProxySQL** (MySQL): Advanced query routing and pooling
+- **HikariCP** (Java/JDBC): Default Spring Boot connection pool, extremely fast
+- **Node.js:** pg-pool, mysql2, Prisma's built-in pool
+
+**Best practices:**
+- Set max pool size based on your database's connection limit and CPU cores (rule of thumb: 2-4× CPU cores)
+- Monitor connection usage — if you exhaust the pool regularly, increase size or optimize slow queries
+- Use separate pools for read and write connections if you have read replicas.`,
+      difficulty: "medium",
+      tags: ["databases", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "What are read replicas and how do they improve database performance?",
+      answer: `A read replica is a copy of the primary database that serves read-only queries. Writes go to the primary; reads can be distributed across replicas to reduce load.
+
+**How replication works:**
+1. The primary database writes changes to its WAL (Write-Ahead Log)
+2. The WAL is streamed to replica databases
+3. Replicas replay the WAL, maintaining an eventually consistent copy
+
+**Benefits:**
+- **Read scaling:** Offload SELECT queries from the primary — critical for read-heavy applications
+- **Fault tolerance:** If the primary fails, a replica can be promoted to become the new primary
+- **Geographic distribution:** Place replicas closer to users in different regions for lower latency
+- **Analytics isolation:** Run heavy reporting queries on replicas without affecting production traffic
+
+**Types of replication:**
+- **Synchronous:** Primary waits for at least one replica to confirm the write. Slower but guaranteed no data loss.
+- **Asynchronous:** Primary does not wait. Faster but replicas may lag behind (replication lag).
+
+**Replication lag problems:**
+- **Stale reads:** A user writes data, then reads from a replica that hasn't caught up — they see their own data as missing
+- **Read-your-writes consistency:** Route reads to the primary right after a write, then switch to replicas after a safe interval
+
+**Example — read/write splitting with a pooler:**
+\`\`\`sql
+-- Write queries go to primary
+INSERT INTO orders ...;
+-- Read queries go to replica
+SELECT * FROM orders WHERE user_id = 42; -- routes to replica
+\`\`\`
+
+**Best practices:** Use connection poolers like PgBouncer or ProxySQL that support automatic read/write splitting. Monitor replica lag and set alerts if it exceeds acceptable thresholds (typically 1-5 seconds).`,
+      difficulty: "medium",
+      tags: ["databases", "scalability"],
+      is_top50: false,
+    },
+    {
+      question: "What are materialized views and when should you use them?",
+      answer: `A materialized view stores the result of a query physically on disk, unlike a regular view which is just a saved query that executes on every access. Materialized views trade storage for query speed.
+
+**Key differences from regular views:**
+- **Regular view:** Virtual — query runs each time, always returns fresh data
+- **Materialized view:** Physical — data is pre-computed and stored, must be refreshed explicitly
+
+**When to use materialized views:**
+- **Expensive aggregations:** Reports that aggregate millions of rows across multiple tables
+- **Slow dashboard queries:** Pre-compute weekly sales totals, user counts, or category summaries
+- **Data that changes infrequently:** Daily or hourly batch updates (e.g., end-of-day reports, inventory snapshots)
+- **Complex multi-table JOINs:** If a query joins 8 tables and is run hundreds of times, materialize it
+
+**Example:**
+\`\`\`sql
+CREATE MATERIALIZED VIEW daily_sales_summary AS
+SELECT
+  DATE(o.created_at) AS sale_date,
+  p.category_id,
+  COUNT(*) AS total_orders,
+  SUM(o.total) AS revenue,
+  AVG(o.total) AS avg_order_value
+FROM orders o
+JOIN order_items oi ON oi.order_id = o.id
+JOIN products p ON p.id = oi.product_id
+GROUP BY DATE(o.created_at), p.category_id;
+
+-- Refresh (can be scheduled)
+REFRESH MATERIALIZED VIEW daily_sales_summary;
+\`\`\`
+
+**Refresh strategies:**
+- **Full refresh:** Re-runs the entire query (blocking). Simple but can take minutes for large datasets
+- **Concurrent refresh** (PostgreSQL): Creates a new version while the old one serves reads (no downtime)
+- **Incremental refresh:** Only updates changed rows — requires additional tracking (e.g., last_updated timestamps)
+
+**Trade-offs:** Storage cost, stale data between refreshes, refresh overhead. Always measure if the query is actually slow before materializing — an optimized query with proper indexes might be fast enough.`,
+      difficulty: "medium",
+      tags: ["databases", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "Explain the different types of indexes (B-tree, Hash, GiST, GIN).",
+      answer: `**B-tree (Balanced Tree):** The default and most common index type. Stores data in a balanced tree structure with logarithmic search time (O(log n)). Supports equality, range (\>, <, BETWEEN), prefix matching (LIKE 'abc%'), and sorting (ORDER BY). Best for high-cardinality columns (unique or nearly unique values) like IDs, emails, timestamps.
+
+**Hash index:** Uses a hash table for exact equality lookups. Faster than B-tree for = and IN queries because it's a single hash computation instead of tree traversal. Does NOT support range queries or sorting. Useful for columns with exact-match lookups only (e.g., status codes, country codes).
+
+**GiST (Generalized Search Tree):** A balanced tree structure that supports custom data types and search operators. Used for:
+- **Full-text search:** tsvector columns (PostgreSQL)
+- **Geospatial queries:** PostGIS geometry/geography types (ST_DWithin, ST_Intersects)
+- **Range types:** daterange, numrange (overlap, contains operators)
+- **Array overlap:** arrays with && (overlap) operator
+
+**GIN (Generalized Inverted Index):** Stores mappings from individual element values to the rows containing them. Designed for:
+- **JSONB:** Efficient querying of JSON property values (@>, ?, ?| operators)
+- **Full-text search:** tsvector columns (often faster than GiST for text search)
+- **Arrays:** WHERE array_column @> ARRAY['value']
+
+**Example:**
+\`\`\`sql
+CREATE INDEX idx_users_email ON users(email);                    -- B-tree (default)
+CREATE INDEX idx_users_status ON users USING HASH(status);       -- Hash
+CREATE INDEX idx_docs_content ON docs USING GIN(to_tsvector('english', content));  -- GIN
+\`\`\`
+
+**Choosing the right index:**
+- B-tree: Start here — works for 95% of use cases
+- Hash: Only for exact-match lookups on static data
+- GiST: Geospatial, full-text search (when update speed matters)
+- GIN: JSONB queries, full-text search (when read speed matters),
+\`\`\``,
+      difficulty: "hard",
+      tags: ["databases", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "How does composite index column order affect query performance?",
+      answer: `A composite index is an index on multiple columns. The column order is critical — it determines which queries the index can serve efficiently.
+
+**The leftmost prefix rule:** A composite index can only be used for queries that filter on a prefix of the indexed columns. An index on (A, B, C) can optimize:
+- WHERE on A ✓
+- WHERE on A AND B ✓
+- WHERE on A AND B AND C ✓
+- WHERE on B ✗ (cannot use the index efficiently)
+- WHERE on A AND C ✓ (uses A for filtering, but C may not be as efficient without B)
+
+**Example:**
+\`\`\`sql
+CREATE INDEX idx_orders_user_date ON orders(user_id, created_at);
+
+-- Uses the index efficiently (filters on user_id, then sorts by created_at)
+SELECT * FROM orders WHERE user_id = 42 ORDER BY created_at DESC;
+
+-- Does NOT use the index efficiently (skips user_id)
+SELECT * FROM orders WHERE created_at > '2024-01-01';
+\`\`\`
+
+**Rule of thumb for column order:**
+1. **Equality columns first:** Put columns used with = comparisons first (user_id = 42)
+2. **High-selectivity first:** Columns that filter out the most rows first
+3. **Range columns last:** Columns used with >, <, BETWEEN go after equality columns
+4. **Sort columns:** Include ORDER BY columns to avoid separate sort operations
+
+**Example — choosing order:**
+\`\`\`sql
+-- Query: find paid orders from user 42 sorted by date
+SELECT * FROM orders
+WHERE user_id = 42 AND status = 'paid'
+ORDER BY created_at DESC;
+
+-- Best composite index:
+CREATE INDEX idx_orders_user_status_date ON orders(user_id, status, created_at DESC);
+-- user_id (equality, high-selectivity) → status (equality) → created_at (sort)
+\`\`\`
+
+**Covering index:** If all columns needed by a query are in the index, the database can answer the query entirely from the index without touching the table (index-only scan). Add INCLUDE columns for this purpose.`,
+      difficulty: "hard",
+      tags: ["databases", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "What is a deadlock in databases and how do you prevent it?",
+      answer: `A deadlock occurs when two or more transactions hold locks that the other transactions need, creating a circular dependency. Each transaction waits indefinitely for the other to release its lock.
+
+**Example:**
+\`\`\`sql
+-- Transaction A                        -- Transaction B
+BEGIN;                                   BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+                                         UPDATE accounts SET balance = balance - 200 WHERE id = 2;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+                                         UPDATE accounts SET balance = balance + 200 WHERE id = 1;
+-- Waits for B to release lock on id=2   -- Waits for A to release lock on id=1
+-- DEADLOCK!
+\`\`\`
+
+**How databases handle deadlocks:** The database periodically checks for deadlocks (deadlock detection). When detected, it chooses a victim transaction (usually the one with the least work done), rolls it back, and allows the other to proceed. The victim receives an error like "Deadlock found when trying to get lock; try restarting transaction."
+
+**Prevention strategies:**
+
+1. **Consistent lock ordering:** Always acquire locks in the same order across all transactions.
+\`\`\`sql
+-- Both transactions should lock id=1 first, then id=2
+-- This prevents circular waits
+\`\`\`
+
+2. **Keep transactions short:** Minimize the time locks are held. Move slow operations (API calls, file I/O) outside the transaction.
+
+3. **Use lower isolation levels:** Serializable is most prone to deadlocks. Read Committed reduces lock contention.
+
+4. **Use indexes:** Without indexes, a transaction might lock entire tables instead of specific rows, increasing deadlock probability.
+
+5. **Retry logic:** Implement retry mechanisms in application code for deadlock victims.
+\`\`\`javascript
+async function executeWithRetry(fn, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try { return await fn(); }
+    catch (err) {
+      if (err.message.includes('deadlock') && i < maxRetries - 1) {
+        await sleep(Math.pow(2, i) * 100); // exponential backoff
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+\`\`\``,
+      difficulty: "hard",
+      tags: ["databases", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between a UNIQUE constraint and a PRIMARY KEY?",
+      answer: `Both enforce uniqueness, but they have distinct differences:
+
+**PRIMARY KEY:**
+- Each table can have only one primary key
+- Cannot contain NULL values
+- Creates a clustered index by default (in MySQL/SQL Server)
+- Used as the row identifier for foreign key relationships
+- Auto-increment behavior is common but not required
+
+**UNIQUE constraint:**
+- Multiple unique constraints allowed per table
+- Can contain NULL values (one NULL in most databases, multiple in some like PostgreSQL)
+- Creates a non-clustered index by default
+- Used for alternate candidate keys (e.g., email, employee_id)
+
+**Example:**
+\`\`\`sql
+CREATE TABLE employees (
+  id SERIAL PRIMARY KEY,               -- primary key, auto-increment
+  email VARCHAR(255) UNIQUE NOT NULL,   -- unique constraint for login
+  employee_code VARCHAR(20) UNIQUE,     -- unique constraint, can be NULL
+  name VARCHAR(100)
+);
+\`\`\`
+
+**When to use which:**
+- PRIMARY KEY for the primary row identifier (id, uuid)
+- UNIQUE for any other column that must have distinct values (email, slug, tax_id)
+- Use a composite UNIQUE constraint for multi-column uniqueness (user_id, product_id)`,
+      difficulty: "easy",
+      tags: ["databases"],
+      is_top50: false,
+    },
+    {
+      question: "What are database migrations and how do you manage them?",
+      answer: `Database migrations are version-controlled changes to database schemas. Instead of modifying the schema manually in production, migrations provide a structured, repeatable, and reversible way to evolve the database over time.
+
+**Why migrations matter:**
+- **Consistency:** Every environment (dev, staging, production) has the same schema
+- **Version control:** Schema changes are tracked in Git alongside application code
+- **Collaboration:** Multiple developers can make schema changes without conflicts
+- **Rollback:** Failed migrations can be reverted to a known good state
+
+**Migration workflow:**
+\`\`\`bash
+# Create a migration (Laravel/Artisan)
+php artisan make:migration add_phone_to_users_table
+
+# Apply pending migrations
+php artisan migrate
+
+# Rollback the last migration
+php artisan migrate:rollback
+\`\`\`
+
+**Example migration:**
+\`\`\`sql
+-- Up: Apply the change
+ALTER TABLE users ADD COLUMN phone VARCHAR(20);
+CREATE INDEX idx_users_phone ON users(phone);
+
+-- Down: Revert the change
+DROP INDEX IF EXISTS idx_users_phone;
+ALTER TABLE users DROP COLUMN phone;
+\`\`\`
+
+**Popular migration tools:**
+- **Flyway** (Java/Spring Boot): SQL-based, convention-driven
+- **Liquibase** (Java): XML/YAML/JSON/SQL changelogs
+- **Entity Framework Core** (.NET): Code-first migrations via dotnet ef
+- **Alembic** (Python/SQLAlchemy): Autogenerates migration scripts
+- **Prisma Migrate** (Node.js): Declarative schema → generates SQL
+- **Knex.js** (Node.js): Programmatic migration builder
+
+**Best practices:**
+- Migration files should be immutable after merging — never modify an existing migration
+- Test migrations on a staging database before production
+- Keep migrations small and focused (one change per migration)
+- Always include both up and down scripts
+- Never run migrations that lock tables for hours — use online DDL tools (gh-ost, pt-online-schema-change) for large production tables`,
+      difficulty: "medium",
+      tags: ["databases", "devops"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between ORM and raw SQL? When should you use each?",
+      answer: `An ORM (Object-Relational Mapper) maps database tables to programming language objects, letting you work with data using the language's syntax instead of writing SQL strings.
+
+**ORM advantages:**
+- **Productivity:** CRUD operations in one line (User.find(42)) vs writing SQL queries
+- **Type safety:** Compile-time checking of column names and types (TypeScript, Java)
+- **Portability:** Switch database providers (PostgreSQL ↔ MySQL) without rewriting queries
+- **Migration support:** Automatic schema versioning and synchronization
+- **Relationship management:** Eager/lazy loading with simple method calls
+
+**ORM disadvantages:**
+- **Performance:** Generated SQL may be suboptimal — N+1 queries, unnecessary columns, inefficient JOINs
+- **Complex query limitations:** GROUP BY with HAVING, window functions, recursive CTEs are harder with ORMs
+- **Debugging difficulty:** Understanding the generated SQL requires database knowledge
+- **Learning curve:** Each ORM has its own API, quirks, and configuration
+
+**Example:**
+\`\`\`javascript
+// ORM (Prisma)
+const users = await prisma.user.findMany({
+  where: { email: { contains: 'example.com' } },
+  include: { posts: true },
+});
+
+// Raw SQL
+const users = await db.query(
+  'SELECT u.*, p.* FROM users u LEFT JOIN posts p ON p.user_id = u.id WHERE u.email LIKE $1',
+  ['%example.com%']
+);
+\`\`\`
+
+**When to use ORM:**
+- Standard CRUD operations on simple data models
+- Rapid prototyping and MVP development
+- Teams with varying SQL expertise
+- Applications with well-defined, normalized schemas
+
+**When to use raw SQL:**
+- Complex reporting queries with multiple aggregations
+- Performance-critical hot paths (every millisecond counts)
+- Complex JOINs, recursive CTEs, window functions
+- Bulk data operations (massive INSERT/UPDATE/DELETE)
+- Stored procedures and database-specific features`,
+      difficulty: "medium",
+      tags: ["databases", "orm", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "What is full-text search and how does it differ from LIKE queries?",
+      answer: `Full-text search allows searching natural language text in documents, handling linguistic features like stemming, ranking, and fuzzy matching — things that simple LIKE queries cannot do efficiently.
+
+**Why LIKE is insufficient:**
+\`\`\`sql
+-- LIKE query: slow, no intelligence
+SELECT * FROM articles WHERE content LIKE '%database%';
+-- Problems: cannot use indexes efficiently with leading wildcard,
+-- no ranking, no stemming (won't match "databases" or "databasing"),
+-- no relevance ordering
+\`\`\`
+
+**Full-text search features:**
+- **Tokenization:** Splits text into meaningful tokens (words), removes stop words (the, a, in)
+- **Stemming:** Matches word variants (run, runs, running, ran)
+- **Ranking:** Ranks results by relevance (TF-IDF, BM25)
+- **Indexing:** Uses specialized indexes (GIN, GiST) for fast search at scale
+- **Phrase and prefix matching:** Find exact phrases or words starting with a prefix
+- **Boolean operators:** AND, OR, NOT, and proximity searches
+
+**Example with PostgreSQL:**
+\`\`\`sql
+-- Create a tsvector column (pre-computed search vector)
+ALTER TABLE articles ADD COLUMN search_vector tsvector
+  GENERATED ALWAYS AS (to_tsvector('english', title || ' ' || content)) STORED;
+
+-- Create a GIN index
+CREATE INDEX articles_search_idx ON articles USING GIN(search_vector);
+
+-- Full-text search query
+SELECT title, ts_rank(search_vector, query) AS rank
+FROM articles, to_tsquery('english', 'database & performance') AS query
+WHERE search_vector @@ query
+ORDER BY rank DESC;
+\`\`\`
+
+**Dedicated search engines for advanced needs:**
+- **Elasticsearch:** Distributed, real-time, supports faceted search, aggregations, autocomplete
+- **MeiliSearch:** Developer-friendly, instant search, typo tolerance
+- **Algolia:** SaaS, extremely fast, out-of-the-box relevance tuning
+
+**When to use full-text search:** Any application with user-facing search functionality — documentation, blog, e-commerce catalog, help center.`,
+      difficulty: "medium",
+      tags: ["databases", "search"],
+      is_top50: false,
+    },
+    {
+      question: "What is lazy loading vs eager loading in ORMs?",
+      answer: `**Lazy loading:** Related data is fetched only when it is accessed. The ORM defers the database query until the property or method is called. If you never access the related data, no query is made.
+
+**Eager loading:** Related data is fetched upfront with the parent query, typically via JOINs or separate batched queries. All the data you need is available immediately.
+
+**Example:**
+\`\`\`javascript
+// Lazy loading — N+1 risk
+const users = await User.findAll();         // 1 query
+for (const user of users) {
+  console.log(await user.getPosts());        // N queries — lazy load on each iteration
+}
+
+// Eager loading — single query
+const users = await User.findAll({
+  include: [Post]                            // 1 query with JOIN
+});
+for (const user of users) {
+  console.log(user.posts);                   // already loaded — no additional query
+}
+\`\`\`
+
+**Trade-offs:**
+
+| Aspect | Lazy Loading | Eager Loading |
+|---|---|---|
+| Initial query time | Fast (only parent) | Slower (includes JOIN) |
+| Total queries | 1 + N (can be huge) | 1 (or few) |
+| Memory usage | Lower (load on demand) | Higher (load everything) |
+| When to use | Rarely access related data | Always access related data |
+| N+1 risk | High | None |
+
+**Best practices:**
+- Start with lazy loading by default
+- Profile your application — identify N+1 hotspots
+- Add eager loading for any relationship accessed in a loop
+- Most ORMs provide tools to detect N+1: Django Debug Toolbar, Laravel Debugbar, Spring Boot's query logging`,
+      difficulty: "medium",
+      tags: ["databases", "orm", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "What is database locking and what are the types of locks?",
+      answer: `Database locks control concurrent access to data, preventing conflicts between simultaneous transactions.
+
+**Lock modes:**
+
+**Shared Lock (S):** Multiple transactions can hold shared locks on the same resource simultaneously. Used for read operations (SELECT). Other transactions can also read but cannot write. Example: SELECT ... FOR SHARE.
+
+**Exclusive Lock (X):** Only one transaction can hold an exclusive lock. Used for write operations (INSERT, UPDATE, DELETE). Blocks both other exclusive and shared locks.
+
+**Lock levels:**
+
+- **Row-level locks:** Lock specific rows. Most granular — allows maximum concurrency. Used with FOR UPDATE, FOR SHARE, or implicit on write operations (InnoDB, PostgreSQL).
+\`\`\`sql
+-- Row-level exclusive lock
+SELECT * FROM accounts WHERE id = 1 FOR UPDATE;
+-- Other transactions cannot update or delete this row until committed
+
+-- Row-level shared lock
+SELECT * FROM accounts WHERE id = 1 FOR SHARE;
+-- Other transactions can read but not write
+\`\`\`
+
+- **Page-level locks:** Lock a page (typically 4-16KB of data) containing multiple rows. Less granular than row-level but lower overhead.
+
+- **Table-level locks:** Lock the entire table. Used for DDL operations (ALTER TABLE) or in MyISAM storage engine. Highest contention.
+
+- **Intent locks:** Indicate a transaction intends to acquire finer-grained locks. Used internally by the database to detect conflicts efficiently.
+
+**Two-Phase Locking (2PL):**
+1. **Expanding phase:** Locks are acquired but not released
+2. **Shrinking phase:** Locks are released but not acquired
+The transaction reaches its lock point when it has all its locks — this guarantees serializability.
+
+**Deadlock detection:** Most databases automatically detect deadlocks by maintaining a waits-for graph. If a cycle is detected, one transaction is chosen as the victim and rolled back. Transaction should retry.
+
+**Best practices:**
+- Always access tables in the same order across all transactions
+- Keep transactions short to minimize lock duration
+- Use appropriate isolation levels — Serializable is rarely needed
+- Use SKIP LOCKED to skip locked rows instead of waiting (queue-like workloads)`,
+      difficulty: "hard",
+      tags: ["databases"],
+      is_top50: false,
+    },
+    {
+      question: "What is the CAP theorem and how does it apply to databases?",
+      answer: `The CAP theorem states that a distributed data store can provide at most two of three guarantees simultaneously:
+
+**C — Consistency:** Every read receives the most recent write or an error. All nodes see the same data at the same time.
+
+**A — Availability:** Every request receives a (non-error) response, without guarantee that it contains the most recent write.
+
+**P — Partition Tolerance:** The system continues to operate despite network partitions (messages being lost or delayed between nodes).
+
+**The key insight:** Network partitions are inevitable in distributed systems. Therefore, you must choose between CP (Consistency + Partition Tolerance) and AP (Availability + Partition Tolerance).
+
+**CP databases (choose consistency over availability during partitions):**
+- **PostgreSQL, MySQL** with synchronous replication — if the replica cannot confirm writes, the primary stops accepting writes
+- **HBase, MongoDB** (with default settings) — during a partition, some nodes reject writes to maintain consistency
+- Use case: Financial systems, inventory management, any system where consistency errors cost money
+
+**AP databases (choose availability over consistency during partitions):**
+- **Cassandra, DynamoDB** — accept writes on any node, resolve conflicts later with last-writer-wins or CRDTs
+- **CouchDB** — each node operates independently, conflicts are merged later
+- Use case: Social media feeds, user sessions, content delivery, IoT — where uptime matters more than perfect consistency
+
+**The PACELC extension:** CAP only addresses partitions. PACELC adds: even without partitions (Else), there's a trade-off between Latency and Consistency. Many NoSQL databases choose low latency with eventual consistency by default but offer tunable consistency levels.
+
+**Practical guidance:**
+- For most applications, eventual consistency is acceptable for non-critical data
+- Always use strong consistency for financial transactions, authentication, and any feature where stale data causes real harm
+- Modern databases (CosmosDB, DynamoDB) offer tunable consistency — choose per-query`,
+      difficulty: "hard",
+      tags: ["databases", "distributed-systems"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between TRUNCATE, DELETE, and DROP in SQL?",
+      answer: `All three remove data, but they work very differently:
+
+| Operation | Removes | Speed | Transactional | Auto-increment reset | Triggers | Rollback possible? |
+|---|---|---|---|---|---|---|
+| DELETE | Specific rows (with WHERE) or all rows | Slow (row-by-row) | Yes — logged per row | No | Yes | Yes (in transaction) |
+| TRUNCATE | All rows | Fast (deallocates pages) | Varies (PostgreSQL: yes, MySQL: no) | Yes (resets to 1) | No | Varies (PostgreSQL: yes) |
+| DROP | Entire table structure + data | Instant | Varies | — | — | Yes (in transaction, some DBs) |
+
+**DELETE:**
+\`\`\`sql
+-- Removes rows one at a time, logging each deletion
+DELETE FROM users WHERE last_login < '2020-01-01';
+-- Can be rolled back inside a transaction
+-- Does not reset auto-increment counter
+-- Fires triggers
+\`\`\`
+
+**TRUNCATE:**
+\`\`\`sql
+-- Deallocates entire data pages — much faster than DELETE
+TRUNCATE TABLE audit_logs;
+-- Cannot use WHERE clause — removes all rows
+-- Resets auto-increment to initial value
+-- Does NOT fire triggers (DDL operation)
+-- Typically cannot be rolled back (except PostgreSQL)
+\`\`\`
+
+**DROP:**
+\`\`\`sql
+-- Removes the table definition and all data permanently
+DROP TABLE users;
+-- All indexes, constraints, and triggers are removed
+-- Requires CREATE TABLE to restore
+\`\`\`
+
+**When to use which:**
+- **DELETE:** Remove specific rows, need trigger execution, or need transactional rollback
+- **TRUNCATE:** Remove all rows quickly, reset auto-increment, don't need per-row logging
+- **DROP:** Remove the entire table (schema + data) permanently`,
+      difficulty: "easy",
+      tags: ["databases", "sql"],
+      is_top50: false,
+    },
+    {
       question: "What is an API and how does it work?",
       answer: "An API (Application Programming Interface) defines how software components communicate. REST APIs use HTTP methods (GET, POST, PUT, DELETE) to perform CRUD operations on resources. Clients send requests with headers and body; servers return responses with status codes and data (usually JSON).",
       difficulty: "easy",
       tags: ["api-design"],
-      is_top50: true,
-    },
-    {
-      question: "Explain the difference between SQL and NoSQL databases.",
-      answer: "SQL databases (PostgreSQL, MySQL) use structured schemas, tables with relationships, and ACID transactions. NoSQL databases (MongoDB, Firebase) offer flexible schemas, horizontal scaling, and eventual consistency. SQL is better for complex queries and data integrity; NoSQL for rapid iteration and large-scale distributed systems.",
-      difficulty: "easy",
-      tags: ["databases"],
-      is_top50: true,
-    },
-    {
-      question: "What is indexing in databases and why is it important?",
-      answer: "An index is a data structure (B-tree, hash) that speeds up data retrieval by providing fast lookup paths. Without indexes, queries perform full table scans (O(n)). Indexes make SELECT queries fast but slow down INSERT/UPDATE/DELETE. Common types: primary key index, unique index, composite index, full-text index.",
-      difficulty: "medium",
-      tags: ["databases"],
-      is_top50: true,
-    },
-    {
-      question: "Explain the concept of normalization in databases.",
-      answer: "Normalization organizes relational databases to reduce data redundancy and improve integrity. Normal forms: 1NF (atomic columns), 2NF (no partial dependencies), 3NF (no transitive dependencies). Higher normal forms exist but are less common. Trade-off: normalization reduces redundancy but may require more JOINs.",
-      difficulty: "medium",
-      tags: ["databases"],
       is_top50: true,
     },
     {
@@ -17062,13 +18001,6 @@ npx vitest --ui
       is_top50: true,
     },
     {
-      question: "What are ACID properties in databases?",
-      answer: "ACID stands for Atomicity (transactions are all-or-nothing), Consistency (transactions maintain database validity), Isolation (concurrent transactions don't interfere), Durability (committed data persists even after crashes). These properties ensure reliable transaction processing, critical for financial and mission-critical systems.",
-      difficulty: "medium",
-      tags: ["databases"],
-      is_top50: true,
-    },
-    {
       question: "What is the difference between horizontal and vertical scaling?",
       answer: "Vertical scaling adds more resources (CPU, RAM, disk) to a single machine — simpler but has hardware limits and creates a single point of failure. Horizontal scaling adds more machines to a pool — more complex (load balancers, distributed data) but virtually unlimited and provides fault tolerance. Modern systems favor horizontal scaling.",
       difficulty: "medium",
@@ -17076,17 +18008,45 @@ npx vitest --ui
       is_top50: true,
     },
     {
-      question: "What are the main features of Spring Boot?",
-      answer: "Spring Boot simplifies Spring development with auto-configuration (automatically configures beans based on dependencies), embedded servers (Tomcat/Jetty built-in), starter dependencies (spring-boot-starter-web, starter-data-jpa), production-ready features (Actuator, metrics, health checks), and convention over configuration.",
-      difficulty: "medium",
-      tags: ["spring", "java"],
-      is_top50: true,
-    },
-    {
       question: "Explain REST and its key principles.",
       answer: "REST (Representational State Transfer) is a stateless architecture where the server exposes resources using standard HTTP methods (GET, POST, PUT, DELETE). Each request contains all necessary information. Resources are identified by URIs and represented using JSON or XML. This makes systems scalable and easy to maintain.",
       difficulty: "easy",
       tags: ["api-design"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between GET, POST, PUT, PATCH, and DELETE in REST APIs?",
+      answer: "GET retrieves data, POST creates a resource, PUT fully replaces an existing resource, PATCH partially updates a resource, and DELETE removes a resource. GET, PUT, and DELETE are idempotent — calling them multiple times gives the same result. POST is not idempotent — multiple calls create multiple resources.",
+      difficulty: "easy",
+      tags: ["api-design", "rest"],
+      is_top50: true,
+    },
+    {
+      question: "What is CORS and why do we need it?",
+      answer: "CORS (Cross-Origin Resource Sharing) is a browser security mechanism that blocks requests from a different origin (domain, port, protocol) unless the server explicitly allows it. It protects users from malicious cross-origin requests. Enable it on the backend using headers like Access-Control-Allow-Origin.",
+      difficulty: "medium",
+      tags: ["security", "api-design"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between PUT and PATCH in REST API?",
+      answer: "PUT replaces the entire resource with the data sent in the request body — it's a full update. PATCH updates only the fields that are sent in the request body — it's a partial update. PUT is idempotent; PATCH is not guaranteed to be idempotent.",
+      difficulty: "easy",
+      tags: ["api-design", "rest"],
+      is_top50: true,
+    },
+    {
+      question: "What is Middleware in Node.js / Express?",
+      answer: "Middleware functions execute during the request-response cycle. They can modify requests, perform authentication, logging, error handling, or parse bodies before the final response is sent. Express supports application-level, router-level, error-handling, and built-in middleware (express.json()).",
+      difficulty: "medium",
+      tags: ["nodejs", "api-design"],
+      is_top50: true,
+    },
+    {
+      question: "What are the main features of Spring Boot?",
+      answer: "Spring Boot simplifies Spring development with auto-configuration (automatically configures beans based on dependencies), embedded servers (Tomcat/Jetty built-in), starter dependencies (spring-boot-starter-web, starter-data-jpa), production-ready features (Actuator, metrics, health checks), and convention over configuration.",
+      difficulty: "medium",
+      tags: ["spring", "java"],
       is_top50: true,
     },
     {
@@ -17108,20 +18068,6 @@ npx vitest --ui
       answer: "Spring Boot loads auto-configurations from spring.factories, performs component scanning to identify beans, creates and wires bean instances in the DI container, starts the embedded Tomcat/Jetty server (for web apps), and finally creates the ApplicationContext. The application is then ready to serve requests.",
       difficulty: "medium",
       tags: ["spring"],
-      is_top50: true,
-    },
-    {
-      question: "What is the difference between GET, POST, PUT, PATCH, and DELETE in REST APIs?",
-      answer: "GET retrieves data, POST creates a resource, PUT fully replaces an existing resource, PATCH partially updates a resource, and DELETE removes a resource. GET, PUT, and DELETE are idempotent — calling them multiple times gives the same result. POST is not idempotent — multiple calls create multiple resources.",
-      difficulty: "easy",
-      tags: ["api-design", "rest"],
-      is_top50: true,
-    },
-    {
-      question: "What is CORS and why do we need it?",
-      answer: "CORS (Cross-Origin Resource Sharing) is a browser security mechanism that blocks requests from a different origin (domain, port, protocol) unless the server explicitly allows it. It protects users from malicious cross-origin requests. Enable it on the backend using headers like Access-Control-Allow-Origin.",
-      difficulty: "medium",
-      tags: ["security", "api-design"],
       is_top50: true,
     },
     {
@@ -17174,24 +18120,10 @@ npx vitest --ui
       is_top50: true,
     },
     {
-      question: "What is Middleware in Node.js / Express?",
-      answer: "Middleware functions execute during the request-response cycle. They can modify requests, perform authentication, logging, error handling, or parse bodies before the final response is sent. Express supports application-level, router-level, error-handling, and built-in middleware (express.json()).",
-      difficulty: "medium",
-      tags: ["nodejs", "api-design"],
-      is_top50: true,
-    },
-    {
       question: "What is a DispatcherServlet in Spring MVC?",
       answer: "DispatcherServlet is the front controller in Spring MVC that receives all incoming HTTP requests. It routes requests to the appropriate controller, manages the entire request-response flow, and returns the appropriate view or JSON response. It is the heart of Spring MVC architecture.",
       difficulty: "medium",
       tags: ["spring"],
-      is_top50: true,
-    },
-    {
-      question: "What is the difference between PUT and PATCH in REST API?",
-      answer: "PUT replaces the entire resource with the data sent in the request body — it's a full update. PATCH updates only the fields that are sent in the request body — it's a partial update. PUT is idempotent; PATCH is not guaranteed to be idempotent.",
-      difficulty: "easy",
-      tags: ["api-design", "rest"],
       is_top50: true,
     },
   ],
