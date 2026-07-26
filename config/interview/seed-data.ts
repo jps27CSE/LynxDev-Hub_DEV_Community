@@ -9637,6 +9637,537 @@ let letVar = 5;
       tags: ["javascript", "es6"],
       is_top50: true,
     },
+    // ──────── React ────────
+    {
+      question: "What is React and how does it differ from other JavaScript frameworks?",
+      answer: `React is a declarative, component-based UI library developed by Meta. Unlike full-fledged frameworks (Angular, Vue), React focuses solely on the view layer and can be integrated with other libraries for routing, state management, etc. It uses a virtual DOM for efficient updates, a unidirectional data flow, and JSX syntax. React's ecosystem is modular, giving developers flexibility to choose their tools.`,
+      difficulty: "easy",
+      tags: ["react", "framework"],
+      is_top50: true,
+    },
+    {
+      question: "Explain the Virtual DOM and how React uses it for performance.",
+      answer: `The virtual DOM is a lightweight JavaScript representation of the actual DOM. When state changes, React creates a new virtual DOM tree, diffs it against the previous one (reconciliation), calculates the minimal set of DOM mutations, and applies them in batch. This avoids expensive direct DOM manipulation and layout recalculations. React's Fiber architecture enables incremental rendering, prioritizing urgent updates (like user input) over background ones.`,
+      difficulty: "medium",
+      tags: ["react", "virtual-dom", "performance"],
+      is_top50: true,
+    },
+    {
+      question: "What is JSX and why is it used in React?",
+      answer: `JSX (JavaScript XML) is a syntax extension that lets you write HTML-like markup inside JavaScript. It makes component code more readable and intuitive. Under the hood, Babel compiles JSX into \`React.createElement()\` calls, which produce virtual DOM elements. JSX is not required to use React, but it is the standard approach because it keeps markup and logic colocated.`,
+      difficulty: "easy",
+      tags: ["react", "jsx"],
+      is_top50: true,
+    },
+    {
+      question: "Difference between functional and class components.",
+      answer: `Functional components are plain JavaScript functions that accept props and return JSX. Class components extend \`React.Component\` and have a \`render()\` method. Before React 16.8, class components were required for state and lifecycle. With hooks, functional components can now manage state (\`useState\`), side effects (\`useEffect\`), and all other features, making them the modern standard. Class components are still supported but no longer recommended for new code.`,
+      difficulty: "easy",
+      tags: ["react", "components"],
+      is_top50: true,
+    },
+    {
+      question: "What are props and how do they differ from state?",
+      answer: `Props (properties) are read-only data passed from a parent to a child component. They cannot be modified by the child. State is internal, mutable data managed within a component. When state changes, the component re-renders. Props flow downward (unidirectional); state is private to the component. Think of props as function arguments and state as local variables.`,
+      difficulty: "easy",
+      tags: ["react", "props", "state"],
+      is_top50: true,
+    },
+    {
+      question: "Explain the useState hook with an example.",
+      answer: `\`useState\` is a hook that adds state to functional components. It returns an array with two elements: the current state value and a setter function to update it.
+
+Example:
+
+\`\`\`javascript
+const [count, setCount] = useState(0);
+\`\`\`
+
+Calling \`setCount(newValue)\` triggers a re-render of the component. The initial value is only used on the first render. State updates are batched for performance and should be treated as immutable.`,
+      difficulty: "easy",
+      tags: ["react", "hooks", "useState"],
+      is_top50: true,
+    },
+    {
+      question: "How does useEffect work? What is the cleanup function?",
+      answer: `\`useEffect\` runs side effects after render. It takes a callback and an optional dependency array. With no deps, it runs after every render. With \`[]\` it runs once on mount. With \`[a, b]\` it runs when \`a\` or \`b\` change. The cleanup function (returned from the callback) runs before the next effect and on unmount, preventing memory leaks from subscriptions, timers, or event listeners.`,
+      difficulty: "medium",
+      tags: ["react", "hooks", "useEffect"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between useMemo and useCallback?",
+      answer: `\`useMemo\` memoizes a computed value, recalculating only when dependencies change. \`useCallback\` memoizes a function reference. Both prevent unnecessary re-renders of child components by ensuring stable references. \`useMemo\` is for expensive computations; \`useCallback\` is for callback props passed to memoized children.
+
+Example:
+
+\`\`\`javascript
+useMemo(() => expensive(a, b), [a, b]);
+useCallback(() => doSomething(x), [x]);
+\`\`\``,
+      difficulty: "medium",
+      tags: ["react", "hooks", "useMemo", "useCallback"],
+      is_top50: true,
+    },
+    {
+      question: "Explain useRef and its common use cases.",
+      answer: `\`useRef\` returns a mutable object (\`.current\`) that persists across renders without causing re-renders. Common uses: accessing DOM elements directly (\`inputRef.current.focus()\`), storing previous values, keeping interval IDs for cleanup, and tracking mutable values that shouldn't trigger re-renders. Unlike state, mutating \`.current\` does not cause a re-render.`,
+      difficulty: "medium",
+      tags: ["react", "hooks", "useRef"],
+      is_top50: true,
+    },
+    {
+      question: "How does useContext work and when should you use it?",
+      answer: `\`useContext\` lets you consume a React context directly in functional components. Pass the context object to \`useContext\`, and it returns the current context value. Use it to avoid prop drilling (passing props through many levels). Best for genuinely global state like themes, auth, or locale settings. For complex state logic, pair with \`useReducer\` instead of prop drilling through multiple levels.`,
+      difficulty: "medium",
+      tags: ["react", "hooks", "useContext", "context-api"],
+      is_top50: true,
+    },
+    {
+      question: "What is useReducer and when is it better than useState?",
+      answer: `\`useReducer\` is a hook for managing complex state logic. It takes a reducer function \`(state, action) => newState\` and an initial state, returning \`[state, dispatch]\`. It's better than \`useState\` when: state has multiple sub-values, next state depends on previous state, or state transitions are complex (e.g., form state with many fields). The reducer pattern makes logic testable and predictable, similar to Redux.`,
+      difficulty: "medium",
+      tags: ["react", "hooks", "useReducer"],
+      is_top50: true,
+    },
+    {
+      question: "What are custom hooks? Write an example.",
+      answer: `Custom hooks are JavaScript functions that start with 'use' and can call other hooks. They extract reusable stateful logic from components.
+
+Example:
+
+\`\`\`javascript
+function useLocalStorage(key, initial) {
+  const [value, setValue] = useState(() => {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : initial;
+  });
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
+  return [value, setValue];
+}
+\`\`\``,
+      difficulty: "medium",
+      tags: ["react", "hooks", "custom-hooks"],
+      is_top50: true,
+    },
+    {
+      question: "Explain React reconciliation and the key prop.",
+      answer: `Reconciliation is React's algorithm for diffing two virtual DOM trees. It determines which parts of the actual DOM need updating. React uses heuristics: comparing element types, then props. The \`key\` prop helps React identify which items in a list have changed, been added, or removed. Keys should be unique, stable, and predictable. Using index as key is discouraged when items can reorder because it causes unnecessary re-renders and state bugs.`,
+      difficulty: "medium",
+      tags: ["react", "reconciliation", "keys"],
+      is_top50: true,
+    },
+    {
+      question: "How does React handle events? What are synthetic events?",
+      answer: `React wraps native events in \`SyntheticEvent\` objects, providing cross-browser consistency. SyntheticEvents are pooled for performance. The event object is reused, so accessing it asynchronously (inside \`setTimeout\`) requires \`event.persist()\`. React attaches event listeners at the root container using event delegation rather than to individual elements, reducing memory usage.`,
+      difficulty: "medium",
+      tags: ["react", "events", "synthetic-events"],
+      is_top50: true,
+    },
+    {
+      question: "Controlled vs uncontrolled components -- difference and use cases.",
+      answer: `Controlled components have their value managed by React state. The component re-renders on every change. Uncontrolled components store their value in the DOM (using \`ref\`), like traditional HTML forms. Controlled components give more control (instant validation, conditional inputs) but require more code. Prefer controlled for most cases; use uncontrolled for simple, non-critical inputs or when integrating with non-React code.`,
+      difficulty: "medium",
+      tags: ["react", "forms", "controlled-components"],
+      is_top50: true,
+    },
+    {
+      question: "What are React Server Components (RSC)?",
+      answer: `React Server Components are components that render on the server, sending only the resulting HTML to the client. They reduce client-side JavaScript bundle size, enable direct access to server-side resources (databases, file systems), and improve initial page load performance. RSC cannot use state, effects, or browser APIs. They seamlessly compose with client components, which are marked with 'use client'.`,
+      difficulty: "hard",
+      tags: ["react", "react-19", "server-components"],
+      is_top50: true,
+    },
+    {
+      question: "Explain the use() hook in React 19.",
+      answer: `\`use()\` is a new React 19 hook that reads a promise or context directly in render. It suspends the component until the promise resolves, eliminating the need for \`useEffect + useState\` for async data fetching.
+
+Example:
+
+\`\`\`javascript
+const data = use(fetchData());
+const theme = use(ThemeContext);
+\`\`\`
+
+Unlike \`useEffect\`, \`use()\` integrates with Suspense boundaries naturally.`,
+      difficulty: "hard",
+      tags: ["react", "react-19", "hooks", "use"],
+      is_top50: true,
+    },
+    {
+      question: "What is useActionState and how does it simplify forms?",
+      answer: `\`useActionState\` is a React 19 hook that binds form data to a server action. It returns \`[state, formAction]\` and automatically handles form submission, resetting, and pending states. It reduces boilerplate for form handling. No manual \`preventDefault\`, no \`useState\` for form state, no manual error handling. The action receives the previous state and form data, returning the new state.`,
+      difficulty: "hard",
+      tags: ["react", "react-19", "useActionState", "forms"],
+      is_top50: true,
+    },
+    {
+      question: "How does the React Compiler (React Forget) work?",
+      answer: `The React Compiler is a build-time tool that automatically memoizes React code. It analyzes components and hooks, automatically adding \`useMemo\`, \`useCallback\`, and \`React.memo\` where needed. Developers no longer need to manually optimize with these hooks. The compiler handles it, reducing bugs from missing dependencies and over-memoization. It works at the function level, transforming valid JavaScript to memoized versions.`,
+      difficulty: "hard",
+      tags: ["react", "react-19", "react-compiler"],
+      is_top50: true,
+    },
+    {
+      question: "What are React 19 Actions?",
+      answer: `React 19 Actions are async functions passed as the \`action\` prop to form elements. They handle pending states (\`useActionState\`, \`useFormStatus\`), optimistic updates (\`useOptimistic\`), and error handling automatically. Actions can be server functions (RSC) or client-side. This replaces manual form submission with native HTML form integration, making React work seamlessly with the platform's form semantics.`,
+      difficulty: "hard",
+      tags: ["react", "react-19", "actions"],
+      is_top50: true,
+    },
+    {
+      question: "How do you optimize React performance?",
+      answer: `Key optimization techniques:
+- \`React.memo\` for preventing unnecessary re-renders of pure components
+- \`useMemo\` for expensive computations
+- \`useCallback\` for stable function references
+- Lazy loading with \`React.lazy + Suspense\` for code splitting
+- Virtualization (\`react-window\`, \`react-virtuoso\`) for large lists
+- Avoid creating new objects/arrays in render
+- Use proper keys in lists
+- Leverage the React Compiler (React 19) for automatic memoization
+
+Profile with React DevTools to identify bottlenecks.`,
+      difficulty: "hard",
+      tags: ["react", "performance", "optimization"],
+      is_top50: true,
+    },
+    {
+      question: "What are Error Boundaries and how do you create one?",
+      answer: `Error Boundaries are React components that catch JavaScript errors in their child component tree, log them, and display a fallback UI instead of crashing the whole app. They are created using class component lifecycle methods: \`static getDerivedStateFromError()\` and \`componentDidCatch()\`. There is no hook equivalent yet, but React 19 is working on one. Error Boundaries do not catch errors in event handlers, async code, or server-side rendering.`,
+      difficulty: "medium",
+      tags: ["react", "error-boundaries"],
+      is_top50: true,
+    },
+    {
+      question: "Explain React Context API -- when is it appropriate vs prop drilling?",
+      answer: `The Context API provides a way to share values across the component tree without passing props through every level. Create context with \`createContext\`, provide with \`Provider\`, consume with \`useContext\`. Use it for low-frequency global state (theme, locale, auth user). It is not a full state management solution. Avoid it for frequently updating state (causes entire subtree re-renders). For high-frequency updates, use Zustand, Redux, or pair Context with \`useReducer\` and memoization.`,
+      difficulty: "medium",
+      tags: ["react", "context-api"],
+      is_top50: true,
+    },
+    {
+      question: "How does React Router work?",
+      answer: `React Router enables client-side navigation in React SPAs. The latest version uses: \`BrowserRouter\` for history-based routing, \`Routes + Route\` for declarative route configuration, \`Link\` and \`NavLink\` for navigation, and \`Outlet\` for nested layouts. Key features: nested routes, data loading (loaders), actions for mutations, and lazy loading. Routes are matched by best fit, and components re-render only when relevant route params change.`,
+      difficulty: "medium",
+      tags: ["react", "react-router", "routing"],
+      is_top50: true,
+    },
+    {
+      question: "Composition vs inheritance in React.",
+      answer: `React favors composition over inheritance. Instead of extending base components, compose smaller, focused components together. Patterns: containment (\`children\` prop), specialization (configurable components via props), and higher-order components. Inheritance hierarchies lead to tight coupling and fragile code. Composition is more flexible. You can combine components in different arrangements without modifying existing code.`,
+      difficulty: "medium",
+      tags: ["react", "composition", "inheritance"],
+      is_top50: true,
+    },
+    {
+      question: "What are Higher-Order Components (HOCs) and Render Props?",
+      answer: `HOCs are functions that take a component and return a new enhanced component (e.g., \`withAuth(MyComponent)\`). Render props are props whose value is a function that renders JSX, letting the parent control what is rendered.
+
+Example:
+
+\`\`\`jsx
+<DataProvider render={data => <List data={data} />} />
+\`\`\`
+
+Both patterns solve cross-cutting concerns (auth, data fetching). Custom hooks have largely replaced both as they are simpler and avoid wrapper hell.`,
+      difficulty: "medium",
+      tags: ["react", "hoc", "render-props"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between useEffect and useLayoutEffect?",
+      answer: `\`useEffect\` runs asynchronously after the browser paints. It does not block visual updates. \`useLayoutEffect\` runs synchronously before the browser paints, blocking rendering until it completes. Use \`useLayoutEffect\` when you need to measure DOM elements or make synchronous DOM mutations before the user sees the result. For most cases, prefer \`useEffect\` because \`useLayoutEffect\` can delay paint and impact perceived performance.`,
+      difficulty: "medium",
+      tags: ["react", "hooks", "useEffect", "useLayoutEffect"],
+      is_top50: true,
+    },
+    {
+      question: "What are Pure Components in React?",
+      answer: `A Pure Component in React prevents unnecessary re-renders by implementing \`shouldComponentUpdate\` with a shallow comparison of props and state. Class components extend \`React.PureComponent\`. For functional components, \`React.memo\` serves the same purpose. PureComponent and React.memo only do shallow comparisons. If you pass objects or arrays, mutations won't trigger updates unless a new reference is created. They are useful for leaf components that re-render often with the same props.`,
+      difficulty: "medium",
+      tags: ["react", "pure-component", "performance"],
+      is_top50: true,
+    },
+    {
+      question: "Explain React.memo and when should you use it?",
+      answer: `\`React.memo\` is a higher-order component that memoizes a functional component. It performs a shallow comparison of props and skips re-rendering if props haven't changed. Use it for components that: render often, receive few props that rarely change, or are expensive to render (large subtrees). Don't use it prematurely. Profile first with React DevTools. Over-memoizing can waste memory and actually harm performance from the comparison cost.`,
+      difficulty: "medium",
+      tags: ["react", "memo", "performance"],
+      is_top50: true,
+    },
+    {
+      question: "What is the StrictMode component in React?",
+      answer: `StrictMode is a development-only wrapper that helps catch bugs. It double-invokes render functions, effects, and state initializers to surface side effects and impure logic. It also checks for deprecated APIs, unsafe lifecycle methods, and legacy context usage. StrictMode has no effect on production builds. It is essential for preparing code for concurrent features (React 18+) and future React versions.`,
+      difficulty: "medium",
+      tags: ["react", "strict-mode"],
+      is_top50: true,
+    },
+    {
+      question: "Explain the concept of lifting state up in React.",
+      answer: `Lifting state up means moving shared state to the nearest common ancestor of components that need it. Instead of each child managing its own data, the parent holds the state and passes it down via props, along with callbacks to update it. This ensures a single source of truth, keeps data synchronized across children, and follows React's unidirectional data flow. It is the primary mechanism for component communication in React.`,
+      difficulty: "medium",
+      tags: ["react", "state-management", "lifting-state"],
+      is_top50: true,
+    },
+    {
+      question: "What are keys in React and why are they important?",
+      answer: `Keys are special string attributes that help React identify which items in a list have changed, been added, or removed during reconciliation. They should be unique, stable (not re-generated on each render), and predictable. Using stable keys (like database IDs) preserves component state and DOM nodes across list reorders. Using index as a key is acceptable only for static, non-reordered lists. Bad keys can cause incorrect rendering, state bugs, and performance issues.`,
+      difficulty: "easy",
+      tags: ["react", "keys", "reconciliation"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between Shadow DOM and Virtual DOM?",
+      answer: `Shadow DOM is a browser specification for DOM and style encapsulation. It creates isolated DOM subtrees that don't leak styles. It is used by Web Components. Virtual DOM is a JavaScript-level concept used by React to optimize DOM updates by batching changes and minimizing direct DOM manipulation. Shadow DOM solves style scoping; Virtual DOM solves rendering performance. They solve different problems and can coexist.`,
+      difficulty: "medium",
+      tags: ["react", "virtual-dom", "shadow-dom"],
+      is_top50: true,
+    },
+    {
+      question: "How do you handle forms in React 19 vs earlier versions?",
+      answer: `In React 18 and earlier, forms require controlled components with \`useState + onChange\` handlers, or uncontrolled components with refs. React 19 simplifies forms with Actions:
+
+Example:
+
+\`\`\`jsx
+<form action={serverAction}></form>
+\`\`\`
+
+Or \`useActionState\` for client-side form handling. \`useFormStatus\` provides pending state, and \`useOptimistic\` enables optimistic UI updates. This reduces boilerplate significantly and integrates with HTML form semantics natively.`,
+      difficulty: "hard",
+      tags: ["react", "forms", "react-19", "actions"],
+      is_top50: true,
+    },
+    {
+      question: "What is Suspense in React?",
+      answer: `Suspense is a React component that lets you declaratively specify loading states for asynchronous operations. It wraps components that may suspend (data fetching with libraries like Relay, code splitting with \`React.lazy\`). Suspense shows a fallback UI (like a spinner) until the asynchronous data is ready. React 19 extends Suspense to work with the \`use()\` hook and async server components, enabling full async rendering without \`useEffect\`.`,
+      difficulty: "medium",
+      tags: ["react", "suspense", "async"],
+      is_top50: true,
+    },
+    {
+      question: "Explain code splitting in React with React.lazy and Suspense.",
+      answer: `Code splitting lets you split your bundle into smaller chunks loaded on demand. \`React.lazy\` takes a dynamic \`import()\` function and returns a lazy component. It must be wrapped in Suspense to handle the loading state.
+
+Example:
+
+\`\`\`javascript
+const LazyDashboard = React.lazy(() => import('./Dashboard'));
+\`\`\`
+
+\`\`\`jsx
+<Suspense fallback={<Spinner />}>
+  <LazyDashboard />
+</Suspense>
+\`\`\`
+
+This reduces initial bundle size and improves time-to-interactive. Combine with route-based splitting for best results.`,
+      difficulty: "medium",
+      tags: ["react", "code-splitting", "lazy-loading", "suspense"],
+      is_top50: true,
+    },
+    {
+      question: "What are React Portals and when would you use them?",
+      answer: `React Portals let you render a child component into a different DOM node outside the parent hierarchy, while preserving React context and event bubbling.
+
+Example:
+
+\`\`\`javascript
+createPortal(children, domNode);
+\`\`\`
+
+Common uses: modals, tooltips, dropdowns, and toast notifications. Portals are useful where \`overflow: hidden\` or \`z-index\` issues would otherwise cause problems. Portals are particularly useful for rendering overlays that need to escape parent containers.`,
+      difficulty: "medium",
+      tags: ["react", "portals"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between React and ReactDOM?",
+      answer: `React is the core library for creating components, elements, and hooks. ReactDOM is the renderer for web applications. It provides \`createRoot\`, \`hydrateRoot\`, and \`render\` methods that interact with the DOM. React Native replaces ReactDOM with native platform renderers. The split allows React to be platform-agnostic: the same component model works for web, mobile (React Native), desktop (Electron), and VR (React 360).`,
+      difficulty: "easy",
+      tags: ["react", "react-dom"],
+      is_top50: true,
+    },
+    {
+      question: "How does React's batching mechanism work?",
+      answer: `React batches multiple state updates into a single re-render for performance. In React 18, automatic batching works in all contexts (event handlers, effects, timeouts, and native events). Earlier versions only batched in React event handlers.
+
+Example:
+
+\`\`\`javascript
+setCount(c => c + 1);
+setName('new');
+// triggers a single render combining both updates
+\`\`\`
+
+To opt out of batching (rarely needed), use \`flushSync\`.`,
+      difficulty: "medium",
+      tags: ["react", "batching", "performance"],
+      is_top50: true,
+    },
+    {
+      question: "What is the useDeferredValue hook?",
+      answer: `\`useDeferredValue\` allows you to defer re-rendering a non-urgent part of the UI. It returns a deferred version of the value that may lag behind the original.
+
+Example:
+
+\`\`\`javascript
+const deferredQuery = useDeferredValue(query);
+\`\`\`
+
+The original value renders immediately, while the deferred value renders during spare time. Combined with Suspense, it helps keep the UI responsive during expensive updates (like filtering a large list while the user types).`,
+      difficulty: "hard",
+      tags: ["react", "hooks", "useDeferredValue", "concurrent"],
+      is_top50: true,
+    },
+    {
+      question: "What is the useTransition hook?",
+      answer: `\`useTransition\` marks a state update as non-urgent (transition), allowing React to keep the current UI responsive while the update is in progress. It returns \`[isPending, startTransition]\`. Wrap non-urgent state updates in \`startTransition\` to let interruptions (like typing) take priority. This is part of React 18's concurrent features and is essential for keeping inputs responsive during complex re-renders.`,
+      difficulty: "hard",
+      tags: ["react", "hooks", "useTransition", "concurrent"],
+      is_top50: true,
+    },
+    {
+      question: "Explain the concept of render props in React.",
+      answer: `Render props is a pattern where a component receives a function as a prop that returns JSX. The component calls this function with its internal state, allowing the parent to control rendering.
+
+Example:
+
+\`\`\`jsx
+<Mouse render={position => <Tooltip x={position.x} y={position.y} />} />
+\`\`\`
+
+Render props enable sharing stateful logic without inheritance. Custom hooks are now the preferred alternative. They achieve the same goal without the nesting.`,
+      difficulty: "medium",
+      tags: ["react", "render-props", "patterns"],
+      is_top50: true,
+    },
+    {
+      question: "What is the children prop in React?",
+      answer: `\`children\` is a special prop that passes content between opening and closing tags of a component. It can be any renderable content: JSX, strings, components, or functions.
+
+Example:
+
+\`\`\`jsx
+<Card><p>Content</p></Card>
+\`\`\`
+
+The \`<p>\` becomes \`props.children\`. The \`children\` prop enables composition via containment pattern, allowing components to wrap arbitrary content. This is fundamental to React's composition model.`,
+      difficulty: "easy",
+      tags: ["react", "children", "composition"],
+      is_top50: true,
+    },
+    {
+      question: "How do you handle side effects in React?",
+      answer: `Side effects (data fetching, subscriptions, DOM manipulation, timers) are handled using the \`useEffect\` hook. \`useEffect\` runs after render and accepts a function and dependency array. It supports cleanup via its return function. For effects that depend on values, include them in the dependency array. React 19 introduces the \`use()\` hook for simpler data fetching with Suspense, reducing the need for \`useEffect\` in data-loading scenarios.`,
+      difficulty: "medium",
+      tags: ["react", "side-effects", "useEffect"],
+      is_top50: true,
+    },
+    {
+      question: "What is the purpose of the useId hook?",
+      answer: `\`useId\` generates unique IDs that are stable across server and client rendering, preventing hydration mismatches. It is essential for accessible components that need unique IDs for \`aria-describedby\`, \`aria-labelledby\`, or form label associations.
+
+Example:
+
+\`\`\`javascript
+const id = useId();
+\`\`\`
+
+\`\`\`jsx
+<label htmlFor={id}>Name</label>
+<input id={id} />
+\`\`\`
+
+It guarantees uniqueness even if multiple instances of the same component render on the same page.`,
+      difficulty: "medium",
+      tags: ["react", "hooks", "useId", "accessibility"],
+      is_top50: true,
+    },
+    {
+      question: "Explain the difference between server-side rendering (SSR) and client-side rendering (CSR).",
+      answer: `CSR renders the entire UI in the browser. The server sends an empty HTML shell and JavaScript builds the page. Initial load is slower (all JS must download and execute) but subsequent navigation is fast. SSR renders HTML on the server and sends a fully populated page to the client. Faster initial paint, better SEO, but slower Time to Interactive (hydration). Next.js supports both, and React Server Components blur the line by rendering on the server and streaming interactive chunks.`,
+      difficulty: "medium",
+      tags: ["react", "ssr", "csr", "rendering"],
+      is_top50: true,
+    },
+    {
+      question: "What is hydration in React?",
+      answer: `Hydration is the process where React attaches event listeners and initializes state on server-rendered HTML, making it interactive. \`ReactDOM.hydrateRoot()\` assumes the HTML matches the server-rendered content. Mismatches (hydration errors) occur when client-side and server-side output differ. React warns and falls back to client rendering. React 19 improves hydration with error recovery and streaming hydration, allowing parts of the page to become interactive before the entire page hydrates.`,
+      difficulty: "hard",
+      tags: ["react", "hydration", "ssr"],
+      is_top50: true,
+    },
+    {
+      question: "How do you test React components?",
+      answer: `React testing ecosystem: Jest (test runner + assertions), React Testing Library (component rendering and queries), and optionally Vitest for faster runs. Test by behavior, not implementation. Use \`getByRole\`, \`getByLabelText\`, \`findByText\` instead of testing internal state. Wrap components in needed providers (Router, Context, QueryClient). Use \`userEvent\` for realistic interactions. Test accessibility with \`jest-axe\`. For hooks, use \`renderHook\` from React Testing Library.`,
+      difficulty: "medium",
+      tags: ["react", "testing", "jest", "rtl"],
+      is_top50: true,
+    },
+    {
+      question: "What is the role of the ref prop in React?",
+      answer: `The \`ref\` prop provides access to a DOM element or a React component instance. In React 19, \`ref\` can be passed directly as a prop (no \`forwardRef\` needed). Use cases: managing focus (\`inputRef.current.focus()\`), triggering animations, integrating with third-party DOM libraries, measuring element dimensions. Avoid overusing refs. Prefer state and props for most UI logic. Refs bridge the gap between React's declarative world and imperative DOM operations.`,
+      difficulty: "medium",
+      tags: ["react", "refs", "dom"],
+      is_top50: true,
+    },
+    {
+      question: "What is forwardRef in React?",
+      answer: `\`forwardRef\` is a React API that lets a parent component pass a ref through to a child component's DOM node. It is needed because \`ref\` is not automatically passed like props (in React 18 and earlier). The child component wraps itself in \`React.forwardRef((props, ref) => ...)\` and attaches the ref to the desired DOM element. In React 19, \`forwardRef\` is no longer needed. Ref can be passed as a regular prop.`,
+      difficulty: "medium",
+      tags: ["react", "forwardRef", "refs"],
+      is_top50: true,
+    },
+    {
+      question: "Explain React Fiber architecture.",
+      answer: `React Fiber is the reimplementation of React's reconciliation algorithm (introduced in React 16). It enables incremental rendering. Splitting work into units (fibers) that can be paused, resumed, or prioritized. Fiber allows: time slicing (breaking render work into chunks), prioritization (user input > animations > data fetching), error boundaries, and concurrent mode. Each fiber node represents a component instance with its state, props, and pending work.`,
+      difficulty: "hard",
+      tags: ["react", "fiber", "architecture"],
+      is_top50: true,
+    },
+    {
+      question: "What is the useOptimistic hook?",
+      answer: `\`useOptimistic\` is a React 19 hook for optimistic UI updates. It lets you show the expected result of an async operation immediately, then reverts if the actual result differs.
+
+Example:
+
+\`\`\`javascript
+const [optimisticMessage, addOptimistic] = useOptimistic(
+  messages,
+  (state, newMessage) => [...state, { ...newMessage, pending: true }]
+);
+\`\`\`
+
+When the user sends a message, show it immediately with a 'pending' indicator. If the server fails, revert to the real messages. This creates a snappy user experience.`,
+      difficulty: "hard",
+      tags: ["react", "react-19", "useOptimistic", "optimistic-ui"],
+      is_top50: true,
+    },
+    {
+      question: "What is the useFormStatus hook?",
+      answer: `\`useFormStatus\` is a React 19 hook that provides the pending state of a parent \`<form>\` action. It returns \`{ pending, data, method, action }\`. Use it in child components (like submit buttons) to show loading states without prop drilling.
+
+Example:
+
+\`\`\`javascript
+const { pending } = useFormStatus();
+\`\`\`
+
+\`\`\`jsx
+<button disabled={pending}>
+  {pending ? 'Saving...' : 'Submit'}
+</button>
+\`\`\`
+
+It works with both server actions and client-side form actions.`,
+      difficulty: "hard",
+      tags: ["react", "react-19", "useFormStatus", "forms"],
+      is_top50: true,
+    },
   ],
   "backend-engineer": [
     {
