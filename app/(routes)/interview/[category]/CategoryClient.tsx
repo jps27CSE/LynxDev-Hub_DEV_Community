@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -174,6 +174,12 @@ export default function CategoryClient({ category, chaptersWithQuestions }: Prop
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sortOrder, setSortOrder] = useState<"default" | "easy-hard" | "hard-easy">("default");
 
+  const mainRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeChapter]);
+
   const currentChapter = chaptersWithQuestions.find((ch) => ch.id === activeChapter);
   const currentIndex = chaptersWithQuestions.findIndex((ch) => ch.id === activeChapter);
 
@@ -270,7 +276,7 @@ export default function CategoryClient({ category, chaptersWithQuestions }: Prop
           </aside>
         )}
 
-        <main className="flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
           {currentChapter && (
             <div>
               <div className="mb-8">
