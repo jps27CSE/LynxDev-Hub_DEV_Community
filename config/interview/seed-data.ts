@@ -19081,6 +19081,961 @@ public JwtAuthenticationConverter jwtAuthenticationConverter() {
       tags: ["spring", "security"],
       is_top50: true,
     },
+    {
+      question: "How do you build a CRUD REST API from scratch in Spring Boot?",
+      answer: `Follow these steps to create a complete CRUD REST API:
+
+**1. Entity** — the data model:
+\`\`\`java
+@Entity
+public class Product {
+    @Id @GeneratedValue private Long id;
+    private String name;
+    private double price;
+}
+\`\`\`
+
+**2. Repository** — data access:
+\`\`\`java
+public interface ProductRepository extends JpaRepository<Product, Long> { }
+\`\`\`
+
+**3. Service** — business logic:
+\`\`\`java
+@Service
+public class ProductService {
+    private final ProductRepository repo;
+    public ProductService(ProductRepository repo) { this.repo = repo; }
+    public List<Product> findAll() { return repo.findAll(); }
+    public Product findById(Long id) { return repo.findById(id).orElseThrow(() -> new RuntimeException("Not found")); }
+    public Product save(Product p) { return repo.save(p); }
+    public void delete(Long id) { repo.deleteById(id); }
+}
+\`\`\`
+
+**4. Controller** — REST endpoints:
+\`\`\`java
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+    @GetMapping public List<Product> getAll() { ... }
+    @GetMapping("/{id}") public Product getById(@PathVariable Long id) { ... }
+    @PostMapping public Product create(@RequestBody Product p) { ... }
+    @PutMapping("/{id}") public Product update(@PathVariable Long id, @RequestBody Product p) { ... }
+    @DeleteMapping("/{id}") public void delete(@PathVariable Long id) { ... }
+}
+\`\`\`
+
+**5. Exception handler** — consistent error responses with @ControllerAdvice`,
+      difficulty: "medium",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "How do you validate request bodies in Spring Boot?",
+      answer: `Spring Boot integrates with Jakarta Bean Validation (the successor to JSR-380).
+
+**Step 1 — Add validation annotations to your DTO:**
+\`\`\`java
+public class CreateUserRequest {
+    @NotBlank(message = "Name is required")
+    private String name;
+
+    @Email(message = "Must be a valid email")
+    private String email;
+
+    @Min(value = 18, message = "Must be at least 18")
+    private int age;
+
+    @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Invalid phone number")
+    private String phone;
+}
+\`\`\`
+
+**Step 2 — Add @Valid to the controller parameter:**
+\`\`\`java
+@PostMapping("/users")
+public User create(@Valid @RequestBody CreateUserRequest request) {
+    return userService.create(request);
+}
+\`\`\`
+
+**Step 3 — Handle validation errors globally:**
+\`\`\`java
+@ControllerAdvice
+public class ValidationHandler {
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handle(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors()
+            .forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+        return ResponseEntity.badRequest().body(errors);
+    }
+}
+\`\`\`
+
+**Group validation:** Use \`@Validated(CreateGroup.class)\` to validate different rules for create vs update.
+**Custom validators:** Create annotation + implement \`ConstraintValidator\` interface.`,
+      difficulty: "medium",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "How do you handle exceptions in a Spring Boot REST API?",
+      answer: `The standard approach is a global exception handler using \`@ControllerAdvice\`.
+
+**Create a custom error response:**
+\`\`\`java
+public class ErrorResponse {
+    private int status;
+    private String message;
+    private LocalDateTime timestamp;
+    // constructor, getters
+}
+\`\`\`
+
+**Create specific exceptions:**
+\`\`\`java
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException(String message) { super(message); }
+}
+\`\`\`
+
+**Global exception handler:**
+\`\`\`java
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity.status(404).body(new ErrorResponse(404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult().getFieldErrors().stream()
+            .map(e -> e.getField() + ": " + e.getDefaultMessage())
+            .collect(Collectors.joining(", "));
+        return ResponseEntity.badRequest().body(new ErrorResponse(400, message));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
+        return ResponseEntity.status(500).body(new ErrorResponse(500, "Internal server error"));
+    }
+}
+\`\`\`
+
+**Pattern summary:** Create custom exceptions → throw from service layer → catch in @ControllerAdvice → return consistent JSON responses with appropriate HTTP status codes.`,
+      difficulty: "medium",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "How do you configure logging in Spring Boot with SLF4J/Logback?",
+      answer: `Spring Boot uses **SLF4J** as the logging facade and **Logback** as the default implementation.
+
+**Basic config in application.yml:**
+\`\`\`yaml
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+    org.springframework.web: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/myapp.log
+    max-size: 10MB
+    max-history: 7
+\`\`\`
+
+**logback-spring.xml for advanced config (auto-detected by Spring Boot):**
+\`\`\`xml
+<configuration>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/app.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.example" level="DEBUG"/>
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>
+\`\`\`
+
+**Using loggers in code:**
+\`\`\`java
+@Service
+public class UserService {
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
+    public User createUser(CreateUserRequest request) {
+        log.debug("Creating user with email: {}", request.getEmail());
+        // ...
+        log.info("User created successfully with id: {}", user.getId());
+    }
+}
+\`\`\`
+
+**Tip:** Use parameterized logging (\`{}\`) instead of string concatenation — it avoids building strings when the log level is disabled.`,
+      difficulty: "medium",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "How do you schedule background tasks in Spring Boot?",
+      answer: `Spring Boot makes scheduling simple with \`@Scheduled\` and \`@EnableScheduling\`.
+
+**Step 1 — Enable scheduling:**
+\`\`\`java
+@Configuration
+@EnableScheduling
+public class SchedulerConfig { }
+\`\`\`
+
+**Step 2 — Create scheduled tasks:**
+\`\`\`java
+@Component
+public class ScheduledTasks {
+    private static final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);
+
+    @Scheduled(fixedRate = 5000)        // runs every 5 seconds, regardless of previous run duration
+    public void reportCurrentTime() {
+        log.info("Current time: {}", LocalDateTime.now());
+    }
+
+    @Scheduled(fixedDelay = 10000)       // runs 10 seconds after the previous run completes
+    public void runAfterLast() {
+        log.info("Running cleanup task");
+    }
+
+    @Scheduled(initialDelay = 30000, fixedRate = 60000)  // waits 30s before first run, then every 60s
+    public void delayedStart() { ... }
+
+    @Scheduled(cron = "0 0 2 * * ?")    // runs at 2:00 AM every day
+    public void dailyReport() {
+        log.info("Generating daily report");
+    }
+}
+\`\`\`
+
+**Cron expression format:** \`second minute hour day-of-month month day-of-week\`
+- \`0 0 2 * * ?\` — daily at 2 AM
+- \`0 0/5 * * * ?\` — every 5 minutes
+- \`0 0 9-17 * * MON-FRI\` — every hour from 9 AM to 5 PM on weekdays
+
+**Running tasks in parallel:** Configure a \`TaskScheduler\` bean with a thread pool:
+\`\`\`java
+@Bean
+public TaskScheduler taskScheduler() {
+    ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+    scheduler.setPoolSize(5);
+    scheduler.setThreadNamePrefix("scheduled-");
+    return scheduler;
+}
+\`\`\``,
+      difficulty: "medium",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "How do you use @Async and @EnableAsync in Spring Boot?",
+      answer: `\`@Async\` lets methods run on a separate thread so the caller is not blocked.
+
+**Step 1 — Enable async processing:**
+\`\`\`java
+@Configuration
+@EnableAsync
+public class AsyncConfig { }
+\`\`\`
+
+**Step 2 — Annotate methods with @Async:**
+\`\`\`java
+@Service
+public class EmailService {
+    @Async
+    public CompletableFuture<Void> sendWelcomeEmail(String email) {
+        // Simulate slow email sending
+        Thread.sleep(2000);
+        log.info("Welcome email sent to {}", email);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Async
+    public CompletableFuture<String> fetchUserData(Long userId) {
+        // Parallel data fetching
+        return CompletableFuture.completedFuture("data for user " + userId);
+    }
+}
+\`\`\`
+
+**Calling async methods:**
+\`\`\`java
+@Service
+public class RegistrationService {
+    private final EmailService emailService;
+
+    public void registerUser(CreateUserRequest request) {
+        User user = userRepo.save(request.toUser());
+        // This returns immediately — email sends in the background
+        emailService.sendWelcomeEmail(user.getEmail());
+    }
+
+    // If you need the result:
+    public void fetchAll() throws Exception {
+        CompletableFuture<String> f1 = emailService.fetchUserData(1L);
+        CompletableFuture<String> f2 = emailService.fetchUserData(2L);
+        CompletableFuture.allOf(f1, f2).get(); // wait for both
+        String result1 = f1.get();
+        String result2 = f2.get();
+    }
+}
+\`\`\`
+
+**Important notes:**
+- \`@Async\` only works on **public methods** called from **outside the class** (proxy limitation)
+- The method must return \`void\` or \`CompletableFuture\`/ \`Future\`
+- Configure a custom executor to control the thread pool:
+\`\`\`java
+@Bean(name = "taskExecutor")
+public Executor taskExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(5);
+    executor.setMaxPoolSize(10);
+    executor.setQueueCapacity(100);
+    executor.setThreadNamePrefix("async-");
+    executor.initialize();
+    return executor;
+}
+\`\`\`
+Reference it with \`@Async("taskExecutor")\`.`,
+      difficulty: "medium",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "How do you configure CORS in Spring Boot?",
+      answer: `CORS (Cross-Origin Resource Sharing) controls which domains can access your API from a browser.
+
+**Option 1 — Global CORS config (recommended):**
+\`\`\`java
+@Configuration
+public class CorsConfig implements WebMvcConfigurer {
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/api/**")
+            .allowedOrigins("https://myapp.com", "http://localhost:3000")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
+            .allowedHeaders("*")
+            .allowCredentials(true)
+            .maxAge(3600);
+    }
+}
+\`\`\`
+
+**Option 2 — Per-controller with @CrossOrigin:**
+\`\`\`java
+@RestController
+@RequestMapping("/api/users")
+@CrossOrigin(origins = "http://localhost:3000")
+public class UserController {
+    @GetMapping
+    @CrossOrigin(origins = "https://admin.myapp.com")  // overrides class-level
+    public List<User> getAll() { ... }
+}
+\`\`\`
+
+**Option 3 — CORS with Spring Security:**
+\`\`\`java
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    return http
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .csrf(csrf -> csrf.disable())  // REST APIs typically disable CSRF
+        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+        .build();
+}
+
+@Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
+    config.setAllowedOrigins(List.of("http://localhost:3000"));
+    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+    config.setAllowedHeaders(List.of("*"));
+    config.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/api/**", config);
+    return source;
+}
+\`\`\`
+
+**CORS headers that get sent:**
+- \`Access-Control-Allow-Origin\` — which origins are allowed
+- \`Access-Control-Allow-Methods\` — which HTTP methods are allowed
+- \`Access-Control-Allow-Credentials\` — whether cookies/auth headers are allowed
+- \`Access-Control-Max-Age\` — how long the preflight result can be cached`,
+      difficulty: "medium",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "How do you write a @SpringBootTest integration test?",
+      answer: `\`@SpringBootTest\` loads the full application context for end-to-end integration testing.
+
+**Basic setup:**
+\`\`\`java
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+class UserApiIntegrationTest {
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @BeforeEach
+    void setUp() {
+        userRepository.deleteAll();
+    }
+
+    @Test
+    void shouldCreateAndRetrieveUser() {
+        // Create
+        var request = new CreateUserRequest("Alice", "alice@example.com");
+        ResponseEntity<User> createResponse = restTemplate.postForEntity(
+            "/api/users", request, User.class);
+        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        // Retrieve
+        Long id = createResponse.getBody().getId();
+        ResponseEntity<User> getResponse = restTemplate.getForEntity(
+            "/api/users/" + id, User.class);
+        assertThat(getResponse.getBody().getName()).isEqualTo("Alice");
+    }
+
+    @Test
+    void shouldReturn404WhenUserNotFound() {
+        ResponseEntity<ErrorResponse> response = restTemplate.getForEntity(
+            "/api/users/999", ErrorResponse.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+}
+\`\`\`
+
+**Key features:**
+- \`WebEnvironment.RANDOM_PORT\` — starts the app on a random port to avoid conflicts
+- \`TestRestTemplate\` — automatically resolves \`localhost:\${port}\` for you
+- Full Spring context — works with real databases, caches, and external services
+- Auto-rollback — \`@Transactional\` on test methods rolls back changes after each test
+
+**Faster alternatives for specific layers:**
+- \`@WebMvcTest\` — controllers only (use \`@MockBean\` for services)
+- \`@DataJpaTest\` — JPA repositories only
+- \`@RestClientTest\` — REST clients only`,
+      difficulty: "medium",
+      tags: ["spring", "testing"],
+      is_top50: true,
+    },
+    {
+      question: "How do you handle file upload and download in Spring Boot?",
+      answer: `Spring Boot makes file handling straightforward with \`MultipartFile\` and \`Resource\`.
+
+**File upload:**
+\`\`\`java
+@RestController
+@RequestMapping("/api/files")
+public class FileController {
+
+    private final Path uploadDir = Path.of("uploads");
+
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
+        try {
+            // Validate
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("File is empty");
+            }
+
+            // Sanitize filename to prevent path traversal
+            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+
+            // Save to disk
+            Files.createDirectories(uploadDir);
+            Path targetPath = uploadDir.resolve(filename);
+            file.transferTo(targetPath);
+
+            return ResponseEntity.ok("File uploaded: " + filename);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body("Upload failed");
+        }
+    }
+}
+\`\`\`
+
+**File download:**
+\`\`\`java
+@GetMapping("/download/{filename}")
+public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {
+    try {
+        Path filePath = uploadDir.resolve(filename);
+
+        if (!Files.exists(filePath)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Resource resource = new UrlResource(filePath.toUri());
+        String contentType = Files.probeContentType(filePath);
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(
+                contentType != null ? contentType : "application/octet-stream"))
+            .header(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"" + resource.getFilename() + "\"")
+            .body(resource);
+    } catch (IOException e) {
+        return ResponseEntity.internalServerError().build();
+    }
+}
+\`\`\`
+
+**Upload size limits in application.yml:**
+\`\`\`yaml
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 50MB
+      file-size-threshold: 2KB
+\`\`\`
+
+**Serving static uploaded files in dev:**
+\`\`\`java
+@Configuration
+public class StaticResourceConfig implements WebMvcConfigurer {
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/uploads/**")
+            .addResourceLocations("file:uploads/");
+    }
+}
+\`\`\``,
+      difficulty: "medium",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between @Value and @ConfigurationProperties?",
+      answer: `Both inject external configuration values, but they serve different purposes.
+
+| | \`@Value\` | \`@ConfigurationProperties\` |
+|---|---|---|
+| **Binding** | Injects a single value | Binds a whole prefix to a POJO |
+| **Type safety** | No — always a string that needs manual conversion | Yes — automatic type conversion |
+| **Validation** | Not supported | JSR-303 annotations (\`@NotEmpty\`, \`@Min\`, etc.) |
+| **Relaxed binding** | Limited — no automatic kebab-to-camel conversion | Yes — \`max-pool-size\` maps to \`maxPoolSize\` |
+| **Best for** | Simple, one-off values | Grouped, hierarchical configuration |
+
+**@Value example:**
+\`\`\`java
+@Service
+public class AppService {
+    @Value("\${app.name}")
+    private String appName;
+
+    @Value("\${app.db.max-pool-size:10}")
+    private int maxPoolSize;
+
+    @Value("#{2 * T(java.lang.Math).PI}")    // SpEL expressions
+    private double piValue;
+}
+\`\`\`
+
+**@ConfigurationProperties example:**
+\`\`\`java
+@ConfigurationProperties(prefix = "app.datasource")
+public class DataSourceProperties {
+    @NotEmpty
+    private String url;
+
+    @Min(1)
+    @Max(100)
+    private int maxPoolSize = 10;
+
+    private List<String> fallbackUrls = new ArrayList<>();
+    private Map<String, String> customProperties = new HashMap<>();
+    // getters and setters
+}
+\`\`\`
+
+**Corresponding application.yml:**
+\`\`\`yaml
+app:
+  datasource:
+    url: jdbc:mysql://localhost:3306/mydb
+    max-pool-size: 20           # relaxed binding works here
+    fallback-urls:
+      - jdbc:mysql://backup1:3306/mydb
+      - jdbc:mysql://backup2:3306/mydb
+    custom-properties:
+      timeout: 5000
+      retry: 3
+\`\`\`
+
+**Rule of thumb:** Use \`@ConfigurationProperties\` for any group of related properties (database, cache, api config). Use \`@Value\` for truly single, standalone values.`,
+      difficulty: "medium",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "How do you use @Profile to configure environment-specific beans?",
+      answer: `\`@Profile\` lets you activate different beans based on the running environment.
+
+**Profile-specific beans:**
+\`\`\`java
+@Service
+@Profile("dev")
+public class DevUserService implements UserService {
+    public User create(User user) {
+        log.info("DEV: Creating user without validation");
+        return userRepo.save(user);
+    }
+}
+
+@Service
+@Profile("prod")
+public class ProdUserService implements UserService {
+    public User create(User user) {
+        validateEmail(user.getEmail());
+        log.info("PROD: User created after full validation");
+        return userRepo.save(user);
+    }
+}
+\`\`\`
+
+**Profile-specific config files:**
+\`\`\`yaml
+# application.yml (shared defaults)
+server:
+  port: 8080
+
+# application-dev.yml
+server:
+  port: 3000
+debug: true
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+
+# application-prod.yml
+server:
+  port: 80
+debug: false
+spring:
+  datasource:
+    url: jdbc:postgresql://prod-db:5432/mydb
+\`\`\`
+
+**Activating profiles:**
+- Command line: \`--spring.profiles.active=prod\`
+- Environment variable: \`SPRING_PROFILES_ACTIVE=dev\`
+- Default in application.yml: \`spring.profiles.active: dev\`
+
+**Profile conditions:**
+\`\`\`java
+@Bean
+@Profile("!test")           // NOT test
+public DataSource productionDataSource() { ... }
+
+@Bean
+@Profile("dev | staging")   // dev OR staging
+public DataSource devDataSource() { ... }
+
+@Component
+@Profile("default")          // only when NO profile is explicitly set
+public class DefaultConfig { ... }
+\`\`\`
+
+**Checking active profiles programmatically:**
+\`\`\`java
+@Service
+public class ConfigChecker {
+    @Autowired
+    private Environment env;
+
+    public void check() {
+        String[] activeProfiles = env.getActiveProfiles();
+        log.info("Active profiles: {}", Arrays.toString(activeProfiles));
+    }
+}
+\`\`\``,
+      difficulty: "medium",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between application.properties and application.yml?",
+      answer: `Both configure Spring Boot applications but use different syntax.
+
+**application.properties (flat key-value):**
+\`\`\`properties
+server.port=8080
+server.servlet.context-path=/api
+
+spring.datasource.url=jdbc:mysql://localhost:3306/mydb
+spring.datasource.username=root
+spring.datasource.password=secret
+
+app.features.enabled=true
+app.features.max-login-attempts=3
+\`\`\`
+
+**application.yml (hierarchical, indentation-based):**
+\`\`\`yaml
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/mydb
+    username: root
+    password: secret
+
+app:
+  features:
+    enabled: true
+    max-login-attempts: 3
+\`\`\`
+
+**Key differences:**
+
+| Aspect | application.properties | application.yml |
+|---|---|---|
+| **Syntax** | Flat, dot-separated keys | Hierarchical, YAML |
+| **Readability** | Repetitive prefixes (\`spring.datasource.\`) | Clean nesting, no repetition |
+| **Lists** | \`my.key[0]=a\`, \`my.key[1]=b\` | \`my:\n  key:\n    - a\n    - b\` |
+| **Multi-profile** | Separate files (e.g., \`application-dev.properties\`) | Single file with \`---\` document separators |
+| **Type safety** | Same | Same |
+
+**Multi-profile with YAML (single file):**
+\`\`\`yaml
+spring:
+  profiles:
+    active: dev
+
+# Shared config
+server:
+  port: 8080
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+server:
+  port: 3000
+debug: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+server:
+  port: 80
+\`\`\`
+
+**Which one to choose?** It is personal preference. YAML is cleaner for hierarchical config. Properties is simpler for flat config. Spring Boot supports both, and you can even mix them (properties takes precedence for duplicate keys).`,
+      difficulty: "easy",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "How do you use @RequestParam, @PathVariable, and @RequestBody in Spring Boot?",
+      answer: `These are the three main annotations for extracting data from HTTP requests.
+
+**@PathVariable — values from the URL path:**
+\`\`\`java
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    // GET /api/users/42
+    @GetMapping("/{id}")
+    public User getById(@PathVariable Long id) {
+        return userService.findById(id);
+    }
+
+    // GET /api/users/42/orders/5
+    @GetMapping("/{userId}/orders/{orderId}")
+    public Order getOrder(@PathVariable Long userId, @PathVariable Long orderId) {
+        return orderService.findByUserAndOrder(userId, orderId);
+    }
+
+    // Optional with default name
+    @GetMapping("/{id}/details")
+    public Details getDetails(@PathVariable("id") Long userId) {
+        return detailsService.findByUserId(userId);
+    }
+}
+\`\`\`
+
+**@RequestParam — query parameters from the URL:**
+\`\`\`java
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    // GET /api/users/search?name=Ali&page=1
+    @GetMapping("/search")
+    public List<User> search(
+            @RequestParam String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int pageSize) {
+        return userService.search(name, page, pageSize);
+    }
+
+    // Optional parameter
+    // GET /api/users?role=admin
+    @GetMapping
+    public List<User> getAll(@RequestParam(required = false) String role) {
+        return role != null ? userService.findByRole(role) : userService.findAll();
+    }
+
+    // Multiple values for same param
+    // GET /api/users/by-ids?id=1&id=2&id=3
+    @GetMapping("/by-ids")
+    public List<User> getByIds(@RequestParam List<Long> id) {
+        return userService.findAllById(id);
+    }
+
+    // Map all query params
+    @GetMapping("/filter")
+    public List<User> filter(@RequestParam Map<String, String> allParams) {
+        return userService.filter(allParams);
+    }
+}
+\`\`\`
+
+**@RequestBody — the request body (JSON/XML):**
+\`\`\`java
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public User create(@Valid @RequestBody CreateUserRequest request) {
+        return userService.create(request);
+    }
+
+    @PutMapping("/{id}")
+    public User update(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
+        return userService.update(id, request);
+    }
+
+    // Raw map if DTO is not needed
+    @PatchMapping("/{id}")
+    public User patch(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+        return userService.patch(id, updates);
+    }
+}
+\`\`\`
+
+**Summary:**
+| Annotation | Source | Example URL | Usage |
+|---|---|---|---|
+| \`@PathVariable\` | URL path | \`/users/{id}\` | Resource identifiers |
+| \`@RequestParam\` | Query string | \`/users?page=1\` | Filters, pagination |
+| \`@RequestBody\` | Request body | POST JSON body | Create/update payloads |`,
+      difficulty: "easy",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "How do you use @MockBean and @SpyBean in Spring Boot tests?",
+      answer: `\`@MockBean\` and \`@SpyBean\` replace real beans with test doubles in the Spring context.
+
+**@MockBean — create a mock (replace the real bean entirely):**
+\`\`\`java
+@WebMvcTest(UserController.class)
+class UserControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private UserService userService;    // replaces the real UserService with a mock
+
+    @Test
+    void shouldReturnUsers() throws Exception {
+        when(userService.findAll()).thenReturn(List.of(new User("Alice")));
+
+        mockMvc.perform(get("/api/users"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].name").value("Alice"));
+
+        verify(userService).findAll();   // verify the mock was called
+    }
+}
+\`\`\`
+
+**@SpyBean — spy on a real bean (keep real behaviour, stub specific methods):**
+\`\`\`java
+@SpringBootTest
+class UserServiceIntegrationTest {
+
+    @SpyBean
+    private UserRepository userRepository;  // real repo, but we can stub specific methods
+
+    @Autowired
+    private UserService userService;
+
+    @Test
+    void shouldFallbackWhenDatabaseFails() {
+        // Stub only this one method — repository is otherwise real
+        when(userRepository.findAll()).thenThrow(new RuntimeException("DB down"));
+
+        // Test the fallback logic in the service
+        assertThatThrownBy(() -> userService.findAll())
+            .hasMessageContaining("fallback triggered");
+    }
+}
+\`\`\`
+
+**Key differences:**
+
+| | @MockBean | @SpyBean |
+|---|---|---|
+| **Default behaviour** | All methods return defaults (null, empty list) | Calls the REAL method unless stubbed |
+| **Use case** | Isolate the class under test from its dependencies | Test real behaviour but override specific methods |
+| **Verification** | Can verify interactions | Can verify interactions |
+| **When to use** | \`@WebMvcTest\`, \`@DataJpaTest\` slice tests | \`@SpringBootTest\` when you need mostly real beans |
+
+**Important notes:**
+- \`@MockBean\` and \`@SpyBean\` reset after each test method
+- They work by adding a mock/spy to the Spring application context
+- Use \`@MockBean\` in slice tests (\`@WebMvcTest\`) to mock service/repository layers
+- Use \`@SpyBean\` sparingly — prefer pure mocks or real beans when possible`,
+      difficulty: "medium",
+      tags: ["spring", "testing"],
+      is_top50: true,
+    },
   ],
   "fullstack-engineer": [
     {
