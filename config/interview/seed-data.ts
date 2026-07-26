@@ -17980,6 +17980,360 @@ DROP TABLE users;
       is_top50: false,
     },
     {
+      question: "What are the common HTTP status codes and their meanings?",
+      answer: `HTTP status codes are three-digit numbers returned by servers to indicate the result of a request. They are grouped into five classes:
+
+**1xx (Informational):** Request received, continuing.
+
+**2xx (Success):** Request successfully received and processed.
+- **200 OK** — Standard success response for GET, PUT, PATCH
+- **201 Created** — Resource created successfully (POST)
+- **204 No Content** — Success, no response body (DELETE)
+
+**3xx (Redirection):** Further action needed.
+- **301 Moved Permanently** — Resource has a new permanent URL
+- **304 Not Modified** — Cached version is still valid (ETag/If-None-Match)
+
+**4xx (Client Error):** Request contains bad syntax or cannot be fulfilled.
+- **400 Bad Request** — Malformed request, validation errors
+- **401 Unauthorized** — Missing or invalid authentication
+- **403 Forbidden** — Authenticated but not permitted
+- **404 Not Found** — Resource does not exist
+- **409 Conflict** — Request conflicts with current state
+- **422 Unprocessable Entity** — Semantic validation errors
+- **429 Too Many Requests** — Rate limit exceeded
+
+**5xx (Server Error):** Server failed to fulfill a valid request.
+- **500 Internal Server Error** — Generic server failure
+- **502 Bad Gateway** — Upstream server returned invalid response
+- **503 Service Unavailable** — Server temporarily overloaded or down
+
+**Best practice:** Use the correct status code for every response. Never return 200 for errors.`,
+      difficulty: "easy",
+      tags: ["api-design", "rest"],
+      is_top50: true,
+    },
+    {
+      question: "What is API versioning and what strategies exist?",
+      answer: `API versioning allows you to evolve your API without breaking existing clients.
+
+**URL path versioning:** GET /api/v1/users, GET /api/v2/users. Most common, explicit, easy to route. But clutters URLs.
+
+**Header versioning (Accept header):** GET /users with Accept: application/vnd.myapi.v1+json. Clean URLs but harder to test manually.
+
+**Query parameter versioning:** GET /users?v=1. Simple but clutters query strings.
+
+**Best practices:** Use URL versioning for public APIs, header versioning for internal microservices. Maintain backward compatibility within a version. Deprecate old versions with clear Sunset headers.`,
+      difficulty: "medium",
+      tags: ["api-design", "rest"],
+      is_top50: false,
+    },
+    {
+      question: "Explain pagination in REST APIs — offset vs cursor-based.",
+      answer: `**Offset-based pagination:** GET /users?offset=0&limit=20. Simple — client requests page number and size. Problems: inconsistent if new items are inserted (items shift pages), performance degrades on large offsets (OFFSET 100000 scans 100K rows).
+
+**Cursor-based pagination:** GET /users?cursor=eyJpZCI6IDQyfQ&limit=20. Uses an opaque cursor pointing to the last item. Consistent, fast (uses indexed column, no OFFSET). Ideal for real-time data and infinite scroll.
+
+**Response format:**
+\`\`\`json
+{"data": [...], "next_cursor": "abc123...", "has_more": true}
+\`\`\`
+
+**When to use:** Offset for admin panels needing page jumps. Cursor for public APIs, feeds, and mobile apps.`,
+      difficulty: "medium",
+      tags: ["api-design", "rest"],
+      is_top50: false,
+    },
+    {
+      question: "How do you handle errors in REST APIs?",
+      answer: `A well-designed error response makes it easy for clients to handle failures programmatically.
+
+**Bad:** {"error": "Something went wrong"}
+
+**Good — RFC 7807 Problem Details:**
+\`\`\`json
+{
+  "type": "https://api.example.com/errors/validation-error",
+  "title": "Validation Error",
+  "status": 422,
+  "detail": "The request body contains invalid fields.",
+  "errors": [{"field": "email", "message": "Invalid format", "code": "INVALID_FORMAT"}]
+}
+\`\`\`
+
+**Key principles:** Use correct status codes (400, 401, 403, 404, 409, 422, 429, 500). Include machine-readable error codes. Be consistent across all endpoints. Never expose stack traces or internals in production. Include trace_id for 5xx errors.`,
+      difficulty: "medium",
+      tags: ["api-design", "rest"],
+      is_top50: false,
+    },
+    {
+      question: "What is rate limiting and how does it work?",
+      answer: `Rate limiting controls how many requests a client can make within a time window. It prevents abuse and protects backend services.
+
+**Token Bucket:** A bucket holds N tokens. Each request consumes one token. Tokens are replenished at a fixed rate. Allows bursts up to bucket capacity. Good for APIs with variable traffic.
+
+**Sliding Window Log:** Tracks timestamps per client. Checks count within the last N seconds. Accurate but uses more memory.
+
+**Fixed Window Counter:** Counts requests per fixed window (e.g., 100/min, reset at minute boundaries). Simple but allows bursts at boundaries.
+
+**HTTP headers:**
+\`\`\`
+RateLimit-Limit: 100
+RateLimit-Remaining: 45
+RateLimit-Reset: 1623456789
+Retry-After: 30
+\`\`\`
+
+Use different limits per endpoint, return Retry-After with 429 responses, and use Redis for distributed rate limiting.`,
+      difficulty: "medium",
+      tags: ["api-design", "performance", "security"],
+      is_top50: false,
+    },
+    {
+      question: "What is idempotency and why does it matter in APIs?",
+      answer: `Idempotency means making the same request multiple times produces the same result as making it once. In REST, GET, PUT, DELETE are idempotent; POST is not.
+
+Without idempotency, retrying a payment could charge a customer twice. The client sends a unique Idempotency-Key header (UUID): idempotency-key: 123e4567-e89b-12d3-a456-426614174000
+
+The server stores the key with the response. If the same key arrives again, it returns the stored response without reprocessing.
+
+**Implementation pattern:** Check cache for key → if exists, return stored response → process request → store result with TTL (24h) → return result.
+
+**Best practice:** Always use idempotency keys for payments, order creation, and any write with real-world consequences.`,
+      difficulty: "medium",
+      tags: ["api-design", "rest"],
+      is_top50: false,
+    },
+    {
+      question: "Explain HATEOAS in REST.",
+      answer: `HATEOAS (Hypermedia As The Engine Of Application State) adds hyperlinks to API responses so clients can navigate dynamically without hardcoding URLs.
+
+**Without HATEOAS:** Client must know that /orders/42/pay exists. **With HATEOAS:** The response includes a "links" array showing available actions:
+\`\`\`json
+{
+  "id": 42, "status": "pending",
+  "links": [
+    {"rel": "self", "href": "/orders/42", "method": "GET"},
+    {"rel": "pay", "href": "/orders/42/payments", "method": "POST"},
+    {"rel": "cancel", "href": "/orders/42", "method": "DELETE"}
+  ]
+}
+\`\`\`
+If the order is already paid, the "pay" link disappears. Benefits: loose coupling, discoverability, self-documenting. Trade-offs: larger responses, complex client logic. Rarely fully implemented — most APIs use links only for pagination.`,
+      difficulty: "hard",
+      tags: ["api-design", "rest"],
+      is_top50: false,
+    },
+    {
+      question: "What is OpenAPI/Swagger and why should you use it?",
+      answer: `OpenAPI (formerly Swagger) is a specification for describing REST APIs using JSON or YAML. It defines endpoints, parameters, request/response schemas, authentication, and error responses.
+
+**Why use it:**
+1. **Documentation:** Swagger UI generates interactive API docs — test endpoints from the browser
+2. **SDK generation:** Generate type-safe clients for JS, Python, Java, Go (openapi-generator)
+3. **Contract-first development:** Frontend and backend teams work in parallel from the same spec
+4. **Validation:** Validate requests/responses against the schema with middleware
+5. **Mock servers:** Generate mock APIs from the spec for frontend development
+
+**Best practice:** Keep the spec in version control as the single source of truth. Generate docs, validators, and SDKs from it.`,
+      difficulty: "medium",
+      tags: ["api-design", "documentation"],
+      is_top50: false,
+    },
+    {
+      question: "What is an API Gateway?",
+      answer: `An API Gateway is a single entry point for all client requests, handling cross-cutting concerns so backend services can focus on business logic.
+
+**Responsibilities:** Request routing, authentication (JWT/OAuth2 validation), rate limiting, load balancing, response caching, request/response transformation, logging, SSL termination, and IP whitelisting.
+
+**Popular gateways:** Kong (open-source, plugins), AWS API Gateway (serverless, Lambda), NGINX Plus (high-performance), Traefik (cloud-native), Apigee (enterprise).
+
+**Backend for Frontend (BFF) pattern:** Create separate gateways for mobile, web, and third-party APIs. Each BFF tailors responses to its client.
+
+**Trade-offs:** Adds latency, can become a single point of failure, risk of becoming a monolith if too much logic is placed in the gateway.`,
+      difficulty: "medium",
+      tags: ["api-design", "architecture"],
+      is_top50: false,
+    },
+    {
+      question: "Explain JWT — structure, workflow, and security considerations.",
+      answer: `JWT (JSON Web Token) is a compact, URL-safe token format for transmitting claims between parties, commonly used for authentication.
+
+**Structure:** header.payload.signature (three Base64URL-encoded parts)
+- **Header:** {"alg": "HS256", "typ": "JWT"}
+- **Payload:** Claims like sub (user ID), exp (expiration), iat (issued at), role
+- **Signature:** HMAC or RSA signature of header + payload — prevents tampering
+
+**Auth workflow:** User logs in → server validates credentials → returns JWT → client stores it (httpOnly cookie or secure storage) → sends in Authorization: Bearer <token> header → server verifies signature and expiration.
+
+**Security:** Always validate signature. Set short expiration (15-60 min). Use httpOnly cookies for web apps. Use RS256 (asymmetric) for microservices — only auth service holds private key. Check for alg=none attacks. Never store sensitive data in payload (only base64-encoded, not encrypted).`,
+      difficulty: "medium",
+      tags: ["authentication", "security", "api-design"],
+      is_top50: true,
+    },
+    {
+      question: "Explain OAuth2 and the authorization code flow.",
+      answer: `OAuth2 is an authorization framework that lets third-party apps access user data without exposing credentials.
+
+**Roles:** Resource Owner (user), Client (app), Authorization Server (issues tokens), Resource Server (hosts data).
+
+**Authorization Code Flow (most secure for web apps):**
+1. Client redirects user to Authorization Server for authentication and consent
+2. Server redirects back with an authorization code
+3. Client exchanges the code for tokens (server-to-server, includes client_secret)
+4. Server returns access_token (short-lived) and refresh_token (long-lived)
+
+**Other flows:** Client Credentials (machine-to-machine), PKCE (mobile/SPA — no client_secret needed).
+
+**Modern practice:** Use JWT as access tokens so resource servers validate them without calling the auth server on every request. Use short-lived access tokens with refresh token rotation.`,
+      difficulty: "hard",
+      tags: ["authentication", "security", "api-design"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between REST and GraphQL?",
+      answer: `**REST:** Resources identified by URLs (GET /users/42). Server defines response structure. Multiple endpoints for different resources. Can over-fetch or under-fetch data. HTTP caching is straightforward.
+
+**GraphQL:** Single endpoint (/graphql). Client queries exactly what it needs. Strongly typed schema. No over/under-fetching. Built-in introspection. Subscriptions for real-time data.
+
+**When to use REST:** Simple CRUD, public APIs consumed by many clients, systems where HTTP caching is critical, file uploads.
+
+**When to use GraphQL:** Complex nested data requirements, mobile apps (bandwidth limited), rapidly evolving frontends, multiple client types with different data needs.
+
+**When NOT to use GraphQL:** Simple flat APIs, systems needing CDN caching, teams unfamiliar with the ecosystem.`,
+      difficulty: "medium",
+      tags: ["api-design", "graphql", "rest"],
+      is_top50: false,
+    },
+    {
+      question: "What are WebSockets and how do they differ from HTTP?",
+      answer: `WebSocket provides full-duplex bidirectional communication over a single TCP connection. Unlike HTTP's request-response model, the server can push data without polling.
+
+**Key differences:** HTTP is request-response (client initiates). WebSocket is full-duplex (both sides push). HTTP has high overhead per request. WebSocket has minimal framing (2 bytes). HTTP connections are short-lived. WebSocket connections are persistent.
+
+**Connection lifecycle:** Client sends HTTP Upgrade request → server responds 101 Switching Protocols → bidirectional communication → either side sends close frame.
+
+**Use cases:** Real-time chat, live notifications, collaborative editing, live dashboards, online gaming, IoT streaming.
+
+**Server support:** Socket.IO (Node.js), Django Channels, Spring WebSocket, SignalR (.NET), gorilla/websocket (Go).
+
+**Considerations:** WebSocket is stateful — scaling requires sticky sessions or pub/sub (Redis). Firewalls may block. Use wss:// in production.`,
+      difficulty: "medium",
+      tags: ["api-design", "networking", "real-time"],
+      is_top50: false,
+    },
+    {
+      question: "What is gRPC and how does it compare to REST?",
+      answer: `gRPC is a high-performance RPC framework using Protocol Buffers (binary serialization) and HTTP/2. Designed for low-latency service-to-service communication.
+
+**How it works:** Define services in .proto files → generate client/server code → make remote calls like local functions.
+
+**Key advantages:** ~10x faster than REST JSON (binary protobuf). Native streaming (client, server, bidirectional). Built-in code generation for multiple languages. HTTP/2 multiplexing.
+
+**Communication patterns:** Unary (standard request-response), server streaming, client streaming, bidirectional streaming.
+
+**When to use gRPC:** Internal microservices, polyglot environments, real-time streaming, mobile apps (smaller payloads).
+
+**When NOT to use:** Public APIs consumed by browsers (needs gRPC-Web proxy), simple CRUD APIs, teams unfamiliar with protobuf.`,
+      difficulty: "hard",
+      tags: ["api-design", "grpc", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "What are webhooks and how do they work?",
+      answer: `A webhook is an HTTP callback triggered by an event. Instead of polling for updates, the provider pushes data to your URL in real-time.
+
+**How it works:** Register your URL with the provider. When an event occurs, the provider sends POST to your URL with event data. You return 200 OK.
+
+**Example — Stripe payment webhook:**
+\`\`\`json
+POST /webhooks/stripe
+{"type": "payment_intent.succeeded", "data": {"id": "pi_123", "amount": 2999}}
+\`\`\`
+
+**Best practices:**
+1. Verify HMAC signature — never trust unverified webhooks
+2. Respond 200 quickly, process asynchronously (queue the event)
+3. Use idempotency keys — providers may retry deliveries
+4. Log all incoming payloads for debugging (mask sensitive data)
+
+**Webhooks vs polling:** Webhooks are real-time and efficient but need a public endpoint. Polling is simple but wastes resources.`,
+      difficulty: "medium",
+      tags: ["api-design", "architecture"],
+      is_top50: false,
+    },
+    {
+      question: "How do you secure a REST API?",
+      answer: `Securing an API requires multiple layers:
+
+**1. Authentication:** JWT (short-lived access tokens), OAuth2, API keys, or session-based auth with httpOnly cookies.
+
+**2. Authorization:** RBAC (role-based) or ABAC (attribute-based). Always validate server-side — never trust client checks.
+
+**3. Input validation:** Validate against schemas (Zod, Joi). Parameterized queries prevent injection. Strict content-type validation.
+
+**4. Transport:** Enforce TLS 1.2+. HSTS headers. Redirect HTTP to HTTPS.
+
+**5. Security headers:** Content-Security-Policy, X-Content-Type-Options: nosniff, X-Frame-Options: DENY.
+
+**6. Rate limiting:** Per-user/IP limits. Block IPs after repeated 401/403. Request size limits.
+
+**7. CORS:** Whitelist specific origins. Restrict methods and headers.
+
+**8. Monitoring:** Log auth attempts, monitor for unusual patterns, set alerts for brute force detection.`,
+      difficulty: "medium",
+      tags: ["security", "api-design"],
+      is_top50: false,
+    },
+    {
+      question: "What are caching strategies for APIs?",
+      answer: `Caching reduces latency and backend load by reusing stored responses.
+
+**HTTP caching headers:**
+- Cache-Control: public/private, max-age, no-cache, no-store, must-revalidate
+- ETag: Response content hash. Client sends If-None-Match → server returns 304 Not Modified if unchanged
+- Last-Modified: Timestamp-based. Client sends If-Modified-Since
+
+**Caching layers:** Browser cache → CDN (Cloudflare, CloudFront) → reverse proxy (NGINX, Varnish) → application cache (Redis, Memcached) → database cache.
+
+**Cache invalidation:** TTL-based (simplest), event-driven (invalidate on data change), write-through (update cache on write), cache-aside (check cache, on miss load from DB — most common).
+
+**What to cache:** GET responses for static/reference data, aggregated reports, session data (in Redis). **What NOT to cache:** User-specific data (unless private), real-time data, mutation endpoints.`,
+      difficulty: "medium",
+      tags: ["api-design", "performance", "caching"],
+      is_top50: false,
+    },
+    {
+      question: "What is request validation and why is it important?",
+      answer: `Request validation ensures incoming data meets expectations before business logic executes.
+
+**Why it matters:** Prevents injection attacks (SQL, NoSQL, XSS), ensures data integrity, catches issues early with clear errors instead of 500s.
+
+**What to validate:** Body structure and types, field formats (email, UUID), constraints (min/max length, required), query parameters, path parameters, headers, Content-Type.
+
+**Validation libraries:** Zod (TypeScript), Joi (Node.js), Yup (React), class-validator (Java/TS), Pydantic (Python).
+
+**Best practices:** Validate early in the request pipeline (middleware). Return clear field-level error messages. Use schema-based validation. Never expose internal details in error messages. Always validate server-side — client-side validation is only for UX.`,
+      difficulty: "easy",
+      tags: ["api-design", "security"],
+      is_top50: false,
+    },
+    {
+      question: "Explain the difference between SOAP and REST.",
+      answer: `**SOAP (Simple Object Access Protocol):** Rigid protocol with strict rules. Only XML, wrapped in Envelope → Header → Body. WSDL contract. Built-in WS-Security (encryption, SAML). Supports stateful operations. Heavy — XML parsing is slow, large payloads.
+
+**REST:** Architectural style using standard HTTP. JSON (most common), lightweight. OpenAPI contract (optional). Stateless. Security via HTTPS + JWT/OAuth2 (layered on top). Fast, small payloads, built-in HTTP caching.
+
+**When to use SOAP:** Enterprise integrations with strict SLAs, financial systems needing ACID transactions across services, legacy systems.
+
+**When to use REST:** Modern web/mobile APIs, public APIs, microservices, systems where simplicity and performance matter.
+
+**Modern perspective:** REST has largely replaced SOAP. SOAP remains in legacy enterprise and financial systems.`,
+      difficulty: "medium",
+      tags: ["api-design", "rest", "soap"],
+      is_top50: false,
+    },
+    {
       question: "What is an API and how does it work?",
       answer: "An API (Application Programming Interface) defines how software components communicate. REST APIs use HTTP methods (GET, POST, PUT, DELETE) to perform CRUD operations on resources. Clients send requests with headers and body; servers return responses with status codes and data (usually JSON).",
       difficulty: "easy",
@@ -18043,87 +18397,688 @@ DROP TABLE users;
       is_top50: true,
     },
     {
-      question: "What are the main features of Spring Boot?",
-      answer: "Spring Boot simplifies Spring development with auto-configuration (automatically configures beans based on dependencies), embedded servers (Tomcat/Jetty built-in), starter dependencies (spring-boot-starter-web, starter-data-jpa), production-ready features (Actuator, metrics, health checks), and convention over configuration.",
+      question: "What is Spring Boot and how does it differ from Spring Framework?",
+      answer: `Spring Boot sits on top of the core Spring Framework and removes the boilerplate.
+      
+**Spring Framework** gives you DI, AOP, MVC, and transaction management — but you write lots of XML or Java config.
+
+**Spring Boot** adds:
+- **Auto-configuration** — beans are configured automatically based on what is on the classpath
+- **Embedded servers** — Tomcat, Jetty, or Undertow built in, no WAR deployment needed
+- **Starter POMs** — curated dependency descriptors like \`spring-boot-starter-web\`
+- **Production-ready features** — Actuator, metrics, health checks
+- **Opinionated defaults** — convention over configuration, sensible defaults out of the box`,
       difficulty: "medium",
-      tags: ["spring", "java"],
+      tags: ["spring", "spring-boot"],
       is_top50: true,
     },
     {
-      question: "What is Dependency Injection (DI) in Spring?",
-      answer: "Dependency Injection in Spring means the framework creates and manages objects instead of the developer manually instantiating them. Spring uses @Autowired, @Component, @Service, @Repository to discover and inject dependencies. Constructor injection is recommended for immutability, easier testing, and explicit dependency requirements.",
+      question: "Explain auto-configuration in Spring Boot and how @EnableAutoConfiguration works.",
+      answer: `Auto-configuration is Spring Boot's way of automatically wiring beans based on what libraries it finds on the classpath.
+
+**How it works:**
+1. \`@EnableAutoConfiguration\` (included in \`@SpringBootApplication\`) triggers the mechanism
+2. Spring Boot scans \`META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports\`
+3. Each auto-configuration class uses conditional annotations:
+   - \`@ConditionalOnClass\` — only if a class is on the classpath
+   - \`@ConditionalOnMissingBean\` — only if no custom bean is defined
+   - \`@ConditionalOnProperty\` — only if a property is set
+
+**Example:** If H2 is on the classpath and no \`DataSource\` bean exists, Spring Boot auto-configures an in-memory H2 data source automatically.`,
+      difficulty: "medium",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between @Component, @Service, @Repository, and @Controller?",
+      answer: `All four are stereotype annotations that register classes as Spring beans. The difference is semantic and comes with special behaviour:
+
+| Annotation | Layer | Special Behaviour |
+|---|---|---|
+| \`@Component\` | Generic | Base stereotype for any Spring-managed bean |
+| \`@Service\` | Business logic | Marks the service layer; no extra behaviour but improves readability |
+| \`@Repository\` | Data access | Adds automatic exception translation (\`SQLException\` → \`DataAccessException\`) |
+| \`@Controller\` | Web | Supports view resolution for MVC |
+| \`@RestController\` | Web (REST) | \`@Controller\` + \`@ResponseBody\` — writes JSON/XML directly to the response |
+
+**Key takeaway:** Use the most specific annotation for each layer — it makes your code self-documenting and enables special features like exception translation.`,
+      difficulty: "medium",
+      tags: ["spring"],
+      is_top50: true,
+    },
+    {
+      question: "How does dependency injection work in Spring Boot? Explain constructor vs field injection.",
+      answer: `Spring Boot's IoC (Inversion of Control) container manages bean creation and automatically wires dependencies.
+
+**Constructor injection (recommended):**
+\`\`\`java
+@Service
+public class UserService {
+    private final UserRepository repo;
+    public UserService(UserRepository repo) { this.repo = repo; }
+}
+\`\`\`
+- ✓ Immutability — fields can be \`final\`
+- ✓ Easy testing — pass mocks directly in the constructor
+- ✓ Explicit — all dependencies visible in the constructor signature
+
+**Field injection:**
+\`\`\`java
+@Service
+public class UserService {
+    @Autowired private UserRepository repo;
+}
+\`\`\`
+- ✗ Hides dependencies — not visible from the outside
+- ✗ Breaks immutability — cannot use \`final\`
+- ✗ Harder to test — requires reflection
+
+**Best practice:** Use constructor injection for required dependencies, setter injection for optional ones, and avoid field injection.`,
       difficulty: "medium",
       tags: ["spring", "design-patterns"],
       is_top50: true,
     },
     {
-      question: "What is the difference between @Component, @Service, and @Repository in Spring?",
-      answer: "@Component is the generic stereotype for Spring-managed beans. @Service is used specifically for the business logic layer and improves readability. @Repository is used for the data access layer and provides automatic exception translation — Spring converts low-level DB exceptions into DataAccessException.",
+      question: "What is Spring Data JPA and how do you define a repository?",
+      answer: `Spring Data JPA eliminates boilerplate DAO code. You define an interface, and Spring provides the implementation at runtime.
+
+**Step 1 — Define an entity:**
+\`\`\`java
+@Entity
+public class User {
+    @Id @GeneratedValue private Long id;
+    private String email;
+    private String lastName;
+}
+\`\`\`
+
+**Step 2 — Define a repository interface:**
+\`\`\`java
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByEmail(String email);
+    List<User> findByLastName(String lastName);
+}
+\`\`\`
+
+**What you get for free:**
+- **CRUD operations** — \`save()\`, \`findById()\`, \`findAll()\`, \`delete()\`
+- **Query derivation** — Spring parses method names like \`findByEmail\` into JPQL queries
+- **\`@Query\`** — write custom JPQL or native SQL when method naming isn't enough
+- **Pagination & sorting** — pass \`Pageable\` or \`Sort\` parameters
+- **Specifications** — dynamic, type-safe queries with JPA Criteria API`,
+      difficulty: "medium",
+      tags: ["spring", "jpa", "databases"],
+      is_top50: true,
+    },
+    {
+      question: "Explain @Transactional — propagation, isolation levels, and rollback rules.",
+      answer: `\`@Transactional\` manages database transaction boundaries in Spring.
+
+**Propagation — how transactions relate to each other:**
+
+| Level | Behaviour |
+|---|---|
+| \`REQUIRED\` (default) | Joins an existing transaction or creates a new one |
+| \`REQUIRES_NEW\` | Suspends the current transaction and always creates a new one |
+| \`NESTED\` | Creates a savepoint-based subtransaction |
+| \`MANDATORY\` | Throws an exception if no transaction exists |
+| \`NEVER\` | Throws an exception if a transaction exists |
+| \`SUPPORTS\` | Runs within a transaction if one exists, otherwise without |
+| \`NOT_SUPPORTED\` | Suspends any existing transaction |
+
+**Isolation levels:**
+- \`READ_UNCOMMITTED\` — lowest, dirty reads possible
+- \`READ_COMMITTED\` — default for Postgres/MySQL, prevents dirty reads
+- \`REPEATABLE_READ\` — prevents non-repeatable reads
+- \`SERIALIZABLE\` — highest, full isolation at a performance cost
+
+**Rollback rules:**
+- **Default:** rolls back on \`RuntimeException\` and \`Error\`, NOT on checked exceptions
+- **Customize:** use \`rollbackFor = SomeException.class\` or \`noRollbackFor = SomeException.class\``,
+      difficulty: "hard",
+      tags: ["spring", "databases"],
+      is_top50: true,
+    },
+    {
+      question: "How does Spring Security work? Explain the SecurityFilterChain and JWT authentication flow.",
+      answer: `Spring Security works as a chain of servlet filters that intercept every request.
+
+**SecurityFilterChain — the modern approach:**
+\`\`\`java
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    return http
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+            .anyRequest().authenticated()
+        )
+        .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+        .build();
+}
+\`\`\`
+This replaces the old \`WebSecurityConfigurerAdapter\` pattern.
+
+**JWT authentication flow:**
+1. A custom \`OncePerRequestFilter\` extracts the JWT from the \`Authorization: Bearer ...\` header
+2. Validates the token signature using a secret key or public key (JWKS endpoint)
+3. Extracts user details from the JWT claims (sub, roles, etc.)
+4. Creates an \`Authentication\` token and sets it in \`SecurityContextHolder\`
+5. The rest of the filter chain uses this authentication for authorization decisions`,
+      difficulty: "hard",
+      tags: ["spring", "security"],
+      is_top50: true,
+    },
+    {
+      question: "What is @ControllerAdvice and how do you use it for global exception handling?",
+      answer: `\`@ControllerAdvice\` lets you handle exceptions globally across all controllers — no more try-catch in every endpoint.
+
+**Basic usage:**
+\`\`\`java
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<?> handleNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity.status(404).body(new ErrorResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidation(MethodArgumentNotValidException ex) {
+        List<String> errors = ex.getBindingResult()
+            .getFieldErrors()
+            .stream()
+            .map(e -> e.getField() + ": " + e.getDefaultMessage())
+            .toList();
+        return ResponseEntity.badRequest().body(errors);
+    }
+}
+\`\`\`
+
+**Other things @ControllerAdvice can do:**
+- \`@InitBinder\` — global data binding configuration
+- \`@ModelAttribute\` — add global model attributes to every view
+- \`@Order\` — control precedence when multiple advice classes exist`,
       difficulty: "medium",
       tags: ["spring"],
       is_top50: true,
     },
     {
-      question: "What happens during Spring Boot application startup?",
-      answer: "Spring Boot loads auto-configurations from spring.factories, performs component scanning to identify beans, creates and wires bean instances in the DI container, starts the embedded Tomcat/Jetty server (for web apps), and finally creates the ApplicationContext. The application is then ready to serve requests.",
+      question: "Explain the different testing slices: @WebMvcTest, @DataJpaTest, @RestClientTest.",
+      answer: `Spring Boot testing slices load only the beans you need for a specific layer — much faster than loading the full context.
+
+| Slice | Loads | Does NOT load | Use with |
+|---|---|---|---|
+| \`@WebMvcTest\` | Controllers, filters, converters, MockMvc | Services, repositories | Testing controller logic in isolation |
+| \`@DataJpaTest\` | JPA entities, repositories, embedded DB | Services, controllers | Testing data access and custom queries |
+| \`@RestClientTest\` | RestTemplate/WebClient beans | Full server | Testing REST client calls with mocked responses |
+
+**Example — @WebMvcTest:**
+\`\`\`java
+@WebMvcTest(UserController.class)
+class UserControllerTest {
+    @Autowired private MockMvc mockMvc;
+    @MockBean private UserService userService;
+
+    @Test
+    void shouldReturnUsers() throws Exception {
+        when(userService.findAll()).thenReturn(List.of(new User("Alice")));
+        mockMvc.perform(get("/api/users"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].name").value("Alice"));
+    }
+}
+\`\`\`
+
+Each slice excludes full auto-configuration, making tests faster and more focused.`,
+      difficulty: "medium",
+      tags: ["spring", "testing"],
+      is_top50: true,
+    },
+    {
+      question: "What is Spring Boot Actuator and what production endpoints does it provide?",
+      answer: `Actuator exposes production-ready monitoring and management endpoints. Add \`spring-boot-starter-actuator\` and configure with \`management.endpoints.web.exposure.include=*\`.
+
+**Key endpoints:**
+
+| Endpoint | What it shows |
+|---|---|
+| \`/health\` | DB connectivity, disk space, custom health indicators |
+| \`/info\` | Arbitrary app info from config (\`info.*\` properties) |
+| \`/metrics\` | JVM memory, CPU, GC, HTTP request timings, custom Micrometer counters |
+| \`/env\` | All environment properties (with option to show values) |
+| \`/loggers\` | View and change log levels at runtime |
+| \`/threaddump\` | Thread dump for deadlock/blocked thread analysis |
+| \`/heapdump\` | Download a heap dump for memory analysis |
+| \`/prometheus\` | Metrics in Prometheus format (needs micrometer-registry-prometheus) |
+| \`/scheduledtasks\` | View scheduled task details |
+| \`/mappings\` | All request mappings in the application |
+
+**Security tip:** In production, restrict actuator endpoints to internal networks or secure them with authentication.`,
+      difficulty: "medium",
+      tags: ["spring", "devops"],
+      is_top50: true,
+    },
+    {
+      question: "How do you configure external properties in Spring Boot? Explain application.yml, profiles, and @ConfigurationProperties.",
+      answer: `Spring Boot externalizes configuration so the same code can run in different environments.
+
+**Property sources (highest to lowest priority):**
+1. Command-line arguments (\`--server.port=9090\`)
+2. OS environment variables
+3. Profile-specific files (\`application-prod.yml\`)
+4. \`application.yml\` or \`application.properties\`
+5. \`@PropertySource\` on configuration classes
+
+**Profiles:**
+\`\`\`yaml
+# application.yml (shared defaults)
+server:
+  port: 8080
+
+# application-dev.yml
+server:
+  port: 3000
+debug: true
+
+# application-prod.yml
+server:
+  port: 80
+\`\`\`
+Activate with \`--spring.profiles.active=prod\` or the \`SPRING_PROFILES_ACTIVE\` env var.
+
+**@ConfigurationProperties (type-safe):**
+\`\`\`java
+@ConfigurationProperties(prefix = "app.datasource")
+public class DataSourceProperties {
+    private String url;
+    private String username;
+    private int maxPoolSize = 10;
+    // getters & setters
+}
+\`\`\`
+Enable with \`@EnableConfigurationProperties\` or \`@ConfigurationPropertiesScan\`. Supports validation (JSR-303), relaxed binding (\`max-pool-size\` → \`maxPoolSize\`), and nested objects.`,
+      difficulty: "medium",
+      tags: ["spring", "spring-boot"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between @RestController and @Controller in Spring MVC?",
+      answer: `The difference is how the return value is handled:
+
+| | \`@Controller\` | \`@RestController\` |
+|---|---|---|
+| **Returns** | View names resolved by a ViewResolver | Data written directly to the HTTP response body |
+| **Use case** | MVC apps serving HTML (JSP, Thymeleaf) | REST APIs serving JSON/XML |
+| **Annotation** | \`@Controller\` | \`@Controller\` + \`@ResponseBody\` (convenience shortcut) |
+| **Example** | Returns \`"user/profile"\` → renders \`user/profile.html\` | Returns \`User\` object → serialized as JSON |
+
+**@Controller returning a view:**
+\`\`\`java
+@Controller
+public class WebController {
+    @GetMapping("/users")
+    public String users(Model model) {
+        model.addAttribute("users", userService.findAll());
+        return "users/list"; // resolves to users/list.html
+    }
+}
+\`\`\`
+
+**@RestController returning JSON:**
+\`\`\`java
+@RestController
+@RequestMapping("/api/users")
+public class UserApiController {
+    @GetMapping
+    public List<User> users() {
+        return userService.findAll(); // serialized to JSON automatically
+    }
+}
+\`\`\``,
       difficulty: "medium",
       tags: ["spring"],
       is_top50: true,
     },
     {
-      question: "What is the difference between JPA and Hibernate?",
-      answer: "JPA (Java Persistence API) is a specification for object-relational mapping — it defines standard interfaces and annotations (@Entity, @Id). Hibernate is the most popular implementation of that specification. JPA provides the rules and contracts; Hibernate provides the working engine that performs the actual ORM operations.",
-      difficulty: "medium",
-      tags: ["java", "databases"],
-      is_top50: true,
-    },
-    {
-      question: "What is a Bean in Spring Framework?",
-      answer: "A bean is an object that Spring creates, configures, and manages in its IoC (Inversion of Control) container. Beans are discovered through annotations like @Component, @Service, @Repository, or defined explicitly in @Configuration classes. Spring manages their lifecycle and dependency injection automatically.",
-      difficulty: "easy",
-      tags: ["spring"],
-      is_top50: true,
-    },
-    {
-      question: "What is AOP (Aspect-Oriented Programming) in Spring?",
-      answer: "AOP separates cross-cutting concerns (logging, security, transactions, caching) from business logic. Using @Aspect with @Before, @After, or @Around annotations, we can apply logic before or after method execution without touching the main business code. This keeps code clean and modular.",
+      question: "Explain AOP in Spring — @Aspect, @Before, @After, @Around, and common use cases (logging, transactions).",
+      answer: `AOP (Aspect-Oriented Programming) lets you inject behaviour before/after/around methods without modifying the business code.
+
+**Key annotations:**
+
+| Annotation | When it runs |
+|---|---|
+| \`@Before\` | Before the method executes |
+| \`@After\` | After the method executes (regardless of outcome) |
+| \`@AfterReturning\` | Only after a successful return |
+| \`@AfterThrowing\` | Only when the method throws an exception |
+| \`@Around\` | Wraps the entire method — can modify return values, retry, or skip execution |
+
+**Example — logging aspect:**
+\`\`\`java
+@Aspect
+@Component
+public class LoggingAspect {
+    private static final Logger log = LoggerFactory.getLogger(LoggingAspect.class);
+
+    @Around("execution(* com.example.service.*.*(..))")
+    public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
+        long start = System.currentTimeMillis();
+        Object result = joinPoint.proceed();
+        long elapsed = System.currentTimeMillis() - start;
+        log.info("{} took {}ms", joinPoint.getSignature(), elapsed);
+        return result;
+    }
+}
+\`\`\`
+
+**Pointcut expressions:** \`execution(* service.*.*(..))\` means "any method in any class in the service package".
+
+**Common use cases:**
+- Logging and performance monitoring
+- Declarative transaction management (\`@Transactional\`)
+- Security checks
+- Caching
+- Auditing and activity tracking`,
       difficulty: "hard",
       tags: ["spring"],
       is_top50: true,
     },
     {
-      question: "What is the Life Cycle of a Spring Bean?",
-      answer: "Spring creates the bean, injects dependencies, calls lifecycle callbacks (@PostConstruct, InitializingBean.afterPropertiesSet()), and the bean becomes ready. When the container shuts down, @PreDestroy is triggered. BeanPostProcessors can modify beans before and after initialization at each step.",
+      question: "What is Spring Cloud and how does it help with microservices (service discovery, config server, circuit breaker)?",
+      answer: `Spring Cloud provides a suite of tools that solve common distributed system problems in microservices architectures.
+
+| Problem | Spring Cloud Solution | What it Does |
+|---|---|---|
+| **Config management** | Spring Cloud Config | Centralized config server backed by Git; all services fetch config from one place |
+| **Service discovery** | Netflix Eureka / Consul | Services register themselves and discover each other by name, not IP |
+| **API routing** | Spring Cloud Gateway | Single entry point with routing, rate limiting, and filtering |
+| **Fault tolerance** | Resilience4J | Circuit breaker, rate limiter, retry, and bulkhead patterns |
+| **Distributed tracing** | Spring Cloud Sleuth + Micrometer | Adds trace IDs to logs across service calls for end-to-end debugging |
+| **Event-driven** | Spring Cloud Stream | Messaging abstraction over RabbitMQ, Kafka, etc. |
+
+**Why it matters:**
+- Services find each other without hardcoded URLs
+- Config changes propagate without redeploying each service
+- A failing service doesn't cascade failures to the whole system
+- You can trace a single request across 20 microservices`,
+      difficulty: "hard",
+      tags: ["spring", "microservices"],
+      is_top50: true,
+    },
+    {
+      question: "How does Spring Boot handle database migrations? Explain Flyway and Liquibase integration.",
+      answer: `Database migrations version-control your schema changes alongside your application code.
+
+**Flyway (SQL-based, simpler):**
+1. Place SQL migration files in \`classpath:db/migration\`
+2. Name format: \`V1__create_users.sql\`, \`V2__add_email.sql\`, etc.
+3. Spring Boot auto-configures Flyway when it detects the dependency
+4. Configure with \`spring.flyway.*\` properties
+
+\`\`\`sql
+-- V1__create_users.sql
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL
+);
+
+-- V2__add_email_index.sql
+CREATE INDEX idx_users_email ON users(email);
+\`\`\`
+
+**Liquibase (XML/YAML/JSON changelogs, more flexible):**
+1. Create a changelog file at \`classpath:db/changelog/db.changelog-master.yaml\`
+2. Spring Boot auto-configures Liquibase when it detects the dependency
+3. Configure with \`spring.liquibase.*\` properties
+
+**Both tools:**
+- Track applied migrations in a table (\`flyway_schema_history\` or \`DATABASECHANGELOG\`)
+- Apply pending migrations automatically on startup
+- Prevent duplicate migrations — each change runs exactly once
+- Can be disabled with \`spring.flyway.enabled=false\` or \`spring.liquibase.enabled=false\``,
       difficulty: "medium",
+      tags: ["spring", "databases", "devops"],
+      is_top50: true,
+    },
+    {
+      question: "What is the Spring Boot bean lifecycle? Explain @PostConstruct, @PreDestroy, and BeanPostProcessor.",
+      answer: `Spring manages every bean through a well-defined lifecycle.
+
+**Full lifecycle (in order):**
+
+| Step | What Happens |
+|---|---|
+| 1 | **Instantiation** — Spring creates the bean instance |
+| 2 | **Dependency injection** — populates fields and constructor params |
+| 3 | **Aware callbacks** — calls \`BeanNameAware\`, \`BeanFactoryAware\`, \`ApplicationContextAware\` |
+| 4 | **\`BeanPostProcessor.beforeInit\`** — custom logic before initialization |
+| 5 | **\`@PostConstruct\`** — initialization method (most common hook) |
+| 6 | **\`InitializingBean.afterPropertiesSet()\`** — alternate init interface |
+| 7 | **Custom init-method** — \`@Bean(initMethod = "init")\` |
+| 8 | **\`BeanPostProcessor.afterInit\`** — custom logic after initialization |
+| | **→ Bean is ready to use** |
+| 9 | **Application shutdown** |
+| 10 | **\`@PreDestroy\`** — cleanup method (closing connections, releasing resources) |
+| 11 | **\`DisposableBean.destroy()\`** — alternate destroy interface |
+| 12 | **Custom destroy-method** |
+
+**Quick cheat sheet:**
+\`\`\`java
+@Component
+public class MyService {
+    @PostConstruct
+    public void init() {
+        // runs after DI — good for validation or loading cache
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        // runs on shutdown — close connections, flush buffers
+    }
+}
+\`\`\``,
+      difficulty: "hard",
       tags: ["spring"],
       is_top50: true,
     },
     {
-      question: "What is @RestController vs @Controller in Spring MVC?",
-      answer: "@Controller is used for MVC applications that return views (HTML templates). @RestController is used for REST APIs and returns JSON directly — it combines @Controller + @ResponseBody so the return value is written directly to the HTTP response body.",
+      question: "How do you implement caching in Spring Boot with @Cacheable, @CacheEvict, and @CachePut?",
+      answer: `Spring's caching abstraction lets you add caching without touching business logic.
+
+**Step 1 — Enable caching:**
+\`\`\`java
+@Configuration
+@EnableCaching
+public class CacheConfig { }
+\`\`\`
+
+**Step 2 — Annotate your methods:**
+
+| Annotation | Behaviour |
+|---|---|
+| \`@Cacheable("users")\` | Checks cache first; if found, returns cached value without executing the method. If not found, executes and caches the result. |
+| \`@CacheEvict("users")\` | Removes entries from the cache — use after create/update/delete to invalidate stale data |
+| \`@CachePut("users")\` | Always executes the method and updates the cache with the result |
+
+**Example:**
+\`\`\`java
+@Service
+public class UserService {
+    @Cacheable(value = "users", key = "#id")
+    public User getUser(Long id) { ... }
+
+    @CacheEvict(value = "users", key = "#user.id")
+    public User updateUser(User user) { ... }
+
+    @CacheEvict(value = "users", allEntries = true)
+    public void deleteAll() { ... }
+
+    @CachePut(value = "users", key = "#result.id")
+    public User createUser(User user) { ... }
+}
+\`\`\`
+
+**Supported features:**
+- **Conditional caching:** \`@Cacheable(condition = "#id > 10")\`, \`unless = "#result == null"\`
+- **Multiple cache managers:** Redis, Caffeine, EhCache, Hazelcast — configure with \`spring.cache.type\`
+- **Custom TTL:** Configure per cache manager, e.g., \`spring.cache.redis.time-to-live=10m\``,
       difficulty: "medium",
-      tags: ["spring"],
+      tags: ["spring", "performance"],
       is_top50: true,
     },
     {
-      question: "What is Autowiring in Spring, and what are its types?",
-      answer: "Autowiring is Spring's way of automatically injecting dependencies into beans. Types: no (default), byName, byType, constructor, and @Autowired annotation. Constructor-based injection is recommended for immutability, easier testing, and explicit dependency requirements.",
+      question: "Explain the difference between PUT and PATCH in REST APIs built with Spring Boot.",
+      answer: `PUT and PATCH both update resources but differ in semantics.
+
+| | PUT | PATCH |
+|---|---|---|
+| **Scope** | Replaces the **entire** resource | Applies **partial** updates |
+| **Idempotent** | Yes — same call 10 times = same result | Not guaranteed |
+| **Omitted fields** | Reset to null or defaults | Left unchanged |
+| **Spring annotation** | \`@PutMapping\` | \`@PatchMapping\` |
+
+**PUT — full replacement:**
+\`\`\`java
+@PutMapping("/users/{id}")
+public User replaceUser(@PathVariable Long id, @RequestBody User user) {
+    // user must contain ALL fields — missing fields will be nulled
+    return service.replace(id, user);
+}
+\`\`\`
+
+**PATCH — partial update:**
+\`\`\`java
+@PatchMapping("/users/{id}")
+public User patchUser(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+    // only the fields in 'updates' are modified
+    return service.patch(id, updates);
+}
+\`\`\`
+Spring also supports JSON Patch (RFC 6902) and JSON Merge Patch (RFC 7396) for standardised partial updates.
+
+**Rule of thumb:** Use PUT when the client sends the full resource state. Use PATCH when the client sends only the changes.`,
       difficulty: "medium",
-      tags: ["spring"],
+      tags: ["spring", "api-design"],
       is_top50: true,
     },
     {
-      question: "What is Dependency Injection (DI) and why is it important?",
-      answer: "Dependency Injection is a design pattern where the framework provides objects that a class depends on, rather than letting the class create them itself. Benefits include loose coupling, easier testing (mocking dependencies), cleaner maintainable code, and better separation of concerns.",
-      difficulty: "medium",
-      tags: ["design-patterns", "spring"],
+      question: "What is Spring WebFlux and when would you use it over Spring MVC?",
+      answer: `Spring WebFlux is a reactive web framework built on Project Reactor (\`Mono\` and \`Flux\`). It uses non-blocking I/O and Netty instead of the traditional thread-per-request model.
+
+**WebFlux vs MVC:**
+
+| | Spring MVC | Spring WebFlux |
+|---|---|---|
+| **Model** | Thread-per-request (blocking) | Event-driven (non-blocking) |
+| **Server** | Tomcat, Jetty, Undertow | Netty, Tomcat, Jetty, Undertow |
+| **Return types** | Any POJO | \`Mono<T>\`, \`Flux<T>\`, \`CompletableFuture\` |
+| **Concurrency** | One thread per request | Single event loop handles many requests |
+
+**When to use WebFlux:**
+- High concurrency with limited threads (chat apps, streaming platforms)
+- Streaming APIs — SSE (Server-Sent Events) or WebSocket
+- I/O-intensive services that benefit from non-blocking calls to databases, caches, or external APIs
+- Reactive data stores — MongoDB reactive driver, Cassandra, Redis
+
+**When to stick with MVC:**
+- Traditional CRUD APIs with low-to-medium traffic
+- Your team knows MVC and has no reactive experience
+- You rely on blocking libraries (JPA, JDBC, Thymeleaf)
+
+**Example — reactive endpoint:**
+\`\`\`java
+@RestController
+@RequestMapping("/api/users")
+public class UserReactiveController {
+    @GetMapping
+    public Flux<User> getAll() {
+        return reactiveUserRepository.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public Mono<User> getById(@PathVariable String id) {
+        return reactiveUserRepository.findById(id);
+    }
+}
+\`\`\``,
+      difficulty: "hard",
+      tags: ["spring", "reactive"],
       is_top50: true,
     },
     {
-      question: "What is a DispatcherServlet in Spring MVC?",
-      answer: "DispatcherServlet is the front controller in Spring MVC that receives all incoming HTTP requests. It routes requests to the appropriate controller, manages the entire request-response flow, and returns the appropriate view or JSON response. It is the heart of Spring MVC architecture.",
-      difficulty: "medium",
-      tags: ["spring"],
+      question: "How do you secure a Spring Boot REST API with OAuth2 and Keycloak/Auth0?",
+      answer: `Spring Boot integrates with OAuth2 providers through Spring Security's resource server support.
+
+**Step 1 — Add dependency:**
+\`\`\`xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
+\`\`\`
+
+**Step 2 — Configure the issuer URI:**
+
+For Keycloak:
+\`\`\`yaml
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycloak.example.com/realms/your-realm
+\`\`\`
+
+For Auth0:
+\`\`\`yaml
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://your-tenant.auth0.com/
+\`\`\`
+
+**What happens automatically:**
+- Spring fetches the JWKS (JSON Web Key Set) from the issuer
+- Validates the JWT signature, expiry, and issuer on every request
+- Extracts user roles from the JWT claims
+
+**Role-based access:**
+\`\`\`java
+@Configuration
+@EnableMethodSecurity
+public class SecurityConfig {
+    // ...
+}
+
+@RestController
+public class AdminController {
+    @GetMapping("/api/admin/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<User> getUsers() { ... }
+}
+\`\`\`
+
+**Custom claim mapping:**
+\`\`\`java
+@Bean
+public JwtAuthenticationConverter jwtAuthenticationConverter() {
+    var converter = new JwtAuthenticationConverter();
+    var grantedAuthorities = new JwtGrantedAuthoritiesConverter();
+    grantedAuthorities.setAuthorityPrefix("ROLE_");
+    grantedAuthorities.setAuthoritiesClaimName("roles");
+    converter.setJwtGrantedAuthoritiesConverter(grantedAuthorities);
+    return converter;
+}
+\`\`\`
+
+**Keycloak vs Auth0:**
+- **Keycloak** — self-hosted, full control, realm management, SSO, user federation
+- **Auth0** — SaaS, easier setup, social login providers, tenant management, no infrastructure to manage`,
+      difficulty: "hard",
+      tags: ["spring", "security"],
       is_top50: true,
     },
   ],
