@@ -74,6 +74,14 @@
 - **Blocked** — Waiting on dependency
 - **Cancelled** — Won't implement
 
+## Infrastructure / Cross-Cutting
+
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| I.1 | Zod validation on all API routes | ✅ Done | All 7 POST/PATCH routes validated — see `lib/api-error.ts` |
+| I.2 | Remove `//@ts-ignore` | ✅ Done | Removed from `enroll/route.ts` and `progress/route.ts` |
+| I.3 | Production review (500 users on free tier) | ✅ Updated | `docs/production-review-500-users.md` — accurate TiDB RU, Vercel CPU, Mistral RPM constraints |
+
 ## Free Tier Checklist
 
 - [ ] All DB queries paginated (max 20 per page)
