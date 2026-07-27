@@ -20036,6 +20036,2536 @@ class UserServiceIntegrationTest {
       tags: ["spring", "testing"],
       is_top50: true,
     },
+    // ──────── C# Language Deep Dive ────────
+    {
+      question: "What are records in C# and how do they differ from classes? Explain with expressions and value-based equality.",
+      answer: `Records (C# 9+) are reference types with built-in value-based equality, immutability, and a concise syntax. Unlike classes (reference equality), records compare by value — two records with the same property values are equal. The \`with\` expression creates a new record copy with modified properties. Records generate compiler-synthesized methods: \`Equals\`, \`GetHashCode\`, \`ToString\`, \`Deconstruct\`, and \`==\`/\`!=\`. Use records for DTOs, API responses, and immutable domain events. Use classes when identity matters (entities with IDs) or when you need mutable state.
+
+\`\`\`csharp
+public record Person(string FirstName, string LastName, int Age);
+var p1 = new Person("Alice", "Smith", 30);
+var p2 = p1 with { Age = 31 }; // Non-destructive mutation
+Console.WriteLine(p1 == p2); // False — Age differs
+\`\`\`
+
+C# 10 introduces record structs for value-type semantics with the same features.`,
+      difficulty: "easy",
+      tags: ["csharp", "records"],
+      is_top50: false,
+    },
+    {
+      question: "Explain pattern matching in C# — switch expressions, property patterns, positional patterns, and list patterns.",
+      answer: `Pattern matching (enhanced in C# 7-11) lets you express conditional logic concisely. A switch expression returns a value based on matching patterns:
+
+\`\`\`csharp
+string GetShapeDescription(object shape) => shape switch
+{
+    Circle { Radius: var r } => $"Circle with radius {r}",
+    Rectangle { Width: var w, Height: var h } => $"Rectangle {w}x{h}",
+    Triangle t when t.Area() > 100 => "Large triangle",
+    null => "Null shape",
+    _ => "Unknown shape" // discard pattern
+};
+\`\`\`
+
+List patterns (C# 11) match sequences: \`[1, 2, .. var rest]\` matches an array starting with 1, 2 followed by any rest. Property patterns check properties with nested pattern matching. Positional patterns use Deconstruct on tuples or records. Relational patterns (\`< 10\`, \`>= 0\`) combine with logical patterns (\`and\`, \`or\`, \`not\`).`,
+      difficulty: "medium",
+      tags: ["csharp", "pattern-matching"],
+      is_top50: false,
+    },
+    {
+      question: "How does async/await work at the compiler and CLR level? Explain IAsyncStateMachine and synchronization contexts.",
+      answer: `When the compiler encounters \`async\`, it generates a struct implementing \`IAsyncStateMachine\`. The method is rewritten into a state machine with states representing each \`await\` point. The \`AsyncTaskMethodBuilder\` orchestrates transitions.
+
+At an \`await\`, if the awaited operation is incomplete, the state machine saves its state (local variables, current state number) and returns an incomplete task to the caller. When the awaited operation completes, it calls back into the state machine via a continuation on the captured \`SynchronizationContext\` or \`TaskScheduler\`. This context determines whether the continuation runs on the original thread (UI apps — \`DispatcherSynchronizationContext\`) or a thread pool thread (ASP.NET Core — uses \`TaskScheduler.Default\` without a synchronization context).
+
+ASP.NET Core does NOT have a synchronization context, so continuations run on any thread pool thread. This makes \`.ConfigureAwait(false)\` unnecessary in ASP.NET Core but still important in UI frameworks like WPF, WinForms, and Blazor Server.`,
+      difficulty: "hard",
+      tags: ["csharp", "async-await", "clr"],
+      is_top50: false,
+    },
+    {
+      question: "What are nullable reference types in C# 8+? Explain the ? and ! operators and [NotNull] attributes.",
+      answer: `Nullable reference types (NRTs) help prevent NullReferenceException by tracking null-state at compile time. Enable with \`<Nullable>enable</Nullable>\` in project file or \`#nullable enable\` directive.
+
+- \`string?\` means the value MAY be null — compiler requires null checks before dereferencing
+- \`string\` (without ?) means the value SHOULD NOT be null — compiler warns if you assign a nullable value
+
+The null-forgiving operator \`!\` tells the compiler "this is not null even though you think it might be":
+
+\`\`\`csharp
+string name = GetName()!; // Suppress warning
+\`\`\`
+
+Attributes like \`[NotNull]\`, \`[MaybeNull]\`, \`[NotNullWhen(true)]\` annotate method outputs:
+
+\`\`\`csharp
+public static bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+\`\`\`
+
+If \`TryGetValue\` returns true, \`value\` is known non-null. NRTs are a compile-time feature — they have zero runtime overhead but provide significant safety.`,
+      difficulty: "medium",
+      tags: ["csharp", "nullable-reference-types"],
+      is_top50: false,
+    },
+    {
+      question: "Explain LINQ — the difference between IEnumerable and IQueryable, deferred vs immediate execution.",
+      answer: `LINQ (Language Integrated Query) provides a declarative way to query data. \`IEnumerable<T>\` is for in-memory queries (LINQ to Objects): filtering, projection, and aggregation happen client-side. \`IQueryable<T>\` represents a query that can be translated to a data source (LINQ to SQL, EF Core): the expression tree is translated to SQL and executed server-side.
+
+Deferred execution: queries defined with \`Where\`, \`Select\`, \`OrderBy\` do NOT execute until the result is iterated. Immediate execution methods (\`ToList\`, \`ToArray\`, \`Count\`, \`First\`, \`Any\`) force query execution.
+
+\`\`\`csharp
+IEnumerable<Product> products = GetProducts();
+var filtered = products.Where(p => p.Price > 100); // Not executed
+var result = filtered.ToList(); // Executed here
+
+IQueryable<Product> query = dbContext.Products
+    .Where(p => p.Price > 100)  // Builds expression tree
+    .OrderBy(p => p.Name);       // Still building
+var items = await query.ToListAsync(); // Translates to SQL and executes
+\`\`\`
+
+Key difference: with \`IQueryable\`, the \`Where\` predicate becomes SQL \`WHERE\`. With \`IEnumerable\`, all products are loaded into memory first, then filtered client-side — performance disaster for large datasets.`,
+      difficulty: "medium",
+      tags: ["csharp", "linq", "entity-framework"],
+      is_top50: false,
+    },
+    {
+      question: "What is Span<T> and when should you use it over arrays? Explain stackalloc and Memory<T>.",
+      answer: `\`Span<T>\` is a stack-allocated ref struct that provides a type-safe, memory-safe view over contiguous memory — arrays, native memory, or stack memory. It avoids heap allocations and provides slicing without copying.
+
+\`\`\`csharp
+Span<int> numbers = stackalloc[] { 1, 2, 3, 4, 5 };
+Span<int> slice = numbers[1..4]; // No allocation, no copy
+slice[0] = 10; // Modifies the original memory
+\`\`\`
+
+Use \`Span<T>\` over arrays for high-performance scenarios: parsing, cryptography, string manipulation, binary serialization. \`stackalloc\` allocates on the stack (available in spans) — ideal for small temporary buffers under 1KB.
+
+\`Memory<T>\` is the heap-safe counterpart of \`Span<T>\`. It can be stored on the heap, used in async methods, and with lambdas. \`Span<T>\` cannot be used in these contexts because it's a ref struct. Use \`Memory<T>\` for async operations and \`Span<T>\` for synchronous processing:
+\`\`\`csharp
+async Task ProcessAsync(Memory<byte> buffer)
+{
+    Span<byte> span = buffer.Span; // Get span for sync processing
+    // ... synchronous work ...
+    await WriteAsync(buffer); // Pass Memory for async
+}
+\`\`\``,
+      difficulty: "hard",
+      tags: ["csharp", "memory-management", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "What are top-level statements, file-scoped namespaces, and global usings in modern C#?",
+      answer: `These C# 9-10 features reduce boilerplate for simple programs and libraries:
+
+**Top-level statements** (C# 9): Eliminate the Program.Main wrapper — the compiler generates Main automatically:
+\`\`\`csharp
+// Program.cs — no class, no Main
+Console.WriteLine("Hello World");
+\`\`\`
+
+**File-scoped namespaces** (C# 10): Replace the traditional namespace block with a single-line declaration:
+\`\`\`csharp
+namespace MyApp.Services; // Semicolon replaces braces
+// All declarations are in the namespace — no indentation shift
+\`\`\`
+
+**Global usings** (C# 10): Apply a using directive to the entire project:
+\`\`\`csharp
+// Usings.cs
+global using System;
+global using System.Collections.Generic;
+\`\`\`
+
+Combined, these reduce a typical Program.cs from ~15 lines to 1-3 lines, used extensively in minimal API projects. The compiler automatically generates \`<ImplicitUsings>enable</ImplicitUsings>\` in .NET 6+ projects, adding common namespaces automatically.`,
+      difficulty: "easy",
+      tags: ["csharp", "modern-csharp"],
+      is_top50: false,
+    },
+    {
+      question: "How do closures and variable capture work in C#? Explain the foreach capture bug in older versions.",
+      answer: `A closure captures the *variable* (not the value) from the outer scope. This means if the variable changes after the lambda is created, the lambda sees the new value. This caused the infamous \`foreach\` capture bug in C# 5 and earlier:
+
+\`\`\`csharp
+// C# 5 and earlier — bug
+var actions = new List<Action>();
+foreach (var i in Enumerable.Range(0, 5))
+    actions.Add(() => Console.Write(i)); // Captures THE SAME variable i
+foreach (var a in actions) a(); // Output: 55555 (not 01234)
+\`\`\`
+
+The fix was to copy the loop variable inside the loop:
+\`\`\`csharp
+foreach (var i in Enumerable.Range(0, 5))
+{
+    var copy = i;
+    actions.Add(() => Console.Write(copy)); // Captures copy
+}
+\`\`\`
+
+C# 5+ fixed this for \`foreach\` (each iteration now gets a fresh variable), but the same issue still applies to \`for\` loops. Understanding closure capture is critical when using lambdas with event handlers, tasks, and LINQ — captured variables live as long as the delegate, potentially causing memory leaks if the delegate outlives the expected scope.`,
+      difficulty: "medium",
+      tags: ["csharp", "closures", "lambda"],
+      is_top50: false,
+    },
+    // ──────── .NET Runtime & Memory ────────
+    {
+      question: "Explain the .NET garbage collector — generations, mark-and-sweep, compaction, and the Large Object Heap.",
+      answer: `The .NET GC is a generational, compacting, tracing garbage collector. It divides objects into 3 generations:
+- **Gen 0**: Short-lived objects (local variables). Collected most frequently — fast, small collections.
+- **Gen 1**: Objects that survived Gen 0 collection. Acts as a buffer between Gen 0 and 2.
+- **Gen 2**: Long-lived objects (static data, singletons, cached objects). Collected rarely — expensive, full blocking collection.
+
+**Mark-and-sweep**: GC starts from roots (static fields, thread stacks, CPU registers) and traverses the object graph, marking all reachable objects. Unreachable objects are garbage. **Compact phase**: Surviving objects are moved together to reduce memory fragmentation and improve cache locality.
+
+**Large Object Heap (LOH)**: Objects ≥ 85,000 bytes go here. LOH is NOT compacted by default (moving large objects is expensive), leading to fragmentation over time — a common source of \`OutOfMemoryException\` in long-running services. .NET Core 3.0+ optionally compacts LOH on demand.
+
+**Modes**: Workstation GC (default, per-process heap) and Server GC (one heap per logical CPU core, higher throughput for multi-threaded apps). Configure via runtimeconfig.json or environment variables. Background GC (non-blocking Gen 2 collections) reduces pause times for interactive applications.`,
+      difficulty: "hard",
+      tags: ["clr", "garbage-collection", "memory-management"],
+      is_top50: false,
+    },
+    {
+      question: "Explain value types vs reference types — where they are stored, boxing/unboxing, and performance implications.",
+      answer: `**Value types** (structs, enums, primitives) store data directly. Declared as local variables, they live on the stack. Declared as fields of a class, they live inline on the heap within the class's memory. Passed by value — copied on assignment. **Reference types** (classes, arrays, delegates, strings) store a reference on the stack/field, pointing to heap memory. Passed by reference — only the reference is copied on assignment.
+
+**Boxing**: Converting a value type to \`object\` or an interface it implements. Allocates heap memory, copies the value into the heap, creates a reference — expensive. **Unboxing**: Extracting the value type back — requires a type check (InvalidCastException if wrong type).
+
+\`\`\`csharp
+int x = 42;
+object o = x; // Boxing — heap allocation, copy
+int y = (int)o; // Unboxing — type check, copy
+\`\`\`
+
+Performance tips: Avoid boxing by using generics (\`List<int>\` not \`ArrayList\`), avoid non-generic collections (\`Hashtable\`, \`ArrayList\`), and be aware that foreach on an \`IEnumerable\` (non-generic) boxes each element. Use \`ReadOnlySpan<T>\` for high-performance scenarios to avoid allocations entirely.
+
+**Struct vs class guidelines**: Use struct for small, immutable, data-only types ≤ 16 bytes that represent a single value (Point, DateTime, Complex). Use class for larger objects, polymorphic behavior, or identity-based semantics.`,
+      difficulty: "medium",
+      tags: ["clr", "memory-management", "csharp"],
+      is_top50: false,
+    },
+    {
+      question: "How does the JIT compiler work in .NET? Explain tiered compilation and ReadyToRun.",
+      answer: `The .NET JIT (Just-In-Time) compiler converts IL (Intermediate Language) to native machine code at runtime. When a method is first called, the JIT compiles it and caches the native code. Key components:
+
+- **Tiered compilation (default .NET Core 3.0+)**: Methods initially compile with a quick, minimal-optimized tier (Tier 0). Frequently called methods are recompiled with full optimizations (Tier 1) — better startup time without sacrificing peak performance.
+- **OSR (On-Stack Replacement)**: .NET 8+ allows methods to switch tiers while executing — no more long-running Tier 0 methods stuck without optimization.
+- **ReadyToRun (R2R)**: Precompiles assemblies to native code at publish time. Reduces JIT overhead at startup at the cost of larger binaries and slightly less aggressive optimizations than full JIT.
+- **Tail-call optimization**: JIT applies tail-call optimizations when possible (.tail IL prefix), preventing stack overflow for recursive patterns.
+
+Use \`<TieredCompilation>false</TieredCompilation>\` in runtimeconfig.json for maximum single-method performance; enable R2R (\`<PublishReadyToRun>true</PublishReadyToRun>\`) for faster cold starts in serverless/container scenarios.`,
+      difficulty: "hard",
+      tags: ["clr", "jit", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "Explain ref struct, ref return, and in parameters in C#. When should each be used?",
+      answer: `These features enable high-performance code by reducing copies and heap allocations:
+
+**ref struct**: A struct type that can ONLY live on the stack. Cannot be boxed, used as a field in a class, used in async methods, or used in lambda expressions. \`Span<T>\` and \`ReadOnlySpan<T>\` are ref structs. Use for performance-critical temporary buffers and zero-allocation parsers.
+
+**ref return**: A method can return a reference to a value, not a copy. The caller can read or modify the original directly:
+\`\`\`csharp
+public ref int FindMax(int[] numbers)
+{
+    int maxIdx = 0;
+    for (int i = 1; i < numbers.Length; i++)
+        if (numbers[i] > numbers[maxIdx]) maxIdx = i;
+    return ref numbers[maxIdx]; // Returns reference to array element
+}
+ref int max = ref FindMax(scores);
+max = 100; // Modifies the array element directly
+\`\`\`
+
+**in parameters**: Pass a value type by reference with read-only guarantee. Avoids copying large structs while preventing modification:
+\`\`\`csharp
+public static double Distance(in Point p1, in Point p2) =>
+    Math.Sqrt((p1.X - p2.X) * (p1.X - p2.X) + (p1.Y - p2.Y) * (p1.Y - p2.Y));
+\`\`\`
+
+Use \`in\` for large structs (>16 bytes) passed to read-only methods. Use \`ref return\` for indexers or accessors on array-like types. Use \`ref struct\` for zero-allocation temporary views over memory.`,
+      difficulty: "hard",
+      tags: ["csharp", "memory-management", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "What is Memory<T> and how does it differ from Span<T>? Explain their roles in async I/O.",
+      answer: `Both \`Memory<T>\` and \`Span<T>\` represent contiguous regions of memory without ownership — they are views, not buffers. The key difference:
+
+**Span<T>**: A ref struct — stack-only, cannot be used as a field of a class, in async methods, in lambdas, or in generic collections. Best for synchronous, high-performance processing.
+
+**Memory<T>**: A regular struct — can be stored on the heap, used in async methods, and with lambdas. \`Memory<T>.Span\` provides a \`Span<T>\` view for synchronous work within an async method.
+
+\`\`\`csharp
+async Task ProcessStreamAsync(NetworkStream stream, Memory<byte> buffer)
+{
+    int bytesRead = await stream.ReadAsync(buffer); // Memory<T> for async
+    Span<byte> data = buffer.Span[..bytesRead]; // Span<T> for sync processing
+    // Process data synchronously
+    var length = BinaryPrimitives.ReadInt32BigEndian(data);
+}
+\`\`\`
+
+Use \`Memory<T>\` as parameters in async APIs (\`Stream.ReadAsync\`, \`Socket.ReceiveAsync\`). Use \`Span<T>\` for synchronous parsing, encoding, and transformation where zero-allocation matters. \`ReadOnlyMemory<T>\` and \`ReadOnlySpan<T>\` provide read-only variants for immutable data access.`,
+      difficulty: "hard",
+      tags: ["csharp", "memory-management", "async-await", "performance"],
+      is_top50: false,
+    },
+    // ──────── ASP.NET Core Fundamentals ────────
+    {
+      question: "What is ASP.NET Core and how does it differ from the legacy ASP.NET Framework?",
+      answer: `ASP.NET Core is a complete redesign of ASP.NET — cross-platform, modular, and high-performance. Key differences:
+
+- **Cross-platform**: Runs on Linux, macOS, Windows. Legacy ASP.NET only runs on Windows with IIS.
+- **Modular middleware pipeline**: Requests flow through configurable middleware components. Legacy used System.Web tightly coupled to IIS.
+- **Built-in DI container**: First-class dependency injection. Legacy required third-party containers or manual wiring.
+- **Kestrel web server**: High-performance, cross-platform HTTP server. IIS/NGINX/Apache act as reverse proxies. Legacy relied entirely on IIS.
+- **Unified MVC and Razor Pages**: Single framework for APIs and pages. Legacy had separate Web Forms, MVC, Web API.
+- **Performance**: ASP.NET Core is 5-10x faster than legacy ASP.NET (TechEmpower benchmarks). Lower memory footprint.
+- **Configuration**: Flexible, ordered configuration sources (appsettings.json, env vars, command line, Key Vault). Legacy used web.config only.
+- **.NET版本**: ASP.NET Core runs on .NET 6+ (unified platform). Legacy is tied to .NET Framework 4.x.
+
+Migrate to ASP.NET Core for better performance, cross-platform deployment, containerization, cloud-native patterns, and long-term Microsoft support.`,
+      difficulty: "easy",
+      tags: ["aspnet-core", "dotnet"],
+      is_top50: true,
+    },
+    {
+      question: "Explain the ASP.NET Core middleware pipeline — ordering, short-circuiting, and how to create custom middleware.",
+      answer: `The middleware pipeline processes HTTP requests sequentially. Each middleware component decides whether to pass the request to the next component or short-circuit and return a response. Configured via \`app.Use()\`, \`app.Run()\`, and \`app.Map()\` in \`Program.cs\`.
+
+**Built-in middleware order** (critical):
+\`\`\`csharp
+var app = builder.Build();
+app.UseExceptionHandler();     // 1. Error handling (first!)
+app.UseHttpsRedirection();     // 2. HTTPS
+app.UseStaticFiles();          // 3. Static files
+app.UseRouting();              // 4. Routing
+app.UseCors();                 // 5. CORS
+app.UseAuthentication();       // 6. Auth
+app.UseAuthorization();        // 7. Authorization
+app.MapControllers();          // 8. Endpoints
+app.Run();
+\`\`\`
+
+**Custom middleware**: Two approaches
+\`\`\`csharp
+// Approach 1: RequestDelegate
+app.Use(async (context, next) =>
+{
+    var stopwatch = Stopwatch.StartNew();
+    await next(context); // Call next or short-circuit
+    stopwatch.Stop();
+    logger.LogInformation("Request took {ms}ms", stopwatch.ElapsedMilliseconds);
+});
+
+// Approach 2: Middleware class
+public class TimingMiddleware
+{
+    private readonly RequestDelegate _next;
+    public TimingMiddleware(RequestDelegate next) => _next = next;
+    public async Task InvokeAsync(HttpContext context)
+    {
+        // Before logic
+        await _next(context);
+        // After logic
+    }
+}
+app.UseMiddleware<TimingMiddleware>();
+\`\`\`
+
+Short-circuit by NOT calling \`next(context)\` — common in auth, maintenance mode, rate limiting, and static file middleware.`,
+      difficulty: "medium",
+      tags: ["aspnet-core", "middleware"],
+      is_top50: false,
+    },
+    {
+      question: "What is Kestrel and how does it relate to IIS, NGINX, and other web servers in ASP.NET Core?",
+      answer: `Kestrel is the cross-platform, high-performance HTTP server built into ASP.NET Core. It handles HTTP requests directly using libuv (or managed sockets in .NET 5+). Kestrel is designed to be fast and secure but lacks enterprise features like kernel-mode auth, dynamic port sharing, and advanced request filtering.
+
+**Deployment patterns**:
+- **Kestrel behind reverse proxy (recommended for production)**: IIS (Windows), NGINX (Linux), or Apache sit in front of Kestrel. The reverse proxy handles TLS termination, request filtering, load balancing, URL rewriting, and static file serving. Kestrel focuses on application logic.
+- **Kestrel edge (development/simple deployments)**: Kestrel directly exposed to the internet — configure HTTPS, rate limiting, and WAF yourself.
+
+**Why reverse proxy**: Security (hardened TLS, request filtering), port sharing (multiple apps on port 80/443), load balancing (multiple Kestrel instances), and features (compression, caching, WebSocket support).
+
+**Configuration**:
+\`\`\`csharp
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Listen(IPAddress.Any, 5000);
+    options.Listen(IPAddress.Any, 5001, listenOptions =>
+    {
+        listenOptions.UseHttps("cert.pfx", "password");
+    });
+});
+\`\`\`
+
+Kestrel supports HTTP/1.1, HTTP/2, and HTTP/3 (QUIC) depending on the platform and configuration.`,
+      difficulty: "medium",
+      tags: ["aspnet-core", "kestrel", "hosting"],
+      is_top50: false,
+    },
+    {
+      question: "How does the ASP.NET Core hosting model work? Explain WebApplication, HostBuilder, and the app lifecycle.",
+      answer: `The ASP.NET Core hosting model has evolved across versions. Since .NET 6, the \`WebApplication\` builder provides a simplified approach:
+
+\`\`\`csharp
+var builder = WebApplication.CreateBuilder(args);
+// Configure services
+builder.Services.AddControllers();
+builder.Services.AddDbContext<AppDbContext>(...);
+var app = builder.Build();
+// Configure pipeline
+app.MapControllers();
+app.Run(); // Start the host
+\`\`\`
+
+**Under the hood**, \`WebApplication.CreateBuilder\` creates:
+1. **HostBuilder** — Configures the app host (IHost)
+2. **Configuration** — Ordered sources: appsettings.json → env vars → command line → secrets
+3. **Logging** — Console, Debug, EventLog, third-party (Serilog, NLog, Application Insights)
+4. **DI Container** — Default container (Microsoft.Extensions.DependencyInjection)
+5. **WebHost** — Configures Kestrel, IIS integration, middleware
+
+**Application lifecycle** (\`IHostApplicationLifetime\`):
+- \`ApplicationStarted\`: Called when the host is fully started
+- \`ApplicationStopping\`: Called during graceful shutdown (SIGTERM, Ctrl+C)
+- \`ApplicationStopped\`: Called after shutdown completes
+
+\`\`\`csharp
+var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+lifetime.ApplicationStopping.Register(() => SaveState());
+app.Run();
+\`\`\`
+
+The host manages graceful shutdown, background service coordination, and health check readiness probes for Kubernetes.`,
+      difficulty: "medium",
+      tags: ["aspnet-core", "hosting", "dotnet"],
+      is_top50: false,
+    },
+    {
+      question: "How does configuration work in ASP.NET Core? Explain the configuration builder, sources, and the Options pattern.",
+      answer: `ASP.NET Core configuration is hierarchical and composed from multiple sources applied in order — later sources override earlier ones:
+
+\`\`\`csharp
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables()
+    .AddCommandLine(args)
+    .AddUserSecrets<Program>(); // Development only
+\`\`\`
+
+**Order** (last wins): appsettings.json → appsettings.{env}.json → User Secrets → Environment Variables → Command Line. This enables the 12-factor app pattern — configuration varies across deployments without code changes.
+
+**The Options pattern** provides strongly-typed access:
+\`\`\`csharp
+// Binding
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+// Registration
+builder.Services.Configure<EmailSettings>(options => options.SmtpHost = "smtp.example.com");
+// Consumption
+public class EmailService
+{
+    public EmailService(IOptions<EmailSettings> options) { ... }
+}
+\`\`\`
+
+Three interfaces:
+- \`IOptions<T>\`: Singleton — reads once, never updates (for static config)
+- \`IOptionsSnapshot<T>\`: Scoped — reads per request, respects reload (for hot-reload config sections)
+- \`IOptionsMonitor<T>\`: Singleton — reads current value, supports change notifications (for background services)
+
+Use \`Bind()\` for manual binding, \`Get<T>()\` for one-shot access, and \`ValidateDataAnnotations()\` or \`Validate<T>()\` for startup validation.`,
+      difficulty: "medium",
+      tags: ["aspnet-core", "configuration", "options-pattern"],
+      is_top50: false,
+    },
+    // ──────── Dependency Injection ────────
+    {
+      question: "Explain the three DI service lifetimes in ASP.NET Core — Singleton, Scoped, Transient — with real-world examples.",
+      answer: `**Singleton**: One instance per application (created first request, reused for all). Use for stateless services, configuration wrappers, logging, caching, and in-memory state shared across all requests.
+\`\`\`csharp
+builder.Services.AddSingleton<IProductCache, InMemoryProductCache>();
+\`\`\`
+
+**Scoped**: One instance per HTTP request (or per scope). Use for DbContext (EF Core), request-specific state, unit of work patterns.
+\`\`\`csharp
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<AppDbContext>(); // DbContext is typically scoped
+\`\`\`
+
+**Transient**: New instance every time injected. Use for lightweight, stateless services, formatters, converters.
+\`\`\`csharp
+builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+\`\`\`
+
+**Common pitfalls**:
+- Captive dependency: A Scoped/Transient service injected into a Singleton behaves as Singleton — the singleton holds the reference forever.
+- Singleton holding Scoped: BAD — the scoped instance is captured and never released.
+- Disposal: Singleton disposables live for app lifetime; Scoped/Transient are disposed at scope end.
+
+\`\`\`csharp
+// WRONG — Transient captured in Singleton
+builder.Services.AddSingleton<IService>(sp =>
+{
+    var captured = sp.GetRequiredService<ITransientService>(); // BAD
+    return new Service(captured);
+});
+\`\`\`
+
+Use \`IServiceScopeFactory\` to create scopes in background services for correct DbContext usage:
+\`\`\`csharp
+public class CleanupService : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    }
+}
+\`\`\``,
+      difficulty: "medium",
+      tags: ["dependency-injection", "ioc", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "How does the built-in DI container resolve services? Explain container resolution, open generics, and factory patterns.",
+      answer: `The default DI container (\`Microsoft.Extensions.DependencyInjection\`) resolves services by walking the constructor dependency chain. It auto-resolves all registration types — no configuration file or attributes needed.
+
+**Resolution process**: When \`IServiceProvider.GetService<T>()\` is called, the container:
+1. Looks up the service descriptor by type
+2. If the lifetime is Singleton/Scoped and instance exists, returns cached instance
+3. If not, activates the implementation type (using constructor injection)
+4. Recursively resolves all constructor parameters
+5. Applies any \`IPostConfigureOptions\` and startup filters
+6. Returns the instance
+
+**Open generics registration**: Register \`typeof(IRepository<>)\` mapped to \`typeof(EfRepository<>)\`:
+\`\`\`csharp
+builder.Services.AddTransient(typeof(IRepository<>), typeof(EfRepository<>));
+\`\`\`
+
+**Factory patterns**:
+\`\`\`csharp
+builder.Services.AddTransient<IPaymentService>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    return config["PaymentProvider"] == "Stripe"
+        ? new StripePaymentService()
+        : new PayPalPaymentService();
+});
+\`\`\`
+
+**TryAdd vs Add**: \`TryAdd\` only registers if no registration exists — useful for library defaults that consumers can override. \`Replace\` and \`Remove\` give fine-grained control over the service collection.
+
+The container validates at runtime (not compile time) — missing registrations throw \`InvalidOperationException\` at first resolution attempt. Third-party containers (Autofac, StructureMap, Windsor) can replace the default for advanced features like property injection, interception, and modules.`,
+      difficulty: "medium",
+      tags: ["dependency-injection", "ioc", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "What are the Options pattern interfaces (IOptions, IOptionsSnapshot, IOptionsMonitor) and when should each be used?",
+      answer: `The Options pattern provides strongly-typed configuration access with DI integration.
+
+**IOptions<T>**: Singleton — reads configuration once at first resolution. Does NOT support hot-reload. Use for static configuration that doesn't change at runtime (API keys, feature flags loaded at startup, database connection strings in single-instance apps).
+\`\`\`csharp
+public class EmailService(IOptions<SmtpSettings> options) { }
+\`\`\`
+
+**IOptionsSnapshot<T>**: Scoped — reads configuration per HTTP request. Respects \`reloadOnChange: true\` on configuration sources. Use when you need fresh values per request (rate limit settings, feature toggles, tenant-specific config).
+\`\`\`csharp
+builder.Configuration.AddJsonFile("appsettings.json", reloadOnChange: true);
+public class TenantService(IOptionsSnapshot<TenantSettings> snapshot) { }
+\`\`\`
+
+**IOptionsMonitor<T>**: Singleton — provides the current value at any time and supports change notifications via \`OnChange\`. Use in background services, singletons, and when you need to react to configuration changes without restarting.
+\`\`\`csharp
+public class CacheCleanupService(IOptionsMonitor<CacheSettings> monitor)
+{
+    monitor.OnChange(settings => _cache.Clear());
+}
+\`\`\`
+
+**Validation**: Use \`ValidateDataAnnotations()\` or \`Validate<T>(Func<T, bool>)\`:
+\`\`\`csharp
+builder.Services.AddOptions<SmtpSettings>()
+    .Bind(config.GetSection("Smtp"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart(); // Fail fast — validate at app start
+\`\`\`
+
+Options are validated on first access by default. \`ValidateOnStart()\` validates at application startup — prefer this for production apps to catch misconfiguration early.`,
+      difficulty: "medium",
+      tags: ["options-pattern", "dependency-injection", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "Explain the Captive Dependency problem in DI and how to avoid it. Give a concrete example.",
+      answer: `A captive dependency occurs when a service with a shorter lifetime is injected into a service with a longer lifetime — the shorter-lived service is "captured" and behaves as if it has the longer lifetime, leading to stale state, memory leaks, or incorrect behavior.
+
+**Concrete example**:
+\`\`\`csharp
+// Registration
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddSingleton<ReportGenerator>();
+
+// ReportGenerator captures UnitOfWork
+public class ReportGenerator
+{
+    public ReportGenerator(IUnitOfWork uow) { ... } // Captured!
+}
+\`\`\`
+
+The \`ReportGenerator\` is Singleton, but \`IUnitOfWork\` is Scoped. The first request creates the singleton, which captures that request's \`UnitOfWork\`. ALL subsequent requests use the stale \`UnitOfWork\` from the first request — no database changes are visible, connections are not released, and the \`DbContext\` (which is scoped) is in an incorrect state.
+
+**How to detect**: Enable DI analysis warnings in project file:
+\`\`\`xml
+<PropertyGroup>
+  <AnalysisLevel>latest</AnalysisLevel>
+  <WarningsAsErrors>CS8618,CA2016,ASP0000</WarningsAsErrors>
+</PropertyGroup>
+\`\`\`
+
+**How to fix**:
+1. Register \`ReportGenerator\` as Scoped (if it has scoped dependencies)
+2. Inject \`IServiceScopeFactory\` into the singleton and create scopes manually
+3. Redesign the service to not depend on scoped services
+
+\`\`\`csharp
+// Fix: Use IServiceScopeFactory in the singleton
+public class ReportGenerator
+{
+    public ReportGenerator(IServiceScopeFactory scopeFactory) { ... }
+    public async Task GenerateAsync()
+    {
+        using var scope = scopeFactory.CreateScope();
+        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+    }
+}
+\`\`\``,
+      difficulty: "medium",
+      tags: ["dependency-injection", "ioc", "aspnet-core"],
+      is_top50: false,
+    },
+    // ──────── Entity Framework Core ────────
+    {
+      question: "What is Entity Framework Core and how do you configure it with a DbContext?",
+      answer: `Entity Framework Core (EF Core) is a lightweight, extensible ORM for .NET. It maps database tables to C# objects and provides LINQ-based querying, change tracking, and migrations.
+
+**Configuration in Program.cs**:
+\`\`\`csharp
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+        sql => sql.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName));
+\`\`\`
+
+**DbContext class**:
+\`\`\`csharp
+public class AppDbContext : DbContext
+{
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<Order> Orders => Set<Order>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.ToTable("Products");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
+            entity.HasMany(e => e.Orders)
+                  .WithOne(e => e.Product)
+                  .HasForeignKey(e => e.ProductId);
+        });
+    }
+}
+\`\`\`
+
+**Approaches**: Code-First (write C# classes → generate migrations → create DB), Database-First (reverse-engineer existing DB → generate classes). Code-First is most common for new projects.
+
+**DbContext lifetime**: Register as Scoped — one instance per HTTP request ensures consistent unit-of-work behavior. EF Core pools DbContext instances internally for performance (\`AddDbContextPool\`).`,
+      difficulty: "medium",
+      tags: ["entity-framework", "orm", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "Explain EF Core migrations — how to create, apply, and roll them back.",
+      answer: `EF Core migrations track schema changes as C# code files, enabling version-controlled database evolution.
+
+**CLI commands** (using dotnet ef or Package Manager Console):
+\`\`\`bash
+# Install tool (if not installed)
+dotnet tool install --global dotnet-ef
+
+# Create migration
+dotnet ef migrations add AddProductCategory
+
+# Apply to database
+dotnet ef database update
+
+# Generate SQL script (for production)
+dotnet ef migrations script -o migrate.sql
+
+# Remove last migration (before applying)
+dotnet ef migrations remove
+
+# Rollback to a specific migration
+dotnet ef database update InitialCreate
+\`\`\`
+
+**How it works**: Each migration contains \`Up()\` and \`Down()\` methods. \`Up()\` applies changes; \`Down()\` reverts them. The \`__EFMigrationsHistory\` table tracks which migrations have been applied.
+
+\`\`\`csharp
+public partial class AddProductCategory : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.AddColumn<string>(
+            name: "Category",
+            table: "Products",
+            type: "nvarchar(100)",
+            nullable: false,
+            defaultValue: "");
+    }
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropColumn(name: "Category", table: "Products");
+    }
+}
+\`\`\`
+
+**Production best practice**: Generate SQL scripts and review them before applying — never run \`database update\` directly in production. Use idempotent scripts (\`dotnet ef migrations script --idempotent\`) that only apply pending migrations.`,
+      difficulty: "medium",
+      tags: ["entity-framework", "migrations", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between eager loading (Include), lazy loading, and explicit loading in EF Core?",
+      answer: `**Eager loading**: Loads related data upfront in a single query using \`Include()\` and \`ThenInclude()\`:
+\`\`\`csharp
+var orders = await context.Orders
+    .Include(o => o.Customer)
+    .ThenInclude(c => c.Address)
+    .Include(o => o.Items)
+    .ThenInclude(i => i.Product)
+    .ToListAsync();
+\`\`\`
+Generates SQL with JOINs — efficient for data you KNOW you need. Avoid over-including (cartesian explosion with multiple collections). Use \`AsSplitQuery()\` in EF Core 5+ to generate separate queries for collection navigations and avoid performance issues.
+
+**Lazy loading**: Related data is loaded automatically when the navigation property is accessed for the FIRST time after the query. Requires \`UseLazyLoadingProxies()\` and virtual navigation properties. Each access triggers a separate SQL query — N+1 problem risk. Use sparingly for simple scenarios or prototyping.
+
+**Explicit loading**: Load related data on demand using \`Reference().Load()\` or \`Collection().Load()\`:
+\`\`\`csharp
+var order = await context.Orders.FirstAsync();
+await context.Entry(order).Collection(o => o.Items).LoadAsync();
+\`\`\`
+Useful when loading related data conditionally or later in the same unit of work.
+
+**Guideline**: Default to eager loading for data required by the view/response. Use explicit loading for conditional scenarios. Avoid lazy loading in production — the N+1 problem is a common performance issue.`,
+      difficulty: "medium",
+      tags: ["entity-framework", "orm", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "What is AsNoTracking and when should you use it? Explain compiled queries and FromSql.",
+      answer: `**AsNoTracking()**: Tells EF Core NOT to track entities in the change tracker. The entity is read-only — no snapshots are stored, no identity resolution is performed. Use for read-only queries where entities are not modified:
+\`\`\`csharp
+var products = await context.Products
+    .AsNoTracking()
+    .Where(p => p.IsActive)
+    .ToListAsync(); // ~40-60% faster, less memory
+\`\`\`
+
+**Compiled queries (EF Core 6+)**: Pre-compile LINQ queries for reuse, avoiding expression tree compilation overhead:
+\`\`\`csharp
+private static readonly Func<AppDbContext, decimal, IAsyncEnumerable<Product>> _expensiveProducts =
+    EF.CompileAsyncQuery((AppDbContext ctx, decimal minPrice) =>
+        ctx.Products.Where(p => p.Price >= minPrice).OrderBy(p => p.Name));
+
+// Usage
+await foreach (var product in _expensiveProducts(context, 100))
+{ ... }
+\`\`\`
+
+**FromSql / FromSqlRaw**: Execute raw SQL when LINQ cannot express the query efficiently:
+\`\`\`csharp
+var products = await context.Products
+    .FromSql($"SELECT * FROM Products WHERE Price > {minPrice}") // EF Core 8+ interpolated
+    .Include(p => p.Category) // Can chain LINQ after raw SQL
+    .ToListAsync();
+
+// For non-entity results
+await context.Database.SqlQuery<int>($"SELECT COUNT(*) FROM Products");
+\`\`\`
+
+Use \`FromSql\` for complex reporting, full-text search, or database-specific features. Always use parameterized queries (string interpolation in EF Core 8+ auto-parameterizes) — never concatenate strings to avoid SQL injection.`,
+      difficulty: "medium",
+      tags: ["entity-framework", "performance", "orm"],
+      is_top50: false,
+    },
+    {
+      question: "How does the EF Core change tracker work? Explain added, modified, deleted, and detached states.",
+      answer: `The change tracker monitors every entity loaded or attached to a DbContext. Each entity has one of five states:
+
+\`\`\`csharp
+var product = new Product { Name = "New" };
+Console.WriteLine(context.Entry(product).State); // Detached
+
+context.Products.Add(product);
+Console.WriteLine(context.Entry(product).State); // Added
+
+var existing = await context.Products.FindAsync(1);
+Console.WriteLine(context.Entry(existing).State); // Unchanged
+
+existing.Price = 50;
+Console.WriteLine(context.Entry(existing).State); // Modified
+
+context.Products.Remove(existing);
+Console.WriteLine(context.Entry(existing).State); // Deleted
+\`\`\`
+
+**States**:
+- **Detached**: Not tracked. The tracker knows nothing about this entity.
+- **Added**: New entity. INSERT on SaveChanges.
+- **Unchanged**: Loaded and no changes detected.
+- **Modified**: Existing entity with changes. UPDATE on SaveChanges — EF Core generates UPDATE only for changed columns.
+- **Deleted**: Existing entity marked for removal. DELETE on SaveChanges.
+
+**How it detects changes**: By default, EF Core takes a snapshot of entity values when loaded. On \`SaveChanges\`, it compares current values to the snapshot — modified properties generate specific UPDATE SET clauses. \`UsePropertyAccessMode\` controls how values are read.
+
+**Performance**: For bulk operations, avoid tracking:
+\`\`\`csharp
+// Use ExecuteUpdate/ExecuteDelete for bulk (EF Core 7+)
+await context.Products
+    .Where(p => p.LastUpdated < cutoff)
+    .ExecuteDeleteAsync(); // No change tracker involved
+\`\`\`
+
+For high-throughput scenarios, use \`.AsNoTracking()\` for reads and \`ExecuteUpdate\`/\`ExecuteDelete\` for bulk writes.`,
+      difficulty: "medium",
+      tags: ["entity-framework", "orm"],
+      is_top50: false,
+    },
+    {
+      question: "How do you handle concurrency conflicts in EF Core? Explain row versioning and the DbUpdateConcurrencyException.",
+      answer: `Concurrency conflicts occur when two users modify the same entity simultaneously. EF Core supports optimistic concurrency via a concurrency token — a column that EF Core checks during UPDATE/DELETE.
+
+**Using a row version (SQL Server rowversion/timestamp)**:
+\`\`\`csharp
+public class Product
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    [Timestamp]
+    public byte[] RowVersion { get; set; }
+}
+\`\`\`
+
+When saving, EF Core generates:
+\`\`\`sql
+UPDATE Products SET Name = @p0, Price = @p1
+WHERE Id = @p2 AND RowVersion = @p3;
+\`\`\`
+
+If \`@@ROWCOUNT = 0\` (the row version doesn't match — someone else updated), EF Core throws \`DbUpdateConcurrencyException\`.
+
+**Handling the exception**:
+\`\`\`csharp
+try
+{
+    await context.SaveChangesAsync();
+}
+catch (DbUpdateConcurrencyException ex)
+{
+    var entry = ex.Entries.Single();
+    var databaseValues = await entry.GetDatabaseValuesAsync();
+    if (databaseValues == null)
+        // Entity was deleted by another user
+    else
+    {
+        // Reload and retry, or merge values
+        entry.CurrentValues.SetValues(databaseValues);
+        await context.SaveChangesAsync(); // Retry (loses current changes)
+    }
+}
+\`\`\`
+
+**Strategies**:
+- **Client Wins**: Overwrite database values with current values
+- **Store Wins**: Reload from database, losing current changes
+- **Merge**: Let the user resolve conflicts manually (showing diff)
+
+Use \`IsConcurrencyToken()\` in Fluent API for non-EF Core attribute scenarios. For SQLite/PostgreSQL, use a \`Guid\` property updated on each save with a computed default.`,
+      difficulty: "hard",
+      tags: ["entity-framework", "concurrency", "orm"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between database-first and code-first approaches in EF Core? When would you use each?",
+      answer: `**Code-First**: Write C# entity classes and DbContext first, then generate the database schema from them via migrations. The database is a persistence detail — your domain model drives the schema.
+
+- Pros: Full control over the domain model, works well with DDD, version-controlled migrations, no DB schema lock-in.
+- Cons: Requires effort to map complex DB schemas (stored procs, views, custom types).
+- Best for: Greenfield projects, applications where the domain model is the source of truth.
+
+**Database-First**: Reverse-engineer an existing database into entity classes and DbContext using \`dotnet ef dbcontext scaffold\`:
+\`\`\`bash
+dotnet ef dbcontext scaffold "Server=.;Database=Shop;..." Microsoft.EntityFrameworkCore.SqlServer
+\`\`\`
+
+- Pros: Works with existing databases, preserves DBA-managed schemas, generates working code immediately.
+- Cons: Generated code is hard to customize (regenerating overwrites changes), complex mappings for views/stored procedures are manual.
+- Best for: Brownfield projects, legacy databases, DB-first organizations with dedicated DBAs.
+
+**Hybrid approach**: Many teams start code-first but use raw SQL (FromSql, ExecuteSql) for complex queries, views, and stored procedures. EF Core's flexibility allows mixing both approaches within the same project. Choose based on whether your domain or database is the primary authority.`,
+      difficulty: "easy",
+      tags: ["entity-framework", "orm", "dotnet"],
+      is_top50: false,
+    },
+    // ──────── Authentication & Authorization ────────
+    {
+      question: "How do you implement JWT authentication in ASP.NET Core Web API?",
+      answer: `JWT (JSON Web Token) authentication uses a self-contained token with claims signed by the server. Implementation steps:
+
+**1. Configure services**:
+\`\`\`csharp
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero, // No tolerance
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
+builder.Services.AddAuthorization();
+\`\`\`
+
+**2. Generate tokens**:
+\`\`\`csharp
+public string GenerateToken(User user)
+{
+    var claims = new[]
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.Role, user.Role),
+        new Claim("department", user.Department)
+    };
+    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+    var token = new JwtSecurityToken(
+        issuer: _config["Jwt:Issuer"],
+        audience: _config["Jwt:Audience"],
+        claims: claims,
+        expires: DateTime.UtcNow.AddHours(2),
+        signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
+    );
+    return new JwtSecurityTokenHandler().WriteToken(token);
+}
+\`\`\`
+
+**3. Protect endpoints**:
+\`\`\`csharp
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+// Or with attribute: [Authorize(Roles = "Admin")]
+\`\`\`
+
+**Best practices**: Use asymmetric keys (RS256) for production so the private key stays on the auth server. Set short token expiry (15-60 min) with refresh tokens. Never store JWTs in localStorage — use httpOnly secure cookies with SameSite=Strict. Include iss, aud, exp, iat, jti claims.`,
+      difficulty: "medium",
+      tags: ["jwt", "authentication", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "How does ASP.NET Core Identity work? Explain user management, roles, claims, and external login providers.",
+      answer: `ASP.NET Core Identity provides a complete authentication system built on EF Core. It manages users, roles, password hashing, two-factor authentication, and external logins.
+
+**Setup**:
+\`\`\`csharp
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders()
+    .AddSignInManager<SignInManager<ApplicationUser>>();
+\`\`\`
+
+**Core components**:
+- **UserManager<TUser>**: Create/find/update users, reset passwords, confirm emails, lockout management.
+- **SignInManager<TUser>**: Password sign-in, two-factor, external login, sign-out.
+- **RoleManager<TRole>**: Create/delete roles, assign users to roles.
+- **ClaimsPrincipalFactory**: Adds claims (role claims, custom claims) to the identity on sign-in.
+
+**User management**:
+\`\`\`csharp
+var user = new ApplicationUser { UserName = "alice@example.com", Email = "alice@example.com" };
+var result = await _userManager.CreateAsync(user, "SecurePass123!");
+if (result.Succeeded)
+{
+    await _userManager.AddToRoleAsync(user, "Admin");
+    await _userManager.AddClaimAsync(user, new Claim("Department", "Engineering"));
+}
+\`\`\`
+
+**External login providers**: Configure Google, Microsoft, Facebook, or any OAuth/OIDC provider:
+\`\`\`csharp
+builder.Services.AddAuthentication().AddGoogle(options =>
+{
+    options.ClientId = _config["Google:ClientId"];
+    options.ClientSecret = _config["Google:ClientSecret"];
+});
+\`\`\`
+
+**Policy-based authorization**: Combine roles and claims:
+\`\`\`csharp
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireEngineeringDepartment", policy =>
+        policy.RequireClaim("Department", "Engineering"));
+    options.AddPolicy("SeniorStaff", policy =>
+        policy.RequireRole("Admin", "Manager")
+              .RequireClaim("Tenure", "5+"));
+});
+\`\`\`
+
+Identity is extensible — replace \`ApplicationUser\` with custom user types, add profile properties (avatar, timezone), or swap EF Core stores for Dapper or NoSQL.`,
+      difficulty: "medium",
+      tags: ["authentication", "authorization", "identity", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "What are policy-based authorization and resource-based authorization in ASP.NET Core?",
+      answer: `**Policy-based authorization**: Authorization is defined as named policies composed of requirements. Decouples auth logic from controllers.
+
+\`\`\`csharp
+// Define requirement
+public class MinimumAgeRequirement : IAuthorizationRequirement
+{
+    public int MinimumAge { get; }
+    public MinimumAgeRequirement(int age) => MinimumAge = age;
+}
+
+// Implement handler
+public class MinimumAgeHandler : AuthorizationHandler<MinimumAgeRequirement>
+{
+    protected override Task HandleRequirementAsync(
+        AuthorizationHandlerContext context, MinimumAgeRequirement requirement)
+    {
+        var dateOfBirth = context.User.FindFirst("DateOfBirth")?.Value;
+        if (dateOfBirth != null && CalculateAge(dateOfBirth) >= requirement.MinimumAge)
+            context.Succeed(requirement);
+        return Task.CompletedTask;
+    }
+}
+
+// Register
+builder.Services.AddSingleton<IAuthorizationHandler, MinimumAgeHandler>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AtLeast21", policy =>
+        policy.Requirements.Add(new MinimumAgeRequirement(21)));
+});
+
+// Use
+[Authorize(Policy = "AtLeast21")]
+\`\`\`
+
+**Resource-based authorization**: Authorization depends on the specific resource being accessed, not just the user.
+
+\`\`\`csharp
+public class DocumentAuthorizationHandler :
+    AuthorizationHandler<SameAuthorRequirement, Document>
+{
+    protected override Task HandleRequirementAsync(
+        AuthorizationHandlerContext context, SameAuthorRequirement requirement, Document resource)
+    {
+        var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (resource.AuthorId == userId)
+            context.Succeed(requirement);
+        return Task.CompletedTask;
+    }
+}
+
+// Usage in service
+var document = await _context.Documents.FindAsync(id);
+var authResult = await _authorizationService
+    .AuthorizeAsync(User, document, "EditPolicy");
+if (!authResult.Succeeded) return Forbid();
+\`\`\`
+
+Resource-based auth is essential for multi-tenant apps, document ownership, and fine-grained access control.`,
+      difficulty: "medium",
+      tags: ["authorization", "authentication", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "How do you handle refresh tokens with JWT in ASP.NET Core?",
+      answer: `Access tokens (short-lived, 15-60 min) are vulnerable if stolen. Refresh tokens (long-lived, days) allow obtaining new access tokens without re-authentication.
+
+**Flow**:
+1. User authenticates → server returns access token + refresh token (HTTP-only cookie or response body)
+2. Client uses access token for API calls
+3. When access token expires, client sends refresh token to /api/auth/refresh
+4. Server validates refresh token → returns new access token + new refresh token (rotation)
+
+**Implementation**:
+\`\`\`csharp
+public record RefreshToken
+{
+    public Guid Id { get; set; }
+    public string Token { get; set; }
+    public string UserId { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    public bool IsRevoked { get; set; }
+    public string? ReplacedByToken { get; set; } // Track rotation
+}
+
+// Refresh endpoint
+[HttpPost("refresh")]
+public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
+{
+    var storedToken = await _context.RefreshTokens
+        .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken);
+    if (storedToken == null || storedToken.IsRevoked || storedToken.ExpiresAt < DateTime.UtcNow)
+        return Unauthorized("Invalid refresh token");
+
+    // Rotate: revoke old, issue new
+    storedToken.IsRevoked = true;
+    storedToken.ReplacedByToken = newToken;
+    var newRefreshToken = GenerateRefreshToken(user.Id);
+    _context.RefreshTokens.Add(newRefreshToken);
+
+    var newAccessToken = GenerateAccessToken(user);
+    await _context.SaveChangesAsync();
+
+    return Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken.Token });
+}
+\`\`\`
+
+**Best practices**:
+- Store refresh tokens hashed (SHA-256) in DB, never plaintext
+- Implement refresh token rotation (issue new, revoke old) to detect token theft
+- Set absolute expiry (7-30 days) and sliding expiry (reset on use)
+- Revoke all tokens on password change
+- Use httpOnly secure cookies for browser apps, secure storage for mobile/native apps`,
+      difficulty: "medium",
+      tags: ["jwt", "authentication", "security"],
+      is_top50: false,
+    },
+    // ──────── Minimal APIs vs Controllers ────────
+    {
+      question: "What is the difference between Minimal APIs and Controller-based APIs in ASP.NET Core? When would you use each?",
+      answer: `**Minimal APIs**: Introduced in .NET 6, Minimal APIs provide a lightweight approach with minimal ceremony:
+\`\`\`csharp
+var app = WebApplication.Create(args);
+app.MapGet("/products", async (AppDbContext db) =>
+    await db.Products.ToListAsync());
+app.MapPost("/products", async (Product product, AppDbContext db) =>
+{
+    db.Products.Add(product);
+    await db.SaveChangesAsync();
+    return Results.Created($"/products/{product.Id}", product);
+});
+app.Run();
+\`\`\`
+
+Pros: Minimal boilerplate, single file startup, great for microservices and simple APIs. Cons: Limited extensibility for large apps, harder to organize, no built-in model validation without explicit FluentValidation.
+
+**Controller-based APIs**: Traditional MVC pattern with controllers, actions, and filters:
+\`\`\`csharp
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+    [HttpGet]
+    public async Task<ActionResult<List<Product>>> Get() { ... }
+    [HttpPost]
+    public async Task<ActionResult<Product>> Create(Product product) { ... }
+}
+\`\`\`
+
+Pros: Built-in model validation ([ApiController]), action filters, dependency injection via constructor, familiar pattern, easier to organize large apps. Cons: More ceremony, more files.
+
+**When to use**:
+- Minimal APIs: Small services (< 10 endpoints), microservices, simple CRUD, prototypes, where simplicity matters more than structure.
+- Controllers: Large applications (> 20 endpoints), complex validation, multiple versions, need for action filters, team conventions.
+
+Both can coexist in the same project — use controllers for complex areas and minimal APIs for simple health checks, webhooks, and admin endpoints.`,
+      difficulty: "medium",
+      tags: ["minimal-api", "controllers", "aspnet-core", "rest"],
+      is_top50: false,
+    },
+    {
+      question: "How do you handle validation in Minimal APIs? Compare with FluentValidation and Data Annotations.",
+      answer: `Minimal APIs lack the automatic model validation that [ApiController] provides. Validation must be explicit:
+
+**1. Manual validation** (simple, but verbose):
+\`\`\`csharp
+app.MapPost("/products", (Product product) =>
+{
+    if (string.IsNullOrWhiteSpace(product.Name))
+        return Results.BadRequest("Name is required");
+    if (product.Price <= 0)
+        return Results.BadRequest("Price must be positive");
+    // ...
+});
+\`\`\`
+
+**2. Data Annotations** (works with custom binding):
+\`\`\`csharp
+public class CreateProductRequest
+{
+    [Required, MaxLength(200)]
+    public string Name { get; set; }
+    [Range(0.01, 100000)]
+    public decimal Price { get; set; }
+}
+
+app.MapPost("/products", async (CreateProductRequest request, AppDbContext db) =>
+{
+    // Validate manually or with middleware
+}).AddEndpointFilter<ValidationFilter<CreateProductRequest>>();
+\`\`\`
+
+**3. FluentValidation (recommended)**:
+\`\`\`csharp
+public class CreateProductValidator : AbstractValidator<CreateProductRequest>
+{
+    public CreateProductValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Price).GreaterThan(0);
+        RuleFor(x => x.Category).IsInEnum();
+    }
+}
+
+// Register
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+// Apply via endpoint filter
+public class ValidationFilter<T> : IEndpointFilter
+{
+    public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext ctx,
+        EndpointFilterDelegate next)
+    {
+        var validator = ctx.HttpContext.RequestServices
+            .GetRequiredService<IValidator<T>>();
+        var arg = ctx.Arguments.OfType<T>().First();
+        var result = await validator.ValidateAsync(arg);
+        if (!result.IsValid)
+            return Results.ValidationProblem(result.ToDictionary());
+        return await next(ctx);
+    }
+}
+
+app.MapPost("/products", Handler).AddEndpointFilter<ValidationFilter<CreateProductRequest>>();
+\`\`\`
+
+For controllers, [ApiController] automatically validates Data Annotations and returns 400 with ProblemDetails. For Minimal APIs, FluentValidation with endpoint filters is the cleanest approach.`,
+      difficulty: "medium",
+      tags: ["minimal-api", "validation", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "How do you organize a large Minimal API project? Explain MapGroup and extension methods.",
+      answer: `Minimal APIs can scale by using \`MapGroup\` and extension methods to organize endpoints logically:
+
+**MapGroup** — prefix and tag endpoints:
+\`\`\`csharp
+var products = app.MapGroup("/api/products")
+    .WithTags("Products")
+    .RequireAuthorization();
+
+products.MapGet("/", GetAllProducts);
+products.MapGet("/{id:int}", GetProductById);
+products.MapPost("/", CreateProduct);
+products.MapDelete("/{id:int}", DeleteProduct);
+\`\`\`
+
+**Extension methods** — extract endpoint definitions:
+\`\`\`csharp
+public static class ProductEndpoints
+{
+    public static RouteGroupBuilder MapProductEndpoints(this RouteGroupBuilder group)
+    {
+        group.MapGet("/", async (AppDbContext db) =>
+            await db.Products.ToListAsync());
+
+        group.MapGet("/{id:int}", async (int id, AppDbContext db) =>
+            await db.Products.FindAsync(id) is Product p
+                ? Results.Ok(p) : Results.NotFound());
+
+        return group;
+    }
+}
+
+// In Program.cs
+app.MapGroup("/api/products")
+    .MapProductEndpoints()
+    .RequireAuthorization();
+\`\`\`
+
+**Feature folders** — one file per feature:
+\`\`\`
+Endpoints/
+  Products/
+    Create.cs
+    Get.cs
+    List.cs
+    ProductModule.cs  // Registers all product endpoints
+\`\`\`
+
+**Filter registration** — shared filters:
+\`\`\`csharp
+public static RouteHandlerBuilder WithValidation<T>(this RouteHandlerBuilder builder)
+{
+    return builder.AddEndpointFilter<ValidationFilter<T>>();
+}
+
+products.MapPost("/", CreateProduct).WithValidation<CreateProductRequest>();
+\`\`\`
+
+Use \`WithOpenApi()\` for Swagger, \`WithSummary()\`/\`WithDescription()\` for documentation. For very large apps (50+ endpoints), controllers may be more maintainable despite the extra ceremony.`,
+      difficulty: "medium",
+      tags: ["minimal-api", "architecture", "aspnet-core"],
+      is_top50: false,
+    },
+    // ──────── Real-time & Background ────────
+    {
+      question: "What is SignalR and how does it work in ASP.NET Core? Explain hubs, groups, and connection management.",
+      answer: `SignalR is a real-time communication library for ASP.NET Core. It automatically selects the best transport: WebSocket (preferred), Server-Sent Events, or long polling — falling back as needed.
+
+**Hub** — the central communication endpoint:
+\`\`\`csharp
+public class ChatHub : Hub
+{
+    public async Task SendMessage(string user, string message)
+    {
+        await Clients.All.SendAsync("ReceiveMessage", user, message);
+    }
+    public override async Task OnConnectedAsync()
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, "General");
+        await base.OnConnectedAsync();
+    }
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, "General");
+        await base.OnDisconnectedAsync(exception);
+    }
+}
+\`\`\`
+
+**Groups** — logical groupings for targeted messaging:
+\`\`\`csharp
+// Add to group
+await Groups.AddToGroupAsync(Context.ConnectionId, "Room123");
+// Send to group
+await Clients.Group("Room123").SendAsync("RoomUpdate", data);
+// Remove from group
+await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Room123");
+\`\`\`
+
+**Connection management**: Each client has a unique ConnectionId. \`OnConnectedAsync\` / \`OnDisconnectedAsync\` track connection lifecycle. Use Groups to associate connection IDs with users/rooms.
+
+**Calling from outside a hub** (IHubContext):
+\`\`\`csharp
+public class NotificationService
+{
+    private readonly IHubContext<NotificationHub> _hub;
+    public NotificationService(IHubContext<NotificationHub> hub) => _hub = hub;
+    public async Task NotifyUser(string userId, string message)
+    {
+        await _hub.Clients.User(userId).SendAsync("Notification", message);
+    }
+}
+\`\`\`
+
+Requires \`AddSignalR().AddHubOptions()\` and \`app.MapHub<ChatHub>("/chat")\` for configuration. Use Redis Backplane for scale-out across multiple servers.`,
+      difficulty: "medium",
+      tags: ["signalr", "realtime", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "How does SignalR handle scale-out across multiple servers? Explain the Redis backplane and Azure SignalR Service.",
+      answer: `SignalR's in-memory state (connection IDs, groups) is per-server. With multiple servers (load-balanced), a client connected to Server A cannot receive messages sent via Server B. Two solutions:
+
+**Redis Backplane**: Publishes SignalR messages to Redis, which relays to all connected servers:
+\`\`\`csharp
+builder.Services.AddSignalR()
+    .AddStackExchangeRedis("localhost:6379");
+\`\`\`
+All servers subscribe to the same Redis channel. When Server A sends a message, Redis broadcasts it to all servers, which forward to their connected clients. Pros: Self-hosted, no vendor lock-in. Cons: Additional latency, requires Redis, does NOT reduce connection load.
+
+**Azure SignalR Service** (fully managed):
+\`\`\`csharp
+builder.Services.AddSignalR()
+    .AddAzureSignalR("Endpoint=https://myhub.service.signalr.net;...");
+\`\`\`
+Clients connect to Azure SignalR Service directly — your server handles only authentication and hub logic. The service manages connections, scale, and regional presence. Pros: No Redis to manage, handles millions of connections, built-in serverless mode. Cons: Vendor lock-in, higher cost at scale.
+
+**Comparison**:
+
+| Feature | Redis Backplane | Azure SignalR Service |
+|---------|----------------|----------------------|
+| Setup | Self-managed Redis | Managed service |
+| Cost | Redis server cost | Per connection + per unit |
+| Latency | +1-5ms per message | +0-3ms (regional) |
+| Connection limit | Server-bound | Service handles millions |
+| Serverless | Not supported | Supported (Azure Functions) |
+
+For smaller deployments (single server or sticky sessions), neither is needed. Use Redis backplane for moderate scale with self-hosting. Use Azure SignalR Service for high-scale, global, or serverless scenarios.`,
+      difficulty: "hard",
+      tags: ["signalr", "scaling", "redis", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "What are IHostedService and BackgroundService in ASP.NET Core? Provide real-world examples.",
+      answer: `Both run background tasks in the ASP.NET Core process alongside the web server.
+
+**IHostedService** — the interface:
+\`\`\`csharp
+public interface IHostedService
+{
+    Task StartAsync(CancellationToken cancellationToken);
+    Task StopAsync(CancellationToken cancellationToken);
+}
+\`\`\`
+
+**BackgroundService** — abstract base class (simpler):
+\`\`\`csharp
+public class OrderCleanupService : BackgroundService
+{
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<OrderCleanupService> _logger;
+
+    public OrderCleanupService(IServiceScopeFactory scopeFactory, ILogger<OrderCleanupService> logger)
+    {
+        _scopeFactory = scopeFactory;
+        _logger = logger;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("Order cleanup service started");
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var cutoff = DateTime.UtcNow.AddDays(-30);
+                var deleted = await db.Orders
+                    .Where(o => o.Status == "Abandoned" && o.CreatedAt < cutoff)
+                    .ExecuteDeleteAsync(stoppingToken);
+                if (deleted > 0)
+                    _logger.LogInformation("Cleaned {Count} abandoned orders", deleted);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cleaning orders");
+            }
+            await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+        }
+    }
+}
+\`\`\`
+
+**Register**:
+\`\`\`csharp
+builder.Services.AddHostedService<OrderCleanupService>();
+\`\`\`
+
+**Real-world examples**:
+- **Email queue processor**: Read from DB/queue and send emails
+- **Cache warming**: Pre-load frequently accessed data into Redis
+- **Health check pings**: Report service health to external monitoring
+- **Data sync**: Periodically sync with external APIs or databases
+- **File cleanup**: Remove temporary files, expired exports
+- **Kafka/Event Hub consumer**: Process events from message queues
+
+**Important**: Background services run in the same process as the web server. They respect graceful shutdown (\`IHostApplicationLifetime.ApplicationStopping\`) and participate in health checks — important for container orchestration. Always inject \`IServiceScopeFactory\` instead of scoped services directly (captive dependency issue).`,
+      difficulty: "medium",
+      tags: ["background-service", "aspnet-core", "dotnet"],
+      is_top50: false,
+    },
+    {
+      question: "Explain the Channel<T> type in .NET and how it implements producer-consumer patterns.",
+      answer: `\`System.Threading.Channels.Channel<T>\` is an async-safe, thread-safe producer-consumer queue introduced in .NET Core 3.0. It supports bounded (limited capacity, backpressure) and unbounded modes.
+
+**Basic usage**:
+\`\`\`csharp
+var channel = Channel.CreateUnbounded<string>();
+
+// Producer
+async Task ProduceAsync(Channel<string> channel)
+{
+    for (int i = 0; i < 100; i++)
+    {
+        await channel.Writer.WriteAsync($"Item {i}");
+    }
+    channel.Writer.Complete(); // Signal no more items
+}
+
+// Consumer
+async Task ConsumeAsync(Channel<string> channel, CancellationToken ct)
+{
+    await foreach (var item in channel.Reader.ReadAllAsync(ct))
+    {
+        Console.WriteLine($"Processing: {item}");
+    }
+}
+\`\`\`
+
+**Bounded channel** (with backpressure):
+\`\`\`csharp
+var bounded = Channel.CreateBounded<string>(new BoundedChannelOptions(100)
+{
+    FullMode = BoundedChannelFullMode.Wait, // Producer waits until space
+    // Options: DropWrite, DropNewest, DropOldest, Wait
+});
+\`\`\`
+
+**Real-world usage in ASP.NET Core background services**:
+\`\`\`csharp
+// Background service: consumer
+public class LogProcessor : BackgroundService
+{
+    private readonly Channel<LogEntry> _channel;
+    public LogProcessor(Channel<LogEntry> channel) => _channel = channel;
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        await foreach (var entry in _channel.Reader.ReadAllAsync(stoppingToken))
+        {
+            await SaveToDatabaseAsync(entry);
+        }
+    }
+}
+
+// Controller: producer
+[ApiController]
+public class LogController
+{
+    [HttpPost]
+    public async Task<IActionResult> Log(LogEntry entry)
+    {
+        await _channel.Writer.WriteAsync(entry);
+        return Accepted(); // Acknowledge immediately
+    }
+}
+
+// Register as singleton
+builder.Services.AddSingleton(Channel.CreateUnbounded<LogEntry>());
+builder.Services.AddHostedService<LogProcessor>();
+\`\`\`
+
+Channel<T> is ideal for decoupling request handling from background processing with minimal dependencies (no external message broker needed).`,
+      difficulty: "medium",
+      tags: ["csharp", "async-await", "background-service", "performance"],
+      is_top50: false,
+    },
+    // ──────── Testing ────────
+    {
+      question: "How do you test ASP.NET Core APIs using WebApplicationFactory? Explain integration testing patterns.",
+      answer: `\`WebApplicationFactory<T>\` spins up an in-memory test server that hosts your full ASP.NET Core application, enabling integration tests against real endpoints without deploying.
+
+**Setup**:
+\`\`\`csharp
+public class ApiFixture : WebApplicationFactory<Program>
+{
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.ConfigureServices(services =>
+        {
+            // Replace EF Core DbContext with in-memory DB
+            var descriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+            if (descriptor != null) services.Remove(descriptor);
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseInMemoryDatabase("TestDb"));
+
+            // Mock external services
+            services.AddSingleton<IEmailSender, MockEmailSender>();
+        });
+    }
+}
+
+public class ProductTests : IClassFixture<ApiFixture>
+{
+    private readonly HttpClient _client;
+    public ProductTests(ApiFixture fixture) => _client = fixture.CreateClient();
+
+    [Fact]
+    public async Task GetProducts_ReturnsOk()
+    {
+        var response = await _client.GetAsync("/api/products");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task CreateProduct_ValidRequest_ReturnsCreated()
+    {
+        var product = new { Name = "Test", Price = 10.99m };
+        var json = JsonContent.Create(product);
+        var response = await _client.PostAsync("/api/products", json);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+    }
+}
+\`\`\`
+
+**Patterns**:
+- \`ConfigureWebHost\`: Override services — replace DB, mock HTTP clients, disable auth
+- \`CreateClient()\`: Returns HttpClient pointed at the in-memory server
+- \`CreateClient(options)\`: Configure base address, timeouts
+- \`CreateHost()\`: Access IServiceProvider directly for service-level tests
+
+**Auth in tests**:
+\`\`\`csharp
+builder.ConfigureTestServices(services =>
+{
+    services.AddAuthentication("Test")
+        .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
+});
+// TestAuthHandler returns authenticated principal
+\`\`\`
+
+Integration tests with WebApplicationFactory catch real issues — middleware ordering, DI resolution, JSON serialization — that unit tests miss.`,
+      difficulty: "medium",
+      tags: ["testing", "integration-testing", "xunit", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "How do you use Moq or NSubstitute for mocking in .NET unit tests? Explain best practices.",
+      answer: `Mocking frameworks isolate the code under test by replacing dependencies with controlled implementations. Moq and NSubstitute are the most popular.
+
+**Moq**:
+\`\`\`csharp
+var mockRepo = new Mock<IProductRepository>();
+mockRepo.Setup(r => r.GetByIdAsync(1))
+    .ReturnsAsync(new Product { Id = 1, Name = "Test" });
+mockRepo.Setup(r => r.GetAllAsync())
+    .ReturnsAsync(new List<Product> { new() { Id = 1 } });
+
+var service = new ProductService(mockRepo.Object);
+var result = await service.GetProductAsync(1);
+Assert.NotNull(result);
+mockRepo.Verify(r => r.GetByIdAsync(1), Times.Once);
+\`\`\`
+
+**NSubstitute** (more readable):
+\`\`\`csharp
+var repo = Substitute.For<IProductRepository>();
+repo.GetByIdAsync(1).Returns(new Product { Id = 1, Name = "Test" });
+
+var service = new ProductService(repo);
+var result = await service.GetProductAsync(1);
+Assert.NotNull(result);
+await repo.Received(1).GetByIdAsync(1);
+\`\`\`
+
+**Best practices**:
+- Mock interfaces, not concrete classes — test behavior, not implementation
+- Keep mocks simple: one setup, one verify per test
+- Avoid over-specifying — use \`It.IsAny<int>()\` for irrelevant parameters
+- Use \`MockBehavior.Strict\` (Moq) sparingly — default Loose is more maintainable
+- Don't mock what you don't own — wrap external SDKs in your own abstractions
+- Prefer InMemoryDatabase over mocking DbContext for EF Core tests
+- Use \`AutoFixture\` + \`AutoMoq\` for generating test data and reducing setup boilerplate
+
+**Anti-pattern** — mocking LINQ providers (DbSet):
+\`\`\`csharp
+// WRONG — complex mock setup that's fragile
+var mockSet = new Mock<DbSet<Product>>();
+mockSet.As<IQueryable<Product>>().Setup(m => m.Provider).Returns(data.Provider);
+
+// BETTER — use InMemoryDatabase
+var options = new DbContextOptionsBuilder<AppDbContext>()
+    .UseInMemoryDatabase("test")
+    .Options;
+\`\`\``,
+      difficulty: "medium",
+      tags: ["testing", "mocking", "xunit", "dotnet"],
+      is_top50: false,
+    },
+    {
+      question: "What is xUnit and how does it compare to NUnit and MSTest? Explain theories, fixtures, and parallelization.",
+      answer: `xUnit is the most popular .NET testing framework (created by the original NUnit author). Key features and comparisons:
+
+**Compared to NUnit/MSTest**:
+
+| Feature | xUnit | NUnit | MSTest |
+|---------|-------|-------|--------|
+| Test discovery | Facts + Theories | [Test] attributes | [TestMethod] |
+| Shared context | IClassFixture | [SetUp]/[TearDown] | [TestInitialize] |
+| Parallelism | Built-in, per-assembly | Requires config | Limited |
+| Assertions | Assert class | Assert + Constraints | Assert class |
+| Data-driven | [Theory] + [InlineData] | [TestCase] | [DataRow] |
+
+**Facts vs Theories**:
+\`\`\`csharp
+[Fact]
+public void Add_ShouldWork() => Assert.Equal(4, 2 + 2);
+
+[Theory]
+[InlineData(1, 2, 3)]
+[InlineData(10, 20, 30)]
+[InlineData(-1, 1, 0)]
+public void Add_ShouldReturnSum(int a, int b, int expected)
+    => Assert.Equal(expected, a + b);
+\`\`\`
+
+**Fixtures** — shared context across tests:
+\`\`\`csharp
+public class DatabaseFixture : IAsyncLifetime
+{
+    public AppDbContext Db { get; private set; }
+    public async Task InitializeAsync()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase("test").Options;
+        Db = new AppDbContext(options);
+        await Db.SeedAsync();
+    }
+    public async Task DisposeAsync() => await Db.DisposeAsync();
+}
+
+public class ProductTest : IClassFixture<DatabaseFixture>
+{
+    private readonly DatabaseFixture _fixture;
+    public ProductTest(DatabaseFixture fixture) => _fixture = fixture;
+    // All tests share the same DatabaseFixture instance
+}
+\`\`\`
+
+**Parallelization**: xUnit runs tests within a single test class sequentially by default but runs different classes in parallel. Control with \`[Collection]\` attributes to disable parallel execution for tests that share state.
+
+\`\`\`csharp
+[CollectionDefinition("Database")]
+public class DatabaseCollection : ICollectionFixture<DatabaseFixture> { }
+
+[Collection("Database")]
+public class DatabaseTest1 { ... } // These run sequentially
+[Collection("Database")]
+public class DatabaseTest2 { ... } // With each other
+\`\`\``,
+      difficulty: "easy",
+      tags: ["testing", "xunit", "dotnet"],
+      is_top50: false,
+    },
+    {
+      question: "How do you use Verify (Snapshooter) for snapshot testing in .NET?",
+      answer: `Snapshot testing captures the output of a test (serialized object, rendered HTML, API response) and compares it against a stored snapshot file. Changes are reviewed (approved/rejected) — ideal for detecting unintended changes.
+
+**Verify** (popular by Simon Cropp):
+\`\`\`csharp
+// Install: dotnet add package Verify.Xunit
+
+[UsesVerify] // Required for Verify
+public class OrderServiceTests
+{
+    [Fact]
+    public async Task OrderSummary_Snapshot()
+    {
+        var result = await _service.GetOrderSummaryAsync(42);
+        await Verify(result); // Creates/compares .verified.json
+    }
+}
+\`\`\`
+
+On first run, Verify creates a \`*.received.json\` file. Review it, rename to \`*.verified.json\` to accept. Subsequent runs compare against the verified file — differences fail the test.
+
+**Use cases**:
+- API response contracts (detect JSON shape changes)
+- Complex object graphs with many fields
+- HTML/markdown rendering
+- Serialization output
+- Config/options generation
+
+**Best practices**:
+- Use only where explicit assertions are impractical (deep object graphs, rich text, generated code)
+- Pair with explicit assertions for critical values (IDs, prices, dates in snapshots)
+- Scrub volatile data (guids, dates, machine-specific paths):
+\`\`\`csharp
+await Verify(result)
+    .ScrubGuids()
+    .ScrubDateTimes()
+    .ScrubMember("Timestamp");
+\`\`\`
+
+- Review snapshot diffs in PRs carefully — snapshot blindness (approving wrong output) is a real risk
+- Use \`Verify\` for regression detection, not for TDD — write explicit assertions first for new features`,
+      difficulty: "medium",
+      tags: ["testing", "snapshot-testing", "xunit"],
+      is_top50: false,
+    },
+    // ──────── Performance & Caching ────────
+    {
+      question: "How do you implement caching in ASP.NET Core? Explain IMemoryCache, IDistributedCache, and output caching.",
+      answer: `ASP.NET Core provides three caching layers:
+
+**1. IMemoryCache** (in-process, single server):
+\`\`\`csharp
+builder.Services.AddMemoryCache();
+
+public class ProductService
+{
+    private readonly IMemoryCache _cache;
+    public ProductService(IMemoryCache cache) => _cache = cache;
+
+    public async Task<Product?> GetProductAsync(int id)
+    {
+        var key = $"product:{id}";
+        if (_cache.TryGetValue(key, out Product? product))
+            return product;
+
+        product = await _db.Products.FindAsync(id);
+        if (product != null)
+        {
+            _cache.Set(key, product, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                SlidingExpiration = TimeSpan.FromMinutes(10),
+                Priority = CacheItemPriority.High
+            });
+        }
+        return product;
+    }
+}
+\`\`\`
+
+**2. IDistributedCache** (shared cache, supports Redis/SQL Server):
+\`\`\`csharp
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = "localhost:6379";
+    options.InstanceName = "Products";
+});
+
+public class CachedProductService
+{
+    private readonly IDistributedCache _cache;
+    public async Task<Product?> GetProductAsync(int id)
+    {
+        var key = $"product:{id}";
+        var cached = await _cache.GetStringAsync(key);
+        if (cached != null) return JsonSerializer.Deserialize<Product>(cached);
+
+        var product = await _db.Products.FindAsync(id);
+        if (product != null)
+        {
+            var serialized = JsonSerializer.Serialize(product);
+            await _cache.SetStringAsync(key, serialized, new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+            });
+        }
+        return product;
+    }
+}
+\`\`\`
+
+**3. Output Caching** (HTTP-level, caches responses):
+\`\`\`csharp
+builder.Services.AddOutputCache();
+
+app.UseOutputCache();
+
+app.MapGet("/products", async (AppDbContext db) =>
+    await db.Products.ToListAsync())
+    .CacheOutput(policy =>
+    {
+        policy.Expire(TimeSpan.FromMinutes(5));
+        policy.Tag("products");
+        policy.VaryByQuery("category", "page");
+    });
+
+// Invalidate cache
+app.MapPost("/products", async (Product product, AppDbContext db) =>
+{
+    db.Products.Add(product);
+    await db.SaveChangesAsync();
+}).CacheOutput(policy => policy.Tag("products")); // Tags for invalidation
+\`\`\`
+
+Use IMemoryCache for single-server, per-request caching. Use IDistributedCache for multi-server deployments. Use Output Caching for full HTTP response caching at the middleware level. Always implement cache invalidation — stale data is worse than no cache.`,
+      difficulty: "medium",
+      tags: ["caching", "performance", "redis", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "How does rate limiting work in ASP.NET Core 7+? Explain the built-in rate limiting middleware.",
+      answer: `ASP.NET Core 7+ includes built-in rate limiting middleware with configurable policies:
+
+**Basic setup**:
+\`\`\`csharp
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Fixed window policy
+    options.AddFixedWindowLimiter("Fixed", config =>
+    {
+        config.PermitLimit = 100;          // 100 requests
+        config.Window = TimeSpan.FromMinutes(1);   // per minute
+        config.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        config.QueueLimit = 10;            // Allow burst of 10 extra
+    });
+});
+
+app.UseRateLimiter();
+\`\`\`
+
+**Policies available**:
+- \`FixedWindowLimiter\`: Fixed time window, resets completely each period
+- \`SlidingWindowLimiter\`: Segments window into smaller segments, slides — smoother than fixed
+- \`TokenBucketLimiter\`: Tokens refill at a steady rate — allows bursts up to token capacity
+- \`ConcurrencyLimiter\`: Limits concurrent requests — equivalent to max-degree of parallelism
+
+**Per-client rate limiting**:
+\`\`\`csharp
+options.AddPolicy("PerClient", context =>
+{
+    var clientId = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    return RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: clientId,
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromSeconds(10)
+        });
+});
+\`\`\`
+
+**Rate limit headers**:
+\`\`\`csharp
+options.OnRejected = async (context, cancellationToken) =>
+{
+    context.HttpContext.Response.Headers["Retry-After"] = "60";
+    await context.HttpContext.Response.WriteAsync("Rate limit exceeded", cancellationToken);
+};
+\`\`\`
+
+Apply to specific endpoints via [EnableRateLimiting] attribute or chaining on Minimal APIs. Use for public APIs, login endpoints, and resource-intensive operations.`,
+      difficulty: "medium",
+      tags: ["rate-limiting", "performance", "security", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "What is IAsyncEnumerable in C# and how does it improve streaming performance?",
+      answer: `\`IAsyncEnumerable<T>\` (C# 8+) enables asynchronous streaming — yielding results as they become available without loading the entire set into memory. Each element is awaited individually, enabling efficient streaming of paginated DB results, file processing, or API responses.
+
+\`\`\`csharp
+// Producing
+async IAsyncEnumerable<Product> GetProductsSlowly()
+{
+    await foreach (var batch in _db.Products.AsAsyncEnumerable().Buffer(100))
+    {
+        await Task.Delay(100); // Simulate slow external enrichment
+        foreach (var product in batch)
+            yield return product;
+    }
+}
+
+// Consuming
+await foreach (var product in GetProductsSlowly())
+{
+    Console.WriteLine(product.Name);
+}
+\`\`\`
+
+**In ASP.NET Core — streaming JSON responses**:
+\`\`\`csharp
+app.MapGet("/products/stream", async (AppDbContext db) =>
+{
+    // Stream results as they come from DB
+    return Results.Ok(db.Products.AsAsyncEnumerable());
+});
+\`\`\`
+
+With System.Text.Json, this serializes and writes each element as it's produced — the response starts streaming immediately without buffering the entire result set in memory. Critical for large datasets (10k+ records).
+
+**Performance benefits**:
+- Constant memory usage regardless of result set size
+- Reduced time-to-first-byte (TTFB)
+- No large allocations, less GC pressure
+- Backpressure-aware — consumer can slow down the producer
+
+**Use with EF Core**:
+\`\`\`csharp
+// EF Core 6+ supports IAsyncEnumerable natively with AsAsyncEnumerable()
+var products = db.Products.Where(p => p.Price > 100).AsAsyncEnumerable();
+await foreach (var product in products) { ... }
+\`\`\`
+
+Combine with cancellation tokens for graceful shutdown: \`AsAsyncEnumerable().WithCancellation(ct)\`.`,
+      difficulty: "medium",
+      tags: ["csharp", "performance", "aspnet-core", "async-await"],
+      is_top50: false,
+    },
+    {
+      question: "Explain response compression in ASP.NET Core. When should you use it and what are the trade-offs?",
+      answer: `Response compression reduces payload size before sending to the client, typically gzip or brotli. ASP.NET Core provides built-in middleware:
+
+\`\`\`csharp
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true; // Compress HTTPS responses (default: false)
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+        new[] { "image/svg+xml", "application/json" });
+});
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Fastest; // or Optimal
+});
+
+app.UseResponseCompression(); // Before app.MapControllers()
+\`\`\`
+
+**Benefits**:
+- Reduces bandwidth by 60-80% for text-based responses (JSON, HTML, CSS)
+- Faster load times for clients (especially mobile)
+- Lower egress costs (cloud provider bandwidth charges)
+
+**Trade-offs**:
+- Server CPU overhead (compression is CPU-intensive)
+- Adds latency for small responses (compression overhead > bandwidth savings)
+- NOT effective for already-compressed content (images, videos, PDFs)
+- Security concern: BREACH attack — avoid compressing responses containing user input + secrets (CSRF tokens)
+- CDNs often handle compression better at edge (Cloudflare, CloudFront)
+
+**Best practices**:
+- Let CDN handle compression at edge when possible
+- Compress only text-based MIME types (JSON, XML, HTML, JS, CSS)
+- Skip compression for very small responses (< 1KB)
+- Use \`CompressionLevel.Fastest\` over \`Optimal\` for dynamic responses — 90% of the benefit at 10% of the CPU cost
+- Disable for WebSocket/SignalR connections
+- For static files, pre-compress at build time instead of on-the-fly`,
+      difficulty: "medium",
+      tags: ["performance", "aspnet-core", "caching"],
+      is_top50: false,
+    },
+    // ──────── gRPC & Blazor ────────
+    {
+      question: "What is gRPC and how does it compare to REST? When would you use gRPC in .NET?",
+      answer: `gRPC is a high-performance RPC framework using HTTP/2, Protocol Buffers (protobuf), and bidirectional streaming. Developed by Google, it's a first-class citizen in .NET Core 3.0+.
+
+**Key differences from REST**:
+
+| Feature | gRPC | REST |
+|---------|------|------|
+| Transport | HTTP/2 | HTTP/1.1 or HTTP/2 |
+| Data format | Binary (protobuf) | Text (JSON/XML) |
+| Contract | Required (.proto files) | Implicit (OpenAPI optional) |
+| Streaming | Bidirectional streaming | Server-Sent Events / WebSocket |
+| Performance | 5-10x faster | Slower (text parsing) |
+| Browser support | Requires gRPC-Web proxy | Native |
+| Code generation | Server + client from .proto | Manual or OpenAPI generator |
+
+**When to use gRPC**:
+- Microservice-to-microservice communication (high throughput, low latency)
+- Real-time streaming (IoT telemetry, financial data feeds, log aggregation)
+- Polyglot environments (protobuf generates code for 12+ languages)
+- Mobile clients (efficient binary protocol saves battery)
+- Internal APIs where browser consumption is not needed
+
+**Creating a gRPC service in .NET**:
+\`\`\`protobuf
+// product.proto
+service ProductService {
+  rpc GetProduct (ProductRequest) returns (Product);
+  rpc ListProducts (Empty) returns (stream Product);
+}
+message ProductRequest { int32 id = 1; }
+message Product {
+  int32 id = 1;
+  string name = 2;
+  double price = 3;
+}
+\`\`\`
+
+\`\`\`csharp
+public class ProductServiceImpl : ProductService.ProductServiceBase
+{
+    public override async Task<Product> GetProduct(ProductRequest request, ServerCallContext context)
+    {
+        var product = await _db.Products.FindAsync(request.Id);
+        if (product == null)
+            throw new RpcException(new Status(StatusCode.NotFound, "Product not found"));
+        return product.ToProto();
+    }
+}
+\`\`\`
+
+**When to prefer REST**: Public APIs, web browser clients, simple CRUD, or when payload readability matters. Many projects use both — gRPC internally, REST at the edge via gRPC-Web or API Gateway translation.`,
+      difficulty: "medium",
+      tags: ["grpc", "performance", "aspnet-core", "api-design"],
+      is_top50: false,
+    },
+    {
+      question: "How does Blazor work? Explain Blazor Server, Blazor WebAssembly, the .NET runtime in the browser, and auto render mode.",
+      answer: `Blazor is a .NET framework for building interactive web UIs using C# instead of JavaScript. It offers three hosting models:
+
+**Blazor Server**: The app runs on the server. UI updates are sent to the browser over a persistent SignalR connection. DOM diffing happens server-side; only delta updates are sent over the wire.
+- Pros: Full .NET API access, small initial download, no WASM limitations (no threading, no filesystem), always up-to-date assets
+- Cons: Requires constant SignalR connection, higher server load, latency-sensitive (every UI interaction is an RTT), no offline support
+- Good for: Intranet apps, low-latency internal tools, data-sensitive apps where code must stay server-side
+
+**Blazor WebAssembly (WASM)**: The .NET runtime is compiled to WebAssembly and runs in the browser. The app downloads a .NET WASM runtime (~2.3MB) + assemblies + app code.
+- Pros: Runs client-side (no constant connection), works offline with service workers, lower server costs, responsive UI
+- Cons: Large initial download, limited debugging, restricted .NET API surface (no threading, no direct file I/O), slower startup
+- Good for: Public-facing SPAs, apps that must work offline, compute-heavy client-side workloads
+
+**Auto render mode (.NET 8)**: Combines both — starts in Server mode for instant interactivity, then downloads WASM in the background and switches automatically. Best of both worlds.
+\`\`\`razor
+@rendermode InteractiveAuto
+\`\`\`
+
+**Streaming rendering (.NET 8)**: Prerenders HTML, sends it immediately, then updates with interactive components once the connection is ready — eliminates blank loading screens.
+
+**Component model** (similar to React/Angular):
+\`\`\`razor
+@page "/counter"
+<PageTitle>Counter</PageTitle>
+<h1>Count: @currentCount</h1>
+<button @onclick="IncrementCount">Click me</button>
+@code {
+    private int currentCount = 0;
+    private void IncrementCount() => currentCount++;
+}
+\`\`\``,
+      difficulty: "medium",
+      tags: ["blazor", "wasm", "dotnet", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "Explain the difference between Blazor Server and Blazor WebAssembly render modes. When would you choose each?",
+      answer: `The decision between Blazor Server and Blazor WebAssembly affects architecture, performance, deployment, and user experience:
+
+**Connection model**:
+- Server: Persistent SignalR WebSocket connection required. User interacts → server processes → SignalR sends DOM diff. ~5-20KB sent per interaction (HTML diffs + JSON serialization).
+- WASM: Everything runs client-side. No server connection needed after initial load. ~2-3MB initial download + app assemblies.
+
+**Latency and UX**:
+- Server: Every UI interaction (button click, text input) requires a round trip to the server. Users experience latency based on network distance. UI feels "jumpy" on slow connections. \`InvokeAsync\` patterns needed for smooth typing.
+- WASM: Zero latency for UI interactions. Immediate response. Feels like a native app. Loading bar needed during initial startup. Significant memory usage (full .NET runtime + app in browser).
+
+**Scalability**:
+- Server: Each connected user holds server memory (~50-200KB + SignalR connection). 10,000 concurrent users ≈ 1-2GB server RAM. SignalR scale-out (Redis backplane, Azure SignalR Service) needed for multiple servers.
+- WASM: Static files served by CDN. Server costs are nearly zero. Scales horizontally without effort.
+
+**Security**:
+- Server: App code never leaves the server — ideal for confidential data, proprietary algorithms, compliance-heavy apps (finance, healthcare).
+- WASM: All code and data are visible in the browser. API keys, business logic, and algorithms are inspectable. Treat like a JavaScript SPA for security.
+
+**Decision guide**:
+- Choose **Blazor Server** for: Internal line-of-business apps, low user count, stable network, security-sensitive apps
+- Choose **Blazor WebAssembly** for: Public-facing apps, offline-capable apps, high user count, existing API backend
+- Choose **Auto mode** (.NET 8) for: Universal deployment — starts server, upgrades to WASM when ready`,
+      difficulty: "hard",
+      tags: ["blazor", "wasm", "aspnet-core", "architecture"],
+      is_top50: false,
+    },
+    {
+      question: "How does gRPC-Web enable gRPC usage in browser applications? Explain the needed proxy configuration.",
+      answer: `Browsers cannot directly call gRPC services because gRPC uses HTTP/2 trailers, which are not accessible from the browser's Fetch API. gRPC-Web bridges this gap:
+
+**How it works**: gRPC-Web translates standard gRPC calls into a format the browser can process. Two approaches:
+
+**1. gRPC-Web Proxy (Envoy, gRPC-Web proxy)**:
+\`\`\`yaml
+# Envoy proxy config
+static_resources:
+  listeners:
+  - address: { socket_address: { address: 0.0.0.0, port_value: 8080 } }
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          codec_type: AUTO
+          route_config:
+            virtual_hosts:
+            - name: backend
+              domains: ["*"]
+              routes:
+              - match: { prefix: "/" }
+                route:
+                  cluster: grpc_service
+                  max_stream_duration:
+                    grpc_timeout_header_max: 0s
+          http_filters:
+          - name: envoy.filters.http.grpc_web
+          - name: envoy.filters.http.router
+  clusters:
+  - name: grpc_service
+    type: LOGICAL_DNS
+    typed_extension_protocol_options:
+      envoy.extensions.upgrade.http:
+        envoy.extensions.filters.http.grpc_web: {}
+    load_assignment:
+      cluster_name: grpc_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address: { address: localhost, port_value: 5001 }
+\`\`\`
+
+**2. .NET 8+ built-in gRPC-Web support**:
+\`\`\`csharp
+// Server side
+builder.Services.AddGrpcWeb();
+
+app.MapGrpcService<ProductServiceImpl>().EnableGrpcWeb();
+
+// Client side
+var handler = new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler());
+var channel = GrpcChannel.ForAddress("https://localhost:5001", new GrpcChannelOptions
+{
+    HttpHandler = handler
+});
+\`\`\`
+
+**Limitations**:
+- No client streaming or bidirectional streaming (only unary and server streaming)
+- No HTTP/2 trailers support
+- Slightly larger payload than raw gRPC (base64 encoding)
+- Requires CORS configuration if client and server are on different origins
+
+gRPC-Web is production-ready for .NET 7+ and is the recommended way to use gRPC with Blazor WebAssembly and JavaScript SPAs.`,
+      difficulty: "hard",
+      tags: ["grpc", "blazor", "aspnet-core", "wasm"],
+      is_top50: false,
+    },
+    // ──────── Architecture & Best Practices ────────
+    {
+      question: "What is Clean Architecture in .NET and how do you structure a solution using it?",
+      answer: `Clean Architecture (Robert C. Martin) layers a solution with dependencies pointing inward — the Domain layer knows nothing about Infrastructure.
+
+**Typical .NET solution structure**:
+\`\`\`
+Solution.sln
+├── src/
+│   ├── Domain/           # Innermost — no dependencies
+│   │   ├── Entities/
+│   │   ├── ValueObjects/
+│   │   ├── Aggregates/   (order + order items as a unit)
+│   │   └── Interfaces/
+│   ├── Application/      # Use cases — depends on Domain
+│   │   ├── Common/
+│   │   ├── Products/
+│   │   │   ├── Commands/CreateProduct
+│   │   │   └── Queries/GetProduct
+│   │   └── Interfaces/
+│   ├── Infrastructure/   # External concerns — depends on Application
+│   │   ├── Persistence/  (EF Core DbContext, repositories)
+│   │   ├── ExternalServices/ (email, SMS, payment)
+│   │   └── Identity/     (Auth implementation)
+│   └── WebApi/           # Presentation — depends on Infrastructure + Application
+│       ├── Controllers/
+│       ├── Middleware/
+│       └── Program.cs
+└── tests/
+    ├── Domain.Tests/
+    ├── Application.Tests/
+    └── IntegrationTests/
+\`\`\`
+
+**Dependency flow**: WebApi → Infrastructure (via DI registration) → Application → Domain. The Application layer defines interfaces (\`IProductRepository\`); Infrastructure implements them (\`EfProductRepository\`). WebApi wires them via DI.
+
+**MediatR + CQRS pattern** (common in Clean Architecture):
+\`\`\`csharp
+// Command
+public record CreateProductCommand(string Name, decimal Price) : IRequest<int>;
+public class CreateProductHandler : IRequestHandler<CreateProductCommand, int>
+{
+    private readonly IProductRepository _repo;
+    public CreateProductHandler(IProductRepository repo) => _repo = repo;
+    public async Task<int> Handle(CreateProductCommand cmd, CancellationToken ct)
+    {
+        var product = new Product(cmd.Name, cmd.Price);
+        _repo.Add(product);
+        await _repo.SaveChangesAsync(ct);
+        return product.Id;
+    }
+}
+
+// Controller
+[HttpPost]
+public async Task<ActionResult<int>> Create(CreateProductCommand cmd)
+    => await _mediator.Send(cmd);
+\`\`\`
+
+**Key benefits**: Testable in isolation (mock interfaces at each boundary), framework-independent domain, swappable infrastructure (EF Core → Dapper → MongoDB without touching domain).`,
+      difficulty: "hard",
+      tags: ["architecture", "clean-architecture", "cqrs", "dotnet"],
+      is_top50: false,
+    },
+    {
+      question: "What is MediatR and how does it implement CQRS and the mediator pattern in .NET?",
+      answer: `MediatR is a .NET library implementing the mediator pattern — it decouples request senders from handlers by routing requests through a mediator. Enables CQRS by separating commands (write) from queries (read).
+
+**Basic usage**:
+\`\`\`csharp
+// Register
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
+// Query (read — returns data, no side effects)
+public record GetProductQuery(int Id) : IRequest<ProductDto>;
+public class GetProductHandler : IRequestHandler<GetProductQuery, ProductDto>
+{
+    public async Task<ProductDto> Handle(GetProductQuery query, CancellationToken ct)
+    {
+        // Read from DB, return DTO
+    }
+}
+
+// Command (write — side effects, returns result)
+public record CreateProductCommand(string Name, decimal Price) : IRequest<int>;
+public class CreateProductHandler : IRequestHandler<CreateProductCommand, int>
+{
+    public async Task<int> Handle(CreateProductCommand cmd, CancellationToken ct)
+    {
+        // Create entity, save to DB, return ID
+    }
+}
+
+// Controller
+[ApiController]
+public class ProductsController
+{
+    [HttpGet("{id}")]
+    public async Task<ProductDto> Get(int id, CancellationToken ct)
+        => await _mediator.Send(new GetProductQuery(id), ct);
+
+    [HttpPost]
+    public async Task<int> Create(CreateProductCommand cmd, CancellationToken ct)
+        => await _mediator.Send(cmd, ct);
+}
+\`\`\`
+
+**Pipeline behaviors** — cross-cutting concerns:
+\`\`\`csharp
+public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+{
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next,
+        CancellationToken ct)
+    {
+        var name = typeof(TRequest).Name;
+        _logger.LogInformation("Processing {Request}", name);
+        var response = await next();
+        _logger.LogInformation("Completed {Request}", name);
+        return response;
+    }
+}
+// Register: cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+\`\`\`
+
+**When to use**: Medium-to-large projects where you want clean separation between commands/queries, pipeline behaviors for validation/logging/transactions, and thin controllers. For small projects (< 20 endpoints), MediatR adds unnecessary indirection.`,
+      difficulty: "medium",
+      tags: ["architecture", "cqrs", "mediatr", "dotnet"],
+      is_top50: false,
+    },
+    {
+      question: "How do you implement structured logging with Serilog in ASP.NET Core?",
+      answer: `Structured logging captures log events as structured data (not just text), enabling rich querying and analysis. Serilog is the most popular structured logging library for .NET.
+
+**Setup**:
+\`\`\`csharp
+// Program.cs — configure before WebApplication.CreateBuilder
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithEnvironmentName()
+    .WriteTo.Console(outputTemplate:
+        "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File("logs/app-.log", rollingInterval: RollingInterval.Day)
+    .WriteTo.Seq("http://localhost:5341") // Centralized log server
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+// Usage — structured properties
+public class OrderService
+{
+    private readonly ILogger<OrderService> _log;
+    public OrderService(ILogger<OrderService> log) => _log = log;
+
+    public async Task<Order> CreateOrder(CreateOrderCommand cmd)
+    {
+        var order = new Order { Id = Guid.NewGuid(), CustomerId = cmd.CustomerId };
+        _log.Information("Order {OrderId} created for customer {CustomerId}",
+            order.Id, cmd.CustomerId); // Captured as fields, not interpolated strings
+        return order;
+    }
+}
+\`\`\`
+
+**Key benefits over traditional logging**:
+- Properties are indexed — search "all errors where CustomerId = X" (impossible with text logs)
+- Destructuring — log complex objects: \`_log.Information("Order {@Order}", order)\` (destructures the object, doesn't call ToString)
+- Sinks — write to console, file, Elasticsearch, Seq, Datadog, Application Insights, etc.
+- Enrichers — automatically add machine name, environment, thread ID, correlation ID to every log event
+
+**Best practices**:
+- Never use string interpolation in log messages — use structured templates (\`{Property}\`)
+- Use named placeholders, not positional (\`{OrderId}\` not \`{0}\`)
+- Add correlation IDs (trace ID, user ID) via \`LogContext.PushProperty\` middleware
+- Log context at the beginning and result at the end of operations
+- Use \`@\` destructuring operator for complex objects (\`{@User}\`) to capture all properties
+
+**Seq** is a popular self-hosted log analysis tool that pairs perfectly with Serilog for development and small deployments. For production, ship to Elasticsearch (ELK) or SaaS (Datadog, Logz.io).`,
+      difficulty: "medium",
+      tags: ["logging", "serilog", "observability", "aspnet-core"],
+      is_top50: false,
+    },
+    {
+      question: "What are health checks in ASP.NET Core and how do you configure them for Kubernetes liveness and readiness probes?",
+      answer: `Health checks expose the application's ability to handle requests. They're essential for container orchestration (Kubernetes) and load balancer management.
+
+**Setup**:
+\`\`\`csharp
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>()          // Pings DB
+    .AddRedis(_config["Redis:ConnectionString"]) // Checks Redis
+    .AddUrlGroup(new Uri("https://external-api.com/health"), "External API")
+    .AddProcessAllocatedMemoryHealthCheck(512)  // Alerts if > 512MB
+    .AddDiskStorageHealthCheck(opt => opt.AddDrive("C:\\", 1024)); // Min free space MB
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = _ => true, // ALL checks
+    ResponseWriter = WriteJsonResponse
+});
+
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false // Just app is running (no dependencies check)
+});
+\`\`\`
+
+**Kubernetes integration**:
+\`\`\`yaml
+apiVersion: apps/v1
+kind: Deployment
+spec:
+  template:
+    spec:
+      containers:
+      - name: myapp
+        livenessProbe:          # Is the app alive? Restart if fails.
+          httpGet:
+            path: /health/live
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:         # Is the app ready to serve traffic?
+          httpGet:
+            path: /health/ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+\`\`\`
+
+**Liveness vs Readiness**:
+- **Liveness** (/health/live): Simple check — is the process running? If it fails, Kubernetes restarts the pod. Catches deadlocks, infinite loops, out-of-memory.
+- **Readiness** (/health/ready): Full dependency check — is the DB connected? Is Redis reachable? If it fails, Kubernetes removes the pod from the Service load balancer. Prevents routing traffic to unhealthy instances during startup or transient failures.
+
+**Custom health check**:
+\`\`\`csharp
+public class MemoryHealthCheck : IHealthCheck
+{
+    public Task<HealthCheckResult> CheckHealthAsync(
+        HealthCheckContext context, CancellationToken ct)
+    {
+        var memory = Process.GetCurrentProcess().WorkingSet64 / 1024 / 1024; // MB
+        return memory < 512
+            ? Task.FromResult(HealthCheckResult.Healthy($"Memory: {memory}MB"))
+            : Task.FromResult(HealthCheckResult.Degraded($"Memory: {memory}MB (limit 512)"));
+    }
+}
+builder.Services.AddHealthChecks().AddCheck<MemoryHealthCheck>("memory");
+\`\`\`
+
+Health checks are also useful for load balancer target group health checks, service mesh sidecars, and Azure App Service auto-heal.`,
+      difficulty: "medium",
+      tags: ["aspnet-core", "health-checks", "kubernetes", "observability"],
+      is_top50: false,
+    },
+    {
+      question: "How do you handle database migrations in production with EF Core? Explain idempotent scripts, bundle, and CI/CD integration.",
+      answer: `Running \`dotnet ef database update\` directly in production is dangerous — it could fail halfway, apply unintended changes, or require interactive input. Production-safe approaches:
+
+**1. Idempotent SQL scripts** (recommended for most teams):
+\`\`\`bash
+dotnet ef migrations script --idempotent -o deploy/migrate.sql
+\`\`\`
+Generates a SQL script that checks \`__EFMigrationsHistory\` and only applies pending migrations. Run via CI/CD:
+\`\`\`bash
+sqlcmd -S server -d database -i deploy/migrate.sql
+# or
+psql -h host -d db -f deploy/migrate.sql
+\`\`\`
+
+**2. Migration bundle** (.NET 6+):
+\`\`\`bash
+dotnet ef migrations bundle --self-contained -r linux-x64 -o deploy/migrate
+\`\`\`
+Produces a self-contained executable that applies migrations. Runs in a transaction — rolls back on failure:
+\`\`\`bash
+./deploy/migrate --connection "Server=prod;Database=mydb;..."
+\`\`\`
+
+**3. CI/CD pipeline integration** (GitHub Actions example):
+\`\`\`yaml
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Generate migration script
+        run: dotnet ef migrations script --idempotent -o migrate.sql
+      - name: Apply migrations
+        run: sqlcmd -S \${{ secrets.DB_SERVER }} -d \${{ secrets.DB_NAME }}
+               -U \${{ secrets.DB_USER }} -P \${{ secrets.DB_PASS }}
+               -i migrate.sql
+\`\`\`
+
+**Best practices**:
+- Always backup the database before applying migrations
+- Run migrations as a separate step BEFORE deploying the new application version (allow roll-forward)
+- Use connection string with least-privilege credentials (only migration permissions)
+- For zero-downtime deploys: apply backward-compatible migrations (new column nullable), deploy code, then apply finalization scripts
+- Never edit migration files after creation — create a new migration to fix issues
+- Use \`dotnet ef migrations list\` to check current state before production run
+
+**Common production migration scenarios**:
+- Adding a column: Safe, new column is nullable or has default
+- Removing a column: Two-phase — mark obsolete, deploy, then remove in next release
+- Renaming: Don't — add new column, dual-write, backfill, remove old
+- Large table changes: Use raw SQL with batching (\`GO\` in SQL Server, \`--batch-size\` for MySQL)`,
+      difficulty: "hard",
+      tags: ["entity-framework", "migrations", "devops", "aspnet-core"],
+      is_top50: false,
+    },
   ],
   "fullstack-engineer": [
     {
