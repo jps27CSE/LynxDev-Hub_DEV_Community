@@ -1,5 +1,6 @@
 {
-  "customInstructions": [
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
     ".agent/AGENT.md",
     ".agent/WORKFLOW.md",
     ".agent/ENGINEERING.md"
