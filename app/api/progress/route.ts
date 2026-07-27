@@ -1,26 +1,40 @@
+import { z } from "zod";
 import { db } from "@/config/db";
 import { enrollments, usersTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { validationError, badJson, unauthorized, notFound } from "@/lib/api-error";
 import { getChaptersByCourseId } from "@/lib/course-data";
+
+const ProgressSchema = z.object({
+  courseId: z.number().int().positive(),
+  chapterId: z.number().int().positive(),
+});
 
 export async function POST(req: NextRequest) {
   const clerkUser = await currentUser();
-  if (!clerkUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!clerkUser) return unauthorized();
 
-  const { courseId, chapterId } = await req.json();
-  if (!courseId || !chapterId) {
-    return NextResponse.json({ error: "courseId and chapterId required" }, { status: 400 });
-  }
+  const email = clerkUser.primaryEmailAddress?.emailAddress;
+  if (!email) return notFound("Email");
+
+  let body: unknown;
+  try { body = await req.json(); }
+  catch { return badJson(); }
+
+  const parsed = ProgressSchema.safeParse(body);
+  if (!parsed.success) return validationError(parsed.error);
+
+  const { courseId, chapterId } = parsed.data;
 
   const users = await db
     .select()
     .from(usersTable)
-    //@ts-ignore
-    .where(eq(usersTable.email, clerkUser.primaryEmailAddress?.emailAddress));
+    .where(eq(usersTable.email, email))
+    .limit(1);
 
-  if (users.length === 0) return NextResponse.json({ error: "User not found" }, { status: 404 });
+  if (users.length === 0) return notFound("User");
 
   const user = users[0];
 

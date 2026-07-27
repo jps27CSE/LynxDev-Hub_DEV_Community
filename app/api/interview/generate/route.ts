@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { validationError, badJson } from "@/lib/api-error";
 import { db } from "@/config/db";
 import { interviewCategories } from "@/config/schema";
 import { eq } from "drizzle-orm";
@@ -82,14 +84,22 @@ function generateQuestions(
   return result.slice(0, count);
 }
 
+const GenerateSchema = z.object({
+  categorySlug: z.string().min(1),
+  tags: z.array(z.string()).default([]),
+  count: z.number().int().min(1).max(50).default(5),
+});
+
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { categorySlug, tags = [], count = 5 } = body;
+    let body: unknown;
+    try { body = await request.json(); }
+    catch { return badJson(); }
 
-    if (!categorySlug) {
-      return NextResponse.json({ error: "categorySlug is required" }, { status: 400 });
-    }
+    const parsed = GenerateSchema.safeParse(body);
+    if (!parsed.success) return validationError(parsed.error);
+
+    const { categorySlug, tags, count } = parsed.data;
 
     const catResult = await db
       .select()

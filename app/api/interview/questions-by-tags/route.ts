@@ -1,16 +1,23 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { validationError, badJson } from "@/lib/api-error";
 import { getQuestionsByCategorySlugAndTags } from "@/lib/interview-data";
+
+const QuestionsByTagsSchema = z.object({
+  categorySlug: z.string().min(1),
+  tags: z.array(z.string()).default([]),
+});
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { categorySlug, tags = [] } = body;
+    let body: unknown;
+    try { body = await request.json(); }
+    catch { return badJson(); }
 
-    if (!categorySlug) {
-      return NextResponse.json({ error: "categorySlug is required" }, { status: 400 });
-    }
+    const parsed = QuestionsByTagsSchema.safeParse(body);
+    if (!parsed.success) return validationError(parsed.error);
 
-    const questions = await getQuestionsByCategorySlugAndTags(categorySlug, tags);
+    const questions = await getQuestionsByCategorySlugAndTags(parsed.data.categorySlug, parsed.data.tags);
 
     return NextResponse.json({ questions });
   } catch {

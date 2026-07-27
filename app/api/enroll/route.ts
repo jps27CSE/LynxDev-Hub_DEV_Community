@@ -1,23 +1,38 @@
+import { z } from "zod";
 import { db } from "@/config/db";
 import { enrollments, usersTable, courses, chapters } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, and, count } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { validationError, badJson, unauthorized, notFound } from "@/lib/api-error";
+
+const EnrollSchema = z.object({
+  courseId: z.number().int().positive(),
+});
 
 export async function POST(req: NextRequest) {
   const clerkUser = await currentUser();
-  if (!clerkUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!clerkUser) return unauthorized();
 
-  const { courseId } = await req.json();
-  if (!courseId) return NextResponse.json({ error: "courseId required" }, { status: 400 });
+  const email = clerkUser.primaryEmailAddress?.emailAddress;
+  if (!email) return notFound("Email");
+
+  let body: unknown;
+  try { body = await req.json(); }
+  catch { return badJson(); }
+
+  const parsed = EnrollSchema.safeParse(body);
+  if (!parsed.success) return validationError(parsed.error);
+
+  const { courseId } = parsed.data;
 
   const users = await db
     .select()
     .from(usersTable)
-    //@ts-ignore
-    .where(eq(usersTable.email, clerkUser.primaryEmailAddress?.emailAddress));
+    .where(eq(usersTable.email, email))
+    .limit(1);
 
-  if (users.length === 0) return NextResponse.json({ error: "User not found" }, { status: 404 });
+  if (users.length === 0) return notFound("User");
 
   const userId = users[0].id;
 
@@ -42,13 +57,16 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   const clerkUser = await currentUser();
-  if (!clerkUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!clerkUser) return unauthorized();
+
+  const email = clerkUser.primaryEmailAddress?.emailAddress;
+  if (!email) return NextResponse.json([], { status: 200 });
 
   const users = await db
     .select()
     .from(usersTable)
-    //@ts-ignore
-    .where(eq(usersTable.email, clerkUser.primaryEmailAddress?.emailAddress));
+    .where(eq(usersTable.email, email))
+    .limit(1);
 
   if (users.length === 0) return NextResponse.json([], { status: 200 });
 
