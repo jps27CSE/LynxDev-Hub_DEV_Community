@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -167,14 +168,30 @@ function AnswerMarkdown({ content }: { content: string }) {
   );
 }
 
-export default function CategoryClient({ category, chaptersWithQuestions }: Props) {
-  const [activeChapter, setActiveChapter] = useState<number>(
-    chaptersWithQuestions.length > 0 ? chaptersWithQuestions[0].id : 0
-  );
+function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [activeChapter, setActiveChapter] = useState<number>(() => {
+    const chapterParam = searchParams?.get("chapter");
+    if (chapterParam) {
+      const id = parseInt(chapterParam, 10);
+      if (id && chaptersWithQuestions.some((ch) => ch.id === id)) return id;
+    }
+    return chaptersWithQuestions.length > 0 ? chaptersWithQuestions[0].id : 0;
+  });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sortOrder, setSortOrder] = useState<"default" | "easy-hard" | "hard-easy">("default");
 
   const mainRef = useRef<HTMLElement>(null);
+
+  const handleSetChapter = useCallback((id: number) => {
+    setActiveChapter(id);
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    params.set("chapter", String(id));
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [router, pathname, searchParams]);
 
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
@@ -256,7 +273,7 @@ export default function CategoryClient({ category, chaptersWithQuestions }: Prop
                 {chaptersWithQuestions.map((ch, idx) => (
                   <button
                     key={ch.id}
-                    onClick={() => setActiveChapter(ch.id)}
+                    onClick={() => handleSetChapter(ch.id)}
                     className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
                       activeChapter === ch.id
                         ? "bg-primary/10 text-primary font-medium"
@@ -407,7 +424,7 @@ export default function CategoryClient({ category, chaptersWithQuestions }: Prop
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setActiveChapter(chaptersWithQuestions[currentIndex - 1].id)}
+                    onClick={() => handleSetChapter(chaptersWithQuestions[currentIndex - 1].id)}
                   >
                     &larr; Previous
                   </Button>
@@ -417,7 +434,7 @@ export default function CategoryClient({ category, chaptersWithQuestions }: Prop
                 {currentIndex < chaptersWithQuestions.length - 1 ? (
                   <Button
                     size="sm"
-                    onClick={() => setActiveChapter(chaptersWithQuestions[currentIndex + 1].id)}
+                    onClick={() => handleSetChapter(chaptersWithQuestions[currentIndex + 1].id)}
                   >
                     Next &rarr;
                   </Button>
@@ -435,5 +452,13 @@ export default function CategoryClient({ category, chaptersWithQuestions }: Prop
         </main>
       </div>
     </div>
+  );
+}
+
+export default function CategoryClient(props: Props) {
+  return (
+    <Suspense fallback={null}>
+      <CategoryClientInner {...props} />
+    </Suspense>
   );
 }
