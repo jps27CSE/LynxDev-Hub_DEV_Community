@@ -247,11 +247,13 @@ export async function getChaptersByCategorySlug(
   }
 }
 
-export async function getQuestionsByChapterId(
-  chapterId: number
-): Promise<InterviewQuestion[]> {
+export async function getQuestionsByChapterIds(
+  chapterIds: number[]
+): Promise<Record<number, InterviewQuestion[]>> {
+  if (chapterIds.length === 0) return {};
+
   try {
-    const result = await db
+    const rows = await db
       .select({
         id: interviewQuestions.id,
         question: interviewQuestions.question,
@@ -259,19 +261,27 @@ export async function getQuestionsByChapterId(
         difficulty: interviewQuestions.difficulty,
         tags: interviewQuestions.tags,
         is_top50: interviewQuestions.is_top50,
+        chapterId: interviewQuestionChapters.chapter_id,
       })
       .from(interviewQuestions)
       .innerJoin(
         interviewQuestionChapters,
         eq(interviewQuestions.id, interviewQuestionChapters.question_id)
       )
-      .where(eq(interviewQuestionChapters.chapter_id, chapterId));
+      .where(inArray(interviewQuestionChapters.chapter_id, chapterIds))
+      .orderBy(interviewQuestions.id);
 
-    return result.map((q) => ({
-      ...q,
-      tags: q.tags as string[],
-    }));
+    const grouped: Record<number, InterviewQuestion[]> = {};
+    for (const row of rows) {
+      const { chapterId, ...question } = row;
+      if (!grouped[chapterId]) grouped[chapterId] = [];
+      grouped[chapterId].push({
+        ...question,
+        tags: question.tags as string[],
+      });
+    }
+    return grouped;
   } catch {
-    return [];
+    return {};
   }
 }

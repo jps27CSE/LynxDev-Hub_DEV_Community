@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import {
   getCategoryBySlug,
   getChaptersByCategorySlug,
-  getQuestionsByChapterId,
+  getQuestionsByChapterIds,
 } from "@/lib/interview-data";
 import CategoryClient from "./CategoryClient";
 
@@ -19,13 +19,15 @@ export default async function CategoryPage({
   }
 
   const chapters = await getChaptersByCategorySlug(slug);
+  const chapterIds = chapters.map((ch) => ch.id);
+  const questionsByChapter = chapterIds.length > 0
+    ? await getQuestionsByChapterIds(chapterIds)
+    : {};
 
-  const chaptersWithQuestions = await Promise.all(
-    chapters.map(async (ch) => ({
-      ...ch,
-      questions: await getQuestionsByChapterId(ch.id),
-    }))
-  );
+  const chaptersWithQuestions = chapters.map((ch) => ({
+    ...ch,
+    questions: questionsByChapter[ch.id] ?? [],
+  }));
 
   return (
     <CategoryClient category={cat} chaptersWithQuestions={chaptersWithQuestions} />

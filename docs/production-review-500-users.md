@@ -57,7 +57,7 @@
 | Issue | Evidence | RU Impact | Fix Priority |
 |-------|----------|-----------|-------------|
 | **N+1 in mentor context** | `getUserContext()` fires 1 + (N×4) queries per enrolled course (`lib/mentor.ts:22-41`). 17 queries/user at 4 courses | ~850 RU per mentor message. 500 users × 5 msg/day = **2.1M RU/day** (4.2% of monthly budget daily) | **Tier 1** |
-| **N+1 in interview category page** | `getQuestionsByChapterId()` fired per chapter (`page.tsx:23-28`). 5-8 queries per load | ~700 RU per category view. 500 users × 2 views/day = **700K RU/day** | **Tier 1** |
+| ~~**N+1 in interview category page**~~ | ✅ `getQuestionsByChapterIds()` batches all chapters into 1 `inArray()` query. 1 query instead of 5-8. | ~150 RU per view (was 700) | **Tier 1** |
 | ~~**No pagination** on question & problem queries~~ | ✅ `getQuestionsByCategorySlug()`, `getAllProblems()`, `getDistinctTagsByCategorySlug()` all paginated. Problems page: 20/page with server-side filters. Practice page: progressive prefetch. Tag extraction: direct query. | ~5M RU/month saved | **Tier 1** |
 | **Duplicate dashboard API calls** | `WelcomeBanner` + `EnrolledCourses` both call `GET /api/enroll` | **2× RU burn** for same data. 1,200 RU/day wasted per 500 users | **Tier 2** |
 
@@ -73,7 +73,7 @@
 
 | Fix | RU Saved / Month |
 |-----|-----------------|
-| Batch `getQuestionsByChapterId()` into 1 `inArray()` query | ~10M RU |
+| ~~Batch `getQuestionsByChapterId()` into 1 `inArray()` query~~ | ✅ Implemented `lib/interview-data.ts` — `getQuestionsByChapterIds()` |
 | ~~Memoize `getUserContext()` per request with React `cache()`~~ | ✅ Implemented `lib/mentor.ts:8` |
 | ~~Add `.limit(20)` to question/problem queries~~ | ✅ Implemented — paginated `getAllProblems()`, `getQuestionsByCategorySlug()`, direct tag query |
 | Lift dashboard data to server component | ~1M RU |
@@ -185,6 +185,7 @@
 | Paginated problems list | `getAllProblems(limit/offset)` + `getProblemCategories()` + ProblemsClient with URL-driven filters & page nav. 20 per page. |
 | Paginated practice questions | `getQuestionsByCategorySlug(limit/offset)` + `getQuestionCountByCategorySlug()` + PracticeClient with progressive prefetch via `GET /api/interview/questions` |
 | `getDistinctTagsByCategorySlug` rewritten | Direct `SELECT tags` query instead of loading all question data and extracting in JS |
+| Batched interview questions | `getQuestionsByChapterIds()` replaces N per-chapter queries with 1 `inArray()` query. ~10M RU/month saved. |
 
 ---
 
@@ -222,7 +223,7 @@
 | # | Action | RU Saved / Month | CPU Saved / Month | Effort |
 |---|--------|-------------------|-------------------|--------|
 | ~~1.1~~ | ~~Memoize `getUserContext()` with React `cache()`~~ | ✅ Implemented `lib/mentor.ts:8` | ~15M RU | ~2 CPU-hrs | — |
-| 1.2 | Batch interview questions — 1 `inArray()` query, not N queries | ~10M RU | ~0.5 CPU-hrs | 1 hr |
+| ~~1.2~~ | ~~Batch interview questions — 1 `inArray()` query, not N queries~~ | ✅ `getQuestionsByChapterIds()` with `inArray()` | ~10M RU | ~0.5 CPU-hrs | — |
 | ~~1.3~~ | ~~Add `.limit(20)` to question & problem queries~~ | ✅ Paginated `getAllProblems()` + `getQuestionsByCategorySlug()` + `getDistinctTagsByCategorySlug()` rewrite + `GET /api/interview/questions` | ~5M RU | ~0.3 CPU-hrs | — |
 | 1.4 | Fix empty catch blocks to log errors | N/A | N/A | 0.5 hr |
 | 1.5 | Create `.env.example`, remove `.env` from git | N/A | N/A | 0.1 hr |
@@ -265,17 +266,17 @@
 | Feature | Current RU/request | Requests/day (500 users) | Current RU/day | Optimized RU/request | Optimized RU/day |
 |---------|-------------------|------------------------|----------------|--------------------|-----------------|
 | Dashboard load | ~600 | 1,500 | 900,000 | ~200 (batched + cached) | 300,000 |
-| Interview category | ~700 | 1,000 | 700,000 | ~100 (paginated, tags fixed) | 100,000 |
+| Interview category | ~700 | 1,000 | 700,000 | ~80 (batched + paginated) | 80,000 |
 | Mentor chat (5 msgs) | ~4,250 | 2,500 | 10,625,000 | ~1,000 (cached context) | 2,500,000 |
 | Course browsing | ~100 | 1,000 | 100,000 | ~80 | 80,000 |
 | Problems | ~50 | 500 | 25,000 | ~20 | 10,000 |
 | Profile | ~200 | 500 | 100,000 | ~100 | 50,000 |
 | Other (enroll, progress, etc.) | ~300 | 500 | 150,000 | ~150 | 75,000 |
-| **Total** | | | **12,600,000** | | **3,115,000** |
+| **Total** | | | **12,600,000** | | **3,095,000** |
 
 | Metric | Current | Optimized |
 |--------|---------|-----------|
-| Daily RU burn | 12.6M | 3.12M |
+| Daily RU burn | 12.6M | 3.10M |
 | Monthly RU burn | **378M** | **93M** |
 | RU budget (free) | 50M | 50M |
 | **Days to exhaust** | **~4 days** | **~16 days** |
