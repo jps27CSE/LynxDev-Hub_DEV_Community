@@ -2,27 +2,8 @@
 import { BookOpen, ChevronRight, Clock, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import axios from "axios";
 import CourseIcon from "@/components/CourseIcon";
-
-type EnrolledCourse = {
-  id: number;
-  user_id: number;
-  course_id: number;
-  progress: { completedChapters: number[]; currentChapter: number };
-  totalChapters: number;
-  started_at: string;
-  completed_at: string | null;
-  course: {
-    id: number;
-    title: string;
-    description: string;
-    icon: string | null;
-    difficulty: string;
-    category: string | null;
-  };
-};
+import type { EnrolledCourse } from "@/lib/enroll-data";
 
 const diffConfig: Record<string, { color: string; light: string; badge: string }> = {
   Beginner: {
@@ -42,14 +23,13 @@ const diffConfig: Record<string, { color: string; light: string; badge: string }
   },
 };
 
-const EnrolledCourses = () => {
-  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
+const EnrolledCourses = ({
+  enrollments,
+}: {
+  enrollments: EnrolledCourse[];
+}) => {
 
-  useEffect(() => {
-    axios.get("/api/enroll").then((res) => setEnrolledCourses(res.data));
-  }, []);
-
-  if (enrolledCourses.length === 0) {
+  if (enrollments.length === 0) {
     return (
       <div>
         <div className="flex items-center justify-between mb-6">
@@ -104,7 +84,7 @@ const EnrolledCourses = () => {
         </Link>
       </div>
       <div className="grid sm:grid-cols-2 gap-4">
-        {enrolledCourses.map((enrollment) => {
+        {enrollments.map((enrollment) => {
           const done = enrollment.progress.completedChapters.length;
           const total = enrollment.totalChapters;
           const pct = total > 0 ? Math.round((done / total) * 100) : 0;

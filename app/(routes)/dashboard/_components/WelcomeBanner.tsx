@@ -1,24 +1,19 @@
 "use client";
 import { useUser } from "@clerk/nextjs";
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { UserDetailContext } from "@/context/UserDetailContext";
 import { Settings } from "lucide-react";
 import Link from "next/link";
-import axios from "axios";
 
-function WelcomeBanner() {
+function WelcomeBanner({
+  enrolledCount,
+  completedCount,
+}: {
+  enrolledCount: number;
+  completedCount: number;
+}) {
   const { user } = useUser();
   const { userDetail } = useContext(UserDetailContext);
-  const [enrolledCount, setEnrolledCount] = useState(0);
-  const [completedCount, setCompletedCount] = useState(0);
-
-  useEffect(() => {
-    axios.get("/api/enroll").then((res) => {
-      const data = res.data;
-      setEnrolledCount(data.length);
-      setCompletedCount(data.filter((e: { completed_at: string | null }) => e.completed_at).length);
-    });
-  }, []);
 
   const points = (userDetail as { points?: number })?.points ?? 0;
   const badges = completedCount;

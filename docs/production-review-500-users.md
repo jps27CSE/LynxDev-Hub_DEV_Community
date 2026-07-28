@@ -59,7 +59,7 @@
 | **N+1 in mentor context** | `getUserContext()` fires 1 + (N×4) queries per enrolled course (`lib/mentor.ts:22-41`). 17 queries/user at 4 courses | ~850 RU per mentor message. 500 users × 5 msg/day = **2.1M RU/day** (4.2% of monthly budget daily) | **Tier 1** |
 | ~~**N+1 in interview category page**~~ | ✅ `getQuestionsByChapterIds()` batches all chapters into 1 `inArray()` query. 1 query instead of 5-8. | ~150 RU per view (was 700) | **Tier 1** |
 | ~~**No pagination** on question & problem queries~~ | ✅ `getQuestionsByCategorySlug()`, `getAllProblems()`, `getDistinctTagsByCategorySlug()` all paginated. Problems page: 20/page with server-side filters. Practice page: progressive prefetch. Tag extraction: direct query. | ~5M RU/month saved | **Tier 1** |
-| **Duplicate dashboard API calls** | `WelcomeBanner` + `EnrolledCourses` both call `GET /api/enroll` | **2× RU burn** for same data. 1,200 RU/day wasted per 500 users | **Tier 2** |
+| ~~**Duplicate dashboard API calls**~~ | ✅ Server component fetches once, passes as props. No more duplicate `GET /api/enroll`. | ~1,200 RU/day saved | **Tier 2** |
 
 ### 🟡 Medium
 
@@ -76,7 +76,7 @@
 | ~~Batch `getQuestionsByChapterId()` into 1 `inArray()` query~~ | ✅ Implemented `lib/interview-data.ts` — `getQuestionsByChapterIds()` |
 | ~~Memoize `getUserContext()` per request with React `cache()`~~ | ✅ Implemented `lib/mentor.ts:8` |
 | ~~Add `.limit(20)` to question/problem queries~~ | ✅ Implemented — paginated `getAllProblems()`, `getQuestionsByCategorySlug()`, direct tag query |
-| Lift dashboard data to server component | ~1M RU |
+| ~~Lift dashboard data to server component~~ | ✅ `dashboard/page.tsx` fetches via `getEnrollmentsByEmail()`, passes `EnrolledCourse[]` as prop. Updated `EnrolledCourses.tsx`, `WelcomeBanner.tsx`. Chapter count scoped to enrolled courses only via `inArray()`. | ~1M RU |
 
 ---
 
@@ -186,6 +186,8 @@
 | Paginated practice questions | `getQuestionsByCategorySlug(limit/offset)` + `getQuestionCountByCategorySlug()` + PracticeClient with progressive prefetch via `GET /api/interview/questions` |
 | `getDistinctTagsByCategorySlug` rewritten | Direct `SELECT tags` query instead of loading all question data and extracting in JS |
 | Batched interview questions | `getQuestionsByChapterIds()` replaces N per-chapter queries with 1 `inArray()` query. ~10M RU/month saved. |
+| Dashboard duplicate API call fix | Server component fetches once via `getEnrollmentsByEmail()`, passes as props. `WelcomeBanner` + `EnrolledCourses` no longer call `GET /api/enroll`. Shared lib `lib/enroll-data.ts`. |
+| Chapter count scoped to enrolled courses | `GROUP BY` on all courses → `inArray()` on enrolled course IDs only. Saves rows per dashboard load. |
 
 ---
 
@@ -233,7 +235,7 @@
 
 | # | Action | RU Saved / Month | Effort |
 |---|--------|-------------------|--------|
-| 2.1 | Lift dashboard data to server component (eliminate duplicate API calls) | ~1M RU | 0.5 hr |
+| ~~2.1~~ | ~~Lift dashboard data to server component (eliminate duplicate API calls)~~ | ✅ Server fetch + props. `lib/enroll-data.ts` shared. Chapter count scoped. | ~1M RU | — |
 | 2.2 | Add `@upstash/ratelimit` on Mistral + interview routes | Prevents RU bombing | 1 hr |
 | 2.3 | Add `pino` for structured logging + API middleware | Debuggability | 1 hr |
 | 2.4 | Add Sentry (free tier covers 5K events/month) | Error monitoring | 0.5 hr |
