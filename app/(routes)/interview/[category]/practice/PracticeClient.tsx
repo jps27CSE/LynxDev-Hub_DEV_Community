@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -9,6 +9,7 @@ import {
   Eye,
   EyeOff,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -28,6 +29,9 @@ const difficultyColor: Record<string, string> = {
   medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
   hard: "bg-red-500/10 text-red-500 border-red-500/20",
 };
+
+const PER_PAGE = 20;
+const PREFETCH_THRESHOLD = 5;
 
 function AnswerMarkdown({ content }: { content: string }) {
   return (
@@ -130,31 +134,56 @@ function AnswerMarkdown({ content }: { content: string }) {
 }
 
 export default function PracticeClient({
-  questions,
+  initialQuestions,
+  totalCount,
+  categorySlug,
 }: {
-  questions: Question[];
+  initialQuestions: Question[];
+  totalCount: number;
+  categorySlug: string;
 }) {
+  const [questions, setQuestions] = useState<Question[]>(initialQuestions);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [reviewed, setReviewed] = useState<Set<number>>(new Set());
+  const [loading, setLoading] = useState(false);
+  const loadedOffsets = useRef<Set<number>>(new Set([0]));
 
   const current = questions[currentIndex];
 
-  const handleNext = () => {
+  useEffect(() => {
+    const remaining = questions.length - currentIndex;
+    if (remaining <= PREFETCH_THRESHOLD && questions.length < totalCount && !loading) {
+      const nextOffset = questions.length - (questions.length % PER_PAGE) + PER_PAGE;
+      if (!loadedOffsets.current.has(nextOffset)) {
+        loadedOffsets.current.add(nextOffset);
+        setLoading(true);
+        fetch(`/api/interview/questions?category=${categorySlug}&offset=${nextOffset}`)
+          .then((res) => res.json())
+          .then((data) => {
+            setQuestions((prev) => [...prev, ...data.questions]);
+            setLoading(false);
+          })
+          .catch(() => setLoading(false));
+      }
+    }
+  }, [currentIndex, questions.length, totalCount, loading, categorySlug]);
+
+  const handleNext = useCallback(() => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setShowAnswer(false);
     }
-  };
+  }, [currentIndex, questions.length]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
       setShowAnswer(false);
     }
-  };
+  }, [currentIndex]);
 
-  const toggleReview = () => {
+  const toggleReview = useCallback(() => {
     setReviewed((prev) => {
       const next = new Set(prev);
       if (next.has(current.id)) {
@@ -164,17 +193,23 @@ export default function PracticeClient({
       }
       return next;
     });
-  };
+  }, [current]);
 
-  const progress = questions.length > 0 ? Math.round((reviewed.size / questions.length) * 100) : 0;
+  const progress = totalCount > 0 ? Math.round((reviewed.size / totalCount) * 100) : 0;
+  const isLoadingNext = loading && currentIndex >= questions.length - 1;
+
+  if (!current) return null;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          Question {currentIndex + 1} of {questions.length}
+          Question {currentIndex + 1} of {totalCount}
         </div>
         <div className="flex items-center gap-2">
+          {isLoadingNext && (
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+          )}
           <Badge variant="secondary" className="text-xs">
             {progress}% reviewed
           </Badge>
@@ -184,7 +219,7 @@ export default function PracticeClient({
       <div className="w-full bg-muted rounded-full h-1.5">
         <div
           className="bg-primary h-1.5 rounded-full transition-all"
-          style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
+          style={{ width: `${((currentIndex + 1) / totalCount) * 100}%` }}
         />
       </div>
 
@@ -271,10 +306,14 @@ export default function PracticeClient({
           variant="outline"
           size="sm"
           onClick={handleNext}
-          disabled={currentIndex === questions.length - 1}
+          disabled={currentIndex >= questions.length - 1}
         >
+          {isLoadingNext ? (
+            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+          ) : (
+            <ChevronRight className="w-4 h-4 ml-1" />
+          )}
           Next
-          <ChevronRight className="w-4 h-4 ml-1" />
         </Button>
       </div>
     </div>

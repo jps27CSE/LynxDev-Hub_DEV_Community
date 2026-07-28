@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   getCategoryBySlug,
   getQuestionsByCategorySlug,
+  getQuestionCountByCategorySlug,
 } from "@/lib/interview-data";
 import PracticeClient from "./PracticeClient";
 
@@ -14,9 +15,17 @@ export default async function PracticePage({
 }) {
   const { category: slug } = await params;
   const cat = await getCategoryBySlug(slug);
-  const questions = await getQuestionsByCategorySlug(slug);
 
-  if (!cat || questions.length === 0) {
+  if (!cat) {
+    notFound();
+  }
+
+  const [totalCount, questions] = await Promise.all([
+    getQuestionCountByCategorySlug(slug),
+    getQuestionsByCategorySlug(slug, { limit: 20, offset: 0 }),
+  ]);
+
+  if (totalCount === 0) {
     notFound();
   }
 
@@ -38,7 +47,11 @@ export default async function PracticePage({
       </div>
 
       <div className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        <PracticeClient questions={questions} />
+        <PracticeClient
+          initialQuestions={questions}
+          totalCount={totalCount}
+          categorySlug={slug}
+        />
       </div>
     </div>
   );

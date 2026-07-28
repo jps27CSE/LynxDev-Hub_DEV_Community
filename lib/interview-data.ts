@@ -89,7 +89,8 @@ export async function getCategoryBySlug(
 }
 
 export async function getQuestionsByCategorySlug(
-  slug: string
+  slug: string,
+  opts?: { limit?: number; offset?: number }
 ): Promise<InterviewQuestion[]> {
   try {
     const catResult = await db
@@ -100,7 +101,7 @@ export async function getQuestionsByCategorySlug(
 
     if (catResult.length === 0) return [];
 
-    const result = await db
+    const query = db
       .selectDistinct({
         id: interviewQuestions.id,
         question: interviewQuestions.question,
@@ -119,7 +120,12 @@ export async function getQuestionsByCategorySlug(
         eq(interviewQuestionChapters.chapter_id, interviewChapters.id)
       )
       .where(eq(interviewChapters.category_id, catResult[0].id))
-      .orderBy(interviewQuestions.id);
+      .orderBy(interviewQuestions.id)
+      .$dynamic();
+
+    const result = await (opts?.limit
+      ? query.limit(opts.limit).offset(opts?.offset ?? 0)
+      : query);
 
     return result.map((q) => ({
       ...q,
@@ -127,6 +133,37 @@ export async function getQuestionsByCategorySlug(
     }));
   } catch {
     return [];
+  }
+}
+
+export async function getQuestionCountByCategorySlug(
+  slug: string
+): Promise<number> {
+  try {
+    const catResult = await db
+      .select({ id: interviewCategories.id })
+      .from(interviewCategories)
+      .where(eq(interviewCategories.slug, slug))
+      .limit(1);
+
+    if (catResult.length === 0) return 0;
+
+    const [result] = await db
+      .select({ value: count() })
+      .from(interviewQuestions)
+      .innerJoin(
+        interviewQuestionChapters,
+        eq(interviewQuestions.id, interviewQuestionChapters.question_id)
+      )
+      .innerJoin(
+        interviewChapters,
+        eq(interviewQuestionChapters.chapter_id, interviewChapters.id)
+      )
+      .where(eq(interviewChapters.category_id, catResult[0].id));
+
+    return Number(result.value);
+  } catch {
+    return 0;
   }
 }
 
@@ -147,11 +184,34 @@ export async function getDistinctTagsByCategorySlug(
   slug: string
 ): Promise<string[]> {
   try {
-    const questions = await getQuestionsByCategorySlug(slug);
+    const catResult = await db
+      .select({ id: interviewCategories.id })
+      .from(interviewCategories)
+      .where(eq(interviewCategories.slug, slug))
+      .limit(1);
+
+    if (catResult.length === 0) return [];
+
+    const rows = await db
+      .select({ tags: interviewQuestions.tags })
+      .from(interviewQuestions)
+      .innerJoin(
+        interviewQuestionChapters,
+        eq(interviewQuestions.id, interviewQuestionChapters.question_id)
+      )
+      .innerJoin(
+        interviewChapters,
+        eq(interviewQuestionChapters.chapter_id, interviewChapters.id)
+      )
+      .where(eq(interviewChapters.category_id, catResult[0].id));
+
     const tagSet = new Set<string>();
-    for (const q of questions) {
-      for (const tag of q.tags) {
-        tagSet.add(tag);
+    for (const row of rows) {
+      const tags = row.tags as string[];
+      if (Array.isArray(tags)) {
+        for (const tag of tags) {
+          tagSet.add(tag);
+        }
       }
     }
     return Array.from(tagSet).sort();

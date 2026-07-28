@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAllCategories, getDistinctTagsByCategorySlug } from "@/lib/interview-data";
+import { getAllCategories } from "@/lib/interview-data";
 import { db } from "@/config/db";
 import { interviewChapters, interviewQuestions } from "@/config/schema";
 import { count } from "drizzle-orm";
