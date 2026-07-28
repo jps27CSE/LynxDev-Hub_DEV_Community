@@ -65,7 +65,7 @@
 
 | Issue | Detail | RU Impact |
 |-------|--------|-----------|
-| `getUserContext()` re-queried on every mentor POST | No memoization — same 17 queries per message | Doubles RU burn for multi-turn conversations |
+| ~~`getUserContext()` re-queried on every mentor POST~~ | ✅ Memoized with React `cache()` per request `lib/mentor.ts:8` | Resolved — single query per request regardless of call count |
 | No `react.cache()` or ISR for DB queries | Every page load is a fresh DB call | Full RU cost per page view, no batching |
 | No dynamic imports | MentorChat (460 lines) + CategoryClient (464 lines) eager-loaded | Not an RU concern, but impacts TTFB and CPU time |
 
@@ -74,7 +74,7 @@
 | Fix | RU Saved / Month |
 |-----|-----------------|
 | Batch `getQuestionsByChapterId()` into 1 `inArray()` query | ~10M RU |
-| Memoize `getUserContext()` per request with React `cache()` | ~15M RU |
+| ~~Memoize `getUserContext()` per request with React `cache()`~~ | ✅ Implemented `lib/mentor.ts:8` |
 | Add `.limit(20)` to question/problem queries | ~5M RU |
 | Lift dashboard data to server component | ~1M RU |
 
@@ -181,6 +181,7 @@
 |-------|--------|
 | Zod validation on all 7 API routes | `lib/api-error.ts` + per-route schemas |
 | `//@ts-ignore` removed from enroll + progress | Type safety restored |
+| `getUserContext()` memoized with React `cache()` | `lib/mentor.ts:8` — duplicate DB queries eliminated per request |
 
 ---
 
@@ -217,7 +218,7 @@
 
 | # | Action | RU Saved / Month | CPU Saved / Month | Effort |
 |---|--------|-------------------|-------------------|--------|
-| 1.1 | Memoize `getUserContext()` with React `cache()` | ~15M RU | ~2 CPU-hrs | 1 hr |
+| ~~1.1~~ | ~~Memoize `getUserContext()` with React `cache()`~~ | ✅ Implemented `lib/mentor.ts:8` | ~15M RU | ~2 CPU-hrs | — |
 | 1.2 | Batch interview questions — 1 `inArray()` query, not N queries | ~10M RU | ~0.5 CPU-hrs | 1 hr |
 | 1.3 | Add `.limit(20)` to question & problem queries | ~5M RU | ~0.3 CPU-hrs | 0.5 hr |
 | 1.4 | Fix empty catch blocks to log errors | N/A | N/A | 0.5 hr |

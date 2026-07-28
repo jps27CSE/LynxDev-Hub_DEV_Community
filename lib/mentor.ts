@@ -1,10 +1,11 @@
+import { cache } from "react";
 import { db } from "@/config/db";
 import { usersTable, enrollments, courses, chapters, mentorConversations } from "@/config/schema";
 import { eq } from "drizzle-orm";
 
 type Message = { role: "user" | "assistant" | "system"; content: string };
 
-export async function getUserContext(clerkEmail: string) {
+export const getUserContext = cache(async (clerkEmail: string) => {
   const users = await db
     .select()
     .from(usersTable)
@@ -47,7 +48,7 @@ export async function getUserContext(clerkEmail: string) {
     points: user.points || 0,
     courses: courseList.filter(Boolean) as { title: string; progress: number; total: number }[],
   };
-}
+});
 
 export async function getOrCreateConversation(userId: number) {
   const existing = await db
