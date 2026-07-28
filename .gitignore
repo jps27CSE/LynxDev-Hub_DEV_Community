@@ -10,6 +10,7 @@
 !.yarn/releases
 !.yarn/versions
 
+
 # testing
 /coverage
 
@@ -36,6 +37,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# opencode
+opencode.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+

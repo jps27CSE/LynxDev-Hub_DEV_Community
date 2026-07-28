@@ -8,8 +8,6 @@ const navLinks = [
   { label: "Courses", href: "/courses" },
   { label: "Interview", href: "/interview" },
   { label: "Problems", href: "/problems" },
-  { label: "Community", href: "/community" },
-  { label: "Mentor", href: "/mentor" },
 ];
 
 function Header() {

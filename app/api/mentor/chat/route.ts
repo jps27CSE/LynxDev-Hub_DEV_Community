@@ -1,44 +1,44 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { validationError, badJson, unauthorized, notFound } from "@/lib/api-error";
 import { db } from "@/config/db";
 import { usersTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { getUserContext, buildSystemPrompt, callMistral } from "@/lib/mentor";
 
+const MessageSchema = z.object({
+  message: z.string().min(1).max(10000),
+});
+
 export async function GET() {
   const clerkUser = await currentUser();
-  if (!clerkUser) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!clerkUser) return unauthorized();
 
   const email = clerkUser.primaryEmailAddress?.emailAddress;
-  if (!email) {
-    return NextResponse.json({ error: "No email" }, { status: 400 });
-  }
+  if (!email) return notFound("Email");
 
   const ctx = await getUserContext(email);
-  if (!ctx) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
+  if (!ctx) return notFound("User");
 
   return NextResponse.json({ context: ctx, history: [] });
 }
 
 export async function POST(req: Request) {
   const clerkUser = await currentUser();
-  if (!clerkUser) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!clerkUser) return unauthorized();
 
   const email = clerkUser.primaryEmailAddress?.emailAddress;
-  if (!email) {
-    return NextResponse.json({ error: "No email" }, { status: 400 });
-  }
+  if (!email) return notFound("Email");
 
-  const { message } = await req.json();
-  if (!message || typeof message !== "string") {
-    return NextResponse.json({ error: "Message is required" }, { status: 400 });
-  }
+  let body: unknown;
+  try { body = await req.json(); }
+  catch { return badJson(); }
+
+  const parsed = MessageSchema.safeParse(body);
+  if (!parsed.success) return validationError(parsed.error);
+
+  const { message } = parsed.data;
 
   const users = await db
     .select()
@@ -46,14 +46,10 @@ export async function POST(req: Request) {
     .where(eq(usersTable.email, email))
     .limit(1);
 
-  if (!users.length) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
+  if (!users.length) return notFound("User");
 
   const ctx = await getUserContext(email);
-  if (!ctx) {
-    return NextResponse.json({ error: "Context not found" }, { status: 404 });
-  }
+  if (!ctx) return notFound("Context");
 
   const systemPrompt = buildSystemPrompt(ctx);
 

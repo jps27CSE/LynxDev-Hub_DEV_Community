@@ -3,7 +3,8 @@ import { getAllCategories } from "@/lib/interview-data";
 import { db } from "@/config/db";
 import { interviewChapters, interviewQuestions } from "@/config/schema";
 import { count } from "drizzle-orm";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, SlidersHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const categoryThemes: Record<string, { light: string; medium: string; border: string; glow: string }> = {
   "Software Engineer": {
@@ -44,8 +45,12 @@ const categoryThemes: Record<string, { light: string; medium: string; border: st
   },
 };
 
+const ALLOWED_SLUGS = ["software-engineer", "frontend-engineer", "backend-engineer"];
+
 export default async function InterviewPage() {
-  const categories = await getAllCategories();
+  const categories = (await getAllCategories()).filter((c) =>
+    ALLOWED_SLUGS.includes(c.slug)
+  );
   const [qTotal] = await db.select({ value: count() }).from(interviewQuestions);
   const [chTotal] = await db.select({ value: count() }).from(interviewChapters);
   const allChapters = await db
@@ -64,7 +69,7 @@ export default async function InterviewPage() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs text-muted-foreground mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              6 tracks &middot; {Number(qTotal.value)} questions &middot; {Number(chTotal.value)} chapters
+              {categories.length} tracks &middot; {Number(qTotal.value)} questions &middot; {Number(chTotal.value)} chapters
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
               Interview{" "}
@@ -89,7 +94,29 @@ export default async function InterviewPage() {
         </Link>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="rounded-xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-primary/10 p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <SlidersHorizontal className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-base font-semibold">Customize Your Stack</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Select the technologies you are targeting — React, Angular, Node.js, Spring Boot, and more — and get a personalized interview plan.
+              </p>
+            </div>
+            <Link href="/interview/customize">
+              <Button className="gap-2 whitespace-nowrap">
+                <SlidersHorizontal className="w-4 h-4" />
+                Choose My Stack
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
         <div className="flex items-center justify-between mb-10">
           <div>
             <h2 className="text-xl font-semibold">Choose your track</h2>

@@ -25,6 +25,11 @@
 | 2.7 | Interview chapter notes | Done | High | 15 chapters across 6 categories with markdown rendering (react-markdown + highlight.js) |
 | 2.8 | Dashboard stats cards | Done | Medium | Interview Prep + Problem Solving stat cards with live DB counts |
 | 2.9 | Pages redesign | Done | Medium | Interview listing and Courses page — hero, dot-grid, gradient headings, color-coded cards with hover lift |
+| 2.10 | Question bank expansion | Done | High | 25K+ lines seed data: HTML/CSS/JS, React, AI/Angular/State/Testing, DB, Spring Boot, .NET, Laravel |
+| 2.11 | Custom practice page | Done | Medium | `/interview/[category]/custom-practice` — practice by selected topics |
+| 2.12 | Interview customize page | Done | Medium | `/interview/customize` — customize question set |
+| 2.13 | Questions-by-tags API | Done | Medium | `GET /api/interview/questions-by-tags` — filter questions by tag |
+| 2.14 | Route refresh fix | Done | Medium | Fix category page navigation/refresh issue |
 
 ## Phase 3 — Community + AI
 
@@ -68,6 +73,14 @@
 - **Done** — Complete
 - **Blocked** — Waiting on dependency
 - **Cancelled** — Won't implement
+
+## Infrastructure / Cross-Cutting
+
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| I.1 | Zod validation on all API routes | ✅ Done | All 7 POST/PATCH routes validated — see `lib/api-error.ts` |
+| I.2 | Remove `//@ts-ignore` | ✅ Done | Removed from `enroll/route.ts` and `progress/route.ts` |
+| I.3 | Production review (500 users on free tier) | ✅ Updated | `docs/production-review-500-users.md` — accurate TiDB RU, Vercel CPU, Mistral RPM constraints |
 
 ## Free Tier Checklist
 

@@ -1,0 +1,1412 @@
+    // ──────── State Management ────────
+    {
+      question: "What is state management and why is it needed in frontend applications?",
+      answer: `State management is the practice of managing data that changes over time in a UI. It becomes necessary when multiple components need to share, synchronize, or react to the same data.
+
+Why it's needed:
+- **Prop drilling** — passing data through many component layers becomes unwieldy
+- **Global state** — auth user, theme, locale, notifications shared across the app
+- **Server state** — cached API data that many components consume
+- **Complex interactions** — multi-step forms, real-time collaboration, undo/redo
+- **Predictability** — centralized state makes data flow traceable and debuggable
+
+Common state types:
+1. **Local state** — component-level (\`useState\`, \`signal\`)
+2. **Global state** — shared across app (Redux, Zustand, NgRx, Context API)
+3. **Server state** — API cache (React Query, SWR, RTK Query)
+4. **URL state** — query params, route params
+5. **Persisted state** — localStorage, IndexedDB`,
+      difficulty: "easy",
+      tags: ["state-management", "fundamentals"],
+      is_top50: false,
+    },
+    {
+      question: "Explain the core principles of Redux.",
+      answer: `Redux is built on three core principles:
+
+**1. Single source of truth:** The global state is stored in a single plain JavaScript object (the store). This makes debugging, serialization, and time-travel debugging straightforward.
+
+**2. State is read-only:** The only way to change state is to dispatch an action — a plain object describing what happened.
+
+\`\`\`javascript
+store.dispatch({ type: 'todos/todoAdded', payload: 'Buy milk' });
+\`\`\`
+
+**3. Changes are made with pure functions:** Reducers are pure functions that take the current state and an action, and return the next state. They don't mutate state directly — they return new objects.
+
+\`\`\`javascript
+function todosReducer(state = [], action) {
+  switch (action.type) {
+    case 'todos/todoAdded':
+      return [...state, { id: nextId++, text: action.payload }];
+    default:
+      return state;
+  }
+}
+\`\`\`
+
+These principles ensure predictable, traceable, and testable state updates.`,
+      difficulty: "easy",
+      tags: ["redux", "fundamentals"],
+      is_top50: false,
+    },
+    {
+      question: "What is the Redux data flow?",
+      answer: `Redux follows a strict unidirectional data flow:
+
+\`\`\`
+User Interaction → dispatch(action) → reducer(prevState, action) → newState → UI update
+\`\`\`
+
+Detailed flow:
+
+1. **View** dispatches an action (e.g., user clicks "Add Todo")
+\`\`\`javascript
+store.dispatch({ type: 'todos/todoAdded', payload: 'Learn Redux' });
+\`\`\`
+
+2. **Store** forwards the action to the reducer
+3. **Reducer** computes the new state based on current state + action
+\`\`\`javascript
+case 'todos/todoAdded':
+  return [...state, { id: nanoid(), text: action.payload, completed: false }];
+\`\`\`
+
+4. **Store** saves the new state and notifies subscribers
+5. **View** re-renders with the new state
+\`\`\`javascript
+store.subscribe(() => console.log(store.getState()));
+\`\`\`
+
+This is synchronous by default. Async logic (API calls) requires middleware like Redux Thunk or Redux Saga.`,
+      difficulty: "medium",
+      tags: ["redux", "data-flow"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between Redux and React Context API?",
+      answer: `| Aspect | Redux | Context API |
+|--------|-------|-------------|
+| **Purpose** | State management with devtools, middleware, time-travel | Dependency injection for passing values through the tree |
+| **Performance** | Optimized — only re-renders subscribers on relevant state changes | Re-renders ALL consumers when context value changes |
+| **Middleware** | Built-in middleware chain (Thunk, Saga, logger) | None — need custom hooks or external libraries |
+| **DevTools** | Redux DevTools for time-travel debugging, action replay | No built-in devtools |
+| **Boilerplate** | More (actions, reducers, store config) | Minimal (createContext + Provider + useContext) |
+| **When to use** | Complex state with frequent updates, team collaboration, debugging needs | Simple global state (theme, locale, auth) that changes infrequently |
+
+Rule of thumb: use Context for low-frequency global state; use Redux or Zustand for complex, high-frequency state updates.`,
+      difficulty: "medium",
+      tags: ["redux", "context-api", "comparison"],
+      is_top50: false,
+    },
+    {
+      question: "What is Redux Toolkit and how does it simplify Redux?",
+      answer: `Redux Toolkit (RTK) is the official, opinionated way to write Redux logic. It eliminates boilerplate and common Redux pitfalls.
+
+**Before RTK (classic Redux):**
+\`\`\`javascript
+// Action types as strings
+const ADD_TODO = 'ADD_TODO';
+
+// Action creators
+function addTodo(text) {
+  return { type: ADD_TODO, payload: text };
+}
+
+// Reducer with switch statement
+function todosReducer(state = [], action) {
+  switch (action.type) {
+    case ADD_TODO:
+      return [...state, { id: Date.now(), text: action.payload }];
+    default:
+      return state;
+  }
+}
+
+// Store creation with middleware
+const store = createStore(todosReducer, applyMiddleware(thunk));
+\`\`\`
+
+**With RTK:**
+\`\`\`javascript
+import { createSlice, configureStore } from '@reduxjs/toolkit';
+
+const todosSlice = createSlice({
+  name: 'todos',
+  initialState: [],
+  reducers: {
+    todoAdded(state, action) {
+      state.push({ id: nanoid(), text: action.payload });
+    },
+    todoToggled(state, action) {
+      const todo = state.find(t => t.id === action.payload);
+      if (todo) todo.completed = !todo.completed;
+    }
+  }
+});
+
+const store = configureStore({
+  reducer: {
+    todos: todosSlice.reducer
+  }
+});
+
+export const { todoAdded, todoToggled } = todosSlice.actions;
+\`\`\`
+
+RTK includes: Immer (mutable syntax, immutable updates), Redux Thunk built-in, DevTools enabled by default, \`createAsyncThunk\`, and \`createEntityAdapter\`.`,
+      difficulty: "medium",
+      tags: ["redux-toolkit", "redux", "simplification"],
+      is_top50: false,
+    },
+    {
+      question: "How does createSlice work in Redux Toolkit?",
+      answer: `\`createSlice\` generates actions and reducers from a single configuration object.
+
+\`\`\`javascript
+import { createSlice, nanoid } from '@reduxjs/toolkit';
+
+const todosSlice = createSlice({
+  name: 'todos',
+  initialState: {
+    items: [],
+    status: 'idle',
+    filter: 'all'
+  },
+  reducers: {
+    todoAdded: {
+      reducer(state, action) {
+        state.items.push(action.payload);
+      },
+      prepare(text) {
+        return { payload: { id: nanoid(), text, completed: false } };
+      }
+    },
+    todoToggled(state, action) {
+      const todo = state.items.find(t => t.id === action.payload);
+      if (todo) todo.completed = !todo.completed;
+    },
+    filterChanged(state, action) {
+      state.filter = action.payload;
+    }
+  }
+});
+
+export const { todoAdded, todoToggled, filterChanged } = todosSlice.actions;
+export default todosSlice.reducer;
+\`\`\`
+
+Key features:
+- Uses Immer internally — write mutable code, get immutable state
+- \`name\` prefixes action types automatically (\`todos/todoAdded\`)
+- \`prepare\` callback customizes the action payload
+- Auto-generates action creators based on reducer names
+- \`extraReducers\` handles actions from other slices or async thunks`,
+      difficulty: "medium",
+      tags: ["redux-toolkit", "createSlice", "reducers"],
+      is_top50: false,
+    },
+    {
+      question: "What is createAsyncThunk and how does it handle async actions?",
+      answer: `\`createAsyncThunk\` generates action types and thunks for async operations (API calls). It automatically dispatches \`pending\`, \`fulfilled\`, and \`rejected\` actions.
+
+\`\`\`javascript
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+
+export const fetchUsers = createAsyncThunk(
+  'users/fetchUsers',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch('/api/users');
+      if (!response.ok) throw new Error('Failed to fetch');
+      return await response.json();
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+const usersSlice = createSlice({
+  name: 'users',
+  initialState: { items: [], status: 'idle', error: null },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUsers.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = action.payload;
+      })
+      .addCase(fetchUsers.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      });
+  }
+});
+\`\`\`
+
+Usage in component:
+\`\`\`javascript
+dispatch(fetchUsers());
+// Dispatches: users/fetchUsers/pending → users/fetchUsers/fulfilled (or rejected)
+\`\`\`
+
+The \`fulfilled\` action payload is the resolved value; \`rejected\` carries the error. Use \`unwrap()\` to handle results inline.`,
+      difficulty: "hard",
+      tags: ["redux-toolkit", "async", "createAsyncThunk"],
+      is_top50: false,
+    },
+    {
+      question: "What is RTK Query and how does it differ from createAsyncThunk?",
+      answer: `RTK Query is a data-fetching and caching solution built into Redux Toolkit. It eliminates the need to write thunks, reducers, and loading/error state management manually.
+
+\`\`\`javascript
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+export const api = createApi({
+  reducerPath: 'api',
+  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  tagTypes: ['User'],
+  endpoints: (builder) => ({
+    getUsers: builder.query({
+      query: () => '/users',
+      providesTags: ['User']
+    }),
+    getUser: builder.query({
+      query: (id) => \`/users/\${id}\`
+    }),
+    addUser: builder.mutation({
+      query: (user) => ({
+        url: '/users',
+        method: 'POST',
+        body: user
+      }),
+      invalidatesTags: ['User']
+    })
+  })
+});
+
+export const { useGetUsersQuery, useGetUserQuery, useAddUserMutation } = api;
+\`\`\`
+
+**Key differences from createAsyncThunk:**
+- RTK Query auto-generates React hooks (\`useGetUsersQuery\`)
+- Built-in caching with tag-based invalidation
+- Automatic refetching, polling, and optimistic updates
+- No manual loading/error state management
+- \`createAsyncThunk\` is lower-level — you write more code but have more control`,
+      difficulty: "hard",
+      tags: ["redux-toolkit", "rtk-query", "data-fetching"],
+      is_top50: false,
+    },
+    {
+      question: "What are selectors and why is memoization important?",
+      answer: `Selectors extract and derive data from the Redux store. Memoized selectors prevent unnecessary recalculations and re-renders.
+
+\`\`\`javascript
+import { createSelector } from '@reduxjs/toolkit';
+
+// Base selector
+const selectTodos = (state) => state.todos.items;
+const selectFilter = (state) => state.todos.filter;
+
+// Memoized derived selector
+const selectFilteredTodos = createSelector(
+  [selectTodos, selectFilter],
+  (todos, filter) => {
+    switch (filter) {
+      case 'active':
+        return todos.filter(t => !t.completed);
+      case 'completed':
+        return todos.filter(t => t.completed);
+      default:
+        return todos;
+    }
+  }
+);
+
+// Usage in component
+const filteredTodos = useSelector(selectFilteredTodos);
+\`\`\`
+
+Why memoization matters:
+- Prevents expensive recalculations on every render
+- Reselect (used by RTK's \`createSelector\`) caches results — only recomputes when input selectors return new values
+- Critical for large lists and complex derived data
+- Without memoization, every \`useSelector\` runs the selector function on every render`,
+      difficulty: "medium",
+      tags: ["redux", "selectors", "memoization"],
+      is_top50: false,
+    },
+    {
+      question: "What is Redux middleware? Explain applyMiddleware and the middleware chain.",
+      answer: `Redux middleware provides a third-party extension point between dispatching an action and the moment it reaches the reducer. It's used for logging, crash reporting, async handling, and more.
+
+\`\`\`javascript
+// Custom logger middleware
+const loggerMiddleware = (store) => (next) => (action) => {
+  console.log('dispatching', action);
+  const result = next(action);
+  console.log('next state', store.getState());
+  return result;
+};
+
+// Store with middleware
+import { configureStore } from '@reduxjs/toolkit';
+
+const store = configureStore({
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(loggerMiddleware)
+});
+\`\`\`
+
+**Classic Redux:**
+\`\`\`javascript
+const store = createStore(
+  rootReducer,
+  applyMiddleware(thunk, logger)
+);
+\`\`\`
+
+**Middleware chain flow:**
+\`\`\`
+dispatch(action) → middleware1 → middleware2 → ... → reducer → newState
+\`\`\`
+
+Each middleware can modify, delay, replace, or stop the action. Common middleware: Redux Thunk (async), Redux Saga (complex side effects), Redux Logger (debugging). RTK includes Thunk by default.`,
+      difficulty: "medium",
+      tags: ["redux", "middleware", "thunk", "saga"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between Redux Thunk and Redux Saga?",
+      answer: `Both are Redux middleware for handling side effects.
+
+**Redux Thunk** — simple, lets action creators return a function instead of an action object:
+\`\`\`javascript
+export const fetchUsers = () => async (dispatch) => {
+  dispatch({ type: 'users/fetch/pending' });
+  try {
+    const users = await api.getUsers();
+    dispatch({ type: 'users/fetch/fulfilled', payload: users });
+  } catch (err) {
+    dispatch({ type: 'users/fetch/rejected', payload: err.message });
+  }
+};
+\`\`\`
+
+**Redux Saga** — uses ES6 generators for declarative side effects:
+\`\`\`javascript
+import { call, put, takeEvery } from 'redux-saga/effects';
+
+function* fetchUsersSaga(action) {
+  try {
+    const users = yield call(api.getUsers);
+    yield put({ type: 'users/fetch/fulfilled', payload: users });
+  } catch (err) {
+    yield put({ type: 'users/fetch/rejected', payload: err.message });
+  }
+}
+
+function* watchFetchUsers() {
+  yield takeEvery('users/fetch/pending', fetchUsersSaga);
+}
+\`\`\`
+
+| Aspect | Thunk | Saga |
+|--------|-------|------|
+| **Complexity** | Simple, low learn curve | Higher, requires generators |
+| **Testability** | Mock API, test async functions | Easy — test generator steps declaratively |
+| **Race conditions** | Manual handling | Built-in operators (race, all, fork) |
+| **Debouncing** | Manual with setTimeout | \`debounce\` effect helper |
+| **RTK integration** | Built-in (\`createAsyncThunk\`) | Separate package |
+
+Thunk is sufficient for most apps; Saga shines for complex async workflows (real-time, multi-step transactions, advanced debouncing).`,
+      difficulty: "hard",
+      tags: ["redux", "thunk", "saga", "comparison"],
+      is_top50: false,
+    },
+    {
+      question: "What is Zustand and how does it compare to Redux?",
+      answer: `Zustand is a minimalist state management library for React with a hook-based API.
+
+\`\`\`javascript
+import { create } from 'zustand';
+
+const useStore = create((set) => ({
+  count: 0,
+  users: [],
+  increment: () => set((state) => ({ count: state.count + 1 })),
+  setUsers: (users) => set({ users }),
+  fetchUsers: async () => {
+    const users = await fetch('/api/users').then(r => r.json());
+    set({ users });
+  }
+}));
+
+// In component
+function Counter() {
+  const count = useStore((state) => state.count);
+  const increment = useStore((state) => state.increment);
+  return <button onClick={increment}>{count}</button>;
+}
+\`\`\`
+
+| Aspect | Zustand | Redux Toolkit |
+|--------|---------|---------------|
+| **Boilerplate** | Minimal — create a store with a function | Moderate — slices, store config |
+| **Bundle size** | ~1KB | ~11KB + React-Redux |
+| **DevTools** | Supported via devtools middleware | Built-in |
+| **Middleware** | \`persist\`, \`immer\`, \`devtools\` | Thunk, Saga, logger |
+| **Learning curve** | Very low | Moderate |
+| **When to use** | Small-medium apps, quick prototyping | Large apps, complex state, team scale |`,
+      difficulty: "medium",
+      tags: ["zustand", "redux", "comparison"],
+      is_top50: false,
+    },
+    {
+      question: "What is Jotai and what problem does it solve?",
+      answer: `Jotai is a primitive, flexible state management library for React using an atomic approach. Each piece of state is an atom (similar to Recoil).
+
+\`\`\`javascript
+import { atom, useAtom } from 'jotai';
+
+// Primitive atom
+const countAtom = atom(0);
+
+// Derived atom (computed)
+const doubledAtom = atom((get) => get(countAtom) * 2);
+
+// Async atom
+const usersAtom = atom(async () => {
+  const res = await fetch('/api/users');
+  return res.json();
+});
+
+function Counter() {
+  const [count, setCount] = useAtom(countAtom);
+  const [doubled] = useAtom(doubledAtom);
+  return (
+    <div>
+      <p>Count: {count} (doubled: {doubled})</p>
+      <button onClick={() => setCount(c => c + 1)}>+</button>
+    </div>
+  );
+}
+\`\`\`
+
+Problems Jotai solves:
+- No need to wrap app in a Provider (atoms are global)
+- Automatic memoization — only re-renders components that use changed atoms
+- First-class async support (async atoms)
+- Tiny bundle (~3KB)
+- Great for gradual adoption — start with local atoms, scale to global state
+- No action/reducer ceremony — just read and write atoms`,
+      difficulty: "medium",
+      tags: ["jotai", "state-management", "atoms"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between Redux and NgRx?",
+      answer: `NgRx is the Angular equivalent of Redux, with Angular-specific conventions.
+
+\`\`\`typescript
+// Action
+const loadUsers = createAction('[Users] Load Users');
+const loadUsersSuccess = createAction('[Users] Load Users Success', props<{ users: User[] }>());
+
+// Reducer
+const usersReducer = createReducer(
+  initialState,
+  on(loadUsers, (state) => ({ ...state, loading: true })),
+  on(loadUsersSuccess, (state, { users }) => ({
+    ...state, users, loading: false
+  }))
+);
+
+// Effect
+@Injectable()
+export class UsersEffects {
+  loadUsers$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(loadUsers),
+      switchMap(() => this.api.getUsers().pipe(
+        map(users => loadUsersSuccess({ users })),
+        catchError(err => of(loadUsersFailure({ error: err.message })))
+      ))
+    )
+  );
+}
+
+// Selector
+export const selectUsers = createSelector(
+  (state: AppState) => state.users,
+  (users) => users
+);
+\`\`\`
+
+| Aspect | Redux (React) | NgRx (Angular) |
+|--------|---------------|----------------|
+| **Effects** | Thunk/Saga middleware | \`@Effect()\` using RxJS |
+| **Typing** | TypeScript optional | Full TypeScript with string enums |
+| **DI** | Not applicable | Angular DI for Effects, Services |
+| **Boilerplate** | Moderate | Higher (more files per feature) |
+| **RxJS** | Not required | Built-in (Actions stream, Effects use RxJS) |
+| **Selector library** | Reselect | createSelector (similar API) |`,
+      difficulty: "hard",
+      tags: ["ngrx", "redux", "angular", "comparison"],
+      is_top50: false,
+    },
+    {
+      question: "Explain NgRx Store, Actions, Reducers, and Selectors.",
+      answer: `NgRx follows the Redux pattern with Angular conventions.
+
+**Store** — centralized state container:
+\`\`\`typescript
+// app.state.ts
+export interface AppState {
+  auth: AuthState;
+  todos: TodosState;
+}
+
+export const initialState: AppState = {
+  auth: { user: null, loading: false },
+  todos: { items: [], filter: 'all' }
+};
+\`\`\`
+
+**Actions** — describe unique events:
+\`\`\`typescript
+import { createAction, props } from '@ngrx/store';
+
+export const login = createAction(
+  '[Auth] Login',
+  props<{ email: string; password: string }>()
+);
+export const loginSuccess = createAction(
+  '[Auth] Login Success',
+  props<{ user: User; token: string }>()
+);
+export const loginFailure = createAction(
+  '[Auth] Login Failure',
+  props<{ error: string }>()
+);
+\`\`\`
+
+**Reducers** — pure functions that handle actions:
+\`\`\`typescript
+const authReducer = createReducer(
+  initialState.auth,
+  on(login, (state) => ({ ...state, loading: true })),
+  on(loginSuccess, (state, { user, token }) => ({
+    ...state, user, token, loading: false
+  })),
+  on(loginFailure, (state, { error }) => ({
+    ...state, error, loading: false
+  }))
+);
+\`\`\`
+
+**Selectors** — derive data from store:
+\`\`\`typescript
+export const selectAuth = (state: AppState) => state.auth;
+export const selectUser = createSelector(
+  selectAuth,
+  (auth) => auth.user
+);
+export const selectIsLoggedIn = createSelector(
+  selectUser,
+  (user) => !!user
+);
+\`\`\``,
+      difficulty: "hard",
+      tags: ["ngrx", "store", "actions", "reducers", "selectors"],
+      is_top50: false,
+    },
+    {
+      question: "What are NgRx Effects and how do they handle side effects?",
+      answer: `NgRx Effects listen for dispatched actions, perform side effects (API calls, localStorage, timers), and dispatch new actions with results. They use RxJS for async composition.
+
+\`\`\`typescript
+import { Injectable } from '@angular/core';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { switchMap, map, catchError, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { of } from 'rxjs';
+
+@Injectable()
+export class TodoEffects {
+  constructor(
+    private actions$: Actions,
+    private todoService: TodoService
+  ) {}
+
+  // Effect that listens for loadTodos action
+  loadTodos$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType('[Todos] Load Todos'),
+      switchMap(() =>
+        this.todoService.getTodos().pipe(
+          map(todos => ({ type: '[Todos] Load Todos Success', payload: todos })),
+          catchError(error => of({ type: '[Todos] Load Todos Failure', payload: error }))
+        )
+      )
+    )
+  );
+
+  // Effect with debounce for search
+  searchTodos$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType('[Todos] Search Todos'),
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(action =>
+        this.todoService.search(action.query).pipe(
+          map(results => ({ type: '[Todos] Search Success', payload: results }))
+        )
+      )
+    )
+  );
+
+  // Non-dispatching effect (just log)
+  logActions$ = createEffect(() =>
+    this.actions$.pipe(
+      tap(action => console.log('Action:', action))
+    ), { dispatch: false }
+  );
+}
+\`\`\`
+
+Register in module: \`EffectsModule.forFeature([TodoEffects])\`.`,
+      difficulty: "hard",
+      tags: ["ngrx", "effects", "side-effects"],
+      is_top50: false,
+    },
+    {
+      question: "What is NgRx Entity and how does it simplify CRUD operations?",
+      answer: `NgRx Entity provides utilities for managing collections of entities in the store. It generates reducers and selectors for CRUD operations.
+
+\`\`\`typescript
+import { createEntityAdapter, EntityState, EntityAdapter } from '@ngrx/entity';
+
+export interface Todo {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
+export interface TodosState extends EntityState<Todo> {
+  selectedTodoId: string | null;
+  loading: boolean;
+}
+
+// Adapter with built-in CRUD methods
+export const adapter: EntityAdapter<Todo> = createEntityAdapter<Todo>();
+
+export const initialState: TodosState = adapter.getInitialState({
+  selectedTodoId: null,
+  loading: false
+});
+
+// Reducer using adapter methods
+const todosReducer = createReducer(
+  initialState,
+  on(TodoActions.addTodo, (state, { todo }) =>
+    adapter.addOne(todo, state)
+  ),
+  on(TodoActions.addTodos, (state, { todos }) =>
+    adapter.addMany(todos, state)
+  ),
+  on(TodoActions.updateTodo, (state, { update }) =>
+    adapter.updateOne(update, state)
+  ),
+  on(TodoActions.deleteTodo, (state, { id }) =>
+    adapter.removeOne(id, state)
+  ),
+  on(TodoActions.loadTodosSuccess, (state, { todos }) =>
+    adapter.setAll(todos, { ...state, loading: false })
+  ),
+  on(TodoActions.clearTodos, () => adapter.removeAll(initialState))
+);
+
+// Auto-generated selectors
+export const {
+  selectIds,
+  selectEntities,
+  selectAll,
+  selectTotal,
+  selectById
+} = adapter.getSelectors((state: AppState) => state.todos);
+\`\`\`
+
+Built-in methods: \`addOne\`, \`addMany\`, \`setOne\`, \`setAll\`, \`updateOne\`, \`updateMany\`, \`upsertOne\`, \`upsertMany\`, \`removeOne\`, \`removeMany\`, \`removeAll\`.`,
+      difficulty: "hard",
+      tags: ["ngrx", "entity", "crud"],
+      is_top50: false,
+    },
+    {
+      question: "How do you test Redux reducers and async thunks?",
+      answer: `Redux reducers are pure functions — easy to test with plain assertions.
+
+**Testing a reducer:**
+\`\`\`javascript
+import todosReducer from './todosSlice';
+import { todoAdded, todoToggled } from './todosSlice';
+
+describe('todos reducer', () => {
+  it('should handle todoAdded', () => {
+    const initialState = { items: [], status: 'idle', error: null };
+    const nextState = todosReducer(initialState, todoAdded('Buy milk'));
+    expect(nextState.items).toHaveLength(1);
+    expect(nextState.items[0].text).toBe('Buy milk');
+  });
+
+  it('should handle todoToggled', () => {
+    const initialState = {
+      items: [{ id: '1', text: 'Test', completed: false }],
+      status: 'idle', error: null
+    };
+    const nextState = todosReducer(initialState, todoToggled('1'));
+    expect(nextState.items[0].completed).toBe(true);
+  });
+});
+\`\`\`
+
+**Testing an async thunk:**
+\`\`\`javascript
+import { configureStore } from '@reduxjs/toolkit';
+import { fetchUsers } from './usersSlice';
+import * as api from './api';
+
+jest.mock('./api');
+
+describe('fetchUsers thunk', () => {
+  it('should dispatch fulfilled action', async () => {
+    const mockUsers = [{ id: 1, name: 'Alice' }];
+    api.getUsers.mockResolvedValue(mockUsers);
+
+    const store = configureStore({ reducer: usersReducer });
+    await store.dispatch(fetchUsers());
+
+    const state = store.getState().users;
+    expect(state.status).toBe('succeeded');
+    expect(state.items).toEqual(mockUsers);
+  });
+
+  it('should dispatch rejected action on error', async () => {
+    api.getUsers.mockRejectedValue(new Error('Network error'));
+
+    const store = configureStore({ reducer: usersReducer });
+    await store.dispatch(fetchUsers());
+
+    const state = store.getState().users;
+    expect(state.status).toBe('failed');
+    expect(state.error).toBe('Network error');
+  });
+});
+\`\`\``,
+      difficulty: "medium",
+      tags: ["redux", "testing", "reducers", "thunks"],
+      is_top50: false,
+    },
+    {
+      question: "What is Immer and how does Redux Toolkit use it?",
+      answer: `Immer is a library that lets you write immutable updates with mutable syntax. Redux Toolkit includes Immer in \`createSlice\` and \`createReducer\`.
+
+\`\`\`javascript
+// Without Immer (traditional Redux)
+case 'todoToggled':
+  return state.map(todo =>
+    todo.id === action.payload
+      ? { ...todo, completed: !todo.completed }
+      : todo
+  );
+
+// With Immer (RTK)
+case 'todoToggled':
+  const todo = state.find(t => t.id === action.payload);
+  if (todo) todo.completed = !todo.completed;
+  // No return needed — Immer produces the next state
+\`\`\`
+
+How it works:
+1. Immer creates a mutable "draft" copy (Proxy-based)
+2. You mutate the draft as if it were mutable
+3. Immer compares the draft with the original and produces a new immutable state
+4. Only changed parts are structurally shared (structural sharing for performance)
+
+Benefits:
+- Simpler code — no spread operators or Object.assign chains
+- Prevents accidental mutations
+- Deep updates are trivial (nested state without spreading each level)
+- Zero-cost in production (proxies disabled in production for performance)`,
+      difficulty: "medium",
+      tags: ["redux-toolkit", "immer", "immutability"],
+      is_top50: false,
+    },
+    {
+      question: "What is the `configureStore` function in Redux Toolkit?",
+      answer: `\`configureStore\` simplifies store creation with sensible defaults:
+
+\`\`\`javascript
+import { configureStore } from '@reduxjs/toolkit';
+
+const store = configureStore({
+  reducer: {
+    todos: todosReducer,
+    users: usersReducer,
+    auth: authReducer
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(customMiddleware),
+  devTools: process.env.NODE_ENV !== 'production',
+  preloadedState: window.__PRELOADED_STATE__
+});
+\`\`\`
+
+What it does automatically:
+1. **Combines reducers** — no need to call \`combineReducers\` manually
+2. **Adds middleware** — Redux Thunk included by default (plus checks for immutability, serializability)
+3. **Enables DevTools** — Redux DevTools Extension configured automatically
+4. **Handles enhancers** — applies composeWithDevTools by default
+
+Compare to classic Redux:
+\`\`\`javascript
+// Without configureStore
+const rootReducer = combineReducers({ todos, users, auth });
+const store = createStore(
+  rootReducer,
+  applyMiddleware(thunk, logger)
+);
+\`\`\``,
+      difficulty: "medium",
+      tags: ["redux-toolkit", "configureStore", "store"],
+      is_top50: false,
+    },
+    {
+      question: "What is createEntityAdapter in Redux Toolkit?",
+      answer: `\`createEntityAdapter\` provides pre-built reducers and selectors for normalized entity state (similar to NgRx Entity).
+
+\`\`\`javascript
+import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+
+type Book = { id: string; title: string; author: string };
+
+const booksAdapter = createEntityAdapter<Book>({
+  selectId: (book) => book.id,
+  sortComparer: (a, b) => a.title.localeCompare(b.title)
+});
+
+const booksSlice = createSlice({
+  name: 'books',
+  initialState: booksAdapter.getInitialState({ loading: false }),
+  reducers: {
+    bookAdded: booksAdapter.addOne,
+    booksLoaded: booksAdapter.setAll,
+    bookUpdated: booksAdapter.updateOne,
+    bookRemoved: booksAdapter.removeOne,
+    bookUpserted: booksAdapter.upsertOne
+  }
+});
+
+// Generated selectors
+export const {
+  selectAll: selectAllBooks,
+  selectById: selectBookById,
+  selectIds: selectBookIds,
+  selectTotal: selectBooksTotal
+} = booksAdapter.getSelectors((state: RootState) => state.books);
+\`\`\`
+
+In component:
+\`\`\`javascript
+const books = useSelector(selectAllBooks);
+const total = useSelector(selectBooksTotal);
+\`\`\`
+
+Benefits: eliminates manual CRUD reducer logic, normalizes state (ids + entities map), built-in sorting, memoized selectors.`,
+      difficulty: "medium",
+      tags: ["redux-toolkit", "entity-adapter", "normalization"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between global state and server state?",
+      answer: `**Global state** is client-side data shared across components (auth user, theme, UI state). It's managed with Redux, Zustand, Context, etc.
+
+**Server state** is data from the server that needs to be cached, synchronized, and updated (API responses). Managed with React Query, SWR, RTK Query.
+
+\`\`\`javascript
+// Global state (Redux/Zustand)
+const useThemeStore = create((set) => ({
+  theme: 'light',
+  toggleTheme: () => set((s) => ({ theme: s.theme === 'light' ? 'dark' : 'light' }))
+}));
+
+// Server state (React Query)
+function UsersList() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => fetch('/api/users').then(r => r.json()),
+    staleTime: 5 * 60 * 1000 // 5 minutes
+  });
+
+  if (isLoading) return <Spinner />;
+  return data.map(user => <UserCard key={user.id} user={user} />);
+}
+\`\`\`
+
+Key differences:
+- Server state is asynchronous; global state is synchronous
+- Server state needs caching, deduplication, background refetching
+- Server state has loading/error states; global state typically doesn't
+- React Query/SWR handle retries, pagination, optimistic updates, cache invalidation
+- Mixing them (putting API data in Redux) creates unnecessary complexity`,
+      difficulty: "medium",
+      tags: ["state-management", "server-state", "react-query", "swr"],
+      is_top50: false,
+    },
+    {
+      question: "What is React Query (TanStack Query) and how does it work?",
+      answer: `React Query (now TanStack Query v5) is a server state management library that handles caching, background refetching, and synchronization with the server.
+
+\`\`\`javascript
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+function UsersPage() {
+  const queryClient = useQueryClient();
+
+  // Query — fetch data
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['users', { page: 1 }],
+    queryFn: () => fetch('/api/users?page=1').then(r => r.json()),
+    staleTime: 1000 * 60 * 5,  // 5 min before refetch
+    cacheTime: 1000 * 60 * 30,  // 30 min in cache
+    refetchOnWindowFocus: true
+  });
+
+  // Mutation — modify data
+  const mutation = useMutation({
+    mutationFn: (newUser) =>
+      fetch('/api/users', {
+        method: 'POST',
+        body: JSON.stringify(newUser),
+        headers: { 'Content-Type': 'application/json' }
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    }
+  });
+
+  if (isLoading) return <Spinner />;
+  if (error) return <Error message={error.message} />;
+
+  return (
+    <div>
+      {data.map(user => <UserCard key={user.id} user={user} />)}
+      <button onClick={() => mutation.mutate({ name: 'New User' })}>
+        Add User
+      </button>
+    </div>
+  );
+}
+\`\`\`
+
+Key features: caching, deduplication, background refetching, optimistic updates, pagination (infinite queries), parallel queries, and DevTools.`,
+      difficulty: "medium",
+      tags: ["react-query", "tanstack-query", "server-state", "data-fetching"],
+      is_top50: false,
+    },
+    {
+      question: "What is SWR and how does it compare to React Query?",
+      answer: `SWR (stale-while-revalidate) is a React Hooks library for data fetching, developed by Vercel.
+
+\`\`\`javascript
+import useSWR from 'swr';
+
+const fetcher = (url) => fetch(url).then(r => r.json());
+
+function Profile() {
+  const { data, error, isLoading, mutate } = useSWR('/api/user', fetcher, {
+    refreshInterval: 3000,  // Poll every 3 seconds
+    revalidateOnFocus: true,
+    dedupingInterval: 2000
+  });
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  return (
+    <div>
+      <h1>{data.name}</h1>
+      <button onClick={() => mutate({ ...data, name: 'Updated' })}>
+        Optimistic update
+      </button>
+    </div>
+  );
+}
+\`\`\`
+
+| Aspect | SWR | React Query |
+|--------|-----|-------------|
+| **Bundle size** | ~4KB | ~13KB |
+| **API** | Simple, less configurable | Feature-rich, more options |
+| **Pagination** | Manual | Built-in infinite queries |
+| **DevTools** | External | Built-in React Query DevTools |
+| **Garbage collection** | Simple TTL | Configurable cacheTime + staleTime |
+| **Optimistic updates** | via \`mutate\` | via \`onMutate\` callback |
+| **When to use** | Simple apps, Next.js projects | Complex data needs, large apps |`,
+      difficulty: "medium",
+      tags: ["swr", "react-query", "comparison", "data-fetching"],
+      is_top50: false,
+    },
+    {
+      question: "What is the Context API and when would you use it with useReducer?",
+      answer: `Context API + \`useReducer\` creates a lightweight Redux-like pattern for local state management without external dependencies.
+
+\`\`\`javascript
+import { createContext, useContext, useReducer } from 'react';
+
+// 1. Create context
+const TodoContext = createContext(null);
+
+// 2. Reducer
+function todoReducer(state, action) {
+  switch (action.type) {
+    case 'ADD':
+      return [...state, { id: Date.now(), text: action.payload, done: false }];
+    case 'TOGGLE':
+      return state.map(t =>
+        t.id === action.payload ? { ...t, done: !t.done } : t
+      );
+    case 'DELETE':
+      return state.filter(t => t.id !== action.payload);
+    default:
+      return state;
+  }
+}
+
+// 3. Provider
+export function TodoProvider({ children }) {
+  const [todos, dispatch] = useReducer(todoReducer, []);
+  return (
+    <TodoContext.Provider value={{ todos, dispatch }}>
+      {children}
+    </TodoContext.Provider>
+  );
+}
+
+// 4. Custom hook
+export function useTodos() {
+  const context = useContext(TodoContext);
+  if (!context) throw new Error('useTodos must be used within TodoProvider');
+  return context;
+}
+
+// 5. Component
+function TodoList() {
+  const { todos, dispatch } = useTodos();
+  return (
+    <ul>
+      {todos.map(t => (
+        <li key={t.id}>
+          <span onClick={() => dispatch({ type: 'TOGGLE', payload: t.id })}>
+            {t.done ? '✓' : '○'} {t.text}
+          </span>
+          <button onClick={() => dispatch({ type: 'DELETE', payload: t.id })}>✕</button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+\`\`\`
+
+When to use:
+- Medium-complexity state shared by a subtree
+- No need for DevTools or middleware
+- Smaller apps where Redux/Zustand would be overkill
+
+Limitations: re-renders all consumers on any change (no selectors), no DevTools, no middleware.`,
+      difficulty: "medium",
+      tags: ["context-api", "useReducer", "react"],
+      is_top50: false,
+    },
+    {
+      question: "What is middleware in state management and why use it?",
+      answer: `Middleware intercepts dispatched actions before they reach the reducer, enabling cross-cutting concerns.
+
+**Common middleware use cases:**
+
+1. **Logging** — log every action and state change:
+\`\`\`javascript
+const logger = (store) => (next) => (action) => {
+  console.log('dispatching', action);
+  const result = next(action);
+  console.log('next state', store.getState());
+  return result;
+};
+\`\`\`
+
+2. **Crash reporting** — catch errors and send to monitoring:
+\`\`\`javascript
+const crashReporter = (store) => (next) => (action) => {
+  try {
+    return next(action);
+  } catch (err) {
+    console.error('Caught!', err);
+    Sentry.captureException(err);
+    throw err;
+  }
+};
+\`\`\`
+
+3. **Authorization** — block actions for unauthorized users:
+4. **Async handling** — Redux Thunk allows functions as actions
+5. **Performance monitoring** — measure action dispatch time
+
+Redux middleware follows the \`(store) => (next) => (action) => {}\` pattern. The middleware chain runs in order of registration.`,
+      difficulty: "medium",
+      tags: ["middleware", "redux", "state-management"],
+      is_top50: false,
+    },
+    {
+      question: "What is the `normalizr` library and when would you use it?",
+      answer: `Normalizr processes nested API responses into a normalized shape (entities by ID), simplifying state management.
+
+**Without normalization (nested):**
+\`\`\`javascript
+const data = {
+  id: '1',
+  title: 'Article',
+  author: { id: 'a1', name: 'Alice' },
+  comments: [
+    { id: 'c1', text: 'Great!', author: { id: 'a2', name: 'Bob' } }
+  ]
+};
+
+// Updating Bob's name means finding him in every nested location
+\`\`\`
+
+**With Normalizr:**
+\`\`\`javascript
+import { normalize, schema } from 'normalizr';
+
+const userSchema = new schema.Entity('users');
+const commentSchema = new schema.Entity('comments', { author: userSchema });
+const articleSchema = new schema.Entity('articles', {
+  author: userSchema,
+  comments: [commentSchema]
+});
+
+const normalized = normalize(data, articleSchema);
+// {
+//   result: '1',
+//   entities: {
+//     users: { 'a1': { id: 'a1', name: 'Alice' }, 'a2': { id: 'a2', name: 'Bob' } },
+//     comments: { 'c1': { id: 'c1', text: 'Great!', author: 'a2' } },
+//     articles: { '1': { id: '1', title: 'Article', author: 'a1', comments: ['c1'] } }
+//   }
+// }
+\`\`\`
+
+Benefits: no duplicate data, O(1) lookup by ID, easy updates/deletes, fits perfectly with EntityAdapter. RTK Query normalizes cache automatically.`,
+      difficulty: "medium",
+      tags: ["normalizr", "normalization", "state-management"],
+      is_top50: false,
+    },
+    {
+      question: "What is Recoil and how does it differ from Jotai?",
+      answer: `Recoil is a state management library for React with atomic state. Atoms are independent units of state; selectors derive data.
+
+\`\`\`javascript
+import { atom, selector, useRecoilState, useRecoilValue } from 'recoil';
+
+const todoListState = atom({
+  key: 'todoListState',
+  default: []
+});
+
+const todoListFilterState = atom({
+  key: 'todoListFilterState',
+  default: 'Show All'
+});
+
+const filteredTodoListState = selector({
+  key: 'filteredTodoListState',
+  get: ({ get }) => {
+    const filter = get(todoListFilterState);
+    const list = get(todoListState);
+    switch (filter) {
+      case 'Show Completed': return list.filter(item => item.isComplete);
+      case 'Show Uncompleted': return list.filter(item => !item.isComplete);
+      default: return list;
+    }
+  }
+});
+
+function TodoList() {
+  const todoList = useRecoilValue(filteredTodoListState);
+  return <div>{/* render */}</div>;
+}
+\`\`\`
+
+| Aspect | Recoil | Jotai |
+|--------|--------|-------|
+| **Origin** | Meta (internal, now community) | Community-driven |
+| **Bundle** | ~15KB | ~3KB |
+| **API** | Requires \`RecoilRoot\` wrapper | No wrapper needed |
+| **Async** | Selectors can be async | Atoms can be async |
+| **React 18** | Some concurrent mode issues | Built for concurrent mode |
+| **Maintenance** | Experimental, low activity | Actively maintained |
+
+Jotai is generally preferred for new projects — smaller, simpler, and actively maintained.`,
+      difficulty: "medium",
+      tags: ["recoil", "jotai", "atoms", "comparison"],
+      is_top50: false,
+    },
+    {
+      question: "What is persist middleware and how does it work with Zustand?",
+      answer: `Persist middleware saves state to a storage (localStorage, AsyncStorage) and rehydrates on app load.
+
+\`\`\`javascript
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+const useAuthStore = create(
+  persist(
+    (set) => ({
+      token: null,
+      user: null,
+      login: (user, token) => set({ user, token }),
+      logout: () => set({ user: null, token: null }),
+    }),
+    {
+      name: 'auth-storage',  // unique key
+      storage: {
+        getItem: (name) => {
+          const value = localStorage.getItem(name);
+          return value ? JSON.parse(value) : null;
+        },
+        setItem: (name, value) => {
+          localStorage.setItem(name, JSON.stringify(value));
+        },
+        removeItem: (name) => localStorage.removeItem(name),
+      },
+      partialize: (state) => ({ token: state.token, user: state.user }), // only persist these
+      onRehydrateStorage: () => (state) => {
+        console.log('Hydrated:', state);
+      }
+    }
+  )
+);
+
+// Redux persist
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+
+const persistConfig = {
+  key: 'root',
+  storage,
+  whitelist: ['auth', 'theme'],  // only persist these reducers
+};
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+const store = configureStore({ reducer: persistedReducer });
+const persistor = persistStore(store);
+// Wrap app with <PersistGate loading={null} persistor={persistor}>
+\`\`\`
+
+Common storage backends: localStorage, sessionStorage, AsyncStorage (React Native), cookies.`,
+      difficulty: "medium",
+      tags: ["zustand", "persist", "middleware", "localStorage"],
+      is_top50: false,
+    },
+    {
+      question: "What is Valtio and how does it compare to Zustand?",
+      answer: `Valtio is a proxy-based state management library. Instead of immutable updates (Redux/Zustand), you mutate the state directly via proxies.
+
+\`\`\`javascript
+import { proxy, useSnapshot } from 'valtio';
+
+const state = proxy({
+  count: 0,
+  todos: []
+});
+
+// Mutate directly (looks like mutation, but produces immutable snapshot)
+const increment = () => {
+  state.count++;
+};
+
+const addTodo = (text) => {
+  state.todos.push({ id: Date.now(), text, done: false });
+};
+
+function Counter() {
+  const snap = useSnapshot(state);  // reactive snapshot
+  return (
+    <div>
+      <p>Count: {snap.count}</p>
+      <button onClick={increment}>+</button>
+    </div>
+  );
+}
+\`\`\`
+
+| Aspect | Valtio | Zustand |
+|--------|--------|---------|
+| **API style** | Mutable (proxy-based) | Immutable (set function) |
+| **Rendering** | \`useSnapshot\` for reactive access | Selector-based subscriptions |
+| **Bundle** | ~3KB | ~1KB |
+| **Learning curve** | Very low (just mutate) | Low (return new state) |
+| **DevTools** | Supported | Supported |
+| **When to use** | Simple state, mutable mental model | Predictable state, selector control |`,
+      difficulty: "medium",
+      tags: ["valtio", "zustand", "comparison", "proxy"],
+      is_top50: false,
+    },
+    {
+      question: "How do you handle undo/redo in state management?",
+      answer: `Undo/redo requires storing previous versions of state. Two approaches:
+
+**1. Manual with Zustand:**
+\`\`\`javascript
+import { create } from 'zustand';
+
+const useDrawingStore = create((set, get) => ({
+  shapes: [],
+  past: [],
+  future: [],
+  addShape: (shape) => set((state) => ({
+    shapes: [...state.shapes, shape],
+    past: [...state.past, state.shapes],
+    future: [],
+  })),
+  undo: () => set((state) => {
+    if (state.past.length === 0) return state;
+    const previous = state.past[state.past.length - 1];
+    return {
+      shapes: previous,
+      past: state.past.slice(0, -1),
+      future: [state.shapes, ...state.future],
+    };
+  }),
+  redo: () => set((state) => {
+    if (state.future.length === 0) return state;
+    const next = state.future[0];
+    return {
+      shapes: next,
+      past: [...state.past, state.shapes],
+      future: state.future.slice(1),
+    };
+  })
+}));
+\`\`\`
+
+**2. Redux undo history pattern:**
+Store undoable state as \`{ past: [], present: {}, future: [] }\`. The reducer pushes \`present\` to \`past\` before applying changes, and pops from \`future\` on redo. Libraries like \`redux-undo\` provide this as a higher-order reducer.`,
+      difficulty: "hard",
+      tags: ["state-management", "undo-redo", "advanced"],
+      is_top50: false,
+    },

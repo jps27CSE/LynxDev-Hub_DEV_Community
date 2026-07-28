@@ -9,7 +9,7 @@ function Hero() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 lg:py-40">
         <div className="text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center rounded-full border border-border px-4 py-1.5 text-sm font-medium text-muted-foreground mb-8">
-            by Jack Pritom Soren &middot; Software Engineer
+            by Jack Pritom Soren
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
             Learn. Build. Grow.{" "}
