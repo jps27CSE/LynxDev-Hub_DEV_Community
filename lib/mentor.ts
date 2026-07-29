@@ -1,9 +1,9 @@
 import { cache } from "react";
 import { db } from "@/config/db";
 import { usersTable, enrollments, courses, chapters, mentorConversations } from "@/config/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
-type Message = { role: "user" | "assistant" | "system"; content: string };
+export type Message = { role: "user" | "assistant" | "system"; content: string };
 
 export const getUserContext = cache(async (clerkEmail: string) => {
   const users = await db
@@ -20,26 +20,42 @@ export const getUserContext = cache(async (clerkEmail: string) => {
     .from(enrollments)
     .where(eq(enrollments.user_id, user.id));
 
-  const courseList = await Promise.all(
-    enrolled.map(async (e) => {
-      const course = await db
-        .select()
-        .from(courses)
-        .where(eq(courses.id, e.course_id))
-        .limit(1);
-      if (!course.length) return null;
-      const chapterList = await db
-        .select()
-        .from(chapters)
-        .where(eq(chapters.course_id, e.course_id));
-      const prog = (e.progress as { completedChapters?: number[] }) || {};
-      return {
-        title: course[0].title,
-        progress: (prog.completedChapters || []).length,
-        total: chapterList.length,
-      };
-    })
-  );
+  const courseIds = enrolled.map((e) => e.course_id);
+
+  const chapterCountByCourseId = new Map<number, number>();
+  if (courseIds.length > 0) {
+    const chapterRows = await db
+      .select({ course_id: chapters.course_id })
+      .from(chapters)
+      .where(inArray(chapters.course_id, courseIds));
+
+    for (const ch of chapterRows) {
+      chapterCountByCourseId.set(ch.course_id, (chapterCountByCourseId.get(ch.course_id) || 0) + 1);
+    }
+  }
+
+  const courseInfoByCourseId = new Map<number, { title: string; total: number }>();
+  if (courseIds.length > 0) {
+    const courseRows = await db
+      .select({ id: courses.id, title: courses.title })
+      .from(courses)
+      .where(inArray(courses.id, courseIds));
+
+    for (const c of courseRows) {
+      courseInfoByCourseId.set(c.id, { title: c.title, total: chapterCountByCourseId.get(c.id) || 0 });
+    }
+  }
+
+  const courseList = enrolled.map((e) => {
+    const course = courseInfoByCourseId.get(e.course_id);
+    if (!course) return null;
+    const prog = (e.progress ?? {}) as { completedChapters?: number[] };
+    return {
+      title: course.title,
+      progress: (prog.completedChapters || []).length,
+      total: course.total,
+    };
+  });
 
   return {
     name: user.name,

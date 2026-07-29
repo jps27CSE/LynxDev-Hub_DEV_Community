@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { db } from "@/config/db";
 import { usersTable, enrollments, courses, chapters } from "@/config/schema";
 import { eq, count, inArray } from "drizzle-orm";
@@ -20,9 +21,7 @@ export type EnrolledCourse = {
   };
 };
 
-export async function getEnrollmentsByEmail(
-  email: string
-): Promise<EnrolledCourse[]> {
+export const getEnrollmentsByEmail = cache(async (email: string): Promise<EnrolledCourse[]> => {
   try {
     const users = await db
       .select()
@@ -81,4 +80,4 @@ export async function getEnrollmentsByEmail(
   } catch {
     return [];
   }
-}
+});

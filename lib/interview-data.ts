@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { db } from "@/config/db";
 import {
   interviewCategories,
@@ -39,7 +40,7 @@ export type InterviewQuestion = {
   is_top50: boolean | null;
 };
 
-export async function getAllCategories(): Promise<InterviewCategory[]> {
+export const getAllCategories = cache(async (): Promise<InterviewCategory[]> => {
   try {
     const result = await db
       .select({
@@ -75,23 +76,21 @@ export async function getAllCategories(): Promise<InterviewCategory[]> {
   } catch {
     return [];
   }
-}
+});
 
-export async function getCategoryBySlug(
-  slug: string
-): Promise<InterviewCategory | null> {
+export const getCategoryBySlug = cache(async (slug: string): Promise<InterviewCategory | null> => {
   try {
     const categories = await getAllCategories();
     return categories.find((c) => c.slug === slug) ?? null;
   } catch {
     return null;
   }
-}
+});
 
-export async function getQuestionsByCategorySlug(
+export const getQuestionsByCategorySlug = cache(async (
   slug: string,
   opts?: { limit?: number; offset?: number }
-): Promise<InterviewQuestion[]> {
+): Promise<InterviewQuestion[]> => {
   try {
     const catResult = await db
       .select()
@@ -134,11 +133,9 @@ export async function getQuestionsByCategorySlug(
   } catch {
     return [];
   }
-}
+});
 
-export async function getQuestionCountByCategorySlug(
-  slug: string
-): Promise<number> {
+export const getQuestionCountByCategorySlug = cache(async (slug: string): Promise<number> => {
   try {
     const catResult = await db
       .select({ id: interviewCategories.id })
@@ -165,12 +162,9 @@ export async function getQuestionCountByCategorySlug(
   } catch {
     return 0;
   }
-}
+});
 
-export async function getQuestionsByCategorySlugAndTags(
-  slug: string,
-  tags: string[]
-): Promise<InterviewQuestion[]> {
+export const getQuestionsByCategorySlugAndTags = cache(async (slug: string, tags: string[]): Promise<InterviewQuestion[]> => {
   try {
     const all = await getQuestionsByCategorySlug(slug);
     if (tags.length === 0) return all;
@@ -178,11 +172,9 @@ export async function getQuestionsByCategorySlugAndTags(
   } catch {
     return [];
   }
-}
+});
 
-export async function getDistinctTagsByCategorySlug(
-  slug: string
-): Promise<string[]> {
+export const getDistinctTagsByCategorySlug = cache(async (slug: string): Promise<string[]> => {
   try {
     const catResult = await db
       .select({ id: interviewCategories.id })
@@ -218,11 +210,9 @@ export async function getDistinctTagsByCategorySlug(
   } catch {
     return [];
   }
-}
+});
 
-export async function getChaptersByCategorySlug(
-  slug: string
-): Promise<InterviewChapter[]> {
+export const getChaptersByCategorySlug = cache(async (slug: string): Promise<InterviewChapter[]> => {
   try {
     const catResult = await db
       .select()
@@ -245,11 +235,9 @@ export async function getChaptersByCategorySlug(
   } catch {
     return [];
   }
-}
+});
 
-export async function getQuestionsByChapterIds(
-  chapterIds: number[]
-): Promise<Record<number, InterviewQuestion[]>> {
+export const getQuestionsByChapterIds = cache(async (chapterIds: number[]): Promise<Record<number, InterviewQuestion[]>> => {
   if (chapterIds.length === 0) return {};
 
   try {
@@ -284,4 +272,4 @@ export async function getQuestionsByChapterIds(
   } catch {
     return {};
   }
-}
+});

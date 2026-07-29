@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { db } from "@/config/db";
 import { courses, chapters } from "@/config/schema";
 import { eq } from "drizzle-orm";
@@ -26,7 +27,7 @@ export type Chapter = {
   points_reward: number | null;
 };
 
-export async function getAllCourses(): Promise<Course[]> {
+export const getAllCourses = cache(async (): Promise<Course[]> => {
   try {
     return await db
       .select()
@@ -36,11 +37,9 @@ export async function getAllCourses(): Promise<Course[]> {
   } catch {
     return [];
   }
-}
+});
 
-export async function getCourseById(
-  id: number
-): Promise<Course | null> {
+export const getCourseById = cache(async (id: number): Promise<Course | null> => {
   try {
     const result = await db
       .select()
@@ -51,11 +50,9 @@ export async function getCourseById(
   } catch {
     return null;
   }
-}
+});
 
-export async function getChaptersByCourseId(
-  courseId: number
-): Promise<Chapter[]> {
+export const getChaptersByCourseId = cache(async (courseId: number): Promise<Chapter[]> => {
   try {
     const result = await db
       .select()
@@ -69,4 +66,4 @@ export async function getChaptersByCourseId(
   } catch {
     return [];
   }
-}
+});

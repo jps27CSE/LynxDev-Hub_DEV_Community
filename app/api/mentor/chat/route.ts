@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { validationError, badJson, unauthorized, notFound } from "@/lib/api-error";
-import { db } from "@/config/db";
-import { usersTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
-import { getUserContext, buildSystemPrompt, callMistral } from "@/lib/mentor";
+import { getUserContext, buildSystemPrompt, callMistral, type Message } from "@/lib/mentor";
 
 const MessageSchema = z.object({
   message: z.string().min(1).max(10000),
@@ -40,23 +37,15 @@ export async function POST(req: Request) {
 
   const { message } = parsed.data;
 
-  const users = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.email, email))
-    .limit(1);
-
-  if (!users.length) return notFound("User");
-
   const ctx = await getUserContext(email);
   if (!ctx) return notFound("Context");
 
   const systemPrompt = buildSystemPrompt(ctx);
 
-  const apiMessages = [
+  const apiMessages: Message[] = [
     { role: "system", content: systemPrompt },
     { role: "user", content: message },
-  ] as { role: "user" | "assistant" | "system"; content: string }[];
+  ];
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
