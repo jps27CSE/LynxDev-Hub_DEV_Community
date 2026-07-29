@@ -25171,6 +25171,264 @@ chown -R www-data:www-data storage bootstrap/cache
       tags: ["laravel", "deployment", "devops", "php"],
       is_top50: false,
     },
+
+    // ──────── Django (Python) — Junior Level ────────
+
+    {
+      question: "What is Django and what is the MVT (Model-View-Template) architecture?",
+      answer: "Django is a high-level Python web framework that follows the 'batteries-included' philosophy — it provides built-in components for common web development tasks. Django follows the MVT (Model-View-Template) architecture: **Models** define the database structure (tables, fields, relationships), **Views** contain the business logic that processes requests and returns responses, and **Templates** handle the presentation layer (HTML with Django Template Language). The flow: a URL pattern maps to a View, the View queries Models (database) and passes data to a Template, which renders the final HTML response.",
+      difficulty: "easy",
+      tags: ["django", "python", "architecture"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between a Django project and a Django app?",
+      answer: "A **Django project** is the entire web application — it contains the settings, URL configurations, and WSGI/ASGI configuration for deployment. A **Django app** is a self-contained module within a project that handles a specific feature (e.g., a blog app, a user profile app, a payment app). One project can contain multiple apps, and ideally one app should do one thing well. You create a project with `django-admin startproject` and an app with `python manage.py startapp`.",
+      difficulty: "easy",
+      tags: ["django", "python", "basics"],
+      is_top50: true,
+    },
+    {
+      question: "What is the purpose of the manage.py file in Django?",
+      answer: "`manage.py` is a command-line utility that comes with every Django project. It sets the `DJANGO_SETTINGS_MODULE` environment variable and wraps `django-admin` for project-specific commands. Common commands: `python manage.py runserver` (start dev server), `python manage.py startapp` (create a new app), `python manage.py makemigrations` (generate migrations), `python manage.py migrate` (apply migrations), `python manage.py createsuperuser` (create admin user), and `python manage.py test` (run tests).",
+      difficulty: "easy",
+      tags: ["django", "python", "basics"],
+      is_top50: false,
+    },
+    {
+      question: "What is the Django admin interface and how do you access it?",
+      answer: "Django's admin interface is an automatically generated, customizable dashboard for managing application data through a web UI. To access it: (1) create a superuser with `python manage.py createsuperuser`, (2) start the server with `python manage.py runserver`, (3) visit `/admin/` in your browser and log in. To make a model visible in the admin, register it in `admin.py` using `admin.site.register(ModelName)` or the `@admin.register()` decorator with a custom `ModelAdmin` class.",
+      difficulty: "easy",
+      tags: ["django", "python", "admin"],
+      is_top50: true,
+    },
+    {
+      question: "Explain the Django request-response cycle.",
+      answer: "The Django request-response cycle follows this flow: (1) A user's browser sends an HTTP request to the Django server. (2) The **URL dispatcher** (urls.py) matches the requested URL against defined patterns and calls the corresponding **View**. (3) **Middleware** classes process the request before and after the view (e.g., CSRF protection, authentication, session handling). (4) The View executes business logic — typically querying the **Model** (database) and preparing context data. (5) The View renders a **Template** (HTML) with the context data, or returns a JSON response. (6) The response passes back through the **Middleware** chain and is sent to the browser.",
+      difficulty: "medium",
+      tags: ["django", "python", "architecture"],
+      is_top50: true,
+    },
+    {
+      question: "What are Django settings and how do you configure them for different environments?",
+      answer: "Django settings are defined in `settings.py` and control the entire application behavior — database configuration, installed apps, middleware, templates, static files, security keys, etc. Common settings: `DATABASES`, `INSTALLED_APPS`, `MIDDLEWARE`, `TEMPLATES`, `STATIC_URL`, `SECRET_KEY`. For different environments (development, staging, production), best practices include: using environment variables for sensitive values (like `SECRET_KEY` and database passwords), creating separate settings files (e.g., `settings/base.py`, `settings/dev.py`, `settings/prod.py`), or using `python-decouple` / `django-environ` for .env file management.",
+      difficulty: "medium",
+      tags: ["django", "python", "configuration"],
+      is_top50: false,
+    },
+
+    // ──────── Models & Database ────────
+
+    {
+      question: "How do you define a model in Django and what is it used for?",
+      answer: "A Django model is a Python class that subclasses `django.db.models.Model` and represents a database table. Each attribute of the class corresponds to a database column. Models define the structure of your data and provide the ORM (Object-Relational Mapping) layer to create, read, update, and delete records without writing raw SQL. Example:\n\n```python\nfrom django.db import models\n\nclass Post(models.Model):\n    title = models.CharField(max_length=200)\n    content = models.TextField()\n    published_date = models.DateTimeField(auto_now_add=True)\n    is_published = models.BooleanField(default=False)\n```",
+      difficulty: "easy",
+      tags: ["django", "python", "models"],
+      is_top50: true,
+    },
+    {
+      question: "What are common field types in Django models?",
+      answer: "Django provides many field types for different data: **CharField** (short strings, requires max_length), **TextField** (long text), **IntegerField**, **FloatField**, **DecimalField** (precise decimals, requires max_digits and decimal_places), **BooleanField**, **DateField** / **DateTimeField** (dates and timestamps), **EmailField** (validates email format), **URLField**, **FileField** / **ImageField** (file uploads), **ForeignKey** (many-to-one), **ManyToManyField**, and **OneToOneField**. Each field type has specific validation and database column type.",
+      difficulty: "easy",
+      tags: ["django", "python", "models"],
+      is_top50: true,
+    },
+    {
+      question: "What are migrations in Django and how do they work?",
+      answer: "Migrations are Django's way of tracking and applying changes to the database schema. When you modify a model (add/remove a field, change a field type), you run `python manage.py makemigrations` which generates a migration file describing the changes. Then `python manage.py migrate` applies those changes to the actual database by executing SQL. Migrations are version-controlled Python files stored in each app's `migrations/` directory. They allow you to evolve the database schema alongside your code.",
+      difficulty: "easy",
+      tags: ["django", "python", "migrations", "models"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between `makemigrations` and `migrate` in Django?",
+      answer: "`makemigrations` and `migrate` are two separate steps in Django's migration workflow. **`makemigrations`** analyzes your current model definitions compared to the last migration and creates new migration files (Python files) that describe the database schema changes. It does NOT modify the database. **`migrate`** reads those migration files and executes the corresponding SQL against the actual database, applying the schema changes. The workflow is: change models → `makemigrations` (generate) → `migrate` (apply). Always run both in sequence.",
+      difficulty: "easy",
+      tags: ["django", "python", "migrations"],
+      is_top50: true,
+    },
+    {
+      question: "What are the three types of relationships in Django models?",
+      answer: "Django supports three relationship types: (1) **ForeignKey** — many-to-one relationship (e.g., many Posts belong to one Author). The model with the ForeignKey field contains the database column. (2) **ManyToManyField** — many-to-many relationship (e.g., a Post can have many Tags, and a Tag can belong to many Posts). Creates a junction table automatically. (3) **OneToOneField** — one-to-one relationship (e.g., a User has one Profile). Similar to ForeignKey but with `unique=True`. Useful for extending models with additional data.",
+      difficulty: "medium",
+      tags: ["django", "python", "models", "relationships"],
+      is_top50: true,
+    },
+    {
+      question: "What is the `__str__` method in Django models and why is it important?",
+      answer: "The `__str__` method defines the human-readable string representation of a model instance. It is used in the Django admin interface, in the Django shell, and in debug output. Without it, Django displays '<ModelName object (id)>' which is not helpful. Example:\n\n```python\nclass Post(models.Model):\n    title = models.CharField(max_length=200)\n\n    def __str__(self):\n        return self.title\n```\nThis makes the admin list view and dropdowns show meaningful names instead of generic object references.",
+      difficulty: "easy",
+      tags: ["django", "python", "models"],
+      is_top50: false,
+    },
+
+    // ──────── ORM & QuerySets ────────
+
+    {
+      question: "What is a QuerySet in Django?",
+      answer: "A QuerySet is Django's way of representing a collection of database queries. It allows you to chain filters, exclude, annotate, and order operations before executing the actual database query. QuerySets are lazy — they only hit the database when evaluated. Example: `Post.objects.filter(published=True).order_by('-created_at')` builds a query but doesn't execute it until you iterate, call `list()`, or access it. Every Django model has a default manager `objects` that returns a QuerySet.",
+      difficulty: "easy",
+      tags: ["django", "python", "orm"],
+      is_top50: true,
+    },
+    {
+      question: "What does it mean that Django QuerySets are lazy?",
+      answer: "Lazy evaluation means QuerySets do not hit the database until they are explicitly evaluated. You can chain multiple filters, excludes, and annotations — Django builds a SQL query object internally but does NOT execute it. The database is only queried when you: iterate over the QuerySet (e.g., `for post in posts`), call `list()`, `len()`, `bool()`, `exists()`, `count()`, or access an index. This allows efficient query building where the final SQL includes all chained conditions.",
+      difficulty: "medium",
+      tags: ["django", "python", "orm"],
+      is_top50: true,
+    },
+    {
+      question: "How do you perform CRUD operations using the Django ORM?",
+      answer: "CRUD operations using the Django ORM:\n\n**Create**: `Post.objects.create(title='Hello', content='World')` or `post = Post(title='Hello'); post.save()`.\n\n**Read**: `Post.objects.all()` (all records), `Post.objects.get(id=1)` (single record, raises error if not found), `Post.objects.filter(published=True)` (filtered results).\n\n**Update**: `post.title = 'New Title'; post.save()` or `Post.objects.filter(published=False).update(status='archived')` (bulk update).\n\n**Delete**: `post.delete()` or `Post.objects.filter(published=False).delete()` (bulk delete).\n\nEach model has a default `objects` manager with these methods.",
+      difficulty: "easy",
+      tags: ["django", "python", "orm", "crud"],
+      is_top50: true,
+    },
+    {
+      question: "How do you filter QuerySets in Django?",
+      answer: "Django provides several methods to filter QuerySets: **`filter(**kwargs)`** — returns a QuerySet matching the given conditions. **`exclude(**kwargs)`** — returns a QuerySet that does NOT match the conditions. **`get(**kwargs)`** — returns a single object (raises `DoesNotExist` or `MultipleObjectsReturned`). Filter lookups use double-underscore syntax: `field__exact`, `field__contains`, `field__icontains` (case-insensitive), `field__gt` (greater than), `field__lt` (less than), `field__in`, `field__startswith`, `field__range`, `field__isnull`. Example: `Post.objects.filter(title__icontains='django', created_at__year=2024)`.",
+      difficulty: "medium",
+      tags: ["django", "python", "orm", "queries"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between `get()` and `filter()` in Django ORM?",
+      answer: "**`get()`** returns a single model instance matching the given conditions. It raises `Model.DoesNotExist` if no record matches and `Model.MultipleObjectsReturned` if more than one matches. Use it when you expect exactly one result (e.g., fetching by primary key). **`filter()`** returns a QuerySet (possibly empty) containing all matching records. It never raises an error for zero or multiple results. Use it when you expect zero, one, or many results. Example: `User.objects.get(id=1)` vs `User.objects.filter(is_active=True)`.",
+      difficulty: "easy",
+      tags: ["django", "python", "orm"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between `select_related()` and `prefetch_related()` in Django?",
+      answer: "Both are used to prevent the **N+1 query problem** (querying related objects in a loop). **`select_related()`** uses a SQL JOIN to fetch related objects in the same query. It works for ForeignKey and OneToOneField relationships. **`prefetch_related()`** does a separate query for the related objects and joins them in Python. It works for ManyToManyField and reverse ForeignKey relationships. Example: `Post.objects.select_related('author').all()` — 1 query with JOIN. `Author.objects.prefetch_related('posts').all()` — 2 queries (authors + posts).",
+      difficulty: "medium",
+      tags: ["django", "python", "orm", "performance"],
+      is_top50: true,
+    },
+
+    // ──────── Views & URLs ────────
+
+    {
+      question: "What is the difference between function-based views and class-based views in Django?",
+      answer: "**Function-Based Views (FBVs)** are simple Python functions that take a `request` and return a `response`. They are explicit, easy to understand, and good for custom logic. **Class-Based Views (CBVs)** are Python classes that inherit from Django's generic views (like `ListView`, `DetailView`, `CreateView`). They reduce boilerplate — common patterns like displaying a list or creating an object are handled with a few lines. FBVs are better for complex custom views; CBVs are better for standard CRUD operations where you want less code.",
+      difficulty: "medium",
+      tags: ["django", "python", "views"],
+      is_top50: true,
+    },
+    {
+      question: "How do you define URL patterns in Django?",
+      answer: "URL patterns are defined in `urls.py` using the `urlpatterns` list. Each entry uses `path()` or `re_path()` to map a URL pattern to a view function or class. Example:\n\n```python\nfrom django.urls import path\nfrom . import views\n\nurlpatterns = [\n    path('', views.index, name='home'),\n    path('posts/', views.PostListView.as_view(), name='post_list'),\n    path('posts/<int:pk>/', views.post_detail, name='post_detail'),\n]\n```\n\nYou can include other URL configs using `include()` for app-specific URLs. Each path can have a `name` for reverse URL resolution with the `{% url %}` template tag or `reverse()` in Python.",
+      difficulty: "easy",
+      tags: ["django", "python", "urls"],
+      is_top50: true,
+    },
+    {
+      question: "What path converters are available in Django URL patterns?",
+      answer: "Django provides built-in path converters for capturing URL parameters with type validation: **`str`** — matches any non-empty string, excluding the path separator '/'. **`int`** — matches zero or a positive integer. **`slug`** — matches any slug string (letters, numbers, hyphens, underscores). **`uuid`** — matches a formatted UUID. **`path`** — matches any non-empty string including '/'. Example: `path('posts/<int:year>/<slug:slug>/', views.post_detail)` captures year as an integer and slug as a string, automatically converted to the correct Python type.",
+      difficulty: "medium",
+      tags: ["django", "python", "urls"],
+      is_top50: false,
+    },
+    {
+      question: "What are generic class-based views in Django?",
+      answer: "Generic class-based views are built-in Django views that handle common web development patterns with minimal code. Key ones include: **ListView** — display a list of objects (handles pagination). **DetailView** — display details of a single object. **CreateView** — display a form and create an object. **UpdateView** — display a form and update an existing object. **DeleteView** — confirm and delete an object. Example:\n```python\nfrom django.views.generic import ListView\nfrom .models import Post\n\nclass PostListView(ListView):\n    model = Post\n    template_name = 'posts/list.html'\n    context_object_name = 'posts'\n    paginate_by = 10\n```",
+      difficulty: "medium",
+      tags: ["django", "python", "views"],
+      is_top50: true,
+    },
+
+    // ──────── Templates ────────
+
+    {
+      question: "What is the Django Template Language (DTL) and how does it work?",
+      answer: "The Django Template Language (DTL) is Django's built-in templating system for generating HTML dynamically. It uses variables `{{ variable }}`, filters `{{ value|filter }}`, and tags `{% tag %}` to control rendering. DTL prevents XSS by auto-escaping all variable output. Variables are passed from the view to the template via a context dictionary. Example template: `<h1>{{ post.title }}</h1><p>{{ post.content|linebreaks }}</p>`. Tags control logic: `{% for post in posts %}`, `{% if user.is_authenticated %}`, `{% url 'post_detail' post.id %}`.",
+      difficulty: "easy",
+      tags: ["django", "python", "templates"],
+      is_top50: true,
+    },
+    {
+      question: "How does template inheritance work in Django?",
+      answer: "Template inheritance allows you to create a base template with common HTML structure and override specific sections in child templates. The base template uses `{% block blockname %}{% endblock %}` to define overrideable sections. Child templates use `{% extends 'base.html' %}` at the top and override blocks with their own content. Example base: `<html><head><title>{% block title %}My Site{% endblock %}</title></head><body>{% block content %}{% endblock %}</body></html>`. Child: `{% extends 'base.html' %} {% block title %}Blog{% endblock %} {% block content %}<h1>My Posts</h1>{% endblock %}`. This keeps the site layout DRY.",
+      difficulty: "easy",
+      tags: ["django", "python", "templates"],
+      is_top50: true,
+    },
+    {
+      question: "How do you use built-in template tags and filters in Django?",
+      answer: "Django provides many built-in template tags and filters. Common **tags**: `{% for %}` / `{% endfor %}` (loop), `{% if %}` / `{% elif %}` / `{% else %}` (conditions), `{% url 'view_name' arg %}` (reverse URL), `{% csrf_token %}` (CSRF protection in forms), `{% load static %}` (load static files), `{% include 'file.html' %}` (include another template). Common **filters**: `{{ value|date:'Y-m-d' }}` (format date), `{{ value|linebreaks }}` (convert newlines to HTML), `{{ value|default:'N/A' }}` (fallback value), `{{ value|length }}` (string length), `{{ value|truncatewords:20 }}` (truncate text). All filters can be chained: `{{ text|truncatewords:10|linebreaks }}`.",
+      difficulty: "easy",
+      tags: ["django", "python", "templates"],
+      is_top50: true,
+    },
+
+    // ──────── Forms ────────
+
+    {
+      question: "How do you create a form in Django?",
+      answer: "Django provides two ways to create forms: **`forms.Form`** for standalone forms not tied to a model (e.g., contact form, search form), and **`forms.ModelForm`** for forms tied to a model (auto-generates fields from the model). A form class defines fields with validation rules. Example:\n```python\nfrom django import forms\n\nclass ContactForm(forms.Form):\n    name = forms.CharField(max_length=100)\n    email = forms.EmailField()\n    message = forms.CharField(widget=forms.Textarea)\n\nclass PostForm(forms.ModelForm):\n    class Meta:\n        model = Post\n        fields = ['title', 'content', 'category']\n```\nIn the view, instantiate the form with `request.POST` on submission and call `is_valid()` to validate.",
+      difficulty: "medium",
+      tags: ["django", "python", "forms"],
+      is_top50: true,
+    },
+    {
+      question: "What happens when you call `is_valid()` on a Django form?",
+      answer: "`is_valid()` triggers the full validation pipeline: (1) **`_clean_fields()`** — each field's built-in validators run (e.g., max_length, required), then the field-specific `clean_<fieldname>()` method runs if defined. (2) **`_clean_form()`** — the form's `clean()` method runs for cross-field validation (e.g., password confirmation match). (3) **`_post_clean()`** — for ModelForms, model-level validation runs. If any step raises `ValidationError`, the error is stored in `form.errors` and `is_valid()` returns `False`. Validated data ends up in `form.cleaned_data` as a dictionary. If invalid, the form re-renders with error messages.",
+      difficulty: "medium",
+      tags: ["django", "python", "forms", "validation"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between `forms.Form` and `forms.ModelForm` in Django?",
+      answer: "**`forms.Form`** is a standalone form that is not tied to any database model. You manually define each field and handle saving the data yourself. Used for search forms, login forms, contact forms — anything that doesn't directly map to a model. **`forms.ModelForm`** is a shortcut that auto-generates form fields from a model definition. It provides a `save()` method that creates or updates a model instance. Choose `Form` for custom input not tied to a model, and `ModelForm` for CRUD operations on models to reduce boilerplate.",
+      difficulty: "medium",
+      tags: ["django", "python", "forms"],
+      is_top50: false,
+    },
+
+    // ──────── Django REST Framework ────────
+
+    {
+      question: "What is Django REST Framework (DRF) and why would you use it?",
+      answer: "Django REST Framework (DRF) is a powerful library for building RESTful APIs with Django. It provides: **Serializers** — convert Django model instances to JSON (and validate incoming JSON back to Python objects). **ViewSets** — group API actions (list, create, retrieve, update, delete) into one class. **Routers** — auto-generate URL patterns from ViewSets. **Authentication & Permissions** — built-in support for session auth, token auth, JWT, and permission classes. **Browsable API** — each endpoint renders a UI for testing. DRF reduces the boilerplate of building APIs significantly compared to writing JSON responses manually.",
+      difficulty: "medium",
+      tags: ["django", "python", "drf", "api"],
+      is_top50: true,
+    },
+    {
+      question: "What are serializers in Django REST Framework?",
+      answer: "Serializers in DRF convert complex data types (like Django model instances and QuerySets) into JSON for API responses, and validate/deserialize incoming JSON data back into Python objects. **`ModelSerializer`** auto-generates fields based on a model definition. Example:\n```python\nfrom rest_framework import serializers\nfrom .models import Post\n\nclass PostSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Post\n        fields = ['id', 'title', 'content', 'author', 'created_at']\n```\nSerializers also handle validation — you can add custom validation with `validate_<field>()` methods or a `validate()` method for cross-field checks.",
+      difficulty: "medium",
+      tags: ["django", "python", "drf", "serializers"],
+      is_top50: true,
+    },
+
+    // ──────── Authentication & Security ────────
+
+    {
+      question: "How does authentication work in Django?",
+      answer: "Django's built-in authentication system (`django.contrib.auth`) provides: a **User model** with username, password, email, and permission flags; `authenticate()` to verify credentials; `login()` to create a session; `logout()` to clear it; and the `@login_required` decorator to protect views. For API authentication, common approaches are **Session auth** (same-site apps, cookie-based), **Token auth** (via DRF's TokenAuthentication — a static token per user), and **JWT** (JSON Web Tokens via `djangorestframework-simplejwt` for stateless auth).",
+      difficulty: "medium",
+      tags: ["django", "python", "authentication"],
+      is_top50: true,
+    },
+    {
+      question: "How does Django protect against common security threats?",
+      answer: "Django has built-in protections for common web vulnerabilities: **CSRF** — `CsrfViewMiddleware` generates a unique token for each session; all POST forms must include `{% csrf_token %}`. **XSS** — Django's template engine auto-escapes all variable output (converts `<`, `>`, `&` to HTML entities). **SQL Injection** — Django's ORM uses parameterized queries, separating SQL code from user data. **Clickjacking** — `X-Frame-Options` middleware prevents your site from being embedded in iframes. **HTTPS** — `SECURE_SSL_REDIRECT`, `SESSION_COOKIE_SECURE`, and `CSRF_COOKIE_SECURE` settings enforce secure connections. Run `python manage.py check --deploy` to audit production security.",
+      difficulty: "medium",
+      tags: ["django", "python", "security"],
+      is_top50: true,
+    },
+
+    // ──────── Testing ────────
+
+    {
+      question: "How do you test Django applications?",
+      answer: "Django uses Python's `unittest` library with extensions: **`TestCase`** — a base test class that wraps each test in a database transaction (rolled back after each test for isolation). Use `self.client.get()`/`self.client.post()` to simulate HTTP requests. Example:\n```python\nfrom django.test import TestCase\nfrom .models import Post\n\nclass PostModelTest(TestCase):\n    def test_create_post(self):\n        post = Post.objects.create(title='Test', content='Hello')\n        self.assertEqual(post.title, 'Test')\n        self.assertEqual(Post.objects.count(), 1)\n\n    def test_post_list_view(self):\n        response = self.client.get('/posts/')\n        self.assertEqual(response.status_code, 200)\n        self.assertTemplateUsed(response, 'posts/list.html')\n```\nOther testing tools: **`pytest-django`** integrates pytest with Django for simpler syntax, **Factory Boy** creates test data factories, and **`assertNumQueries()`** ensures optimized queries.",
+      difficulty: "medium",
+      tags: ["django", "python", "testing"],
+      is_top50: true,
+    },
   ],
   "fullstack-engineer": [
     {
