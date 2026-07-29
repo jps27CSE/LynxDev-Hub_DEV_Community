@@ -66,7 +66,7 @@
 | Issue | Detail | RU Impact |
 |-------|--------|-----------|
 | ~~`getUserContext()` re-queried on every mentor POST~~ | ✅ Memoized with React `cache()` per request `lib/mentor.ts:8` | Resolved — single query per request regardless of call count |
-| No `react.cache()` or ISR for DB queries | Every page load is a fresh DB call | Full RU cost per page view, no batching |
+| ~~No `react.cache()` or ISR for DB queries~~ | ✅ All 15 DB query functions wrapped with React `cache()` across `lib/course-data.ts`, `enroll-data.ts`, `interview-data.ts`, `problem-data.ts` | Deduplicates queries within same request — reduces duplicate page load cost |
 | No dynamic imports | MentorChat (460 lines) + CategoryClient (464 lines) eager-loaded | Not an RU concern, but impacts TTFB and CPU time |
 
 ### 🟢 Quick Wins (under 1 hour each)
@@ -189,6 +189,7 @@
 | Batched mentor context queries | `getUserContext()` `lib/mentor.ts:25-47` — per-enrollment course+chapter loop replaced with 2 `inArray()` batch queries. 4 total queries (was 10 @ 4 courses). ~1.1M RU/month saved. |
 | Dashboard duplicate API call fix | Server component fetches once via `getEnrollmentsByEmail()`, passes as props. `WelcomeBanner` + `EnrolledCourses` no longer call `GET /api/enroll`. Shared lib `lib/enroll-data.ts`. |
 | Chapter count scoped to enrolled courses | `GROUP BY` on all courses → `inArray()` on enrolled course IDs only. Saves rows per dashboard load. |
+| React `cache()` on all 15 DB query functions | Wrapped `getAllCourses`, `getCourseById`, `getChaptersByCourseId`, `getEnrollmentsByEmail`, `getAllCategories`, `getCategoryBySlug`, `getQuestionsByCategorySlug`, `getQuestionCountByCategorySlug`, `getQuestionsByCategorySlugAndTags`, `getDistinctTagsByCategorySlug`, `getChaptersByCategorySlug`, `getQuestionsByChapterIds`, `getAllProblems`, `getProblemCategories`, `getProblemById` — deduplicates per request |
 
 ---
 
@@ -257,7 +258,7 @@
 | # | Action | Benefit | Effort |
 |---|--------|---------|--------|
 | 4.1 | `next/dynamic` for MentorChat + CategoryClient | Reduces initial JS bundle | 0.5 hr |
-| 4.2 | Enable React `cache()` for all DB queries | Reduces RU across the board | 0.5 hr |
+| ~~4.2~~ | ~~Enable React `cache()` for all DB queries~~ | ✅ Implemented — all 15 functions wrapped | — |
 | 4.3 | Add CORS configuration | Future-proofing | 0.2 hr |
 | 4.4 | Add correlation IDs to request chain | Debugging complex issues | 1 hr |
 | 4.5 | Opt out of Mistral data training | Privacy | 0.1 hr |
