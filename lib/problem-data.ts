@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { db } from "@/config/db";
 import { problems } from "@/config/schema";
 import { eq, asc, count, and } from "drizzle-orm";
@@ -19,14 +20,14 @@ export type TestCase = {
   expected: string;
 };
 
-export async function getAllProblems(
+export const getAllProblems = cache(async (
   opts?: {
     limit?: number;
     offset?: number;
     difficulty?: string;
     category?: string;
   }
-): Promise<{ problems: Problem[]; total: number }> {
+): Promise<{ problems: Problem[]; total: number }> => {
   try {
     const conditions = [];
     if (opts?.difficulty && opts.difficulty !== "all") {
@@ -64,9 +65,9 @@ export async function getAllProblems(
   } catch {
     return { problems: [], total: 0 };
   }
-}
+});
 
-export async function getProblemCategories(): Promise<string[]> {
+export const getProblemCategories = cache(async (): Promise<string[]> => {
   try {
     const result = await db
       .selectDistinct({ category: problems.category })
@@ -78,9 +79,9 @@ export async function getProblemCategories(): Promise<string[]> {
   } catch {
     return [];
   }
-}
+});
 
-export async function getProblemById(id: number): Promise<Problem | null> {
+export const getProblemById = cache(async (id: number): Promise<Problem | null> => {
   try {
     const result = await db
       .select()
@@ -97,4 +98,4 @@ export async function getProblemById(id: number): Promise<Problem | null> {
   } catch {
     return null;
   }
-}
+});
