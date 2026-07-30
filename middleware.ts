@@ -1,8 +1,25 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { getRateLimitConfig } from "@/config/rate-limits";
+import { checkRateLimit, getIdentifier } from "@/lib/rate-limit";
+import { rateLimited } from "@/lib/api-error";
 
 const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/"]);
 
 export default clerkMiddleware(async (auth, req) => {
+  const { pathname } = req.nextUrl;
+
+  if (pathname.startsWith("/api/")) {
+    const { userId } = await auth();
+    const config = getRateLimitConfig(pathname, req.method);
+    const identifier = getIdentifier(req, userId);
+    const result = checkRateLimit(identifier, config.limit, config.windowMs);
+
+    if (!result.success) {
+      const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
+      return rateLimited(retryAfter, config.limit, result.remaining, result.reset);
+    }
+  }
+
   if (!isPublicRoute(req)) {
     await auth.protect();
   }
@@ -10,9 +27,7 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
     "/(api|trpc)(.*)",
   ],
 };

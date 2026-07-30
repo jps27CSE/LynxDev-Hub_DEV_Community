@@ -81,11 +81,12 @@
 | I.1 | Zod validation on all API routes | ✅ Done | All 7 POST/PATCH routes validated — see `lib/api-error.ts` |
 | I.2 | Remove `//@ts-ignore` | ✅ Done | Removed from `enroll/route.ts` and `progress/route.ts` |
 | I.3 | Production review (500 users on free tier) | ✅ Updated | `docs/production-review-500-users.md` — accurate TiDB RU, Vercel CPU, Mistral RPM constraints |
+| I.4 | Rate limiting on all API routes | ✅ Done | In-memory rate limiting via `middleware.ts` + `lib/rate-limit.ts` + `config/rate-limits.ts`. 10 req/min on `generate`, 5 req/min on `mentor/chat`, 20 req/min default. |
 
 ## Free Tier Checklist
 
-- [ ] All DB queries paginated (max 20 per page)
-- [ ] AI rate-limited (10 req/min per user)
+- [x] All DB queries paginated (max 20 per page)
+- [x] API rate-limited (per-route limits: 5-30 req/min, in-memory middleware)
 - [ ] No file uploads stored permanently
 - [ ] Soft deletes everywhere
 - [ ] JSON columns used for flexible metadata
