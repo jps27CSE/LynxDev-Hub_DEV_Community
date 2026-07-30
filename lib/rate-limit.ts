@@ -9,7 +9,7 @@ setInterval(() => {
   }
 }, 300_000);
 
-export function checkRateLimit(
+export function consumeRateLimit(
   identifier: string,
   limit: number,
   windowMs: number
@@ -42,5 +42,5 @@ export function getRateLimitKey(
   const ip = forwarded?.split(",")[0]?.trim();
   if (ip) return `ip:${ip}`;
 
-  return `unknown:${request.headers.get("user-agent") ?? ""}`;
+  return "unknown";
 }

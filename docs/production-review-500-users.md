@@ -141,9 +141,7 @@
 
 | Issue | Files | Lines |
 |-------|-------|-------|
-| Empty catch blocks swallow errors | `lib/course-data.ts` | 3 catches |
-| Empty catch blocks swallow errors | `lib/problem-data.ts` | 2 catches |
-| Empty catch blocks swallow errors | `lib/interview-data.ts` | 7 catches |
+| ~~Empty catch blocks swallow errors~~ | ✅ All 14 catches fixed — `console.error("[module] fn:", error)` added | `lib/course-data.ts` (3), `lib/problem-data.ts` (3), `lib/interview-data.ts` (8) |
 | `console.log(result)` in production | `app/provider.tsx` | Line 24 — exposes API response in browser console |
 
 ### 🟡 Medium
@@ -192,6 +190,7 @@
 | React `cache()` on all 15 DB query functions | Wrapped `getAllCourses`, `getCourseById`, `getChaptersByCourseId`, `getEnrollmentsByEmail`, `getAllCategories`, `getCategoryBySlug`, `getQuestionsByCategorySlug`, `getQuestionCountByCategorySlug`, `getQuestionsByCategorySlugAndTags`, `getDistinctTagsByCategorySlug`, `getChaptersByCategorySlug`, `getQuestionsByChapterIds`, `getAllProblems`, `getProblemCategories`, `getProblemById` — deduplicates per request |
 | Rate limiting on all API routes | `middleware.ts` + `lib/rate-limit.ts` + `config/rate-limits.ts`. In-memory per-instance fixed window. 10 req/min on `generate`, 5 req/min on `mentor/chat`, 20 req/min default. 429 response with `Retry-After` + `X-RateLimit-*` headers. |
 | TiDB connection pool config | `config/db.tsx` — explicit `connectionLimit: 5`, `queueLimit: 25`, `idleTimeout: 30s`, `enableKeepAlive: true`. Replaces mysql2 defaults. Prevents connection pile-up and detects dropped connections. |
+| Empty catch blocks log errors | All 14 empty catches in `lib/course-data.ts`, `lib/problem-data.ts`, `lib/interview-data.ts` now log via `console.error("[module] fn:", error)` before returning fallback. |
 
 ---
 
@@ -231,7 +230,7 @@
 | ~~1.1~~ | ~~Memoize `getUserContext()` with React `cache()`~~ | ✅ Implemented `lib/mentor.ts:8` | ~15M RU | ~2 CPU-hrs | — |
 | ~~1.2~~ | ~~Batch interview questions — 1 `inArray()` query, not N queries~~ | ✅ `getQuestionsByChapterIds()` with `inArray()` | ~10M RU | ~0.5 CPU-hrs | — |
 | ~~1.3~~ | ~~Add `.limit(20)` to question & problem queries~~ | ✅ Paginated `getAllProblems()` + `getQuestionsByCategorySlug()` + `getDistinctTagsByCategorySlug()` rewrite + `GET /api/interview/questions` | ~5M RU | ~0.3 CPU-hrs | — |
-| 1.4 | Fix empty catch blocks to log errors | N/A | N/A | 0.5 hr |
+| ~~1.4~~ | ~~Fix empty catch blocks to log errors~~ | ✅ All 14 catches in `course-data.ts` (3), `problem-data.ts` (3), `interview-data.ts` (8) now log via `console.error("[module] fn:", error)` | N/A | — |
 | 1.5 | Create `.env.example`, remove `.env` from git | N/A | N/A | 0.1 hr |
 | 1.6 | Add Mistral retry with exponential backoff (3 attempts) | N/A | N/A | 1 hr |
 

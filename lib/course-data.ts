@@ -34,7 +34,8 @@ export const getAllCourses = cache(async (): Promise<Course[]> => {
       .from(courses)
       .where(eq(courses.is_published!, true))
       .orderBy(courses.order_index);
-  } catch {
+  } catch (error) {
+    console.error("[course-data] getAllCourses:", error);
     return [];
   }
 });
@@ -47,7 +48,8 @@ export const getCourseById = cache(async (id: number): Promise<Course | null> =>
       .where(eq(courses.id, id))
       .limit(1);
     return result[0] ?? null;
-  } catch {
+  } catch (error) {
+    console.error("[course-data] getCourseById:", error);
     return null;
   }
 });
@@ -63,7 +65,8 @@ export const getChaptersByCourseId = cache(async (courseId: number): Promise<Cha
       ...ch,
       content: ch.content as Chapter["content"],
     }));
-  } catch {
+  } catch (error) {
+    console.error("[course-data] getChaptersByCourseId:", error);
     return [];
   }
 });

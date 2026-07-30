@@ -73,7 +73,8 @@ export const getAllCategories = cache(async (): Promise<InterviewCategory[]> => 
       ...r,
       questionCount: Number(r.questionCount),
     }));
-  } catch {
+  } catch (error) {
+    console.error("[interview-data] getAllCategories:", error);
     return [];
   }
 });
@@ -82,7 +83,8 @@ export const getCategoryBySlug = cache(async (slug: string): Promise<InterviewCa
   try {
     const categories = await getAllCategories();
     return categories.find((c) => c.slug === slug) ?? null;
-  } catch {
+  } catch (error) {
+    console.error("[interview-data] getCategoryBySlug:", error);
     return null;
   }
 });
@@ -130,7 +132,8 @@ export const getQuestionsByCategorySlug = cache(async (
       ...q,
       tags: q.tags as string[],
     }));
-  } catch {
+  } catch (error) {
+    console.error("[interview-data] getQuestionsByCategorySlug:", error);
     return [];
   }
 });
@@ -159,7 +162,8 @@ export const getQuestionCountByCategorySlug = cache(async (slug: string): Promis
       .where(eq(interviewChapters.category_id, catResult[0].id));
 
     return Number(result.value);
-  } catch {
+  } catch (error) {
+    console.error("[interview-data] getQuestionCountByCategorySlug:", error);
     return 0;
   }
 });
@@ -169,7 +173,8 @@ export const getQuestionsByCategorySlugAndTags = cache(async (slug: string, tags
     const all = await getQuestionsByCategorySlug(slug);
     if (tags.length === 0) return all;
     return all.filter((q) => q.tags.some((t) => tags.includes(t)));
-  } catch {
+  } catch (error) {
+    console.error("[interview-data] getQuestionsByCategorySlugAndTags:", error);
     return [];
   }
 });
@@ -207,7 +212,8 @@ export const getDistinctTagsByCategorySlug = cache(async (slug: string): Promise
       }
     }
     return Array.from(tagSet).sort();
-  } catch {
+  } catch (error) {
+    console.error("[interview-data] getDistinctTagsByCategorySlug:", error);
     return [];
   }
 });
@@ -232,7 +238,8 @@ export const getChaptersByCategorySlug = cache(async (slug: string): Promise<Int
       ...ch,
       content: ch.content as InterviewChapter["content"],
     }));
-  } catch {
+  } catch (error) {
+    console.error("[interview-data] getChaptersByCategorySlug:", error);
     return [];
   }
 });
@@ -269,7 +276,8 @@ export const getQuestionsByChapterIds = cache(async (chapterIds: number[]): Prom
       });
     }
     return grouped;
-  } catch {
+  } catch (error) {
+    console.error("[interview-data] getQuestionsByChapterIds:", error);
     return {};
   }
 });
