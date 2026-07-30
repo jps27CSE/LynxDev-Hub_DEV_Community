@@ -82,6 +82,7 @@
 | I.2 | Remove `//@ts-ignore` | ✅ Done | Removed from `enroll/route.ts` and `progress/route.ts` |
 | I.3 | Production review (500 users on free tier) | ✅ Updated | `docs/production-review-500-users.md` — accurate TiDB RU, Vercel CPU, Mistral RPM constraints |
 | I.4 | Rate limiting on all API routes | ✅ Done | In-memory rate limiting via `middleware.ts` + `lib/rate-limit.ts` + `config/rate-limits.ts`. 10 req/min on `generate`, 5 req/min on `mentor/chat`, 20 req/min default. |
+| I.5 | TiDB connection pool config | ✅ Done | `config/db.tsx` — explicit `connectionLimit: 5`, `queueLimit: 25`, `idleTimeout: 30s`, keep-alive enabled. Replaces untuned mysql2 defaults. |
 
 ## Free Tier Checklist
 

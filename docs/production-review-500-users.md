@@ -108,7 +108,7 @@
 | Issue | Risk |
 |-------|------|
 | ~~No rate limiting on any route~~ | ✅ In-memory rate limiting applied in middleware — see `middleware.ts`, `lib/rate-limit.ts`, `config/rate-limits.ts`. 10 req/min for `generate`, 5 req/min for mentor chat, defaults cover all API routes. |
-| No connection pool config | Default mysql2 pool leaves connections to TiDB untuned |
+| ~~No connection pool config~~ | ✅ Explicit pool config in `config/db.tsx` — `connectionLimit: 5`, `queueLimit: 25`, `idleTimeout: 30s`, keep-alive enabled. Prevents connection pile-up and detects dead connections. |
 | ~~256 MiB query memory limit~~ | ✅ Mitigated — `getAllProblems()` and `getQuestionsByCategorySlug()` now return 20 rows. `getDistinctTagsByCategorySlug()` returns tags only. Reduced to ~0.75KB per query. |
 
 ---
@@ -191,6 +191,7 @@
 | Chapter count scoped to enrolled courses | `GROUP BY` on all courses → `inArray()` on enrolled course IDs only. Saves rows per dashboard load. |
 | React `cache()` on all 15 DB query functions | Wrapped `getAllCourses`, `getCourseById`, `getChaptersByCourseId`, `getEnrollmentsByEmail`, `getAllCategories`, `getCategoryBySlug`, `getQuestionsByCategorySlug`, `getQuestionCountByCategorySlug`, `getQuestionsByCategorySlugAndTags`, `getDistinctTagsByCategorySlug`, `getChaptersByCategorySlug`, `getQuestionsByChapterIds`, `getAllProblems`, `getProblemCategories`, `getProblemById` — deduplicates per request |
 | Rate limiting on all API routes | `middleware.ts` + `lib/rate-limit.ts` + `config/rate-limits.ts`. In-memory per-instance fixed window. 10 req/min on `generate`, 5 req/min on `mentor/chat`, 20 req/min default. 429 response with `Retry-After` + `X-RateLimit-*` headers. |
+| TiDB connection pool config | `config/db.tsx` — explicit `connectionLimit: 5`, `queueLimit: 25`, `idleTimeout: 30s`, `enableKeepAlive: true`. Replaces mysql2 defaults. Prevents connection pile-up and detects dropped connections. |
 
 ---
 
@@ -221,7 +222,7 @@
 | # | Action | Constraint Solved | Developer Hours |
 |---|--------|-------------------|-----------------|
 | 0.1 | Set up Mistral paid tier ($14.99/mo) or implement request queue | 1 RPM bottleneck is non-negotiable for 500 users | 0.1 |
-| 0.2 | Set explicit TiDB pool config (`connectionLimit: 10, queueLimit: 50`) | Prevents connection pile-up under load | 0.1 |
+| ~~0.2~~ | ~~Set explicit TiDB pool config~~ | ✅ `config/db.tsx` — 5 connections, 25 queue, 30s idle, keep-alive on | 0.1 |
 
 ### Tier 1 — Must fix within first 2 weeks
 
