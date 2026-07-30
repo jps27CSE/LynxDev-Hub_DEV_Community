@@ -2,6 +2,7 @@ import { cache } from "react";
 import { db } from "@/config/db";
 import {
   interviewCategories,
+  interviewCategoryChapters,
   interviewChapters,
   interviewQuestions,
   interviewQuestionChapters,
@@ -21,14 +22,12 @@ export type InterviewCategory = {
 
 export type InterviewChapter = {
   id: number;
-  category_id: number;
   title: string;
   content: {
     keyPoints: string[];
     tips: string[];
     [key: string]: unknown;
   };
-  order_index: number | null;
 };
 
 export type InterviewQuestion = {
@@ -55,8 +54,12 @@ export const getAllCategories = cache(async (): Promise<InterviewCategory[]> => 
       })
       .from(interviewCategories)
       .leftJoin(
+        interviewCategoryChapters,
+        eq(interviewCategories.id, interviewCategoryChapters.category_id)
+      )
+      .leftJoin(
         interviewChapters,
-        eq(interviewCategories.id, interviewChapters.category_id)
+        eq(interviewCategoryChapters.chapter_id, interviewChapters.id)
       )
       .leftJoin(
         interviewQuestionChapters,
@@ -120,7 +123,11 @@ export const getQuestionsByCategorySlug = cache(async (
         interviewChapters,
         eq(interviewQuestionChapters.chapter_id, interviewChapters.id)
       )
-      .where(eq(interviewChapters.category_id, catResult[0].id))
+      .innerJoin(
+        interviewCategoryChapters,
+        eq(interviewChapters.id, interviewCategoryChapters.chapter_id)
+      )
+      .where(eq(interviewCategoryChapters.category_id, catResult[0].id))
       .orderBy(interviewQuestions.id)
       .$dynamic();
 
@@ -159,7 +166,11 @@ export const getQuestionCountByCategorySlug = cache(async (slug: string): Promis
         interviewChapters,
         eq(interviewQuestionChapters.chapter_id, interviewChapters.id)
       )
-      .where(eq(interviewChapters.category_id, catResult[0].id));
+      .innerJoin(
+        interviewCategoryChapters,
+        eq(interviewChapters.id, interviewCategoryChapters.chapter_id)
+      )
+      .where(eq(interviewCategoryChapters.category_id, catResult[0].id));
 
     return Number(result.value);
   } catch (error) {
@@ -200,7 +211,11 @@ export const getDistinctTagsByCategorySlug = cache(async (slug: string): Promise
         interviewChapters,
         eq(interviewQuestionChapters.chapter_id, interviewChapters.id)
       )
-      .where(eq(interviewChapters.category_id, catResult[0].id));
+      .innerJoin(
+        interviewCategoryChapters,
+        eq(interviewChapters.id, interviewCategoryChapters.chapter_id)
+      )
+      .where(eq(interviewCategoryChapters.category_id, catResult[0].id));
 
     const tagSet = new Set<string>();
     for (const row of rows) {
@@ -229,13 +244,23 @@ export const getChaptersByCategorySlug = cache(async (slug: string): Promise<Int
     if (catResult.length === 0) return [];
 
     const result = await db
-      .select()
-      .from(interviewChapters)
-      .where(eq(interviewChapters.category_id, catResult[0].id))
-      .orderBy(asc(interviewChapters.order_index));
+      .select({
+        id: interviewChapters.id,
+        title: interviewChapters.title,
+        content: interviewChapters.content,
+        order_index: interviewCategoryChapters.order_index,
+      })
+      .from(interviewCategoryChapters)
+      .innerJoin(
+        interviewChapters,
+        eq(interviewCategoryChapters.chapter_id, interviewChapters.id)
+      )
+      .where(eq(interviewCategoryChapters.category_id, catResult[0].id))
+      .orderBy(asc(interviewCategoryChapters.order_index));
 
     return result.map((ch) => ({
-      ...ch,
+      id: ch.id,
+      title: ch.title,
       content: ch.content as InterviewChapter["content"],
     }));
   } catch (error) {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getAllCategories } from "@/lib/interview-data";
 import { db } from "@/config/db";
-import { interviewChapters, interviewQuestions } from "@/config/schema";
+import { interviewCategoryChapters, interviewQuestions } from "@/config/schema";
 import { count } from "drizzle-orm";
 import { ArrowLeft, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -52,10 +52,10 @@ export default async function InterviewPage() {
     ALLOWED_SLUGS.includes(c.slug)
   );
   const [qTotal] = await db.select({ value: count() }).from(interviewQuestions);
-  const [chTotal] = await db.select({ value: count() }).from(interviewChapters);
+  const [chTotal] = await db.select({ value: count() }).from(interviewCategoryChapters);
   const allChapters = await db
-    .select({ category_id: interviewChapters.category_id })
-    .from(interviewChapters);
+    .select({ category_id: interviewCategoryChapters.category_id })
+    .from(interviewCategoryChapters);
   const chapterCountByCategory = new Map<number, number>();
   for (const ch of allChapters) {
     chapterCountByCategory.set(ch.category_id, (chapterCountByCategory.get(ch.category_id) || 0) + 1);

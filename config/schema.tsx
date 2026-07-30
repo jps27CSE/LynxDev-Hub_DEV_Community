@@ -63,14 +63,21 @@ export const interviewCategories = mysqlTable("interview_categories", {
   order_index: int("order_index").default(0),
 });
 
-export const interviewChapters = mysqlTable("interview_chapters", {
+export const interviewCategoryChapters = mysqlTable("interview_category_chapters", {
   id: int().primaryKey().autoincrement(),
   category_id: int("category_id")
     .references(() => interviewCategories.id)
     .notNull(),
+  chapter_id: int("chapter_id")
+    .references(() => interviewChapters.id)
+    .notNull(),
+  order_index: int("order_index").default(0),
+});
+
+export const interviewChapters = mysqlTable("interview_chapters", {
+  id: int().primaryKey().autoincrement(),
   title: varchar({ length: 255 }).notNull(),
   content: json().notNull(),
-  order_index: int("order_index").default(0),
 });
 
 export const interviewQuestions = mysqlTable("interview_questions", {

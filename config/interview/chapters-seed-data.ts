@@ -250,10 +250,22 @@ function bfsShortestPath(start, target) {
           "Use the right tool: if you need sorted data with inserts, reach for a BST, not a sorted array",
         ],
         sampleQuestions: [
-          "Design an LRU cache with O(1) get and put using a hash map and doubly linked list",
-          "Find the shortest path between two nodes in an unweighted social network graph using BFS",
-          "Implement an autocomplete system using a trie with prefix search and top-k suggestions",
-          "Merge k sorted linked lists into a single sorted list — analyze all three approaches (divide-and-conquer, heap, sequential)",
+          "What is the difference between an array and a linked list?",
+          "Explain the concept of Big O notation.",
+          "Explain how a hash table works.",
+          "What is the difference between a stack and a queue?",
+          "What is the difference between a binary tree and a binary search tree?",
+          "Explain how quicksort works and its time complexity.",
+          "What is binary search and when would you use it?",
+          "What is the difference between breadth-first search and depth-first search?",
+          "Explain the concept of recursion and give an example.",
+          "What is the difference between a min-heap and a max-heap?",
+          "How does merge sort work and what is its time complexity?",
+          "What is the difference between an adjacency list and an adjacency matrix?",
+          "Explain what a balanced binary search tree is and why it matters.",
+          "What is the difference between linear search and binary search?",
+          "What are circular buffers and when would you use them?",
+          "What is the difference between a static array and a dynamic array?",
         ],
       },
     },
@@ -399,10 +411,22 @@ class LoadBalancer {
           "Draw clear diagrams (client → CDN → LB → services → cache → DB) and explain each hop's purpose",
         ],
         sampleQuestions: [
-          "Design a URL shortening service like TinyURL — cover encoding, redirection, analytics, and scaling",
-          "Design a real-time collaborative document editor like Google Docs — address CRDTs, WebSocket, and persistence",
-          "Design a ride-sharing system like Uber — handle location updates, matching, pricing, and surge",
-          "Design a distributed messaging system like WhatsApp — ensure delivery guarantees, offline storage, and end-to-end encryption",
+          "Describe the differences between REST and GraphQL.",
+          "What is the difference between monolithic and microservices architecture?",
+          "What is the difference between SQL and NoSQL databases?",
+          "What is load balancing and why is it important?",
+          "Explain the CAP theorem.",
+          "What is caching and why is it important?",
+          "What is the difference between horizontal and vertical scaling?",
+          "What is a CDN and how does it improve performance?",
+          "Explain what a message queue is and when would you use one.",
+          "What is the difference between stateful and stateless architecture?",
+          "What is sharding and how does it help with database scalability?",
+          "Explain the concept of idempotency in API design.",
+          "What is a microservice and what are its advantages and disadvantages?",
+          "What is the difference between synchronous and asynchronous communication in distributed systems?",
+          "Explain the concept of rate limiting and common algorithms used.",
+          "What is database indexing and how does it improve query performance?",
         ],
       },
     },
@@ -601,10 +625,21 @@ Patterns are guidelines, not rules. Force-fitting a pattern where simple code su
           "In an interview, sketch the class diagram first, then implement the key interactions",
         ],
         sampleQuestions: [
-          "Design a parking lot system using OOP — handle multiple vehicle types, pricing tiers, and spot allocation",
-          "Implement a file system with directories and files using the Composite pattern",
-          "Design a vending machine with proper state management — use State pattern for idle, selecting, and dispensing states",
-          "Model a chess game with piece movement validation — demonstrate inheritance, polymorphism, and Strategy pattern for move validation",
+          "What is polymorphism in OOP?",
+          "What is dependency injection and why use it?",
+          "What is the difference between an interface and an abstract class in Java?",
+          "What are the SOLID principles in object-oriented design?",
+          "What is encapsulation and why is it important?",
+          "Explain the difference between inheritance and composition.",
+          "What is the difference between method overloading and method overriding?",
+          "Explain the Singleton pattern and when would you use it.",
+          "What is the Factory pattern and what problem does it solve?",
+          "Explain the Observer pattern with a real-world example.",
+          "What is the difference between a class and an object?",
+          "What is abstraction in OOP and how do you achieve it?",
+          "Explain the Strategy pattern and when would you use it.",
+          "What is the Decorator pattern and how does it work?",
+          "What is the difference between tight coupling and loose coupling?",
         ],
       },
     },
@@ -766,10 +801,22 @@ console.log(amdahlSpeedup(0.1, Infinity)); // 10x maximum
           "For JavaScript: never block the event loop with synchronous CPU-intensive work — offload to worker threads",
         ],
         sampleQuestions: [
-          "Implement a thread-safe bounded blocking queue with producers and consumers",
-          "Solve the dining philosophers problem — demonstrate deadlock prevention with lock ordering",
-          "Design a rate limiter for API requests using a sliding window or token bucket algorithm",
-          "Explain what happens when you type a URL in a browser — cover OS context: process creation, network stack, and event loop",
+          "What is the difference between processes and threads?",
+          "Explain the concept of deadlock and its necessary conditions.",
+          "What is the difference between a mutex and a semaphore?",
+          "What is virtual memory and why do we need it?",
+          "What is the difference between preemptive and non-preemptive scheduling?",
+          "Explain the concept of a race condition and how to prevent it.",
+          "What is the difference between concurrency and parallelism?",
+          "Explain the producer-consumer problem and how to solve it.",
+          "What is the difference between a process and a program?",
+          "What is context switching and what causes overhead?",
+          "Explain the concept of thrashing in operating systems.",
+          "What is the difference between kernel mode and user mode?",
+          "Explain the readers-writers problem and its solutions.",
+          "What is spooling and how does it work?",
+          "What is the difference between paging and segmentation?",
+          "Explain the concept of a system call and give examples.",
         ],
       },
     },
@@ -920,11 +967,369 @@ class RaftNode {
           "Always design for failure: assume networks partition, services crash, and disks fill up — graceful degradation is a feature",
         ],
         sampleQuestions: [
-          "Explain the end-to-end flow when you type https://www.google.com — cover DNS, TCP, TLS, HTTP, and rendering",
-          "Design a distributed key-value store with eventual consistency — discuss hinted handoff, read repair, and Merkle trees",
-          "Explain how consistent hashing works, why DynamoDB and Cassandra use it, and how it handles node addition and removal",
-          "Describe how Raft leader election works — compare with Paxos and explain why Raft is considered more understandable",
-          "Design a reliable messaging queue (like Kafka) with at-least-once and exactly-once delivery semantics",
+          "What is the difference between TCP and UDP?",
+          "What is the difference between HTTP and HTTPS? — explain TLS handshake and certificate validation",
+          "What is DNS and how does it work?",
+          "What is the client-server model and how does it work?",
+          "Explain the OSI model and its seven layers.",
+          "What is the difference between IPv4 and IPv6?",
+          "Explain the three-way handshake in TCP.",
+          "What is a subnet mask and how does it work?",
+          "What is the difference between a MAC address and an IP address?",
+          "Explain what happens during a TLS handshake.",
+          "What is the difference between HTTP/1.1 and HTTP/2?",
+          "What is a proxy server and how does it work?",
+          "What is the difference between symmetric and asymmetric encryption?",
+          "What is a firewall and what types of firewalls exist?",
+          "What is the difference between a hub, a switch, and a router?",
+          "Explain the concept of a port number and list common ports.",
+        ],
+      },
+    },
+    {
+      title: "Problem-Solving & Coding Strategies",
+      content: {
+        overview:
+          "Technical interviews test not just what you know, but how you think. This chapter covers structured problem-solving frameworks, time/space complexity analysis, common coding patterns, and communication strategies that help you tackle any algorithm problem with confidence.",
+        realLifeScenario:
+          "You're in an interview and the interviewer asks: 'Design an algorithm to find the k most frequent elements in an array.' Instead of jumping into code, you pause, restate the problem, ask clarifying questions about input size and constraints, then walk through three approaches: sorting (O(n log n)), min-heap (O(n log k)), and bucket sort (O(n)). You analyze trade-offs, implement the heap solution, test with a sample case, and discuss edge cases (empty array, k=0, duplicate frequencies). The interviewer sees your structured thinking, not just your coding speed.",
+        explanation: `## The Problem-Solving Framework
+
+Every coding interview problem can be solved with a repeatable framework:
+
+1. **Clarify** — Restate the problem in your own words. Ask about input size, constraints, edge cases, and expected output format. Never assume.
+
+2. **Think out loud** — Describe your initial brute-force approach, even if it's naive. This shows you can iterate. Say: "A naive solution would be... which gives us O(X) time complexity."
+
+3. **Optimize** — Walk through optimizations step by step. Identify bottlenecks in the brute force. Consider alternative data structures (hash map, heap, trie) or algorithms (two pointers, sliding window, binary search).
+
+4. **Write clean code** — Use meaningful variable names, handle edge cases first (empty input, null values), and write modular code with helper functions.
+
+5. **Test** — Walk through your code with a concrete example. Check edge cases. Trace through to catch off-by-one errors.
+
+6. **Analyze** — State the final time and space complexity. Discuss trade-offs and alternative approaches.
+
+\`\`\`javascript
+// Example: Two Sum problem walkthrough
+function twoSum(nums, target) {
+  // Brute force: O(n²) — nested loops
+  // Optimized: O(n) using hash map
+
+  const map = new Map();
+  for (let i = 0; i < nums.length; i++) {
+    const complement = target - nums[i];
+    if (map.has(complement)) {
+      return [map.get(complement), i];
+    }
+    map.set(nums[i], i);
+  }
+  return []; // No solution
+}
+\`\`\`
+
+## Common Coding Patterns
+
+- **Sliding Window** — Contiguous subarray/substring problems (max sum, longest substring)
+- **Two Pointers** — Sorted array problems, palindrome checking, pair sum
+- **Fast & Slow Pointers** — Cycle detection in linked lists, middle of linked list
+- **Merge Intervals** — Overlapping interval problems
+- **Cyclic Sort** — Problems where numbers are in range [1, n]
+- **In-place Reversal** — Reverse linked list, reverse sub-list
+- **BFS / DFS** — Tree and graph traversal, shortest path, connected components
+- **Binary Search** — Search in sorted arrays, rotated arrays, finding boundaries
+
+## Time Complexity Reference
+
+| Pattern | Time | Space |
+|---------|------|-------|
+| Brute force nested loops | O(n²) | O(1) |
+| Hash map / set | O(n) avg | O(n) |
+| Two pointers (sorted) | O(n) | O(1) |
+| Binary search | O(log n) | O(1) |
+| BFS/DFS (tree) | O(n) | O(n) |
+| BFS (graph) | O(V+E) | O(V) |
+| Sliding window | O(n) | O(1) or O(k) |`,
+        keyPoints: [
+          "Restate the problem and ask clarifying questions before writing any code — it shows you're thorough, not slow",
+          "Start with brute force, then optimize — interviewers want to see your reasoning process, not just the final solution",
+          "Name your variables clearly and write modular code — readability matters as much as correctness",
+          "Test your code with a concrete example and edge cases — empty input, single element, duplicates, negative numbers",
+          "State time and space complexity explicitly after implementing — it's a required part of the answer",
+        ],
+        tips: [
+          "Practice on a whiteboard or plain text editor — no syntax highlighting or autocomplete",
+          "Use the 'five whys' technique: keep asking 'why' until you understand the core of the problem",
+          "If stuck, try a different approach: draw a diagram, try a small example, or start from the output",
+          "Communicate constantly: tell the interviewer what you're thinking, even if you're not sure it'll work",
+          "Don't give up — partial solutions show more than giving up and asking for the answer",
+        ],
+        sampleQuestions: [
+          "Given an array of integers, find two numbers that add up to a target — walk through brute force → hash map optimization",
+          "Find the longest substring without repeating characters — sliding window approach with character tracking",
+          "Merge two sorted arrays — two-pointer technique with O(n) time and O(1) extra space",
+          "Determine if a string is a palindrome — two pointers from both ends, handling alphanumeric characters only",
+          "Find the maximum subarray sum (Kadane's algorithm) — explain the optimal O(n) approach",
+        ],
+      },
+    },
+    {
+      title: "Behavioral & Soft Skills",
+      content: {
+        overview:
+          "Behavioral questions evaluate your teamwork, leadership, conflict resolution, and cultural fit. This chapter covers the STAR method, common behavioral questions, how to structure your responses, and strategies for demonstrating your soft skills effectively.",
+        realLifeScenario:
+          "The interviewer asks: 'Tell me about a time you had a conflict with a teammate.' You freeze because you prepared only technical questions. Instead, use STAR: Situation (we disagreed on the database schema for a new feature), Task (I needed to resolve the disagreement without damaging the relationship), Action (I scheduled a meeting, listened to their concerns, proposed a compromise with a pros/cons comparison), Result (we chose a hybrid approach that satisfied both requirements, and the feature shipped on time). The interviewer learns you can handle disagreement professionally.",
+        explanation: `## The STAR Method
+
+STAR is the universal framework for behavioral questions:
+
+- **Situation** — Set the context. When and where did this happen? (1-2 sentences)
+- **Task** — What was your responsibility or goal? (1 sentence)
+- **Action** — What specific steps did YOU take? Use "I" not "we". (3-4 sentences — this is the bulk of your answer)
+- **Result** — What happened? Use concrete numbers or outcomes. (1-2 sentences)
+
+\`\`\`
+Q: "Tell me about a time you fixed a difficult bug."
+
+S: "In my internship, the production API was returning 502 errors for 10% of requests."
+T: "I was responsible for identifying and fixing the root cause before the weekly release."
+A: "I reproduced the issue locally, added structured logging to trace the failing path, isolated it to a race condition in the cache layer, and implemented a mutex guard."
+R: "The fix eliminated 502 errors entirely, and I documented the root cause in our incident post-mortem."
+\`\`\`
+
+## Common Behavioral Questions
+
+Prepare stories for each category:
+
+**Teamwork & Collaboration**
+- Tell me about a time you worked in a team to achieve a goal.
+- Describe a situation where you had to collaborate with someone difficult.
+- How do you handle disagreements with teammates?
+
+**Failure & Mistakes**
+- Tell me about a time you made a mistake. What did you learn?
+- Describe a project that failed and what you would do differently.
+- Tell me about a time you missed a deadline.
+
+**Leadership & Initiative**
+- Describe a time you took the lead on a project.
+- Tell me about a time you went above and beyond.
+- Describe an idea you proposed that was implemented.
+
+**Conflict Resolution**
+- Tell me about a conflict you had with a colleague.
+- How do you handle receiving critical feedback?
+- Describe a time you had to give difficult feedback to someone.
+
+**Learning & Growth**
+- Tell me about a time you learned a new technology quickly.
+- Describe a skill you are currently developing.
+- How do you stay updated with industry trends?
+
+## Tips for Behavioral Interviews
+
+- Prepare 5-7 stories that cover different categories (leadership, failure, conflict, achievement)
+- Each story should be 60-90 seconds when spoken
+- Quantify results when possible: "reduced load time by 40%", "served 10,000 users"
+- Be honest — interviewers can tell when you're fabricating stories
+- Practice your stories out loud, but don't memorize them verbatim — sound natural`,
+        keyPoints: [
+          "Use STAR (Situation, Task, Action, Result) for every behavioral answer — it provides structure and completeness",
+          "Prepare 5-7 versatile stories that can be adapted to different questions — cover conflict, failure, leadership, achievement",
+          "Quantify your impact with numbers — 'reduced by 40%', 'handled 10K requests', 'shipped 2 weeks early'",
+          "Be honest about failures — owning mistakes and explaining what you learned is a strength, not a weakness",
+          "Show growth: connect past experiences to how they make you a better engineer today",
+        ],
+        tips: [
+          "Record yourself answering behavioral questions and listen for filler words (um, like, you know)",
+          "Keep answers to 90 seconds max — if the interviewer wants more details, they'll ask follow-ups",
+          "Research the company's values before the interview and align your stories with them",
+          "Have questions ready for the interviewer — it shows genuine interest and engagement",
+          "Send a thank-you email within 24 hours mentioning something specific from the conversation",
+        ],
+        sampleQuestions: [
+          "Tell me about a time you had a conflict with a teammate — use STAR to describe the resolution process",
+          "Describe a project that failed and what you learned from it — focus on the lesson, not the blame",
+          "Tell me about a time you went above and beyond what was expected — quantify the impact",
+          "How do you handle receiving critical feedback? — show growth mindset with a concrete example",
+          "Describe a time you had to learn a new technology quickly — demonstrate your learning process",
+        ],
+      },
+    },
+    {
+      title: "Version Control & Git",
+      content: {
+        overview:
+          "Git is the industry standard for version control. This chapter covers git fundamentals, branching strategies, collaboration workflows, common commands, and best practices for code review and commit hygiene.",
+        realLifeScenario:
+          "You accidentally committed sensitive credentials to the main branch. Your teammates have already pulled your changes. You need to remove the credentials from git history without disrupting everyone's work. You use git reset to undo the commit, then git push --force-with-lease to update the remote. You tell teammates to rebase their branches. Then you add the credentials file to .gitignore and set up a pre-commit hook to scan for secrets. This scenario demonstrates understanding of git internals and professional cleanup practices.",
+        explanation: `## Git Fundamentals
+
+Git stores snapshots of your project as a directed acyclic graph (DAG) of commits. Each commit points to its parent(s) and contains a tree object (file structure) and metadata (author, message, timestamp).
+
+\`\`\`bash
+# Basic workflow
+git init                  # Initialize a repository
+git add .                 # Stage changes
+git commit -m "message"   # Commit staged changes
+git status                # Check working tree status
+git log --oneline         # View commit history
+\`\`\`
+
+## Branching Strategies
+
+**Git Flow** — Main branch + develop + feature/hotfix/release branches. Structured but heavy. Best for release-cycle projects.
+
+**GitHub Flow** — Main branch + feature branches. Simple, continuous deployment. Every branch is a pull request. Best for web applications.
+
+**Trunk-Based Development** — Short-lived feature branches merged frequently to main. Less than a day old. Requires CI with feature flags. Best for CI/CD teams.
+
+\`\`\`bash
+# Feature branch workflow
+git checkout -b feature/login-page  # Create and switch to feature branch
+git add -A                          # Stage all files
+git commit -m "Add login form UI"   # Commit with descriptive message
+git push -u origin feature/login-page  # Push to remote
+\`\`\`
+
+## Merge vs Rebase vs Squash
+
+- **Merge** — Preserves full history, creates a merge commit. Safe, non-destructive.
+- **Rebase** — Rewrites history, linear commit log. Clean but can lose context. Never rebase shared branches.
+- **Squash** — Combines multiple commits into one. Clean history but loses granular changes.
+
+## Code Review Best Practices
+
+- Keep PRs small (under 400 lines) — they get 2x more thorough reviews
+- Write descriptive PR titles and include screenshots for UI changes
+- Review for logic, not style — use linters for formatting
+- Be constructive in comments: "What about..." instead of "This is wrong"
+- Respond to reviews within 24 hours
+
+## Common Git Commands
+
+\`\`\`bash
+# Undoing changes
+git restore <file>              # Discard unstaged changes
+git restore --staged <file>     # Unstage a file
+git reset HEAD~1                # Undo last commit (keep changes)
+git reset --hard HEAD~1         # Undo last commit (discard changes)
+
+# Collaboration
+git fetch origin                # Download remote changes
+git pull --rebase               # Fetch + rebase (cleaner than merge)
+git push --force-with-lease     # Force push safely (don't use --force)
+
+# Debugging
+git blame <file>                # Who changed what and when
+git bisect                      # Binary search for the commit that introduced a bug
+git reflog                      # View all HEAD movements (safety net)
+\`\`\``,
+        keyPoints: [
+          "Git stores commits as a DAG — understanding this mental model helps with advanced operations",
+          "Choose a branching strategy that matches your team's release cycle — GitHub Flow is simplest for most teams",
+          "Write descriptive commit messages: 'Fix login redirect bug' not 'fix stuff'",
+          "Keep PRs small (<400 lines) and respond to code reviews within 24 hours",
+          "Use .gitignore to exclude sensitive files, dependencies, and build artifacts from version control",
+        ],
+        tips: [
+          "Master git reflog — it's your safety net for recovering lost commits",
+          "Use git rebase -i to clean up commits before pushing — squash fixup commits together",
+          "Never force push to shared branches — use --force-with-lease as a safer alternative",
+          "Set up git hooks (pre-commit, pre-push) to automate linting, testing, and secret scanning",
+          "Learn git stash — useful for switching contexts without losing work-in-progress",
+        ],
+        sampleQuestions: [
+          "What is the difference between git merge and git rebase? — explain when to use each",
+          "How do you resolve a merge conflict? — walk through the process step by step",
+          "What is the difference between git reset, git revert, and git restore?",
+          "Explain a branching strategy you have used — describe the workflow and its trade-offs",
+          "How do you remove a file from git history that contains sensitive information?",
+        ],
+      },
+    },
+    {
+      title: "Web Fundamentals",
+      content: {
+        overview:
+          "Understanding how the web works at a fundamental level — HTTP, DNS, browsers, and the request-response cycle — is essential for every software engineer. This chapter covers the core web platform concepts that all developers should know regardless of specialization.",
+        realLifeScenario:
+          "Your web application loads slowly for users in different geographic regions. You discover that unoptimized images, too many HTTP requests, and no CDN are the culprits. By understanding HTTP/2 multiplexing, browser caching (Cache-Control headers), DNS preconnect hints, and CDN edge caching, you reduce load time from 8 seconds to 1.2 seconds. This demonstrates why every engineer — not just frontend specialists — needs web fundamentals.",
+        explanation: `## The Request-Response Cycle
+
+When you type a URL and press Enter:
+
+1. **DNS Resolution** — Browser checks its cache, then OS cache, then queries a recursive DNS resolver to find the IP address
+2. **TCP Handshake** — Three-way handshake (SYN → SYN-ACK → ACK) establishes a connection to the server
+3. **TLS Negotiation** — If HTTPS, a TLS handshake negotiates encryption (certificate verification, key exchange)
+4. **HTTP Request** — Browser sends an HTTP request (GET, POST, etc.) with headers
+5. **Server Processing** — Server processes the request (routing, database queries, business logic)
+6. **HTTP Response** — Server sends back a response with status code, headers, and body
+7. **Browser Rendering** — Browser parses HTML, builds DOM, downloads CSS/JS/images, renders the page
+
+## HTTP Methods and Status Codes
+
+**Common methods:** GET (read), POST (create), PUT (replace), PATCH (update), DELETE (remove)
+
+**Status code categories:**
+- 1xx — Informational (101 Switching Protocols for WebSocket upgrade)
+- 2xx — Success (200 OK, 201 Created, 204 No Content)
+- 3xx — Redirection (301 Moved Permanently, 302 Found, 304 Not Modified)
+- 4xx — Client Error (400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 429 Rate Limited)
+- 5xx — Server Error (500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable)
+
+## Key Headers
+
+\`\`\`
+# Caching
+Cache-Control: public, max-age=3600, immutable
+ETag: "abc123"
+Last-Modified: Tue, 15 Feb 2025 08:00:00 GMT
+
+# Security
+Content-Security-Policy: default-src 'self'
+Strict-Transport-Security: max-age=31536000
+X-Content-Type-Options: nosniff
+
+# CORS (Cross-Origin Resource Sharing)
+Access-Control-Allow-Origin: https://example.com
+Access-Control-Allow-Methods: GET, POST
+\`\`\`
+
+## Browser Storage
+
+| Storage | Capacity | Persistence | Access |
+|---------|----------|-------------|--------|
+| Cookies | 4KB | Per domain, can set expiry | Sent with every request |
+| localStorage | ~5MB | Until manually cleared | Synchronous, tab-shared |
+| sessionStorage | ~5MB | Until tab closes | Synchronous, tab-isolated |
+| IndexedDB | Unlimited (disk) | Until manually cleared | Asynchronous |
+
+## Core Web Vitals
+
+- **LCP (Largest Contentful Paint)** — Loading performance, target < 2.5s
+- **FID (First Input Delay)** — Interactivity, target < 100ms
+- **CLS (Cumulative Layout Shift)** — Visual stability, target < 0.1`,
+        keyPoints: [
+          "The full request cycle: DNS → TCP → TLS → HTTP → Server → Response → Render — understand each step",
+          "HTTP is stateless — each request is independent; use cookies, tokens, or session IDs for state",
+          "HTTPS encrypts all data in transit via TLS — never use plain HTTP for production applications",
+          "CORS is a browser security mechanism — servers must explicitly allow cross-origin requests",
+          "Browser storage has different trade-offs: cookies for auth, localStorage for preferences, IndexedDB for large data",
+        ],
+        tips: [
+          "Use browser DevTools Network tab to inspect every request — headers, timing, size, and waterfall",
+          "Understand the Same-Origin Policy — it's the foundation of web security",
+          "Know the difference between 301 (permanent) and 302 (temporary) redirects and their caching behavior",
+          "Cache-Control headers are the most effective performance optimization — use them correctly",
+          "Preconnect and prefetch hints can improve perceived performance by resolving DNS and establishing connections early",
+        ],
+        sampleQuestions: [
+          "What happens when you type a URL in a browser and press Enter? — explain the full flow step by step",
+          "What is the difference between HTTP and HTTPS? — explain TLS handshake and certificate validation",
+          "Explain the difference between 301 and 302 redirects — when would you use each?",
+          "What is CORS and why do we need it? — explain the preflight request and how servers enable cross-origin access",
+          "What are the Core Web Vitals and why are they important for user experience?",
         ],
       },
     },
@@ -2891,5 +3296,20 @@ class RaftNode {
         ],
       },
     },
+  ],
+};
+
+export const crossCategoryChapters: Record<string, { title: string; order_index: number }[]> = {
+  "software-engineer": [
+    { title: "JavaScript Deep Dive", order_index: 9 },
+    { title: "HTML & The DOM", order_index: 10 },
+    { title: "Frontend Testing", order_index: 11 },
+    { title: "Database Design & Optimization", order_index: 12 },
+    { title: "API Design & RESTful Services", order_index: 13 },
+    { title: "Authentication & Authorization", order_index: 14 },
+    { title: "Security Basics", order_index: 15 },
+    { title: "Caching Strategies", order_index: 16 },
+    { title: "Node.js & Express.js", order_index: 17 },
+    { title: "Spring Boot & Java Ecosystem", order_index: 18 },
   ],
 };
