@@ -14,6 +14,8 @@ export function checkRateLimit(
   limit: number,
   windowMs: number
 ): { success: boolean; remaining: number; reset: number } {
+  if (limit <= 0) return { success: false, remaining: 0, reset: Date.now() + windowMs };
+
   const now = Date.now();
   const entry = store.get(identifier);
 
@@ -30,7 +32,7 @@ export function checkRateLimit(
   return { success: true, remaining: limit - entry.count, reset: entry.resetAt };
 }
 
-export function getIdentifier(
+export function getRateLimitKey(
   request: NextRequest,
   authUserId: string | null
 ): string {
