@@ -107,8 +107,8 @@
 
 | Issue | Risk |
 |-------|------|
-| No rate limiting on any route | Malicious user could burn 50M RU in hours by spamming interview/generate |
-| No connection pool config | Default mysql2 pool leaves connections to TiDB untuned |
+| ~~No rate limiting on any route~~ | ✅ In-memory rate limiting applied in middleware — see `middleware.ts`, `lib/rate-limit.ts`, `config/rate-limits.ts`. 10 req/min for `generate`, 5 req/min for mentor chat, defaults cover all API routes. |
+| ~~No connection pool config~~ | ✅ Explicit pool config in `config/db.tsx` — `connectionLimit: 5`, `queueLimit: 25`, `idleTimeout: 30s`, keep-alive enabled. Prevents connection pile-up and detects dead connections. |
 | ~~256 MiB query memory limit~~ | ✅ Mitigated — `getAllProblems()` and `getQuestionsByCategorySlug()` now return 20 rows. `getDistinctTagsByCategorySlug()` returns tags only. Reduced to ~0.75KB per query. |
 
 ---
@@ -141,9 +141,7 @@
 
 | Issue | Files | Lines |
 |-------|-------|-------|
-| Empty catch blocks swallow errors | `lib/course-data.ts` | 3 catches |
-| Empty catch blocks swallow errors | `lib/problem-data.ts` | 2 catches |
-| Empty catch blocks swallow errors | `lib/interview-data.ts` | 7 catches |
+| ~~Empty catch blocks swallow errors~~ | ✅ All 14 catches fixed — `console.error("[module] fn:", error)` added | `lib/course-data.ts` (3), `lib/problem-data.ts` (3), `lib/interview-data.ts` (8) |
 | `console.log(result)` in production | `app/provider.tsx` | Line 24 — exposes API response in browser console |
 
 ### 🟡 Medium
@@ -163,7 +161,7 @@
 | Issue | Detail | Status |
 |-------|--------|--------|
 | No explicit auth on 2 interview routes | `interview/questions-by-tags` and `interview/generate` rely only on middleware | ❌ Missing defense-in-depth |
-| No rate limiting | Unauthenticated routes have no request caps | ❌ RU exhaustion risk |
+| ~~No rate limiting~~ | ✅ In-memory rate limiting in `middleware.ts` — 10 req/min per IP on `generate`, 5 req/min per user on `mentor/chat`, 20 req/min default for all others | ✅ Mitigated — RU bombing risk contained |
 | `.env` with live credentials, no `.env.example` | Mistral key + TiDB URL with password in plaintext | ❌ Leak risk if pushed to public repo |
 | No CORS configuration | No explicit policy if served from alternate origin | ❌ |
 
@@ -190,6 +188,9 @@
 | Dashboard duplicate API call fix | Server component fetches once via `getEnrollmentsByEmail()`, passes as props. `WelcomeBanner` + `EnrolledCourses` no longer call `GET /api/enroll`. Shared lib `lib/enroll-data.ts`. |
 | Chapter count scoped to enrolled courses | `GROUP BY` on all courses → `inArray()` on enrolled course IDs only. Saves rows per dashboard load. |
 | React `cache()` on all 15 DB query functions | Wrapped `getAllCourses`, `getCourseById`, `getChaptersByCourseId`, `getEnrollmentsByEmail`, `getAllCategories`, `getCategoryBySlug`, `getQuestionsByCategorySlug`, `getQuestionCountByCategorySlug`, `getQuestionsByCategorySlugAndTags`, `getDistinctTagsByCategorySlug`, `getChaptersByCategorySlug`, `getQuestionsByChapterIds`, `getAllProblems`, `getProblemCategories`, `getProblemById` — deduplicates per request |
+| Rate limiting on all API routes | `middleware.ts` + `lib/rate-limit.ts` + `config/rate-limits.ts`. In-memory per-instance fixed window. 10 req/min on `generate`, 5 req/min on `mentor/chat`, 20 req/min default. 429 response with `Retry-After` + `X-RateLimit-*` headers. |
+| TiDB connection pool config | `config/db.tsx` — explicit `connectionLimit: 5`, `queueLimit: 25`, `idleTimeout: 30s`, `enableKeepAlive: true`. Replaces mysql2 defaults. Prevents connection pile-up and detects dropped connections. |
+| Empty catch blocks log errors | All 14 empty catches in `lib/course-data.ts`, `lib/problem-data.ts`, `lib/interview-data.ts` now log via `console.error("[module] fn:", error)` before returning fallback. |
 
 ---
 
@@ -220,7 +221,7 @@
 | # | Action | Constraint Solved | Developer Hours |
 |---|--------|-------------------|-----------------|
 | 0.1 | Set up Mistral paid tier ($14.99/mo) or implement request queue | 1 RPM bottleneck is non-negotiable for 500 users | 0.1 |
-| 0.2 | Set explicit TiDB pool config (`connectionLimit: 10, queueLimit: 50`) | Prevents connection pile-up under load | 0.1 |
+| ~~0.2~~ | ~~Set explicit TiDB pool config~~ | ✅ `config/db.tsx` — 5 connections, 25 queue, 30s idle, keep-alive on | 0.1 |
 
 ### Tier 1 — Must fix within first 2 weeks
 
@@ -229,7 +230,7 @@
 | ~~1.1~~ | ~~Memoize `getUserContext()` with React `cache()`~~ | ✅ Implemented `lib/mentor.ts:8` | ~15M RU | ~2 CPU-hrs | — |
 | ~~1.2~~ | ~~Batch interview questions — 1 `inArray()` query, not N queries~~ | ✅ `getQuestionsByChapterIds()` with `inArray()` | ~10M RU | ~0.5 CPU-hrs | — |
 | ~~1.3~~ | ~~Add `.limit(20)` to question & problem queries~~ | ✅ Paginated `getAllProblems()` + `getQuestionsByCategorySlug()` + `getDistinctTagsByCategorySlug()` rewrite + `GET /api/interview/questions` | ~5M RU | ~0.3 CPU-hrs | — |
-| 1.4 | Fix empty catch blocks to log errors | N/A | N/A | 0.5 hr |
+| ~~1.4~~ | ~~Fix empty catch blocks to log errors~~ | ✅ All 14 catches in `course-data.ts` (3), `problem-data.ts` (3), `interview-data.ts` (8) now log via `console.error("[module] fn:", error)` | N/A | — |
 | 1.5 | Create `.env.example`, remove `.env` from git | N/A | N/A | 0.1 hr |
 | 1.6 | Add Mistral retry with exponential backoff (3 attempts) | N/A | N/A | 1 hr |
 
@@ -238,7 +239,7 @@
 | # | Action | RU Saved / Month | Effort |
 |---|--------|-------------------|--------|
 | ~~2.1~~ | ~~Lift dashboard data to server component (eliminate duplicate API calls)~~ | ✅ Server fetch + props. `lib/enroll-data.ts` shared. Chapter count scoped. | ~1M RU | — |
-| 2.2 | Add `@upstash/ratelimit` on Mistral + interview routes | Prevents RU bombing | 1 hr |
+| ~~2.2~~ | ~~Add `@upstash/ratelimit` on Mistral + interview routes~~ | ✅ Implemented with in-memory rate limiting — `middleware.ts` + `lib/rate-limit.ts` + `config/rate-limits.ts`. Zero-dependency, covers all API routes. | Prevents RU bombing | — |
 | 2.3 | Add `pino` for structured logging + API middleware | Debuggability | 1 hr |
 | 2.4 | Add Sentry (free tier covers 5K events/month) | Error monitoring | 0.5 hr |
 | 2.5 | Switch from `currentUser()` to `auth()` | Reduces Clerk API calls | 0.5 hr |

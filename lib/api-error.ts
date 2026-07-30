@@ -22,3 +22,18 @@ export function notFound(entity?: string) {
     { status: 404 }
   );
 }
+
+export function rateLimited(retryAfterSeconds: number, limit: number, remaining: number, reset: number) {
+  return NextResponse.json(
+    { error: "Too many requests. Please slow down." },
+    {
+      status: 429,
+      headers: {
+        "Retry-After": String(retryAfterSeconds),
+        "X-RateLimit-Limit": String(limit),
+        "X-RateLimit-Remaining": String(remaining),
+        "X-RateLimit-Reset": String(reset),
+      },
+    }
+  );
+}

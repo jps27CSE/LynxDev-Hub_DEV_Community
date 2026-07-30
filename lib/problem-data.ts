@@ -62,7 +62,8 @@ export const getAllProblems = cache(async (
       })),
       total,
     };
-  } catch {
+  } catch (error) {
+    console.error("[problem-data] getAllProblems:", error);
     return { problems: [], total: 0 };
   }
 });
@@ -76,7 +77,8 @@ export const getProblemCategories = cache(async (): Promise<string[]> => {
       .map((r) => r.category)
       .filter((c): c is string => c !== null)
       .sort();
-  } catch {
+  } catch (error) {
+    console.error("[problem-data] getProblemCategories:", error);
     return [];
   }
 });
@@ -95,7 +97,8 @@ export const getProblemById = cache(async (id: number): Promise<Problem | null> 
       tags: p.tags as string[],
       test_cases: p.test_cases as TestCase[] | null,
     };
-  } catch {
+  } catch (error) {
+    console.error("[problem-data] getProblemById:", error);
     return null;
   }
 });

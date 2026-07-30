@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "502896a6-eed0-4c29-9936-d0b68bf3d603",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "0f21216b-f0e8-4034-9bdb-8e175946b57a",
+  "prevId": "502896a6-eed0-4c29-9936-d0b68bf3d603",
   "tables": {
     "chapters": {
       "name": "chapters",
@@ -316,6 +316,79 @@
       },
       "checkConstraint": {}
     },
+    "interview_category_chapters": {
+      "name": "interview_category_chapters",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chapter_id": {
+          "name": "chapter_id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "order_index": {
+          "name": "order_index",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "interview_category_chapters_category_id_interview_categories_id_fk": {
+          "name": "interview_category_chapters_category_id_interview_categories_id_fk",
+          "tableFrom": "interview_category_chapters",
+          "tableTo": "interview_categories",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "interview_category_chapters_chapter_id_interview_chapters_id_fk": {
+          "name": "interview_category_chapters_chapter_id_interview_chapters_id_fk",
+          "tableFrom": "interview_category_chapters",
+          "tableTo": "interview_chapters",
+          "columnsFrom": [
+            "chapter_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "interview_category_chapters_id": {
+          "name": "interview_category_chapters_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
     "interview_chapters": {
       "name": "interview_chapters",
       "columns": {
@@ -342,13 +415,64 @@
         }
       },
       "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "interview_chapters_id": {
+          "name": "interview_chapters_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "interview_question_chapters": {
+      "name": "interview_question_chapters",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "question_id": {
+          "name": "question_id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chapter_id": {
+          "name": "chapter_id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
       "foreignKeys": {
-        "interview_chapters_category_id_interview_categories_id_fk": {
-          "name": "interview_chapters_category_id_interview_categories_id_fk",
-          "tableFrom": "interview_chapters",
-          "tableTo": "interview_categories",
+        "interview_question_chapters_question_id_interview_questions_id_fk": {
+          "name": "interview_question_chapters_question_id_interview_questions_id_fk",
+          "tableFrom": "interview_question_chapters",
+          "tableTo": "interview_questions",
           "columnsFrom": [
-            "category_id"
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "interview_question_chapters_chapter_id_interview_chapters_id_fk": {
+          "name": "interview_question_chapters_chapter_id_interview_chapters_id_fk",
+          "tableFrom": "interview_question_chapters",
+          "tableTo": "interview_chapters",
+          "columnsFrom": [
+            "chapter_id"
           ],
           "columnsTo": [
             "id"
@@ -358,8 +482,8 @@
         }
       },
       "compositePrimaryKeys": {
-        "interview_chapters_id": {
-          "name": "interview_chapters_id",
+        "interview_question_chapters_id": {
+          "name": "interview_question_chapters_id",
           "columns": [
             "id"
           ]
@@ -659,128 +783,6 @@
         }
       },
       "checkConstraint": {}
-    },
-    "interview_question_chapters": {
-      "name": "interview_question_chapters",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "question_id": {
-          "name": "question_id",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "chapter_id": {
-          "name": "chapter_id",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "interview_question_chapters_question_id_interview_questions_id_fk": {
-          "name": "interview_question_chapters_question_id_interview_questions_id_fk",
-          "tableFrom": "interview_question_chapters",
-          "columnsFrom": [
-            "question_id"
-          ],
-          "tableTo": "interview_questions",
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "interview_question_chapters_chapter_id_interview_chapters_id_fk": {
-          "name": "interview_question_chapters_chapter_id_interview_chapters_id_fk",
-          "tableFrom": "interview_question_chapters",
-          "columnsFrom": [
-            "chapter_id"
-          ],
-          "tableTo": "interview_chapters",
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "interview_category_chapters": {
-      "name": "interview_category_chapters",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "category_id": {
-          "name": "category_id",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "chapter_id": {
-          "name": "chapter_id",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "order_index": {
-          "name": "order_index",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": 0
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "interview_category_chapters_category_id_interview_categories_id_fk": {
-          "name": "interview_category_chapters_category_id_interview_categories_id_fk",
-          "tableFrom": "interview_category_chapters",
-          "columnsFrom": [
-            "category_id"
-          ],
-          "tableTo": "interview_categories",
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "interview_category_chapters_chapter_id_interview_chapters_id_fk": {
-          "name": "interview_category_chapters_chapter_id_interview_chapters_id_fk",
-          "tableFrom": "interview_category_chapters",
-          "columnsFrom": [
-            "chapter_id"
-          ],
-          "tableTo": "interview_chapters",
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
     }
   },
   "views": {},
