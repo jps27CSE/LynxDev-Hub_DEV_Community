@@ -3,7 +3,12 @@ import { getRateLimitConfig } from "@/config/rate-limits";
 import { consumeRateLimit, getRateLimitKey } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/api-error";
 
-const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/"]);
+const isPublicRoute = createRouteMatcher([
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/",
+  "/api/health(.*)",
+]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { pathname } = req.nextUrl;

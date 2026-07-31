@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useUser } from "@clerk/nextjs";
 import axios from "axios";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 import { UserDetailContext } from "@/context/UserDetailContext";
 import { VersionUpdateNotification } from "@/components/VersionUpdateNotification";
 
@@ -20,9 +20,13 @@ function Provider({
   }, [user]);
 
   const CreateNewUser = async () => {
-    const result = await axios.post("/api/user", {});
-    console.log(result);
-    setUserDetail(result?.data);
+    try {
+      const result = await axios.post("/api/user", {});
+      setUserDetail(result?.data);
+    } catch (error) {
+      console.error("[provider] CreateNewUser:", error);
+      toast.error("Failed to load your profile. Please try again.");
+    }
   };
 
   return (
