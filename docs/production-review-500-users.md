@@ -141,7 +141,7 @@
 
 | Issue | Files | Lines |
 |-------|-------|-------|
-| ~~Empty catch blocks swallow errors~~ | ✅ All 14 catches fixed — `console.error("[module] fn:", error)` added | `lib/course-data.ts` (3), `lib/problem-data.ts` (3), `lib/interview-data.ts` (8) |
+| ~~Empty catch blocks swallow errors~~ | ✅ All 14 catches fixed — `console.error("[module] fn:", error)` added. Interview API route catches (`questions`, `questions-by-tags`, `generate`) also log via `console.error("[interview/<route>] METHOD:", error)` | `lib/course-data.ts` (3), `lib/problem-data.ts` (3), `lib/interview-data.ts` (8), `app/api/interview/*` (3) |
 | `console.log(result)` in production | `app/provider.tsx` | Line 24 — exposes API response in browser console |
 
 ### 🟡 Medium
@@ -160,7 +160,7 @@
 
 | Issue | Detail | Status |
 |-------|--------|--------|
-| No explicit auth on 2 interview routes | `interview/questions-by-tags` and `interview/generate` rely only on middleware | ❌ Missing defense-in-depth |
+| ~~No explicit auth on interview routes~~ | ✅ `auth()` + `unauthorized()` 401 guard in all 3 interview routes (`questions`, `questions-by-tags`, `generate`) — handler-level JWT verification, defense-in-depth | ✅ Fixed |
 | ~~No rate limiting~~ | ✅ In-memory rate limiting in `middleware.ts` — 10 req/min per IP on `generate`, 5 req/min per user on `mentor/chat`, 20 req/min default for all others | ✅ Mitigated — RU bombing risk contained |
 | `.env` with live credentials, no `.env.example` | Mistral key + TiDB URL with password in plaintext | ❌ Leak risk if pushed to public repo |
 | No CORS configuration | No explicit policy if served from alternate origin | ❌ |
@@ -191,6 +191,7 @@
 | Rate limiting on all API routes | `middleware.ts` + `lib/rate-limit.ts` + `config/rate-limits.ts`. In-memory per-instance fixed window. 10 req/min on `generate`, 5 req/min on `mentor/chat`, 20 req/min default. 429 response with `Retry-After` + `X-RateLimit-*` headers. |
 | TiDB connection pool config | `config/db.tsx` — explicit `connectionLimit: 5`, `queueLimit: 25`, `idleTimeout: 30s`, `enableKeepAlive: true`. Replaces mysql2 defaults. Prevents connection pile-up and detects dropped connections. |
 | Empty catch blocks log errors | All 14 empty catches in `lib/course-data.ts`, `lib/problem-data.ts`, `lib/interview-data.ts` now log via `console.error("[module] fn:", error)` before returning fallback. |
+| `auth()` on all 3 interview routes | `app/api/interview/questions`, `questions-by-tags`, `generate` — handler-level `auth()` + 401 guard via `unauthorized()`. Hoisted above `try` so Clerk throws aren't swallowed as "Failed to fetch" 500s; route catches now log via `console.error("[interview/<route>] METHOD:", error)`. `auth()` is local JWT verification — zero external HTTP (unlike `currentUser()`). Defense-in-depth per Clerk pattern: middleware = routing/rate limiting, handlers = enforcement. |
 
 ---
 
@@ -252,7 +253,7 @@
 | 3.2 | Add `GET /api/health` endpoint | Uptime monitoring | 0.5 hr |
 | 3.3 | Differentiate empty vs error in data access functions | Better UX on failure | 1 hr |
 | 3.4 | Add `Suspense` boundaries with skeleton loading | Perceived performance | 1 hr |
-| 3.5 | Add explicit `auth()` to interview routes (defense-in-depth) | Security | 0.5 hr |
+| ~~3.5~~ | ~~Add explicit `auth()` to interview routes (defense-in-depth)~~ | ✅ All 3 routes: `const { userId } = await auth(); if (!userId) return unauthorized();` hoisted above try/catch — auth failures never masked as data errors | Security | — |
 
 ### Tier 4 — Nice to have
 

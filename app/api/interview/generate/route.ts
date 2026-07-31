@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
-import { validationError, badJson } from "@/lib/api-error";
+import { validationError, badJson, unauthorized } from "@/lib/api-error";
 import { db } from "@/config/db";
 import { interviewCategories } from "@/config/schema";
 import { eq } from "drizzle-orm";
@@ -91,6 +92,9 @@ const GenerateSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const { userId } = await auth();
+  if (!userId) return unauthorized();
+
   try {
     let body: unknown;
     try { body = await request.json(); }
@@ -127,6 +131,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ questions: enriched });
   } catch (error) {
+    console.error("[interview/generate] POST:", error);
     return NextResponse.json({ error: "Generation failed" }, { status: 500 });
   }
 }

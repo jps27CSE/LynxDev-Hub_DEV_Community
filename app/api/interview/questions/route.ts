@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
-import { validationError } from "@/lib/api-error";
+import { validationError, unauthorized } from "@/lib/api-error";
 import { getQuestionsByCategorySlug, getQuestionCountByCategorySlug } from "@/lib/interview-data";
 
 const QuestionsQuerySchema = z.object({
@@ -9,6 +10,9 @@ const QuestionsQuerySchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) return unauthorized();
+
   try {
     const { searchParams } = request.nextUrl;
     const parsed = QuestionsQuerySchema.safeParse({
@@ -31,7 +35,8 @@ export async function GET(request: NextRequest) {
       total,
       hasMore: offset + limit < total,
     });
-  } catch {
+  } catch (error) {
+    console.error("[interview/questions] GET:", error);
     return NextResponse.json(
       { error: "Failed to fetch questions" },
       { status: 500 }
