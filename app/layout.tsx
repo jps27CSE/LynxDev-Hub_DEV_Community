@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter, Jersey_10 } from "next/font/google";
+import { Geist, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Provider from "@/app/provider";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -9,20 +9,14 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
 });
 
-const GameFont = Jersey_10({
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
-  variable: "--font-game",
-  weight: ["400"],
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-space-grotesk",
 });
 
 export const metadata: Metadata = {
@@ -40,9 +34,7 @@ export default function RootLayout({
       <html lang="en" suppressHydrationWarning className="dark">
         <body
           suppressHydrationWarning
-          className={`${geistSans.variable} ${geistMono.variable}
-         ${GameFont.variable} ${inter.variable}
-         antialiased`}
+          className={`${geistSans.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} antialiased`}
         >
           <Provider
             attribute="class"

@@ -43,7 +43,7 @@ export default async function CourseDetailPage({
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight">
                   {course.title}
                 </h1>
                 <Badge

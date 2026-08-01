@@ -71,7 +71,7 @@ export default async function InterviewPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
               {categories.length} tracks &middot; {Number(qTotal.value)} questions &middot; {Number(chTotal.value)} chapters
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight leading-[1.1]">
               Interview{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
                 Preparation

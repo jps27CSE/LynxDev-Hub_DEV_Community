@@ -62,7 +62,7 @@ function ProblemsClientInner({
             <Code2 className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight">
               Problem Solving
             </h1>
             <p className="text-muted-foreground mt-1">

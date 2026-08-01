@@ -133,7 +133,7 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="flex-1 min-w-0 pt-1">
-              <h1 className="text-2xl font-bold tracking-tight truncate">
+              <h1 className="text-2xl font-display font-bold tracking-tight truncate">
                 {name || "Developer"}
               </h1>
               <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">

@@ -96,7 +96,7 @@ export default function ProblemDetailClient({
         <div className="flex items-center gap-4 mb-6">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight">
+              <h1 className="text-2xl font-display font-bold tracking-tight">
                 {problem.title}
               </h1>
               <Badge

@@ -129,7 +129,7 @@ export default function CustomizeClient({ stacksByCategory }: Props) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Customize Your Interview Prep</h1>
+        <h1 className="text-2xl font-display font-bold tracking-tight">Customize Your Interview Prep</h1>
         <p className="text-sm text-muted-foreground mt-1 max-w-lg">
           Different companies use different stacks. Select the technologies you are targeting,
           and we will tailor your interview preparation accordingly.

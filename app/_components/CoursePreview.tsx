@@ -62,7 +62,7 @@ function CoursePreview() {
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             {courses.length} paths to start
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1]">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold tracking-tight leading-[1.1]">
             Start{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
               Learning Today

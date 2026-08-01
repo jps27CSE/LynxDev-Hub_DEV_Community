@@ -25,7 +25,7 @@ function WelcomeBanner({
       <div className="relative">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight">
               Welcome back,{" "}
               <span className="text-primary">{user?.fullName || "Developer"}</span>
             </h1>

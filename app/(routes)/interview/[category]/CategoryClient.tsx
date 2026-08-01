@@ -300,7 +300,7 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
                 <span className="text-xs text-muted-foreground font-mono">
                   Chapter {currentIndex + 1} of {chaptersWithQuestions.length}
                 </span>
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-1">
+                <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight mt-1">
                   {currentChapter.title}
                 </h1>
               </div>

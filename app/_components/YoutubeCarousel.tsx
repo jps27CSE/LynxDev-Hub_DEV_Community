@@ -69,7 +69,7 @@ function YoutubeCarousel() {
     <section className="py-20 sm:py-28 border-b border-border/40 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
         <div className="text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-display font-bold tracking-tight">
             Watch & Learn
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">

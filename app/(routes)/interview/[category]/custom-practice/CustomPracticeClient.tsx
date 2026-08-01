@@ -177,7 +177,7 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Custom Practice</h1>
+        <h1 className="text-2xl font-display font-bold tracking-tight">Custom Practice</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Select stacks or topics you want to practice — get all matching questions at once.
         </p>
