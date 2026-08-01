@@ -10,9 +10,7 @@ export default async function InterviewStats() {
     .select({ value: count() })
     .from(interviewCategories);
 
-  const [qCount] = await db
-    .select({ value: count() })
-    .from(interviewQuestions);
+  const [qCount] = await db.select({ value: count() }).from(interviewQuestions);
 
   const [top50Count] = await db
     .select({ value: count() })
@@ -37,15 +35,25 @@ export default async function InterviewStats() {
         </div>
         <div className="flex gap-4">
           <div>
-            <span className="text-2xl font-bold text-purple-500">{Number(catCount.value)}</span>
-            <span className="text-xs text-muted-foreground ml-1.5">Categories</span>
+            <span className="text-2xl font-bold text-purple-500">
+              {Number(catCount.value)}
+            </span>
+            <span className="text-xs text-muted-foreground ml-1.5">
+              Categories
+            </span>
           </div>
           <div>
-            <span className="text-2xl font-bold text-purple-500">{Number(qCount.value)}</span>
-            <span className="text-xs text-muted-foreground ml-1.5">Questions</span>
+            <span className="text-2xl font-bold text-purple-500">
+              {Number(qCount.value)}
+            </span>
+            <span className="text-xs text-muted-foreground ml-1.5">
+              Questions
+            </span>
           </div>
           <div>
-            <span className="text-2xl font-bold text-yellow-500">{Number(top50Count.value)}</span>
+            <span className="text-2xl font-bold text-yellow-500">
+              {Number(top50Count.value)}
+            </span>
             <span className="text-xs text-muted-foreground ml-1.5">Top 50</span>
           </div>
         </div>

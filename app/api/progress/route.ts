@@ -4,7 +4,12 @@ import { enrollments, usersTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
-import { validationError, badJson, unauthorized, notFound } from "@/lib/api-error";
+import {
+  validationError,
+  badJson,
+  unauthorized,
+  notFound,
+} from "@/lib/api-error";
 import { getChaptersByCourseId } from "@/lib/course-data";
 
 const ProgressSchema = z.object({
@@ -20,8 +25,11 @@ export async function POST(req: NextRequest) {
   if (!email) return notFound("Email");
 
   let body: unknown;
-  try { body = await req.json(); }
-  catch { return badJson(); }
+  try {
+    body = await req.json();
+  } catch {
+    return badJson();
+  }
 
   const parsed = ProgressSchema.safeParse(body);
   if (!parsed.success) return validationError(parsed.error);
@@ -41,7 +49,12 @@ export async function POST(req: NextRequest) {
   const enrollment = await db
     .select()
     .from(enrollments)
-    .where(and(eq(enrollments.user_id, user.id), eq(enrollments.course_id, courseId)))
+    .where(
+      and(
+        eq(enrollments.user_id, user.id),
+        eq(enrollments.course_id, courseId),
+      ),
+    )
     .limit(1);
 
   let enrollmentRecord = enrollment[0];
@@ -52,10 +65,18 @@ export async function POST(req: NextRequest) {
     const created = await db
       .select()
       .from(enrollments)
-      .where(and(eq(enrollments.user_id, user.id), eq(enrollments.course_id, courseId)));
+      .where(
+        and(
+          eq(enrollments.user_id, user.id),
+          eq(enrollments.course_id, courseId),
+        ),
+      );
     enrollmentRecord = created[0];
   }
-  const progress = (enrollmentRecord.progress as { completedChapters: number[]; currentChapter: number }) || {
+  const progress = (enrollmentRecord.progress as {
+    completedChapters: number[];
+    currentChapter: number;
+  }) || {
     completedChapters: [],
     currentChapter: 1,
   };
@@ -68,7 +89,8 @@ export async function POST(req: NextRequest) {
   progress.currentChapter = chapterId;
 
   const allChapters = await getChaptersByCourseId(courseId);
-  const pointsReward = allChapters.find((ch) => ch.id === chapterId)?.points_reward ?? 10;
+  const pointsReward =
+    allChapters.find((ch) => ch.id === chapterId)?.points_reward ?? 10;
 
   await db
     .update(enrollments)
@@ -81,7 +103,9 @@ export async function POST(req: NextRequest) {
     .set({ points: newPoints })
     .where(eq(usersTable.id, user.id));
 
-  const allDone = allChapters.every((ch) => progress.completedChapters.includes(ch.id));
+  const allDone = allChapters.every((ch) =>
+    progress.completedChapters.includes(ch.id),
+  );
   if (allDone) {
     await db
       .update(enrollments)

@@ -1,9 +1,18 @@
 import { cache } from "react";
 import { db } from "@/config/db";
-import { usersTable, enrollments, courses, chapters, mentorConversations } from "@/config/schema";
+import {
+  usersTable,
+  enrollments,
+  courses,
+  chapters,
+  mentorConversations,
+} from "@/config/schema";
 import { eq, inArray } from "drizzle-orm";
 
-export type Message = { role: "user" | "assistant" | "system"; content: string };
+export type Message = {
+  role: "user" | "assistant" | "system";
+  content: string;
+};
 
 export const getUserContext = cache(async (clerkEmail: string) => {
   const users = await db
@@ -30,11 +39,17 @@ export const getUserContext = cache(async (clerkEmail: string) => {
       .where(inArray(chapters.course_id, courseIds));
 
     for (const ch of chapterRows) {
-      chapterCountByCourseId.set(ch.course_id, (chapterCountByCourseId.get(ch.course_id) || 0) + 1);
+      chapterCountByCourseId.set(
+        ch.course_id,
+        (chapterCountByCourseId.get(ch.course_id) || 0) + 1,
+      );
     }
   }
 
-  const courseInfoByCourseId = new Map<number, { title: string; total: number }>();
+  const courseInfoByCourseId = new Map<
+    number,
+    { title: string; total: number }
+  >();
   if (courseIds.length > 0) {
     const courseRows = await db
       .select({ id: courses.id, title: courses.title })
@@ -42,7 +57,10 @@ export const getUserContext = cache(async (clerkEmail: string) => {
       .where(inArray(courses.id, courseIds));
 
     for (const c of courseRows) {
-      courseInfoByCourseId.set(c.id, { title: c.title, total: chapterCountByCourseId.get(c.id) || 0 });
+      courseInfoByCourseId.set(c.id, {
+        title: c.title,
+        total: chapterCountByCourseId.get(c.id) || 0,
+      });
     }
   }
 
@@ -62,7 +80,11 @@ export const getUserContext = cache(async (clerkEmail: string) => {
     bio: user.bio,
     skills: (user.skills as string[]) || [],
     points: user.points || 0,
-    courses: courseList.filter(Boolean) as { title: string; progress: number; total: number }[],
+    courses: courseList.filter(Boolean) as {
+      title: string;
+      progress: number;
+      total: number;
+    }[],
   };
 });
 
@@ -96,9 +118,13 @@ export function buildSystemPrompt(user: {
   points: number;
   courses: { title: string; progress: number; total: number }[];
 }): string {
-  const skillList = user.skills.length ? user.skills.join(", ") : "No skills added yet";
+  const skillList = user.skills.length
+    ? user.skills.join(", ")
+    : "No skills added yet";
   const courseList = user.courses.length
-    ? user.courses.map((c) => `- ${c.title}: ${c.progress}/${c.total} chapters`).join("\n")
+    ? user.courses
+        .map((c) => `- ${c.title}: ${c.progress}/${c.total} chapters`)
+        .join("\n")
     : "No enrolled courses yet";
 
   return `You are Lynx — an encouraging, practical coding mentor on LynxDev Hub. Your tone is warm, direct, and developer-to-developer.
@@ -121,8 +147,41 @@ ${courseList}
 If they ask something off-topic, gently steer back to coding. Never give generic advice — always tie it to their specific profile above.`;
 }
 
+const RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
+const MAX_ATTEMPTS = 3;
+const BACKOFF_MS = [500, 1000];
+const MAX_RETRY_AFTER_MS = 5000;
+
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted)
+      return reject(new DOMException("Aborted", "AbortError"));
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+function backoffMs(attempt: number, retryAfterHeader: string | null): number {
+  if (retryAfterHeader) {
+    const seconds = Number(retryAfterHeader);
+    if (Number.isFinite(seconds) && seconds > 0) {
+      return Math.min(seconds * 1000, MAX_RETRY_AFTER_MS);
+    }
+  }
+  const base = BACKOFF_MS[attempt] ?? BACKOFF_MS[BACKOFF_MS.length - 1];
+  return base * (0.8 + Math.random() * 0.4);
+}
+
 export async function callMistral(messages: Message[], signal?: AbortSignal) {
-  const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
+  const url = "https://api.mistral.ai/v1/chat/completions";
+  const init: RequestInit = {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -136,12 +195,33 @@ export async function callMistral(messages: Message[], signal?: AbortSignal) {
       temperature: 0.7,
     }),
     signal,
-  });
+  };
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Mistral API error ${res.status}: ${err}`);
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    let res: Response;
+
+    try {
+      res = await fetch(url, init);
+    } catch (err) {
+      if (signal?.aborted || attempt === MAX_ATTEMPTS - 1) throw err;
+      await sleep(backoffMs(attempt, null), signal);
+      continue;
+    }
+
+    if (res.ok) return res.body!;
+
+    const errBody = await res.text();
+
+    if (!RETRYABLE_STATUS_CODES.has(res.status)) {
+      throw new Error(`Mistral API error ${res.status}: ${errBody}`);
+    }
+
+    if (attempt === MAX_ATTEMPTS - 1) {
+      throw new Error(`Mistral API error ${res.status}: ${errBody}`);
+    }
+
+    await sleep(backoffMs(attempt, res.headers.get("retry-after")), signal);
   }
 
-  return res.body!;
+  throw new Error("Mistral API error: unreachable");
 }

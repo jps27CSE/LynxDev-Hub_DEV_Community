@@ -5,7 +5,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Code2, ChevronLeft, ChevronsLeft, ChevronsRight } from "lucide-react";
+import {
+  ChevronRight,
+  Code2,
+  ChevronLeft,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import type { Problem } from "@/lib/problem-data";
 
 const difficultyColor: Record<string, string> = {
@@ -51,7 +57,7 @@ function ProblemsClientInner({
       const qs = sp.toString();
       router.push(`/problems${qs ? `?${qs}` : ""}`);
     },
-    [router, searchParams]
+    [router, searchParams],
   );
 
   return (
@@ -62,11 +68,12 @@ function ProblemsClientInner({
             <Code2 className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight">
               Problem Solving
             </h1>
             <p className="text-muted-foreground mt-1">
-              Data structures, algorithms, and coding challenges to sharpen your skills
+              Data structures, algorithms, and coding challenges to sharpen your
+              skills
             </p>
             <div className="text-sm text-muted-foreground mt-2">
               {total} problem{total !== 1 ? "s" : ""}
@@ -164,10 +171,7 @@ function ProblemsClientInner({
                         ))}
                       </div>
                     </div>
-                    <Link
-                      href={`/problems/${p.id}`}
-                      className="flex-shrink-0"
-                    >
+                    <Link href={`/problems/${p.id}`} className="flex-shrink-0">
                       <Button variant="ghost" size="icon">
                         <ChevronRight className="w-4 h-4" />
                       </Button>

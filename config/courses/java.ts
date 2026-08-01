@@ -2,7 +2,8 @@ import type { CourseData } from "./types";
 
 export const javaCourse: CourseData = {
   title: "Java for Absolute Beginners",
-  description: "Learn Java from scratch — the language of Android, enterprise apps, and large-scale systems. Write once, run anywhere.",
+  description:
+    "Learn Java from scratch — the language of Android, enterprise apps, and large-scale systems. Write once, run anywhere.",
   icon: "☕",
   difficulty: "Beginner",
   category: "Programming",

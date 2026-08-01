@@ -12,9 +12,10 @@ setInterval(() => {
 export function consumeRateLimit(
   identifier: string,
   limit: number,
-  windowMs: number
+  windowMs: number,
 ): { success: boolean; remaining: number; reset: number } {
-  if (limit <= 0) return { success: false, remaining: 0, reset: Date.now() + windowMs };
+  if (limit <= 0)
+    return { success: false, remaining: 0, reset: Date.now() + windowMs };
 
   const now = Date.now();
   const entry = store.get(identifier);
@@ -29,12 +30,16 @@ export function consumeRateLimit(
   }
 
   entry.count++;
-  return { success: true, remaining: limit - entry.count, reset: entry.resetAt };
+  return {
+    success: true,
+    remaining: limit - entry.count,
+    reset: entry.resetAt,
+  };
 }
 
 export function getRateLimitKey(
   request: NextRequest,
-  authUserId: string | null
+  authUserId: string | null,
 ): string {
   if (authUserId) return `user:${authUserId}`;
 

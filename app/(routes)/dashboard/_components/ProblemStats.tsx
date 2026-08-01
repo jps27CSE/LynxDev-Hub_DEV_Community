@@ -5,9 +5,7 @@ import { Code2 } from "lucide-react";
 import Link from "next/link";
 
 export default async function ProblemStats() {
-  const [total] = await db
-    .select({ value: count() })
-    .from(problems);
+  const [total] = await db.select({ value: count() }).from(problems);
 
   const [easy] = await db
     .select({ value: count() })
@@ -42,19 +40,27 @@ export default async function ProblemStats() {
         </div>
         <div className="flex gap-4">
           <div>
-            <span className="text-2xl font-bold text-emerald-500">{Number(total.value)}</span>
+            <span className="text-2xl font-bold text-emerald-500">
+              {Number(total.value)}
+            </span>
             <span className="text-xs text-muted-foreground ml-1.5">Total</span>
           </div>
           <div>
-            <span className="text-2xl font-bold text-green-500">{Number(easy.value)}</span>
+            <span className="text-2xl font-bold text-green-500">
+              {Number(easy.value)}
+            </span>
             <span className="text-xs text-muted-foreground ml-1.5">Easy</span>
           </div>
           <div>
-            <span className="text-2xl font-bold text-yellow-500">{Number(medium.value)}</span>
+            <span className="text-2xl font-bold text-yellow-500">
+              {Number(medium.value)}
+            </span>
             <span className="text-xs text-muted-foreground ml-1.5">Medium</span>
           </div>
           <div>
-            <span className="text-2xl font-bold text-red-500">{Number(hard.value)}</span>
+            <span className="text-2xl font-bold text-red-500">
+              {Number(hard.value)}
+            </span>
             <span className="text-xs text-muted-foreground ml-1.5">Hard</span>
           </div>
         </div>

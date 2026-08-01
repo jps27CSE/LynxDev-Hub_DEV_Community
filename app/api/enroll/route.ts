@@ -4,7 +4,12 @@ import { enrollments, usersTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
-import { validationError, badJson, unauthorized, notFound } from "@/lib/api-error";
+import {
+  validationError,
+  badJson,
+  unauthorized,
+  notFound,
+} from "@/lib/api-error";
 import { getEnrollmentsByEmail } from "@/lib/enroll-data";
 
 const EnrollSchema = z.object({
@@ -19,8 +24,11 @@ export async function POST(req: NextRequest) {
   if (!email) return notFound("Email");
 
   let body: unknown;
-  try { body = await req.json(); }
-  catch { return badJson(); }
+  try {
+    body = await req.json();
+  } catch {
+    return badJson();
+  }
 
   const parsed = EnrollSchema.safeParse(body);
   if (!parsed.success) return validationError(parsed.error);
@@ -40,18 +48,20 @@ export async function POST(req: NextRequest) {
   const existing = await db
     .select()
     .from(enrollments)
-    .where(and(eq(enrollments.user_id, userId), eq(enrollments.course_id, courseId)));
+    .where(
+      and(eq(enrollments.user_id, userId), eq(enrollments.course_id, courseId)),
+    );
 
   if (existing.length > 0) return NextResponse.json(existing[0]);
 
-  await db
-    .insert(enrollments)
-    .values({ user_id: userId, course_id: courseId });
+  await db.insert(enrollments).values({ user_id: userId, course_id: courseId });
 
   const created = await db
     .select()
     .from(enrollments)
-    .where(and(eq(enrollments.user_id, userId), eq(enrollments.course_id, courseId)));
+    .where(
+      and(eq(enrollments.user_id, userId), eq(enrollments.course_id, courseId)),
+    );
 
   return NextResponse.json(created[0]);
 }

@@ -3,27 +3,33 @@ import Link from "next/link";
 
 const videos = [
   {
-    title: "LangChain Runnables Explained: Build AI Pipelines the Easy Way (Bangla)",
+    title:
+      "LangChain Runnables Explained: Build AI Pipelines the Easy Way (Bangla)",
     videoId: "JGsTM8UerAM",
   },
   {
-    title: "How 'Logout from All Devices' Actually Works | Backend System Design",
+    title:
+      "How 'Logout from All Devices' Actually Works | Backend System Design",
     videoId: "tOm35rmGrfg",
   },
   {
-    title: "OpenCode Tutorial: Build a Project with AI Agents (Complete Beginner Guide)",
+    title:
+      "OpenCode Tutorial: Build a Project with AI Agents (Complete Beginner Guide)",
     videoId: "4wVmDzdCH0M",
   },
   {
-    title: "Build a PDF RAG Chatbot with LangChain in Bangla (Complete Beginner Project)",
+    title:
+      "Build a PDF RAG Chatbot with LangChain in Bangla (Complete Beginner Project)",
     videoId: "4HFYZWXctak",
   },
   {
-    title: "LangChain Retrievers Explained: Similarity, MMR & MultiQuery Search",
+    title:
+      "LangChain Retrievers Explained: Similarity, MMR & MultiQuery Search",
     videoId: "lgymF9qoVGE",
   },
   {
-    title: "LangChain Vector Store Explained: Store & Search Embeddings for RAG",
+    title:
+      "LangChain Vector Store Explained: Store & Search Embeddings for RAG",
     videoId: "vMV85pHr464",
   },
   {
@@ -31,7 +37,8 @@ const videos = [
     videoId: "eZED4LOUvr8",
   },
   {
-    title: "LangChain Document Loaders Explained: Load PDFs, TXT & More for RAG",
+    title:
+      "LangChain Document Loaders Explained: Load PDFs, TXT & More for RAG",
     videoId: "TY6wAx2L3jA",
   },
   {
@@ -69,7 +76,7 @@ function YoutubeCarousel() {
     <section className="py-20 sm:py-28 border-b border-border/40 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
         <div className="text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-display font-bold tracking-tight">
             Watch & Learn
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">

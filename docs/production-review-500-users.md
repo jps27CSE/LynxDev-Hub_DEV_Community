@@ -4,6 +4,8 @@
 > **Stack:** Next.js 16 on Vercel Hobby | TiDB Cloud Starter (Free) | Mistral AI (Free/Experiment) | Clerk Hobby  
 > **Analysis:** Real free-tier limits researched 2026-07-27. Every constraint below is verified against current published caps.
 
+> **Update (2026-07-31):** Tier 1 complete — Mistral retry (1.6), `.env.example` (1.5), provider cleanup. Added `GET /api/health` (3.2). **Actual scale is 3-4 active users (max ~100)** — at this level every quota is under ~5% utilization, so Sentry (2.4), pino (2.3), and UptimeRobot were deliberately deferred (see Tier 2/3). 2.5 (`currentUser()` → `auth()`) reassessed — naive swap is impossible (see note in Tier 2).
+
 ---
 
 ## Free Tier Limits Reference
@@ -141,8 +143,8 @@
 
 | Issue | Files | Lines |
 |-------|-------|-------|
-| ~~Empty catch blocks swallow errors~~ | ✅ All 14 catches fixed — `console.error("[module] fn:", error)` added | `lib/course-data.ts` (3), `lib/problem-data.ts` (3), `lib/interview-data.ts` (8) |
-| `console.log(result)` in production | `app/provider.tsx` | Line 24 — exposes API response in browser console |
+| ~~Empty catch blocks swallow errors~~ | ✅ All 14 catches fixed — `console.error("[module] fn:", error)` added. Interview API route catches (`questions`, `questions-by-tags`, `generate`) also log via `console.error("[interview/<route>] METHOD:", error)` | `lib/course-data.ts` (3), `lib/problem-data.ts` (3), `lib/interview-data.ts` (8), `app/api/interview/*` (3) |
+| ~~`console.log(result)` in production~~ | ✅ Removed from `app/provider.tsx` — `CreateNewUser` now catches failures: `console.error("[provider] CreateNewUser:", error)` + sonner error toast | — |
 
 ### 🟡 Medium
 
@@ -160,16 +162,16 @@
 
 | Issue | Detail | Status |
 |-------|--------|--------|
-| No explicit auth on 2 interview routes | `interview/questions-by-tags` and `interview/generate` rely only on middleware | ❌ Missing defense-in-depth |
+| ~~No explicit auth on interview routes~~ | ✅ `auth()` + `unauthorized()` 401 guard in all 3 interview routes (`questions`, `questions-by-tags`, `generate`) — handler-level JWT verification, defense-in-depth | ✅ Fixed |
 | ~~No rate limiting~~ | ✅ In-memory rate limiting in `middleware.ts` — 10 req/min per IP on `generate`, 5 req/min per user on `mentor/chat`, 20 req/min default for all others | ✅ Mitigated — RU bombing risk contained |
-| `.env` with live credentials, no `.env.example` | Mistral key + TiDB URL with password in plaintext | ❌ Leak risk if pushed to public repo |
+| ~~`.env` with live credentials, no `.env.example`~~ | ✅ Mitigated 2026-07-31 — `.env` confirmed git-ignored (`.env*` pattern + verified via `git check-ignore`); `.env.example` created and un-ignored (`!.env.example`) for safe onboarding | ⚠️ Leak risk contained — remaining risk only if someone force-adds `.env` |
 | No CORS configuration | No explicit policy if served from alternate origin | ❌ |
 
 ### 🟡 Medium
 
 | Issue | Detail |
 |-------|--------|
-| Uses `currentUser()` instead of `auth()` | `currentUser()` fetches from Clerk API — adds external HTTP call per request |
+| Uses `currentUser()` instead of `auth()` | `currentUser()` fetches from Clerk API — adds external HTTP call per request. Reassessed 2026-07-31: swap not feasible without `usersTable.clerk_id` schema (see Tier 2 note 2.5). Deferred |
 | No input sanitization beyond Zod | Tags, names, bios stored verbatim — potential XSS in rendered HTML |
 | No Mistral data-training opt-out | Free tier may use API inputs for model training by default |
 
@@ -191,6 +193,12 @@
 | Rate limiting on all API routes | `middleware.ts` + `lib/rate-limit.ts` + `config/rate-limits.ts`. In-memory per-instance fixed window. 10 req/min on `generate`, 5 req/min on `mentor/chat`, 20 req/min default. 429 response with `Retry-After` + `X-RateLimit-*` headers. |
 | TiDB connection pool config | `config/db.tsx` — explicit `connectionLimit: 5`, `queueLimit: 25`, `idleTimeout: 30s`, `enableKeepAlive: true`. Replaces mysql2 defaults. Prevents connection pile-up and detects dropped connections. |
 | Empty catch blocks log errors | All 14 empty catches in `lib/course-data.ts`, `lib/problem-data.ts`, `lib/interview-data.ts` now log via `console.error("[module] fn:", error)` before returning fallback. |
+| `auth()` on all 3 interview routes | `app/api/interview/questions`, `questions-by-tags`, `generate` — handler-level `auth()` + 401 guard via `unauthorized()`. Hoisted above `try` so Clerk throws aren't swallowed as "Failed to fetch" 500s; route catches now log via `console.error("[interview/<route>] METHOD:", error)`. `auth()` is local JWT verification — zero external HTTP (unlike `currentUser()`). Defense-in-depth per Clerk pattern: middleware = routing/rate limiting, handlers = enforcement. |
+| Mistral retry w/ exponential backoff | `callMistral()` `lib/mentor.ts` — 3 attempts, 500ms→1s + jitter, retries 408/429/500/502/503/504 + network errors, fail-fast on 4xx (non-retryable errors no longer re-attempted — fixes a bug where 401s were retried 3×), honors `Retry-After` (capped 5s, positive-only), abort-aware `sleep()`. Retry covers the request phase only — mid-stream SSE failures emit an error event (inherent to streaming). |
+| `GET /api/health` | `app/api/health/route.ts` — `SELECT 1` via pool with 5s timeout race, timer cleaned in `finally`. `200 {status,db,timestamp}` / `503 {status:"degraded"}`. `/api/health(.*)` added to public matcher in `middleware.ts` so uptime monitors pass auth (rate limiting still applies, 20/min default). Mistral deliberately not probed — health pings would burn the 1 RPM free-tier quota. |
+| `.env.example` + `.gitignore` | `.env.example` created with all 9 keys (Clerk ×6, `DATABASE_URL`, `MISTRAL_API_KEY`) + usage comments. `.gitignore` updated: `.env*` stays ignored, `!.env.example` un-ignored so the template is committable. |
+| Provider cleanup | `app/provider.tsx` — removed `console.log(result)` (exposed API response in browser console). `CreateNewUser` now catches failures: `console.error("[provider] CreateNewUser:", error)` + sonner error toast. |
+| 2.5 reassessed | `currentUser()` → `auth()` is **not feasible as a swap** — all routes need email for DB lookup, `auth()` returns only Clerk `userId`. Real fix = `usersTable.clerk_id` schema change (see Tier 2 note). Deferred — low value at current scale. |
 
 ---
 
@@ -200,7 +208,7 @@
 
 | Issue | Detail | Fix |
 |-------|--------|-----|
-| **No Mistral retry logic** | If Mistral returns 429 (rate limit) or 5xx, `callMistral()` fails immediately — no retry, user gets error | Add exponential backoff (3 attempts) |
+| ~~**No Mistral retry logic**~~ | ✅ `callMistral()` (`lib/mentor.ts`) retries transient failures — 3 attempts, exponential backoff 500ms→1s + jitter, retries 408/429/5xx + network errors, fail-fast on 4xx, honors `Retry-After` (capped 5s), abort-aware | Add exponential backoff (3 attempts) |
 | **No DB connection retry** | `mysql.createPool()` has no retry config — TiDB blip = total failure | Add connection retry + pool health check |
 | **Empty catch returns `[]`** — indistinguishable from empty data | User sees "no courses" instead of "service degraded" | Return `{data, error}` tuples instead of bare arrays |
 
@@ -209,7 +217,7 @@
 | Issue | Detail |
 |-------|--------|
 | No graceful degradation for AI mentor | If Mistral is down, mentor page errors entirely — no FAQ fallback |
-| No health check endpoint | Cannot distinguish "app down" from "TiDB down" from "Mistral down" |
+| ~~No health check endpoint~~ | ✅ `GET /api/health` (`app/api/health/route.ts`) — `SELECT 1` with 5s timeout race, `200 {status:ok,db:ok}` / `503 {status:degraded}`, exempted from auth in `middleware.ts` for uptime monitors. Mistral deliberately NOT checked (pings would burn 1 RPM free tier). Timer cleaned in `finally` |
 | No loading/error states in failing components | `Suspense fallback={null}` — component just vanishes during async work |
 
 ---
@@ -231,8 +239,8 @@
 | ~~1.2~~ | ~~Batch interview questions — 1 `inArray()` query, not N queries~~ | ✅ `getQuestionsByChapterIds()` with `inArray()` | ~10M RU | ~0.5 CPU-hrs | — |
 | ~~1.3~~ | ~~Add `.limit(20)` to question & problem queries~~ | ✅ Paginated `getAllProblems()` + `getQuestionsByCategorySlug()` + `getDistinctTagsByCategorySlug()` rewrite + `GET /api/interview/questions` | ~5M RU | ~0.3 CPU-hrs | — |
 | ~~1.4~~ | ~~Fix empty catch blocks to log errors~~ | ✅ All 14 catches in `course-data.ts` (3), `problem-data.ts` (3), `interview-data.ts` (8) now log via `console.error("[module] fn:", error)` | N/A | — |
-| 1.5 | Create `.env.example`, remove `.env` from git | N/A | N/A | 0.1 hr |
-| 1.6 | Add Mistral retry with exponential backoff (3 attempts) | N/A | N/A | 1 hr |
+| ~~1.5~~ | ~~Create `.env.example`, remove `.env` from git~~ | ✅ `.env.example` created with all 9 keys + comments; `.env` confirmed git-ignored (`.env*` + `!.env.example` in `.gitignore`) | N/A | — |
+| ~~1.6~~ | ~~Add Mistral retry with exponential backoff (3 attempts)~~ | ✅ `lib/mentor.ts` — 3 attempts, 500ms→1s backoff + jitter, retries 408/429/5xx/network, fail-fast on 4xx, `Retry-After` capped at 5s, abort-aware | N/A | — |
 
 ### Tier 2 — High priority (weeks 2-4)
 
@@ -240,19 +248,19 @@
 |---|--------|-------------------|--------|
 | ~~2.1~~ | ~~Lift dashboard data to server component (eliminate duplicate API calls)~~ | ✅ Server fetch + props. `lib/enroll-data.ts` shared. Chapter count scoped. | ~1M RU | — |
 | ~~2.2~~ | ~~Add `@upstash/ratelimit` on Mistral + interview routes~~ | ✅ Implemented with in-memory rate limiting — `middleware.ts` + `lib/rate-limit.ts` + `config/rate-limits.ts`. Zero-dependency, covers all API routes. | Prevents RU bombing | — |
-| 2.3 | Add `pino` for structured logging + API middleware | Debuggability | 1 hr |
-| 2.4 | Add Sentry (free tier covers 5K events/month) | Error monitoring | 0.5 hr |
-| 2.5 | Switch from `currentUser()` to `auth()` | Reduces Clerk API calls | 0.5 hr |
+| 2.3 | Add `pino` for structured logging + API middleware | Debuggability | ⏸️ Deferred 2026-07-31 — scale is 3-4 users (max ~100); Vercel logs + `console.error("[module] fn:")` patterns are sufficient. Revisit if unreproducible production bugs appear |
+| 2.4 | Add Sentry (free tier covers 5K events/month) | Error monitoring | ⏸️ Deferred 2026-07-31 — 30-min add when real users arrive or a production bug can't be reproduced locally. Skipped for now: adds CPU overhead on the tightest Vercel resource for zero current value |
+| 2.5 | Switch from `currentUser()` to `auth()` | Reduces Clerk API calls | ⚠️ **Reassessed 2026-07-31: not feasible as written.** All 7 API routes need the user's *email* to look up the DB user, but `auth()` only returns the Clerk `userId` (JWT, zero HTTP) — no email. Naive swap breaks every route. Only real fix: add `clerk_id` column to `usersTable`, look up by `auth().userId` (schema + migration + backfill + 6 route changes, ~1.5 hrs). Saves ~30K Clerk calls/month at 500 users — negligible vs 1M/mo budget. Skip unless email-change identity robustness is wanted |
 
 ### Tier 3 — Important (month 2)
 
 | # | Action | Benefit | Effort |
 |---|--------|---------|--------|
 | 3.1 | Add Vercel Analytics + Speed Insights | Track real-user performance | 0.2 hr |
-| 3.2 | Add `GET /api/health` endpoint | Uptime monitoring | 0.5 hr |
+| ~~3.2~~ | ~~Add `GET /api/health` endpoint~~ | ✅ `app/api/health/route.ts` — `SELECT 1` + 5s timeout race (timer cleaned in `finally`), `200/503`, public via `middleware.ts` matcher. Pair with UptimeRobot (1h interval) later — deliberately NOT configured now (at 3-4 users, self-detected downtime is fine; 720 pings/mo = 0.07% of invocations when added) | Uptime monitoring | — |
 | 3.3 | Differentiate empty vs error in data access functions | Better UX on failure | 1 hr |
 | 3.4 | Add `Suspense` boundaries with skeleton loading | Perceived performance | 1 hr |
-| 3.5 | Add explicit `auth()` to interview routes (defense-in-depth) | Security | 0.5 hr |
+| ~~3.5~~ | ~~Add explicit `auth()` to interview routes (defense-in-depth)~~ | ✅ All 3 routes: `const { userId } = await auth(); if (!userId) return unauthorized();` hoisted above try/catch — auth failures never masked as data errors | Security | — |
 
 ### Tier 4 — Nice to have
 

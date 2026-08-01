@@ -39,270 +39,291 @@ export type InterviewQuestion = {
   is_top50: boolean | null;
 };
 
-export const getAllCategories = cache(async (): Promise<InterviewCategory[]> => {
-  try {
-    const result = await db
-      .select({
-        id: interviewCategories.id,
-        name: interviewCategories.name,
-        slug: interviewCategories.slug,
-        description: interviewCategories.description,
-        icon: interviewCategories.icon,
-        color: interviewCategories.color,
-        order_index: interviewCategories.order_index,
-        questionCount: count(interviewQuestions.id),
-      })
-      .from(interviewCategories)
-      .leftJoin(
-        interviewCategoryChapters,
-        eq(interviewCategories.id, interviewCategoryChapters.category_id)
-      )
-      .leftJoin(
-        interviewChapters,
-        eq(interviewCategoryChapters.chapter_id, interviewChapters.id)
-      )
-      .leftJoin(
-        interviewQuestionChapters,
-        eq(interviewChapters.id, interviewQuestionChapters.chapter_id)
-      )
-      .leftJoin(
-        interviewQuestions,
-        eq(interviewQuestionChapters.question_id, interviewQuestions.id)
-      )
-      .groupBy(interviewCategories.id)
-      .orderBy(interviewCategories.order_index);
+export const getAllCategories = cache(
+  async (): Promise<InterviewCategory[]> => {
+    try {
+      const result = await db
+        .select({
+          id: interviewCategories.id,
+          name: interviewCategories.name,
+          slug: interviewCategories.slug,
+          description: interviewCategories.description,
+          icon: interviewCategories.icon,
+          color: interviewCategories.color,
+          order_index: interviewCategories.order_index,
+          questionCount: count(interviewQuestions.id),
+        })
+        .from(interviewCategories)
+        .leftJoin(
+          interviewCategoryChapters,
+          eq(interviewCategories.id, interviewCategoryChapters.category_id),
+        )
+        .leftJoin(
+          interviewChapters,
+          eq(interviewCategoryChapters.chapter_id, interviewChapters.id),
+        )
+        .leftJoin(
+          interviewQuestionChapters,
+          eq(interviewChapters.id, interviewQuestionChapters.chapter_id),
+        )
+        .leftJoin(
+          interviewQuestions,
+          eq(interviewQuestionChapters.question_id, interviewQuestions.id),
+        )
+        .groupBy(interviewCategories.id)
+        .orderBy(interviewCategories.order_index);
 
-    return result.map((r) => ({
-      ...r,
-      questionCount: Number(r.questionCount),
-    }));
-  } catch (error) {
-    console.error("[interview-data] getAllCategories:", error);
-    return [];
-  }
-});
+      return result.map((r) => ({
+        ...r,
+        questionCount: Number(r.questionCount),
+      }));
+    } catch (error) {
+      console.error("[interview-data] getAllCategories:", error);
+      return [];
+    }
+  },
+);
 
-export const getCategoryBySlug = cache(async (slug: string): Promise<InterviewCategory | null> => {
-  try {
-    const categories = await getAllCategories();
-    return categories.find((c) => c.slug === slug) ?? null;
-  } catch (error) {
-    console.error("[interview-data] getCategoryBySlug:", error);
-    return null;
-  }
-});
+export const getCategoryBySlug = cache(
+  async (slug: string): Promise<InterviewCategory | null> => {
+    try {
+      const categories = await getAllCategories();
+      return categories.find((c) => c.slug === slug) ?? null;
+    } catch (error) {
+      console.error("[interview-data] getCategoryBySlug:", error);
+      return null;
+    }
+  },
+);
 
-export const getQuestionsByCategorySlug = cache(async (
-  slug: string,
-  opts?: { limit?: number; offset?: number }
-): Promise<InterviewQuestion[]> => {
-  try {
-    const catResult = await db
-      .select()
-      .from(interviewCategories)
-      .where(eq(interviewCategories.slug, slug))
-      .limit(1);
+export const getQuestionsByCategorySlug = cache(
+  async (
+    slug: string,
+    opts?: { limit?: number; offset?: number },
+  ): Promise<InterviewQuestion[]> => {
+    try {
+      const catResult = await db
+        .select()
+        .from(interviewCategories)
+        .where(eq(interviewCategories.slug, slug))
+        .limit(1);
 
-    if (catResult.length === 0) return [];
+      if (catResult.length === 0) return [];
 
-    const query = db
-      .selectDistinct({
-        id: interviewQuestions.id,
-        question: interviewQuestions.question,
-        answer: interviewQuestions.answer,
-        difficulty: interviewQuestions.difficulty,
-        tags: interviewQuestions.tags,
-        is_top50: interviewQuestions.is_top50,
-      })
-      .from(interviewQuestions)
-      .innerJoin(
-        interviewQuestionChapters,
-        eq(interviewQuestions.id, interviewQuestionChapters.question_id)
-      )
-      .innerJoin(
-        interviewChapters,
-        eq(interviewQuestionChapters.chapter_id, interviewChapters.id)
-      )
-      .innerJoin(
-        interviewCategoryChapters,
-        eq(interviewChapters.id, interviewCategoryChapters.chapter_id)
-      )
-      .where(eq(interviewCategoryChapters.category_id, catResult[0].id))
-      .orderBy(interviewQuestions.id)
-      .$dynamic();
+      const query = db
+        .selectDistinct({
+          id: interviewQuestions.id,
+          question: interviewQuestions.question,
+          answer: interviewQuestions.answer,
+          difficulty: interviewQuestions.difficulty,
+          tags: interviewQuestions.tags,
+          is_top50: interviewQuestions.is_top50,
+        })
+        .from(interviewQuestions)
+        .innerJoin(
+          interviewQuestionChapters,
+          eq(interviewQuestions.id, interviewQuestionChapters.question_id),
+        )
+        .innerJoin(
+          interviewChapters,
+          eq(interviewQuestionChapters.chapter_id, interviewChapters.id),
+        )
+        .innerJoin(
+          interviewCategoryChapters,
+          eq(interviewChapters.id, interviewCategoryChapters.chapter_id),
+        )
+        .where(eq(interviewCategoryChapters.category_id, catResult[0].id))
+        .orderBy(interviewQuestions.id)
+        .$dynamic();
 
-    const result = await (opts?.limit
-      ? query.limit(opts.limit).offset(opts?.offset ?? 0)
-      : query);
+      const result = await (opts?.limit
+        ? query.limit(opts.limit).offset(opts?.offset ?? 0)
+        : query);
 
-    return result.map((q) => ({
-      ...q,
-      tags: q.tags as string[],
-    }));
-  } catch (error) {
-    console.error("[interview-data] getQuestionsByCategorySlug:", error);
-    return [];
-  }
-});
+      return result.map((q) => ({
+        ...q,
+        tags: q.tags as string[],
+      }));
+    } catch (error) {
+      console.error("[interview-data] getQuestionsByCategorySlug:", error);
+      return [];
+    }
+  },
+);
 
-export const getQuestionCountByCategorySlug = cache(async (slug: string): Promise<number> => {
-  try {
-    const catResult = await db
-      .select({ id: interviewCategories.id })
-      .from(interviewCategories)
-      .where(eq(interviewCategories.slug, slug))
-      .limit(1);
+export const getQuestionCountByCategorySlug = cache(
+  async (slug: string): Promise<number> => {
+    try {
+      const catResult = await db
+        .select({ id: interviewCategories.id })
+        .from(interviewCategories)
+        .where(eq(interviewCategories.slug, slug))
+        .limit(1);
 
-    if (catResult.length === 0) return 0;
+      if (catResult.length === 0) return 0;
 
-    const [result] = await db
-      .select({ value: count() })
-      .from(interviewQuestions)
-      .innerJoin(
-        interviewQuestionChapters,
-        eq(interviewQuestions.id, interviewQuestionChapters.question_id)
-      )
-      .innerJoin(
-        interviewChapters,
-        eq(interviewQuestionChapters.chapter_id, interviewChapters.id)
-      )
-      .innerJoin(
-        interviewCategoryChapters,
-        eq(interviewChapters.id, interviewCategoryChapters.chapter_id)
-      )
-      .where(eq(interviewCategoryChapters.category_id, catResult[0].id));
+      const [result] = await db
+        .select({ value: count() })
+        .from(interviewQuestions)
+        .innerJoin(
+          interviewQuestionChapters,
+          eq(interviewQuestions.id, interviewQuestionChapters.question_id),
+        )
+        .innerJoin(
+          interviewChapters,
+          eq(interviewQuestionChapters.chapter_id, interviewChapters.id),
+        )
+        .innerJoin(
+          interviewCategoryChapters,
+          eq(interviewChapters.id, interviewCategoryChapters.chapter_id),
+        )
+        .where(eq(interviewCategoryChapters.category_id, catResult[0].id));
 
-    return Number(result.value);
-  } catch (error) {
-    console.error("[interview-data] getQuestionCountByCategorySlug:", error);
-    return 0;
-  }
-});
+      return Number(result.value);
+    } catch (error) {
+      console.error("[interview-data] getQuestionCountByCategorySlug:", error);
+      return 0;
+    }
+  },
+);
 
-export const getQuestionsByCategorySlugAndTags = cache(async (slug: string, tags: string[]): Promise<InterviewQuestion[]> => {
-  try {
-    const all = await getQuestionsByCategorySlug(slug);
-    if (tags.length === 0) return all;
-    return all.filter((q) => q.tags.some((t) => tags.includes(t)));
-  } catch (error) {
-    console.error("[interview-data] getQuestionsByCategorySlugAndTags:", error);
-    return [];
-  }
-});
+export const getQuestionsByCategorySlugAndTags = cache(
+  async (slug: string, tags: string[]): Promise<InterviewQuestion[]> => {
+    try {
+      const all = await getQuestionsByCategorySlug(slug);
+      if (tags.length === 0) return all;
+      return all.filter((q) => q.tags.some((t) => tags.includes(t)));
+    } catch (error) {
+      console.error(
+        "[interview-data] getQuestionsByCategorySlugAndTags:",
+        error,
+      );
+      return [];
+    }
+  },
+);
 
-export const getDistinctTagsByCategorySlug = cache(async (slug: string): Promise<string[]> => {
-  try {
-    const catResult = await db
-      .select({ id: interviewCategories.id })
-      .from(interviewCategories)
-      .where(eq(interviewCategories.slug, slug))
-      .limit(1);
+export const getDistinctTagsByCategorySlug = cache(
+  async (slug: string): Promise<string[]> => {
+    try {
+      const catResult = await db
+        .select({ id: interviewCategories.id })
+        .from(interviewCategories)
+        .where(eq(interviewCategories.slug, slug))
+        .limit(1);
 
-    if (catResult.length === 0) return [];
+      if (catResult.length === 0) return [];
 
-    const rows = await db
-      .select({ tags: interviewQuestions.tags })
-      .from(interviewQuestions)
-      .innerJoin(
-        interviewQuestionChapters,
-        eq(interviewQuestions.id, interviewQuestionChapters.question_id)
-      )
-      .innerJoin(
-        interviewChapters,
-        eq(interviewQuestionChapters.chapter_id, interviewChapters.id)
-      )
-      .innerJoin(
-        interviewCategoryChapters,
-        eq(interviewChapters.id, interviewCategoryChapters.chapter_id)
-      )
-      .where(eq(interviewCategoryChapters.category_id, catResult[0].id));
+      const rows = await db
+        .select({ tags: interviewQuestions.tags })
+        .from(interviewQuestions)
+        .innerJoin(
+          interviewQuestionChapters,
+          eq(interviewQuestions.id, interviewQuestionChapters.question_id),
+        )
+        .innerJoin(
+          interviewChapters,
+          eq(interviewQuestionChapters.chapter_id, interviewChapters.id),
+        )
+        .innerJoin(
+          interviewCategoryChapters,
+          eq(interviewChapters.id, interviewCategoryChapters.chapter_id),
+        )
+        .where(eq(interviewCategoryChapters.category_id, catResult[0].id));
 
-    const tagSet = new Set<string>();
-    for (const row of rows) {
-      const tags = row.tags as string[];
-      if (Array.isArray(tags)) {
-        for (const tag of tags) {
-          tagSet.add(tag);
+      const tagSet = new Set<string>();
+      for (const row of rows) {
+        const tags = row.tags as string[];
+        if (Array.isArray(tags)) {
+          for (const tag of tags) {
+            tagSet.add(tag);
+          }
         }
       }
+      return Array.from(tagSet).sort();
+    } catch (error) {
+      console.error("[interview-data] getDistinctTagsByCategorySlug:", error);
+      return [];
     }
-    return Array.from(tagSet).sort();
-  } catch (error) {
-    console.error("[interview-data] getDistinctTagsByCategorySlug:", error);
-    return [];
-  }
-});
+  },
+);
 
-export const getChaptersByCategorySlug = cache(async (slug: string): Promise<InterviewChapter[]> => {
-  try {
-    const catResult = await db
-      .select()
-      .from(interviewCategories)
-      .where(eq(interviewCategories.slug, slug))
-      .limit(1);
+export const getChaptersByCategorySlug = cache(
+  async (slug: string): Promise<InterviewChapter[]> => {
+    try {
+      const catResult = await db
+        .select()
+        .from(interviewCategories)
+        .where(eq(interviewCategories.slug, slug))
+        .limit(1);
 
-    if (catResult.length === 0) return [];
+      if (catResult.length === 0) return [];
 
-    const result = await db
-      .select({
-        id: interviewChapters.id,
-        title: interviewChapters.title,
-        content: interviewChapters.content,
-        order_index: interviewCategoryChapters.order_index,
-      })
-      .from(interviewCategoryChapters)
-      .innerJoin(
-        interviewChapters,
-        eq(interviewCategoryChapters.chapter_id, interviewChapters.id)
-      )
-      .where(eq(interviewCategoryChapters.category_id, catResult[0].id))
-      .orderBy(asc(interviewCategoryChapters.order_index));
+      const result = await db
+        .select({
+          id: interviewChapters.id,
+          title: interviewChapters.title,
+          content: interviewChapters.content,
+          order_index: interviewCategoryChapters.order_index,
+        })
+        .from(interviewCategoryChapters)
+        .innerJoin(
+          interviewChapters,
+          eq(interviewCategoryChapters.chapter_id, interviewChapters.id),
+        )
+        .where(eq(interviewCategoryChapters.category_id, catResult[0].id))
+        .orderBy(asc(interviewCategoryChapters.order_index));
 
-    return result.map((ch) => ({
-      id: ch.id,
-      title: ch.title,
-      content: ch.content as InterviewChapter["content"],
-    }));
-  } catch (error) {
-    console.error("[interview-data] getChaptersByCategorySlug:", error);
-    return [];
-  }
-});
-
-export const getQuestionsByChapterIds = cache(async (chapterIds: number[]): Promise<Record<number, InterviewQuestion[]>> => {
-  if (chapterIds.length === 0) return {};
-
-  try {
-    const rows = await db
-      .select({
-        id: interviewQuestions.id,
-        question: interviewQuestions.question,
-        answer: interviewQuestions.answer,
-        difficulty: interviewQuestions.difficulty,
-        tags: interviewQuestions.tags,
-        is_top50: interviewQuestions.is_top50,
-        chapterId: interviewQuestionChapters.chapter_id,
-      })
-      .from(interviewQuestions)
-      .innerJoin(
-        interviewQuestionChapters,
-        eq(interviewQuestions.id, interviewQuestionChapters.question_id)
-      )
-      .where(inArray(interviewQuestionChapters.chapter_id, chapterIds))
-      .orderBy(interviewQuestions.id);
-
-    const grouped: Record<number, InterviewQuestion[]> = {};
-    for (const row of rows) {
-      const { chapterId, ...question } = row;
-      if (!grouped[chapterId]) grouped[chapterId] = [];
-      grouped[chapterId].push({
-        ...question,
-        tags: question.tags as string[],
-      });
+      return result.map((ch) => ({
+        id: ch.id,
+        title: ch.title,
+        content: ch.content as InterviewChapter["content"],
+      }));
+    } catch (error) {
+      console.error("[interview-data] getChaptersByCategorySlug:", error);
+      return [];
     }
-    return grouped;
-  } catch (error) {
-    console.error("[interview-data] getQuestionsByChapterIds:", error);
-    return {};
-  }
-});
+  },
+);
+
+export const getQuestionsByChapterIds = cache(
+  async (
+    chapterIds: number[],
+  ): Promise<Record<number, InterviewQuestion[]>> => {
+    if (chapterIds.length === 0) return {};
+
+    try {
+      const rows = await db
+        .select({
+          id: interviewQuestions.id,
+          question: interviewQuestions.question,
+          answer: interviewQuestions.answer,
+          difficulty: interviewQuestions.difficulty,
+          tags: interviewQuestions.tags,
+          is_top50: interviewQuestions.is_top50,
+          chapterId: interviewQuestionChapters.chapter_id,
+        })
+        .from(interviewQuestions)
+        .innerJoin(
+          interviewQuestionChapters,
+          eq(interviewQuestions.id, interviewQuestionChapters.question_id),
+        )
+        .where(inArray(interviewQuestionChapters.chapter_id, chapterIds))
+        .orderBy(interviewQuestions.id);
+
+      const grouped: Record<number, InterviewQuestion[]> = {};
+      for (const row of rows) {
+        const { chapterId, ...question } = row;
+        if (!grouped[chapterId]) grouped[chapterId] = [];
+        grouped[chapterId].push({
+          ...question,
+          tags: question.tags as string[],
+        });
+      }
+      return grouped;
+    } catch (error) {
+      console.error("[interview-data] getQuestionsByChapterIds:", error);
+      return {};
+    }
+  },
+);

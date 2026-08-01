@@ -85,7 +85,10 @@ Constraints:
 }`,
     test_cases: [
       { input: "s = ['h','e','l','l','o']", expected: "['o','l','l','e','h']" },
-      { input: "s = ['H','a','n','n','a','h']", expected: "['h','a','n','n','a','H']" },
+      {
+        input: "s = ['H','a','n','n','a','h']",
+        expected: "['h','a','n','n','a','H']",
+      },
     ],
   },
   {

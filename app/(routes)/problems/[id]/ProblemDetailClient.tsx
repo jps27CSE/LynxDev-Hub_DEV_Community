@@ -13,11 +13,7 @@ const difficultyColor: Record<string, string> = {
   hard: "bg-red-500/10 text-red-500 border-red-500/20",
 };
 
-export default function ProblemDetailClient({
-  problem,
-}: {
-  problem: Problem;
-}) {
+export default function ProblemDetailClient({ problem }: { problem: Problem }) {
   const [code, setCode] = useState(problem.starter_code || "");
   const [output, setOutput] = useState<string | null>(null);
   const [passed, setPassed] = useState<boolean | null>(null);
@@ -30,7 +26,9 @@ export default function ProblemDetailClient({
 
     try {
       const logs: string[] = [];
-      const mockConsole = { log: (...args: unknown[]) => logs.push(args.map(String).join(" ")) };
+      const mockConsole = {
+        log: (...args: unknown[]) => logs.push(args.map(String).join(" ")),
+      };
 
       const fn = new Function("console", code);
       fn(mockConsole);
@@ -59,10 +57,14 @@ export default function ProblemDetailClient({
         try {
           const fn = new Function(code);
           const result = fn();
-          results.push(`Test: ${tc.input} → ${result === tc.expected ? "PASS" : `FAIL (got ${result})`}`);
+          results.push(
+            `Test: ${tc.input} → ${result === tc.expected ? "PASS" : `FAIL (got ${result})`}`,
+          );
           if (result !== tc.expected) allPassed = false;
         } catch (err: unknown) {
-          results.push(`Test: ${tc.input} → ERROR: ${err instanceof Error ? err.message : "Unknown error"}`);
+          results.push(
+            `Test: ${tc.input} → ERROR: ${err instanceof Error ? err.message : "Unknown error"}`,
+          );
           allPassed = false;
         }
       }
@@ -96,7 +98,7 @@ export default function ProblemDetailClient({
         <div className="flex items-center gap-4 mb-6">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight">
+              <h1 className="text-2xl font-display font-bold tracking-tight">
                 {problem.title}
               </h1>
               <Badge
@@ -192,17 +194,23 @@ export default function ProblemDetailClient({
                   {passed === true && (
                     <>
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      <span className="text-xs font-medium text-green-500">All tests passed!</span>
+                      <span className="text-xs font-medium text-green-500">
+                        All tests passed!
+                      </span>
                     </>
                   )}
                   {passed === false && (
                     <>
                       <XCircle className="w-4 h-4 text-red-500" />
-                      <span className="text-xs font-medium text-red-500">Tests failed</span>
+                      <span className="text-xs font-medium text-red-500">
+                        Tests failed
+                      </span>
                     </>
                   )}
                   {passed === null && (
-                    <span className="text-xs font-medium text-muted-foreground">Output</span>
+                    <span className="text-xs font-medium text-muted-foreground">
+                      Output
+                    </span>
                   )}
                 </div>
                 <pre className="text-sm font-mono text-muted-foreground whitespace-pre-wrap">

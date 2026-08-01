@@ -4,7 +4,7 @@ import { type ZodError, flattenError } from "zod";
 export function validationError(error: ZodError) {
   return NextResponse.json(
     { error: "Validation failed", details: flattenError(error).fieldErrors },
-    { status: 400 }
+    { status: 400 },
   );
 }
 
@@ -19,11 +19,16 @@ export function unauthorized() {
 export function notFound(entity?: string) {
   return NextResponse.json(
     { error: entity ? `${entity} not found` : "Not found" },
-    { status: 404 }
+    { status: 404 },
   );
 }
 
-export function rateLimited(retryAfterSeconds: number, limit: number, remaining: number, reset: number) {
+export function rateLimited(
+  retryAfterSeconds: number,
+  limit: number,
+  remaining: number,
+  reset: number,
+) {
   return NextResponse.json(
     { error: "Too many requests. Please slow down." },
     {
@@ -34,6 +39,6 @@ export function rateLimited(retryAfterSeconds: number, limit: number, remaining:
         "X-RateLimit-Remaining": String(remaining),
         "X-RateLimit-Reset": String(reset),
       },
-    }
+    },
   );
 }

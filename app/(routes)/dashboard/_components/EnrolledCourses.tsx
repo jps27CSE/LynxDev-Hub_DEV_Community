@@ -5,7 +5,10 @@ import Link from "next/link";
 import CourseIcon from "@/components/CourseIcon";
 import type { EnrolledCourse } from "@/lib/enroll-data";
 
-const diffConfig: Record<string, { color: string; light: string; badge: string }> = {
+const diffConfig: Record<
+  string,
+  { color: string; light: string; badge: string }
+> = {
   Beginner: {
     color: "text-green-500",
     light: "bg-green-500/10",
@@ -28,7 +31,6 @@ const EnrolledCourses = ({
 }: {
   enrollments: EnrolledCourse[];
 }) => {
-
   if (enrollments.length === 0) {
     return (
       <div>
@@ -88,7 +90,8 @@ const EnrolledCourses = ({
           const done = enrollment.progress.completedChapters.length;
           const total = enrollment.totalChapters;
           const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-          const diff = diffConfig[enrollment.course.difficulty] || diffConfig["Beginner"];
+          const diff =
+            diffConfig[enrollment.course.difficulty] || diffConfig["Beginner"];
 
           return (
             <Link
@@ -113,8 +116,13 @@ const EnrolledCourses = ({
                 }}
               />
               <div className="flex items-start gap-4 relative">
-                <div className={`w-12 h-12 rounded-xl ${diff.light} flex items-center justify-center flex-shrink-0 ring-1 ring-white/5`}>
-                  <CourseIcon title={enrollment.course.title} className="w-6 h-6" />
+                <div
+                  className={`w-12 h-12 rounded-xl ${diff.light} flex items-center justify-center flex-shrink-0 ring-1 ring-white/5`}
+                >
+                  <CourseIcon
+                    title={enrollment.course.title}
+                    className="w-6 h-6"
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -126,7 +134,9 @@ const EnrolledCourses = ({
                     )}
                   </div>
                   <div className="flex items-center gap-3 mt-2">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border ${diff.badge}`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border ${diff.badge}`}
+                    >
                       {enrollment.course.difficulty}
                     </span>
                     <span className="text-muted-foreground/30">&middot;</span>
@@ -136,12 +146,18 @@ const EnrolledCourses = ({
                         {done}/{total} chapters
                       </span>
                     ) : (
-                      <span className="text-xs text-green-500 font-medium">Completed</span>
+                      <span className="text-xs text-green-500 font-medium">
+                        Completed
+                      </span>
                     )}
                     {enrollment.course.category && (
                       <>
-                        <span className="text-muted-foreground/30">&middot;</span>
-                        <span className="text-xs text-muted-foreground">{enrollment.course.category}</span>
+                        <span className="text-muted-foreground/30">
+                          &middot;
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {enrollment.course.category}
+                        </span>
                       </>
                     )}
                   </div>
@@ -151,8 +167,12 @@ const EnrolledCourses = ({
               {!enrollment.completed_at && total > 0 && (
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[11px] text-muted-foreground font-medium">Progress</span>
-                    <span className="text-[11px] text-muted-foreground font-medium">{pct}%</span>
+                    <span className="text-[11px] text-muted-foreground font-medium">
+                      Progress
+                    </span>
+                    <span className="text-[11px] text-muted-foreground font-medium">
+                      {pct}%
+                    </span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                     <div

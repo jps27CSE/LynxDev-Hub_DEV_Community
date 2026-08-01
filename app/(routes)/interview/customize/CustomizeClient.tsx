@@ -80,7 +80,10 @@ const tagLabels: Record<string, string> = {
 };
 
 function formatTagLabel(tag: string): string {
-  return tagLabels[tag] || tag.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return (
+    tagLabels[tag] ||
+    tag.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  );
 }
 
 type Props = {
@@ -129,20 +132,28 @@ export default function CustomizeClient({ stacksByCategory }: Props) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Customize Your Interview Prep</h1>
+        <h1 className="text-2xl font-display font-bold tracking-tight">
+          Customize Your Interview Prep
+        </h1>
         <p className="text-sm text-muted-foreground mt-1 max-w-lg">
-          Different companies use different stacks. Select the technologies you are targeting,
-          and we will tailor your interview preparation accordingly.
+          Different companies use different stacks. Select the technologies you
+          are targeting, and we will tailor your interview preparation
+          accordingly.
         </p>
       </div>
 
       {stacksByCategory.map((group) => (
-        <div key={group.slug} className="rounded-xl border border-border/50 bg-card p-6 space-y-4">
+        <div
+          key={group.slug}
+          className="rounded-xl border border-border/50 bg-card p-6 space-y-4"
+        >
           <div className="flex items-center gap-3">
             <span className="text-2xl">{group.icon || "📁"}</span>
             <div>
               <h2 className="font-semibold text-base">{group.name}</h2>
-              <p className="text-xs text-muted-foreground">{group.tags.length} topics available</p>
+              <p className="text-xs text-muted-foreground">
+                {group.tags.length} topics available
+              </p>
             </div>
           </div>
 
@@ -172,7 +183,8 @@ export default function CustomizeClient({ stacksByCategory }: Props) {
         <div className="text-sm text-muted-foreground">
           {selectedCount > 0 ? (
             <span>
-              <strong className="text-foreground">{selectedCount}</strong> stack{selectedCount !== 1 ? "s" : ""} selected
+              <strong className="text-foreground">{selectedCount}</strong> stack
+              {selectedCount !== 1 ? "s" : ""} selected
             </span>
           ) : (
             <span>No stacks selected yet</span>

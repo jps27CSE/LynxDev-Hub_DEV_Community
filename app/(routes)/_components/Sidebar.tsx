@@ -30,7 +30,12 @@ type SidebarProps = {
   onClose: () => void;
 };
 
-export default function Sidebar({ open, collapsed, onToggleCollapse, onClose }: SidebarProps) {
+export default function Sidebar({
+  open,
+  collapsed,
+  onToggleCollapse,
+  onClose,
+}: SidebarProps) {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
@@ -41,7 +46,10 @@ export default function Sidebar({ open, collapsed, onToggleCollapse, onClose }: 
   return (
     <>
       {open && (
-        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} />
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={onClose}
+        />
       )}
 
       <aside
@@ -57,7 +65,11 @@ export default function Sidebar({ open, collapsed, onToggleCollapse, onClose }: 
               </div>
             </Link>
           ) : (
-            <Link href="/dashboard" className="flex items-center gap-2" onClick={onClose}>
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2"
+              onClick={onClose}
+            >
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <span className="text-sm font-bold text-primary">L</span>
               </div>
@@ -127,7 +139,11 @@ export default function Sidebar({ open, collapsed, onToggleCollapse, onClose }: 
           onClick={onToggleCollapse}
           className="hidden lg:flex items-center justify-center h-10 border-t border-border/50 text-muted-foreground hover:text-foreground transition-colors"
         >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          {collapsed ? (
+            <ChevronRight className="w-4 h-4" />
+          ) : (
+            <ChevronLeft className="w-4 h-4" />
+          )}
         </button>
       </aside>
     </>

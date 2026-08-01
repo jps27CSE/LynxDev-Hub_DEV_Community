@@ -1,8 +1,17 @@
 import "dotenv/config";
 import { db } from "./db";
-import { interviewCategories, interviewCategoryChapters, interviewChapters, interviewQuestions, interviewQuestionChapters } from "./schema";
+import {
+  interviewCategories,
+  interviewCategoryChapters,
+  interviewChapters,
+  interviewQuestions,
+  interviewQuestionChapters,
+} from "./schema";
 import { categoriesData, questionsData } from "./interview/seed-data";
-import { chaptersData, crossCategoryChapters } from "./interview/chapters-seed-data";
+import {
+  chaptersData,
+  crossCategoryChapters,
+} from "./interview/chapters-seed-data";
 import { eq, sql } from "drizzle-orm";
 
 async function main() {
@@ -132,7 +141,9 @@ async function main() {
     for (const link of crossLinks) {
       const chapterId = createdChapters.get(link.title);
       if (!chapterId) {
-        console.log(`  ⚠ ${cat.name}: cross-referenced chapter "${link.title}" not found — skipping`);
+        console.log(
+          `  ⚠ ${cat.name}: cross-referenced chapter "${link.title}" not found — skipping`,
+        );
         continue;
       }
 

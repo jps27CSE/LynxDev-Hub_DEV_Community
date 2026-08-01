@@ -6,7 +6,10 @@ import { count } from "drizzle-orm";
 import { ArrowLeft, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const categoryThemes: Record<string, { light: string; medium: string; border: string; glow: string }> = {
+const categoryThemes: Record<
+  string,
+  { light: string; medium: string; border: string; glow: string }
+> = {
   "Software Engineer": {
     light: "bg-blue-500/10",
     medium: "bg-blue-500/20",
@@ -45,40 +48,53 @@ const categoryThemes: Record<string, { light: string; medium: string; border: st
   },
 };
 
-const ALLOWED_SLUGS = ["software-engineer", "frontend-engineer", "backend-engineer"];
+const ALLOWED_SLUGS = [
+  "software-engineer",
+  "frontend-engineer",
+  "backend-engineer",
+];
 
 export default async function InterviewPage() {
   const categories = (await getAllCategories()).filter((c) =>
-    ALLOWED_SLUGS.includes(c.slug)
+    ALLOWED_SLUGS.includes(c.slug),
   );
   const [qTotal] = await db.select({ value: count() }).from(interviewQuestions);
-  const [chTotal] = await db.select({ value: count() }).from(interviewCategoryChapters);
+  const [chTotal] = await db
+    .select({ value: count() })
+    .from(interviewCategoryChapters);
   const allChapters = await db
     .select({ category_id: interviewCategoryChapters.category_id })
     .from(interviewCategoryChapters);
   const chapterCountByCategory = new Map<number, number>();
   for (const ch of allChapters) {
-    chapterCountByCategory.set(ch.category_id, (chapterCountByCategory.get(ch.category_id) || 0) + 1);
+    chapterCountByCategory.set(
+      ch.category_id,
+      (chapterCountByCategory.get(ch.category_id) || 0) + 1,
+    );
   }
 
-  return (<>
-    <div className="relative overflow-hidden border-b border-border/40">
+  return (
+    <>
+      <div className="relative overflow-hidden border-b border-border/40">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs text-muted-foreground mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              {categories.length} tracks &middot; {Number(qTotal.value)} questions &middot; {Number(chTotal.value)} chapters
+              {categories.length} tracks &middot; {Number(qTotal.value)}{" "}
+              questions &middot; {Number(chTotal.value)} chapters
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight leading-[1.1]">
               Interview{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
                 Preparation
               </span>
             </h1>
             <p className="mt-4 text-lg text-muted-foreground max-w-xl leading-relaxed">
-              Master your next technical interview with curated chapters, real-world scenarios, and hands-on practice across every engineering discipline.
+              Master your next technical interview with curated chapters,
+              real-world scenarios, and hands-on practice across every
+              engineering discipline.
             </p>
           </div>
         </div>
@@ -103,7 +119,9 @@ export default async function InterviewPage() {
             <div className="flex-1">
               <h2 className="text-base font-semibold">Customize Your Stack</h2>
               <p className="text-sm text-muted-foreground mt-0.5">
-                Select the technologies you are targeting — React, Angular, Node.js, Spring Boot, and more — and get a personalized interview plan.
+                Select the technologies you are targeting — React, Angular,
+                Node.js, Spring Boot, and more — and get a personalized
+                interview plan.
               </p>
             </div>
             <Link href="/interview/customize">
@@ -148,7 +166,9 @@ export default async function InterviewPage() {
               >
                 <div
                   className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${theme.glow}`}
-                  style={{ boxShadow: "inset 0 1px 0 0 rgb(255 255 255 / 0.05)" }}
+                  style={{
+                    boxShadow: "inset 0 1px 0 0 rgb(255 255 255 / 0.05)",
+                  }}
                 />
 
                 <div className="flex items-start gap-4 relative">
@@ -169,19 +189,26 @@ export default async function InterviewPage() {
 
                 <div className="flex items-center gap-3 mt-5 pt-4 border-t border-border/30 relative">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground">{cat.questionCount}</span>
+                    <span className="font-semibold text-foreground">
+                      {cat.questionCount}
+                    </span>
                     questions
                   </div>
                   <span className="text-muted-foreground/30">&middot;</span>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground">{chapterCountByCategory.get(cat.id) || 0}</span>
+                    <span className="font-semibold text-foreground">
+                      {chapterCountByCategory.get(cat.id) || 0}
+                    </span>
                     chapters
                   </div>
                   <div className="ml-auto">
                     <span
                       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium ${theme.light} ${theme.border} border`}
                     >
-                      {cat.questionCount > 0 ? `${Math.min(cat.questionCount, 50)}+` : "0"} topics
+                      {cat.questionCount > 0
+                        ? `${Math.min(cat.questionCount, 50)}+`
+                        : "0"}{" "}
+                      topics
                     </span>
                   </div>
                 </div>
@@ -197,6 +224,7 @@ export default async function InterviewPage() {
             </p>
           </div>
         )}
-    </div>
-  </>);
+      </div>
+    </>
+  );
 }

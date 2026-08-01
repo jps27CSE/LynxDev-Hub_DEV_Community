@@ -2,7 +2,8 @@ export const categoriesData = [
   {
     name: "Software Engineer",
     slug: "software-engineer",
-    description: "General software engineering concepts, OOP, system design, data structures, and algorithms.",
+    description:
+      "General software engineering concepts, OOP, system design, data structures, and algorithms.",
     icon: "💻",
     color: "text-blue-500",
     order_index: 1,
@@ -18,7 +19,8 @@ export const categoriesData = [
   {
     name: "Backend Engineer",
     slug: "backend-engineer",
-    description: "Server-side programming, APIs, databases, authentication, and scalability.",
+    description:
+      "Server-side programming, APIs, databases, authentication, and scalability.",
     icon: "⚙️",
     color: "text-emerald-500",
     order_index: 3,
@@ -26,7 +28,8 @@ export const categoriesData = [
   {
     name: "Fullstack Engineer",
     slug: "fullstack-engineer",
-    description: "End-to-end development, frontend + backend integration, deployment, and DevOps.",
+    description:
+      "End-to-end development, frontend + backend integration, deployment, and DevOps.",
     icon: "🌐",
     color: "text-purple-500",
     order_index: 4,
@@ -34,7 +37,8 @@ export const categoriesData = [
   {
     name: "DevOps Engineer",
     slug: "devops-engineer",
-    description: "CI/CD, cloud infrastructure, containerization, monitoring, and automation.",
+    description:
+      "CI/CD, cloud infrastructure, containerization, monitoring, and automation.",
     icon: "🚀",
     color: "text-orange-500",
     order_index: 5,
@@ -42,165 +46,201 @@ export const categoriesData = [
   {
     name: "QA Engineer",
     slug: "qa-engineer",
-    description: "Testing methodologies, automation frameworks, bug tracking, and quality assurance.",
+    description:
+      "Testing methodologies, automation frameworks, bug tracking, and quality assurance.",
     icon: "🧪",
     color: "text-red-500",
     order_index: 6,
   },
 ];
 
-export const questionsData: Record<string, { question: string; answer: string; difficulty: string; tags: string[]; is_top50: boolean }[]> = {
+export const questionsData: Record<
+  string,
+  {
+    question: string;
+    answer: string;
+    difficulty: string;
+    tags: string[];
+    is_top50: boolean;
+  }[]
+> = {
   "software-engineer": [
     {
       question: "What is the difference between an array and a linked list?",
-      answer: "An array is a contiguous block of memory where elements are accessed by index in O(1) time, but insertion/deletion is O(n). A linked list consists of nodes with pointers — insertion/deletion is O(1) at known position, but access is O(n). Arrays have better cache locality; linked lists use more memory per element.",
+      answer:
+        "An array is a contiguous block of memory where elements are accessed by index in O(1) time, but insertion/deletion is O(n). A linked list consists of nodes with pointers — insertion/deletion is O(1) at known position, but access is O(n). Arrays have better cache locality; linked lists use more memory per element.",
       difficulty: "easy",
       tags: ["data-structures"],
       is_top50: true,
     },
     {
       question: "Explain the concept of Big O notation.",
-      answer: "Big O notation describes the upper bound of an algorithm's time or space complexity as input size grows. It ignores constants and lower-order terms. Common complexities: O(1) constant, O(log n) logarithmic, O(n) linear, O(n log n), O(n²) quadratic, O(2ⁿ) exponential. It helps compare algorithm efficiency.",
+      answer:
+        "Big O notation describes the upper bound of an algorithm's time or space complexity as input size grows. It ignores constants and lower-order terms. Common complexities: O(1) constant, O(log n) logarithmic, O(n) linear, O(n log n), O(n²) quadratic, O(2ⁿ) exponential. It helps compare algorithm efficiency.",
       difficulty: "easy",
       tags: ["algorithms"],
       is_top50: true,
     },
     {
       question: "What is the difference between TCP and UDP?",
-      answer: "TCP is connection-oriented, guarantees delivery, ensures ordering, and provides flow control — used for web browsing, email, file transfer. UDP is connectionless, faster, with no guarantee of delivery or ordering — used for streaming, gaming, DNS queries. TCP has higher overhead; UDP is lightweight.",
+      answer:
+        "TCP is connection-oriented, guarantees delivery, ensures ordering, and provides flow control — used for web browsing, email, file transfer. UDP is connectionless, faster, with no guarantee of delivery or ordering — used for streaming, gaming, DNS queries. TCP has higher overhead; UDP is lightweight.",
       difficulty: "medium",
       tags: ["networking"],
       is_top50: true,
     },
     {
       question: "Explain how a hash table works.",
-      answer: "A hash table stores key-value pairs. A hash function maps each key to an index (bucket). Collisions are handled via chaining (linked list per bucket) or open addressing (probing). Average lookup is O(1), worst-case O(n) with many collisions. Good hash functions distribute keys uniformly.",
+      answer:
+        "A hash table stores key-value pairs. A hash function maps each key to an index (bucket). Collisions are handled via chaining (linked list per bucket) or open addressing (probing). Average lookup is O(1), worst-case O(n) with many collisions. Good hash functions distribute keys uniformly.",
       difficulty: "medium",
       tags: ["data-structures"],
       is_top50: true,
     },
     {
       question: "What is the difference between processes and threads?",
-      answer: "A process is an independent program with its own memory space (isolated). A thread is a lightweight unit of execution within a process, sharing memory with sibling threads. Processes are more expensive to create and switch between. Threads enable parallelism within a process but require synchronization.",
+      answer:
+        "A process is an independent program with its own memory space (isolated). A thread is a lightweight unit of execution within a process, sharing memory with sibling threads. Processes are more expensive to create and switch between. Threads enable parallelism within a process but require synchronization.",
       difficulty: "medium",
       tags: ["operating-systems"],
       is_top50: true,
     },
     {
       question: "Explain the CAP theorem.",
-      answer: "The CAP theorem states a distributed system can only provide two of three guarantees: Consistency (all nodes see the same data), Availability (every request gets a response), and Partition Tolerance (system works despite network failures). In practice, CP systems sacrifice availability during partitions; AP systems sacrifice consistency.",
+      answer:
+        "The CAP theorem states a distributed system can only provide two of three guarantees: Consistency (all nodes see the same data), Availability (every request gets a response), and Partition Tolerance (system works despite network failures). In practice, CP systems sacrifice availability during partitions; AP systems sacrifice consistency.",
       difficulty: "hard",
       tags: ["distributed-systems"],
       is_top50: true,
     },
     {
       question: "Describe the differences between REST and GraphQL.",
-      answer: "REST uses fixed endpoints with HTTP methods; each endpoint returns a predefined data structure. GraphQL uses a single endpoint where clients specify exactly what fields they need. REST is simpler for basic CRUD; GraphQL reduces over-fetching/under-fetching. REST relies on HTTP caching; GraphQL requires custom caching.",
+      answer:
+        "REST uses fixed endpoints with HTTP methods; each endpoint returns a predefined data structure. GraphQL uses a single endpoint where clients specify exactly what fields they need. REST is simpler for basic CRUD; GraphQL reduces over-fetching/under-fetching. REST relies on HTTP caching; GraphQL requires custom caching.",
       difficulty: "medium",
       tags: ["api-design"],
       is_top50: true,
     },
     {
       question: "What is dependency injection and why use it?",
-      answer: "Dependency injection is a design pattern where dependencies are provided (injected) to a class rather than the class creating them itself. Benefits: loose coupling, easier testing (mocking), improved maintainability, and configuration flexibility. Typically done via constructor injection or setter injection.",
+      answer:
+        "Dependency injection is a design pattern where dependencies are provided (injected) to a class rather than the class creating them itself. Benefits: loose coupling, easier testing (mocking), improved maintainability, and configuration flexibility. Typically done via constructor injection or setter injection.",
       difficulty: "medium",
       tags: ["design-patterns"],
       is_top50: true,
     },
     {
-      question: "What is the difference between an interface and an abstract class in Java?",
-      answer: "An interface provides 100% abstraction and allows multiple inheritance, while an abstract class is partially abstract and can contain normal methods and state. Interfaces cannot have constructors, but abstract classes can. Choose an interface when defining capability (behavior) and an abstract class when defining a base template for subclasses.",
+      question:
+        "What is the difference between an interface and an abstract class in Java?",
+      answer:
+        "An interface provides 100% abstraction and allows multiple inheritance, while an abstract class is partially abstract and can contain normal methods and state. Interfaces cannot have constructors, but abstract classes can. Choose an interface when defining capability (behavior) and an abstract class when defining a base template for subclasses.",
       difficulty: "medium",
       tags: ["oop", "design-patterns"],
       is_top50: true,
     },
     {
       question: "What is hoisting in JavaScript?",
-      answer: "Hoisting is JavaScript's behavior of moving declarations to the top of their scope before execution. var gets hoisted and initialized with undefined, but let and const are hoisted without initialization, causing a ReferenceError if used before declaration (Temporal Dead Zone).",
+      answer:
+        "Hoisting is JavaScript's behavior of moving declarations to the top of their scope before execution. var gets hoisted and initialized with undefined, but let and const are hoisted without initialization, causing a ReferenceError if used before declaration (Temporal Dead Zone).",
       difficulty: "medium",
       tags: ["javascript"],
       is_top50: true,
     },
     {
       question: "What is the difference between == and === in JavaScript?",
-      answer: "== compares values after type coercion, while === compares both value and type without conversion. For example, '5' == 5 is true, but '5' === 5 is false. Always use === in modern JavaScript to avoid unexpected behavior from automatic type conversion.",
+      answer:
+        "== compares values after type coercion, while === compares both value and type without conversion. For example, '5' == 5 is true, but '5' === 5 is false. Always use === in modern JavaScript to avoid unexpected behavior from automatic type conversion.",
       difficulty: "easy",
       tags: ["javascript"],
       is_top50: true,
     },
     {
       question: "Explain the Event Loop in JavaScript.",
-      answer: "The event loop allows JavaScript to run asynchronous operations even though it is single-threaded. It moves callbacks from the microtask queue (Promises) and macrotask queue (setTimeout, DOM events) to the call stack when the stack is empty, enabling non-blocking behavior. Execution order: synchronous code → microtasks → macrotasks.",
+      answer:
+        "The event loop allows JavaScript to run asynchronous operations even though it is single-threaded. It moves callbacks from the microtask queue (Promises) and macrotask queue (setTimeout, DOM events) to the call stack when the stack is empty, enabling non-blocking behavior. Execution order: synchronous code → microtasks → macrotasks.",
       difficulty: "medium",
       tags: ["javascript"],
       is_top50: true,
     },
     {
       question: "What is the Java Stream API and when do we use it?",
-      answer: "Stream API provides a functional way to process data in collections using operations like filter, map, reduce, and collect. Benefits include less boilerplate, parallel processing capability, and easy chaining of operations. It allows writing clean, declarative code for data manipulation tasks.",
+      answer:
+        "Stream API provides a functional way to process data in collections using operations like filter, map, reduce, and collect. Benefits include less boilerplate, parallel processing capability, and easy chaining of operations. It allows writing clean, declarative code for data manipulation tasks.",
       difficulty: "medium",
       tags: ["java", "functional"],
       is_top50: true,
     },
     {
-      question: "What is the difference between synchronous and asynchronous JavaScript?",
-      answer: "Synchronous code blocks execution until it finishes, executing line by line. Asynchronous code allows the program to continue running by pushing long operations to the event loop. JavaScript uses callbacks, Promises, and async/await to handle async tasks without blocking the main thread.",
+      question:
+        "What is the difference between synchronous and asynchronous JavaScript?",
+      answer:
+        "Synchronous code blocks execution until it finishes, executing line by line. Asynchronous code allows the program to continue running by pushing long operations to the event loop. JavaScript uses callbacks, Promises, and async/await to handle async tasks without blocking the main thread.",
       difficulty: "medium",
       tags: ["javascript", "concurrency"],
       is_top50: true,
     },
     {
-      question: "What is the difference between monolithic and microservices architecture?",
-      answer: "A monolithic architecture keeps the entire application in one codebase and is easy to build initially but hard to scale. Microservices break the system into small independent services with their own databases, allowing faster deployment, better fault isolation, and independent scaling.",
+      question:
+        "What is the difference between monolithic and microservices architecture?",
+      answer:
+        "A monolithic architecture keeps the entire application in one codebase and is easy to build initially but hard to scale. Microservices break the system into small independent services with their own databases, allowing faster deployment, better fault isolation, and independent scaling.",
       difficulty: "hard",
       tags: ["architecture", "system-design"],
       is_top50: false,
     },
     {
       question: "What is the difference between SQL and NoSQL databases?",
-      answer: "SQL databases store structured data in tables with predefined schemas and ensure ACID compliance. NoSQL databases store unstructured or semi-structured data (documents, key-value, graphs) and scale horizontally more easily. SQL is ideal for relational data and complex queries; NoSQL works best for flexible schemas and high-scale applications.",
+      answer:
+        "SQL databases store structured data in tables with predefined schemas and ensure ACID compliance. NoSQL databases store unstructured or semi-structured data (documents, key-value, graphs) and scale horizontally more easily. SQL is ideal for relational data and complex queries; NoSQL works best for flexible schemas and high-scale applications.",
       difficulty: "medium",
       tags: ["databases"],
       is_top50: true,
     },
     {
       question: "What is Garbage Collection in Java?",
-      answer: "Garbage Collection is Java's automatic memory management mechanism that removes unused or unreachable objects from the heap, preventing memory leaks. Common GC implementations include Serial GC, Parallel GC, and G1 GC (modern default). Developers don't need manual memory management.",
+      answer:
+        "Garbage Collection is Java's automatic memory management mechanism that removes unused or unreachable objects from the heap, preventing memory leaks. Common GC implementations include Serial GC, Parallel GC, and G1 GC (modern default). Developers don't need manual memory management.",
       difficulty: "medium",
       tags: ["java", "memory-management"],
       is_top50: true,
     },
     {
       question: "What is polymorphism in OOP?",
-      answer: "Polymorphism allows one method or interface to behave differently based on context. Compile-time polymorphism (method overloading) uses the same method name with different parameters. Runtime polymorphism (method overriding) lets a child class override a parent class method. This improves flexibility and reusability.",
+      answer:
+        "Polymorphism allows one method or interface to behave differently based on context. Compile-time polymorphism (method overloading) uses the same method name with different parameters. Runtime polymorphism (method overriding) lets a child class override a parent class method. This improves flexibility and reusability.",
       difficulty: "easy",
       tags: ["oop", "design-patterns"],
       is_top50: true,
     },
     {
-      question: "What is the difference between map() and forEach() in JavaScript?",
-      answer: "map() returns a new array after transforming each element, making it ideal for creating new data structures. forEach() is used only for iteration and returns nothing (undefined). map() is chainable and follows functional programming principles; forEach() is typically used for side effects.",
+      question:
+        "What is the difference between map() and forEach() in JavaScript?",
+      answer:
+        "map() returns a new array after transforming each element, making it ideal for creating new data structures. forEach() is used only for iteration and returns nothing (undefined). map() is chainable and follows functional programming principles; forEach() is typically used for side effects.",
       difficulty: "easy",
       tags: ["javascript"],
       is_top50: true,
     },
     {
       question: "What is the difference between == and .equals() in Java?",
-      answer: "In Java, == compares memory addresses (reference equality), while .equals() compares values/content. For example, comparing two String objects with the same content using == returns false, but .equals() returns true. Most classes override .equals() for content-based comparison. Improper usage causes logic bugs, especially in Strings and Collections.",
+      answer:
+        "In Java, == compares memory addresses (reference equality), while .equals() compares values/content. For example, comparing two String objects with the same content using == returns false, but .equals() returns true. Most classes override .equals() for content-based comparison. Improper usage causes logic bugs, especially in Strings and Collections.",
       difficulty: "medium",
       tags: ["java", "oop"],
       is_top50: true,
     },
     {
       question: "What are Promises in JavaScript and why do we need them?",
-      answer: "Promises handle asynchronous operations without callback hell. A Promise has three states: pending, fulfilled, and rejected. Promises provide cleaner async code with .then() and .catch() for error handling, and work seamlessly with async/await syntax.",
+      answer:
+        "Promises handle asynchronous operations without callback hell. A Promise has three states: pending, fulfilled, and rejected. Promises provide cleaner async code with .then() and .catch() for error handling, and work seamlessly with async/await syntax.",
       difficulty: "medium",
       tags: ["javascript"],
       is_top50: true,
     },
     {
       question: "How does the Event Loop handle microtasks and macrotasks?",
-      answer: "After each macrotask (setTimeout, DOM events, I/O), the event loop processes all microtasks (Promise.then, queueMicrotask, MutationObserver) before proceeding to the next macrotask. This ensures Promise callbacks execute promptly. Example: a Promise resolves before the next setTimeout callback runs.",
+      answer:
+        "After each macrotask (setTimeout, DOM events, I/O), the event loop processes all microtasks (Promise.then, queueMicrotask, MutationObserver) before proceeding to the next macrotask. This ensures Promise callbacks execute promptly. Example: a Promise resolves before the next setTimeout callback runs.",
       difficulty: "hard",
       tags: ["javascript"],
       is_top50: false,
@@ -209,56 +249,64 @@ export const questionsData: Record<string, { question: string; answer: string; d
     // ──────── Additional Junior-Level Questions ────────
     {
       question: "What is the difference between a stack and a queue?",
-      answer: "A stack follows LIFO (Last In, First Out) — like a stack of plates. Push adds to the top, pop removes from the top. Used for function call management, undo operations, and expression evaluation. A queue follows FIFO (First In, First Out) — like a line of people. Enqueue adds to the back, dequeue removes from the front. Used for task scheduling, breadth-first search, and request buffering.",
+      answer:
+        "A stack follows LIFO (Last In, First Out) — like a stack of plates. Push adds to the top, pop removes from the top. Used for function call management, undo operations, and expression evaluation. A queue follows FIFO (First In, First Out) — like a line of people. Enqueue adds to the back, dequeue removes from the front. Used for task scheduling, breadth-first search, and request buffering.",
       difficulty: "easy",
       tags: ["data-structures"],
       is_top50: true,
     },
     {
       question: "What is load balancing and why is it important?",
-      answer: "Load balancing distributes incoming network traffic across multiple servers to ensure no single server becomes overwhelmed. It improves availability (if one server fails, others handle traffic), scalability (add servers to handle more load), and performance (distribute requests to least-loaded servers). Common algorithms: round-robin, least connections, IP hash. Load balancers can also handle SSL termination, health checks, and session persistence.",
+      answer:
+        "Load balancing distributes incoming network traffic across multiple servers to ensure no single server becomes overwhelmed. It improves availability (if one server fails, others handle traffic), scalability (add servers to handle more load), and performance (distribute requests to least-loaded servers). Common algorithms: round-robin, least connections, IP hash. Load balancers can also handle SSL termination, health checks, and session persistence.",
       difficulty: "easy",
       tags: ["system-design", "architecture"],
       is_top50: true,
     },
     {
       question: "What are the SOLID principles in object-oriented design?",
-      answer: "SOLID is five design principles for maintainable OOP: S — Single Responsibility: a class should have only one reason to change. O — Open/Closed: open for extension, closed for modification. L — Liskov Substitution: derived classes must be substitutable for their base classes. I — Interface Segregation: clients should not depend on interfaces they don't use. D — Dependency Inversion: depend on abstractions, not concretions. These principles reduce coupling, improve testability, and make code easier to maintain and extend.",
+      answer:
+        "SOLID is five design principles for maintainable OOP: S — Single Responsibility: a class should have only one reason to change. O — Open/Closed: open for extension, closed for modification. L — Liskov Substitution: derived classes must be substitutable for their base classes. I — Interface Segregation: clients should not depend on interfaces they don't use. D — Dependency Inversion: depend on abstractions, not concretions. These principles reduce coupling, improve testability, and make code easier to maintain and extend.",
       difficulty: "medium",
       tags: ["oop", "design-patterns"],
       is_top50: true,
     },
     {
       question: "Explain the concept of deadlock and its necessary conditions.",
-      answer: "A deadlock occurs when two or more threads are each waiting for a resource held by another, causing all to stall indefinitely. The four necessary conditions (Coffman conditions) are: 1) Mutual Exclusion — resources cannot be shared; 2) Hold and Wait — threads hold resources while waiting for others; 3) No Preemption — resources cannot be forcibly taken; 4) Circular Wait — a cycle of threads each waiting for a resource held by the next. To prevent deadlock, break any one condition — most commonly by enforcing a global lock ordering to prevent circular wait.",
+      answer:
+        "A deadlock occurs when two or more threads are each waiting for a resource held by another, causing all to stall indefinitely. The four necessary conditions (Coffman conditions) are: 1) Mutual Exclusion — resources cannot be shared; 2) Hold and Wait — threads hold resources while waiting for others; 3) No Preemption — resources cannot be forcibly taken; 4) Circular Wait — a cycle of threads each waiting for a resource held by the next. To prevent deadlock, break any one condition — most commonly by enforcing a global lock ordering to prevent circular wait.",
       difficulty: "medium",
       tags: ["operating-systems", "concurrency"],
       is_top50: true,
     },
     {
       question: "What is the difference between a mutex and a semaphore?",
-      answer: "A mutex (mutual exclusion) is a locking mechanism that allows only one thread to access a resource at a time. It can be acquired and released only by the same thread. A semaphore is a signaling mechanism that controls access to a pool of resources. A binary semaphore (0 or 1) is similar to a mutex but can be signaled from any thread. A counting semaphore allows N threads to access N identical resources. Use mutex for exclusive access to a single resource; use semaphore for managing a pool of resources like a thread pool.",
+      answer:
+        "A mutex (mutual exclusion) is a locking mechanism that allows only one thread to access a resource at a time. It can be acquired and released only by the same thread. A semaphore is a signaling mechanism that controls access to a pool of resources. A binary semaphore (0 or 1) is similar to a mutex but can be signaled from any thread. A counting semaphore allows N threads to access N identical resources. Use mutex for exclusive access to a single resource; use semaphore for managing a pool of resources like a thread pool.",
       difficulty: "medium",
       tags: ["operating-systems", "concurrency"],
       is_top50: true,
     },
     {
       question: "What is virtual memory and why do we need it?",
-      answer: "Virtual memory is a memory management technique that gives each process its own virtual address space, mapped to physical memory by the MMU (Memory Management Unit). It allows programs to use more memory than physically available by swapping pages to disk. Benefits: isolation (processes can't access each other's memory), simplified memory management (each process sees a contiguous address space), and efficient use of physical memory (only frequently used pages stay in RAM). Page faults occur when a required page is not in RAM and must be loaded from disk.",
+      answer:
+        "Virtual memory is a memory management technique that gives each process its own virtual address space, mapped to physical memory by the MMU (Memory Management Unit). It allows programs to use more memory than physically available by swapping pages to disk. Benefits: isolation (processes can't access each other's memory), simplified memory management (each process sees a contiguous address space), and efficient use of physical memory (only frequently used pages stay in RAM). Page faults occur when a required page is not in RAM and must be loaded from disk.",
       difficulty: "medium",
       tags: ["operating-systems", "memory-management"],
       is_top50: true,
     },
     {
       question: "What is DNS and how does it work?",
-      answer: "DNS (Domain Name System) translates human-readable domain names (like google.com) into IP addresses. Resolution flow: 1) Browser checks its cache. 2) OS checks its cache and hosts file. 3) Recursive resolver (ISP or 8.8.8.8) queries the root nameserver. 4) Root server directs to the TLD server (.com). 5) TLD server directs to the authoritative nameserver for the domain. 6) Authoritative server returns the IP address (A or AAAA record). 7) Result is cached with a TTL. DNS uses UDP on port 53 for queries and TCP for zone transfers.",
+      answer:
+        "DNS (Domain Name System) translates human-readable domain names (like google.com) into IP addresses. Resolution flow: 1) Browser checks its cache. 2) OS checks its cache and hosts file. 3) Recursive resolver (ISP or 8.8.8.8) queries the root nameserver. 4) Root server directs to the TLD server (.com). 5) TLD server directs to the authoritative nameserver for the domain. 6) Authoritative server returns the IP address (A or AAAA record). 7) Result is cached with a TTL. DNS uses UDP on port 53 for queries and TCP for zone transfers.",
       difficulty: "easy",
       tags: ["networking", "dns"],
       is_top50: true,
     },
     {
       question: "What is the client-server model and how does it work?",
-      answer: "The client-server model is a distributed architecture where clients request services and servers provide them. A client (web browser, mobile app) sends a request to a server over a network. The server processes the request, performs operations (database queries, business logic), and sends back a response. Characteristics: centralized control (server manages resources), scalability (add more servers for more clients), security (server controls access). Examples: web browsing (browser ↔ web server), email (email client ↔ mail server), database access (application ↔ database server).",
+      answer:
+        "The client-server model is a distributed architecture where clients request services and servers provide them. A client (web browser, mobile app) sends a request to a server over a network. The server processes the request, performs operations (database queries, business logic), and sends back a response. Characteristics: centralized control (server manages resources), scalability (add more servers for more clients), security (server controls access). Examples: web browsing (browser ↔ web server), email (email client ↔ mail server), database access (application ↔ database server).",
       difficulty: "easy",
       tags: ["networking", "architecture"],
       is_top50: true,
@@ -266,36 +314,46 @@ export const questionsData: Record<string, { question: string; answer: string; d
 
     // ──────── Problem-Solving & Coding Strategies ────────
     {
-      question: "Given an array of integers, find two numbers that add up to a target — walk through brute force → hash map optimization",
-      answer: "Start with the brute force: nested loops check every pair O(n²). Optimize using a hash map: iterate once, for each element check if target - current exists in the map. If yes, return the pair. If no, add current to the map. This gives O(n) time and O(n) space. For example, nums=[2,7,11,15], target=9: at 7, map has {2:0}, complement 7 = 9-2, return [0,1].",
+      question:
+        "Given an array of integers, find two numbers that add up to a target — walk through brute force → hash map optimization",
+      answer:
+        "Start with the brute force: nested loops check every pair O(n²). Optimize using a hash map: iterate once, for each element check if target - current exists in the map. If yes, return the pair. If no, add current to the map. This gives O(n) time and O(n) space. For example, nums=[2,7,11,15], target=9: at 7, map has {2:0}, complement 7 = 9-2, return [0,1].",
       difficulty: "easy",
       tags: ["algorithms", "problem-solving"],
       is_top50: true,
     },
     {
-      question: "Find the longest substring without repeating characters — sliding window approach with character tracking",
-      answer: "Use a sliding window with two pointers (left, right) and a Set or Map to track characters in the current window. Expand the right pointer, adding characters. When a duplicate is found, shrink from the left until the duplicate is removed. Track the maximum window size. O(n) time, O(min(m, n)) space where m is the character set size. For 'abcabcbb', the answer is 'abc' (length 3).",
+      question:
+        "Find the longest substring without repeating characters — sliding window approach with character tracking",
+      answer:
+        "Use a sliding window with two pointers (left, right) and a Set or Map to track characters in the current window. Expand the right pointer, adding characters. When a duplicate is found, shrink from the left until the duplicate is removed. Track the maximum window size. O(n) time, O(min(m, n)) space where m is the character set size. For 'abcabcbb', the answer is 'abc' (length 3).",
       difficulty: "medium",
       tags: ["algorithms", "strings"],
       is_top50: true,
     },
     {
-      question: "Merge two sorted arrays — two-pointer technique with O(n) time and O(1) extra space",
-      answer: "Use two pointers, one at the start of each array. Compare elements, place the smaller one in the result, and advance that pointer. If one array is exhausted, copy the remaining elements from the other. O(n+m) time, O(1) extra space if merging in-place into the first array (which has extra space at the end). This is the merge step of Merge Sort.",
+      question:
+        "Merge two sorted arrays — two-pointer technique with O(n) time and O(1) extra space",
+      answer:
+        "Use two pointers, one at the start of each array. Compare elements, place the smaller one in the result, and advance that pointer. If one array is exhausted, copy the remaining elements from the other. O(n+m) time, O(1) extra space if merging in-place into the first array (which has extra space at the end). This is the merge step of Merge Sort.",
       difficulty: "easy",
       tags: ["algorithms", "arrays"],
       is_top50: true,
     },
     {
-      question: "Determine if a string is a palindrome — two pointers from both ends, handling alphanumeric characters only",
-      answer: "Use two pointers: one at the start (left) and one at the end (right). While left < right, skip non-alphanumeric characters, then compare lowercase versions. If they don't match, return false. If they match, move both pointers inward. Return true if all match. O(n) time, O(1) space. For 'A man, a plan, a canal: Panama', ignore spaces, punctuation, and case — it is a palindrome.",
+      question:
+        "Determine if a string is a palindrome — two pointers from both ends, handling alphanumeric characters only",
+      answer:
+        "Use two pointers: one at the start (left) and one at the end (right). While left < right, skip non-alphanumeric characters, then compare lowercase versions. If they don't match, return false. If they match, move both pointers inward. Return true if all match. O(n) time, O(1) space. For 'A man, a plan, a canal: Panama', ignore spaces, punctuation, and case — it is a palindrome.",
       difficulty: "easy",
       tags: ["algorithms", "strings"],
       is_top50: true,
     },
     {
-      question: "Find the maximum subarray sum (Kadane's algorithm) — explain the optimal O(n) approach",
-      answer: "Kadane's algorithm: maintain two variables — current sum (max ending here) and global max (max so far). For each element, decide whether to extend the existing subarray or start a new one: current = max(nums[i], current + nums[i]). Update global max = max(global, current). O(n) time, O(1) space. For [-2,1,-3,4,-1,2,1,-5,4], the max subarray is [4,-1,2,1] with sum 6.",
+      question:
+        "Find the maximum subarray sum (Kadane's algorithm) — explain the optimal O(n) approach",
+      answer:
+        "Kadane's algorithm: maintain two variables — current sum (max ending here) and global max (max so far). For each element, decide whether to extend the existing subarray or start a new one: current = max(nums[i], current + nums[i]). Update global max = max(global, current). O(n) time, O(1) space. For [-2,1,-3,4,-1,2,1,-5,4], the max subarray is [4,-1,2,1] with sum 6.",
       difficulty: "medium",
       tags: ["algorithms", "dynamic-programming"],
       is_top50: true,
@@ -303,36 +361,46 @@ export const questionsData: Record<string, { question: string; answer: string; d
 
     // ──────── Behavioral & Soft Skills ────────
     {
-      question: "Tell me about a time you had a conflict with a teammate — use STAR to describe the resolution process",
-      answer: "Use the STAR method: Situation — set the context of the project and conflict. Task — your role and responsibility. Action — describe specific actions you took: listened actively, acknowledged their perspective, proposed a data-driven compromise, involved a mediator if needed. Result — the outcome: improved collaboration, better solution, stronger team relationship. Key: focus on what YOU did, use 'I' not 'we', and show growth from the experience.",
+      question:
+        "Tell me about a time you had a conflict with a teammate — use STAR to describe the resolution process",
+      answer:
+        "Use the STAR method: Situation — set the context of the project and conflict. Task — your role and responsibility. Action — describe specific actions you took: listened actively, acknowledged their perspective, proposed a data-driven compromise, involved a mediator if needed. Result — the outcome: improved collaboration, better solution, stronger team relationship. Key: focus on what YOU did, use 'I' not 'we', and show growth from the experience.",
       difficulty: "easy",
       tags: ["behavioral", "soft-skills"],
       is_top50: true,
     },
     {
-      question: "Describe a project that failed and what you learned from it — focus on the lesson, not the blame",
-      answer: "Choose a real project where the outcome was not ideal. Describe the situation honestly but avoid blaming others. Explain what went wrong: unclear requirements, underestimated complexity, lack of communication. Then focus on what you learned: the importance of asking clarifying questions, breaking work into smaller milestones, or setting realistic deadlines. Show how you applied this lesson in later projects — growth is what interviewers want to see.",
+      question:
+        "Describe a project that failed and what you learned from it — focus on the lesson, not the blame",
+      answer:
+        "Choose a real project where the outcome was not ideal. Describe the situation honestly but avoid blaming others. Explain what went wrong: unclear requirements, underestimated complexity, lack of communication. Then focus on what you learned: the importance of asking clarifying questions, breaking work into smaller milestones, or setting realistic deadlines. Show how you applied this lesson in later projects — growth is what interviewers want to see.",
       difficulty: "easy",
       tags: ["behavioral", "soft-skills"],
       is_top50: true,
     },
     {
-      question: "Tell me about a time you went above and beyond what was expected — quantify the impact",
-      answer: "Describe a situation where you delivered more than what was asked. For example: you noticed a performance bottleneck in a feature you were implementing, so you profiled and optimized it beyond the requirements — reducing load time by 60%. Or you documented a process that was previously tribal knowledge, saving the team hours of onboarding time. Always quantify: 'reduced by X%' or 'saved Y hours per week'.",
+      question:
+        "Tell me about a time you went above and beyond what was expected — quantify the impact",
+      answer:
+        "Describe a situation where you delivered more than what was asked. For example: you noticed a performance bottleneck in a feature you were implementing, so you profiled and optimized it beyond the requirements — reducing load time by 60%. Or you documented a process that was previously tribal knowledge, saving the team hours of onboarding time. Always quantify: 'reduced by X%' or 'saved Y hours per week'.",
       difficulty: "easy",
       tags: ["behavioral", "initiative"],
       is_top50: false,
     },
     {
-      question: "How do you handle receiving critical feedback? — show growth mindset with a concrete example",
-      answer: "Show that you welcome feedback as a growth opportunity. Describe a specific time you received constructive criticism — perhaps during a code review, a performance review, or after a sprint demo. Explain your initial reaction (it's okay to feel defensive briefly), how you processed it (reflected, asked follow-up questions), and what you changed as a result. End with the positive outcome: improved code quality, stronger collaboration, or a skill you developed because of the feedback.",
+      question:
+        "How do you handle receiving critical feedback? — show growth mindset with a concrete example",
+      answer:
+        "Show that you welcome feedback as a growth opportunity. Describe a specific time you received constructive criticism — perhaps during a code review, a performance review, or after a sprint demo. Explain your initial reaction (it's okay to feel defensive briefly), how you processed it (reflected, asked follow-up questions), and what you changed as a result. End with the positive outcome: improved code quality, stronger collaboration, or a skill you developed because of the feedback.",
       difficulty: "easy",
       tags: ["behavioral", "growth-mindset"],
       is_top50: true,
     },
     {
-      question: "Describe a time you had to learn a new technology quickly — demonstrate your learning process",
-      answer: "Show your structured learning approach: start with official documentation and tutorials, build a small prototype, learn by doing. For example: needing to learn React for a project in one week — you completed the official tutorial, built a todo app, then started contributing to the real project with code reviews to catch mistakes. Mention specific resources used (documentation, courses, mentors) and how long it took to become productive.",
+      question:
+        "Describe a time you had to learn a new technology quickly — demonstrate your learning process",
+      answer:
+        "Show your structured learning approach: start with official documentation and tutorials, build a small prototype, learn by doing. For example: needing to learn React for a project in one week — you completed the official tutorial, built a todo app, then started contributing to the real project with code reviews to catch mistakes. Mention specific resources used (documentation, courses, mentors) and how long it took to become productive.",
       difficulty: "easy",
       tags: ["behavioral", "learning"],
       is_top50: false,
@@ -340,36 +408,46 @@ export const questionsData: Record<string, { question: string; answer: string; d
 
     // ──────── Version Control & Git ────────
     {
-      question: "What is the difference between git merge and git rebase? — explain when to use each",
-      answer: "Git merge creates a merge commit that preserves the complete history of both branches. It is safe and non-destructive — use it for integrating shared branches or when you want to preserve the exact timeline. Git rebase rewrites history by replaying commits from one branch onto another, creating a linear history. Use rebase for cleaning up local commits before pushing or for keeping feature branches up to date with main. Never rebase shared branches that others are working on.",
+      question:
+        "What is the difference between git merge and git rebase? — explain when to use each",
+      answer:
+        "Git merge creates a merge commit that preserves the complete history of both branches. It is safe and non-destructive — use it for integrating shared branches or when you want to preserve the exact timeline. Git rebase rewrites history by replaying commits from one branch onto another, creating a linear history. Use rebase for cleaning up local commits before pushing or for keeping feature branches up to date with main. Never rebase shared branches that others are working on.",
       difficulty: "easy",
       tags: ["git", "version-control"],
       is_top50: true,
     },
     {
-      question: "How do you resolve a merge conflict? — walk through the process step by step",
-      answer: "1. Run git status to identify conflicting files. 2. Open each conflicting file and look for conflict markers (<<<<<<, ======, >>>>>>). 3. Decide which changes to keep: edit the file to keep your changes, their changes, or a combination. 4. Remove the conflict markers. 5. Stage the resolved file with git add. 6. Complete the merge with git commit (or git rebase --continue if during a rebase). 7. Test the resolved code to ensure the merge didn't break anything. Use git mergetool for a visual diff if the conflicts are complex.",
+      question:
+        "How do you resolve a merge conflict? — walk through the process step by step",
+      answer:
+        "1. Run git status to identify conflicting files. 2. Open each conflicting file and look for conflict markers (<<<<<<, ======, >>>>>>). 3. Decide which changes to keep: edit the file to keep your changes, their changes, or a combination. 4. Remove the conflict markers. 5. Stage the resolved file with git add. 6. Complete the merge with git commit (or git rebase --continue if during a rebase). 7. Test the resolved code to ensure the merge didn't break anything. Use git mergetool for a visual diff if the conflicts are complex.",
       difficulty: "easy",
       tags: ["git", "version-control"],
       is_top50: true,
     },
     {
-      question: "What is the difference between git reset, git revert, and git restore?",
-      answer: "Git reset moves the HEAD and branch pointer to a previous commit, optionally modifying the staging area and working directory (--soft, --mixed, --hard). It rewrites history, so avoid on shared branches. Git revert creates a new commit that undoes the changes from a previous commit — it is safe for shared branches because it doesn't rewrite history. Git restore (newer command) discards changes in the working directory or unstages files — use it as a safer alternative to git checkout for file-level operations.",
+      question:
+        "What is the difference between git reset, git revert, and git restore?",
+      answer:
+        "Git reset moves the HEAD and branch pointer to a previous commit, optionally modifying the staging area and working directory (--soft, --mixed, --hard). It rewrites history, so avoid on shared branches. Git revert creates a new commit that undoes the changes from a previous commit — it is safe for shared branches because it doesn't rewrite history. Git restore (newer command) discards changes in the working directory or unstages files — use it as a safer alternative to git checkout for file-level operations.",
       difficulty: "easy",
       tags: ["git", "version-control"],
       is_top50: false,
     },
     {
-      question: "Explain a branching strategy you have used — describe the workflow and its trade-offs",
-      answer: "Describe GitHub Flow: main branch is always deployable, feature branches are created from main, short-lived branches merged via pull requests after review. Pros: simple, continuous deployment friendly, easy for small teams. Cons: main can become unstable without proper CI. If you used Git Flow: develop branch for integration, feature branches, release branches, hotfix branches. Pros: structured release management. Cons: complex, heavy for continuous deployment. Explain why you chose one over the other based on team size and release cadence.",
+      question:
+        "Explain a branching strategy you have used — describe the workflow and its trade-offs",
+      answer:
+        "Describe GitHub Flow: main branch is always deployable, feature branches are created from main, short-lived branches merged via pull requests after review. Pros: simple, continuous deployment friendly, easy for small teams. Cons: main can become unstable without proper CI. If you used Git Flow: develop branch for integration, feature branches, release branches, hotfix branches. Pros: structured release management. Cons: complex, heavy for continuous deployment. Explain why you chose one over the other based on team size and release cadence.",
       difficulty: "easy",
       tags: ["git", "workflow"],
       is_top50: false,
     },
     {
-      question: "How do you remove a file from git history that contains sensitive information?",
-      answer: "1. Add the file to .gitignore so it isn't re-added. 2. Use git filter-branch or git filter-repo to remove the file from all commits. Example: git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch <file>' --prune-empty --tag-name-filter cat -- --all. 3. Force push the cleaned history: git push --force --all. 4. Tell all teammates to rebase their branches on the cleaned history. 5. Rotate any exposed credentials immediately. Consider using tools like git filter-repo (faster and safer) or BFG Repo-Cleaner. Use git secrets or pre-commit hooks to prevent future leaks.",
+      question:
+        "How do you remove a file from git history that contains sensitive information?",
+      answer:
+        "1. Add the file to .gitignore so it isn't re-added. 2. Use git filter-branch or git filter-repo to remove the file from all commits. Example: git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch <file>' --prune-empty --tag-name-filter cat -- --all. 3. Force push the cleaned history: git push --force --all. 4. Tell all teammates to rebase their branches on the cleaned history. 5. Rotate any exposed credentials immediately. Consider using tools like git filter-repo (faster and safer) or BFG Repo-Cleaner. Use git secrets or pre-commit hooks to prevent future leaks.",
       difficulty: "medium",
       tags: ["git", "security"],
       is_top50: false,
@@ -377,36 +455,46 @@ export const questionsData: Record<string, { question: string; answer: string; d
 
     // ──────── Web Fundamentals ────────
     {
-      question: "What happens when you type a URL in a browser and press Enter? — explain the full flow step by step",
-      answer: "1. Browser checks its cache for the IP. 2. OS cache and hosts file checked. 3. DNS resolution: recursive resolver queries root → TLD → authoritative nameserver. 4. Browser initiates TCP connection (three-way handshake). 5. If HTTPS, TLS handshake occurs (certificate verification, key exchange). 6. Browser sends HTTP GET request with headers (cookies, user-agent, accept). 7. Server processes request, queries databases, generates response. 8. Server sends back HTTP response with status code, headers (cache-control, content-type), and body. 9. Browser parses HTML, builds DOM tree, downloads CSS/JS/images, renders the page.",
+      question:
+        "What happens when you type a URL in a browser and press Enter? — explain the full flow step by step",
+      answer:
+        "1. Browser checks its cache for the IP. 2. OS cache and hosts file checked. 3. DNS resolution: recursive resolver queries root → TLD → authoritative nameserver. 4. Browser initiates TCP connection (three-way handshake). 5. If HTTPS, TLS handshake occurs (certificate verification, key exchange). 6. Browser sends HTTP GET request with headers (cookies, user-agent, accept). 7. Server processes request, queries databases, generates response. 8. Server sends back HTTP response with status code, headers (cache-control, content-type), and body. 9. Browser parses HTML, builds DOM tree, downloads CSS/JS/images, renders the page.",
       difficulty: "medium",
       tags: ["web", "http", "networking"],
       is_top50: true,
     },
     {
-      question: "What is the difference between HTTP and HTTPS? — explain TLS handshake and certificate validation",
-      answer: "HTTP sends data in plaintext — anyone on the network can read it. HTTPS encrypts all data using TLS (Transport Layer Security). The TLS handshake: 1. Client sends supported cipher suites and a random number. 2. Server selects cipher suite, sends its certificate (containing public key), and another random number. 3. Client verifies the certificate against trusted CAs, generates a pre-master secret, encrypts with server's public key. 4. Server decrypts with private key. 5. Both derive session keys and send 'Finished' messages. 6. Encrypted communication begins. HTTPS also ensures data integrity (can't be modified in transit) and server authentication (you're talking to the real server).",
+      question:
+        "What is the difference between HTTP and HTTPS? — explain TLS handshake and certificate validation",
+      answer:
+        "HTTP sends data in plaintext — anyone on the network can read it. HTTPS encrypts all data using TLS (Transport Layer Security). The TLS handshake: 1. Client sends supported cipher suites and a random number. 2. Server selects cipher suite, sends its certificate (containing public key), and another random number. 3. Client verifies the certificate against trusted CAs, generates a pre-master secret, encrypts with server's public key. 4. Server decrypts with private key. 5. Both derive session keys and send 'Finished' messages. 6. Encrypted communication begins. HTTPS also ensures data integrity (can't be modified in transit) and server authentication (you're talking to the real server).",
       difficulty: "medium",
       tags: ["web", "security", "http"],
       is_top50: true,
     },
     {
-      question: "Explain the difference between 301 and 302 redirects — when would you use each?",
-      answer: "301 is a permanent redirect. Browsers and search engines cache it: future requests go directly to the new URL without visiting the old one. Use for permanent URL changes (site migration, domain change, restructuring URLs). 302 is a temporary redirect. Future requests still go to the original URL. Use for A/B testing, temporary maintenance pages, or post-login redirects. The key difference is caching behavior: 301 is cached by browsers and search engines update their indexes; 302 is not cached and search engines keep indexing the original URL.",
+      question:
+        "Explain the difference between 301 and 302 redirects — when would you use each?",
+      answer:
+        "301 is a permanent redirect. Browsers and search engines cache it: future requests go directly to the new URL without visiting the old one. Use for permanent URL changes (site migration, domain change, restructuring URLs). 302 is a temporary redirect. Future requests still go to the original URL. Use for A/B testing, temporary maintenance pages, or post-login redirects. The key difference is caching behavior: 301 is cached by browsers and search engines update their indexes; 302 is not cached and search engines keep indexing the original URL.",
       difficulty: "easy",
       tags: ["web", "http"],
       is_top50: true,
     },
     {
-      question: "What is CORS and why do we need it? — explain the preflight request and how servers enable cross-origin access",
-      answer: "CORS (Cross-Origin Resource Sharing) is a browser security mechanism that restricts web pages from making requests to a different origin (domain, protocol, or port) than the one that served the page. The browser sends a preflight OPTIONS request for non-simple requests (e.g., custom headers, PUT/DELETE methods) to check if the server allows the cross-origin request. The server responds with headers like Access-Control-Allow-Origin (which origins are allowed), Access-Control-Allow-Methods, and Access-Control-Allow-Headers. For simple requests (GET, POST with standard content types), the browser skips preflight and directly checks the response headers. CORS protects users by preventing malicious sites from making authenticated requests to other sites without consent.",
+      question:
+        "What is CORS and why do we need it? — explain the preflight request and how servers enable cross-origin access",
+      answer:
+        "CORS (Cross-Origin Resource Sharing) is a browser security mechanism that restricts web pages from making requests to a different origin (domain, protocol, or port) than the one that served the page. The browser sends a preflight OPTIONS request for non-simple requests (e.g., custom headers, PUT/DELETE methods) to check if the server allows the cross-origin request. The server responds with headers like Access-Control-Allow-Origin (which origins are allowed), Access-Control-Allow-Methods, and Access-Control-Allow-Headers. For simple requests (GET, POST with standard content types), the browser skips preflight and directly checks the response headers. CORS protects users by preventing malicious sites from making authenticated requests to other sites without consent.",
       difficulty: "medium",
       tags: ["web", "security", "http"],
       is_top50: true,
     },
     {
-      question: "What are the Core Web Vitals and why are they important for user experience?",
-      answer: "Core Web Vitals are three metrics Google uses to measure user experience: LCP (Largest Contentful Paint) measures loading performance — when the main content is visible, target < 2.5s. FID (First Input Delay) measures interactivity — how quickly the page responds to user input, target < 100ms. CLS (Cumulative Layout Shift) measures visual stability — unexpected layout shifts, target < 0.1. These metrics directly impact SEO ranking and user satisfaction. Poor Core Web Vitals lead to higher bounce rates, lower conversion, and worse search rankings. Optimize by: lazy loading images (LCP), code splitting (FID), reserving space for dynamic content (CLS).",
+      question:
+        "What are the Core Web Vitals and why are they important for user experience?",
+      answer:
+        "Core Web Vitals are three metrics Google uses to measure user experience: LCP (Largest Contentful Paint) measures loading performance — when the main content is visible, target < 2.5s. FID (First Input Delay) measures interactivity — how quickly the page responds to user input, target < 100ms. CLS (Cumulative Layout Shift) measures visual stability — unexpected layout shifts, target < 0.1. These metrics directly impact SEO ranking and user satisfaction. Poor Core Web Vitals lead to higher bounce rates, lower conversion, and worse search rankings. Optimize by: lazy loading images (LCP), code splitting (FID), reserving space for dynamic content (CLS).",
       difficulty: "easy",
       tags: ["web", "performance"],
       is_top50: true,
@@ -414,85 +502,103 @@ export const questionsData: Record<string, { question: string; answer: string; d
 
     // ──────── Chapter 1: Data Structures & Algorithms (Additional) ────────
     {
-      question: "What is the difference between a binary tree and a binary search tree?",
-      answer: "A binary tree is a tree data structure where each node has at most two children (left and right) with no ordering constraint. A binary search tree (BST) maintains the property: all left subtree values are less than the node, and all right subtree values are greater. BST enables O(log n) search, insert, and delete on average. A plain binary tree requires O(n) traversal for search. BSTs are used for sorted data, while binary trees are general-purpose hierarchical structures.",
+      question:
+        "What is the difference between a binary tree and a binary search tree?",
+      answer:
+        "A binary tree is a tree data structure where each node has at most two children (left and right) with no ordering constraint. A binary search tree (BST) maintains the property: all left subtree values are less than the node, and all right subtree values are greater. BST enables O(log n) search, insert, and delete on average. A plain binary tree requires O(n) traversal for search. BSTs are used for sorted data, while binary trees are general-purpose hierarchical structures.",
       difficulty: "easy",
       tags: ["data-structures", "trees"],
       is_top50: true,
     },
     {
       question: "Explain how quicksort works and its time complexity.",
-      answer: "Quicksort is a divide-and-conquer sorting algorithm. It picks a pivot element, partitions the array so elements smaller than the pivot go left and larger go right, then recursively sorts the subarrays. Average time: O(n log n), worst-case O(n^2) (when pivot is always smallest or largest). Space: O(log n) for recursion stack. In-place partitioning uses O(1) extra space. Quicksort is faster than merge sort in practice due to better cache locality.",
+      answer:
+        "Quicksort is a divide-and-conquer sorting algorithm. It picks a pivot element, partitions the array so elements smaller than the pivot go left and larger go right, then recursively sorts the subarrays. Average time: O(n log n), worst-case O(n^2) (when pivot is always smallest or largest). Space: O(log n) for recursion stack. In-place partitioning uses O(1) extra space. Quicksort is faster than merge sort in practice due to better cache locality.",
       difficulty: "medium",
       tags: ["algorithms", "sorting"],
       is_top50: true,
     },
     {
       question: "What is binary search and when would you use it?",
-      answer: "Binary search finds a target value in a sorted array by repeatedly dividing the search interval in half. Compare the target to the middle element — if equal, return; if target < middle, search the left half; otherwise, search the right half. Time: O(log n). Requires sorted data and random access (array). Use cases: searching in a sorted list, finding boundaries, implementing math functions (sqrt). Alternative: linear search O(n) for unsorted data.",
+      answer:
+        "Binary search finds a target value in a sorted array by repeatedly dividing the search interval in half. Compare the target to the middle element — if equal, return; if target < middle, search the left half; otherwise, search the right half. Time: O(log n). Requires sorted data and random access (array). Use cases: searching in a sorted list, finding boundaries, implementing math functions (sqrt). Alternative: linear search O(n) for unsorted data.",
       difficulty: "easy",
       tags: ["algorithms", "searching"],
       is_top50: true,
     },
     {
-      question: "What is the difference between breadth-first search and depth-first search?",
-      answer: "BFS explores a graph level by level using a queue — it finds the shortest path in unweighted graphs. DFS explores as deep as possible along each branch before backtracking using a stack — it uses less memory on deep graphs. BFS is optimal for shortest paths, web crawling, and social networks. DFS is used for topological sorting, cycle detection, and solving puzzles (mazes). BFS uses O(V) memory; DFS uses O(h) where h is max depth.",
+      question:
+        "What is the difference between breadth-first search and depth-first search?",
+      answer:
+        "BFS explores a graph level by level using a queue — it finds the shortest path in unweighted graphs. DFS explores as deep as possible along each branch before backtracking using a stack — it uses less memory on deep graphs. BFS is optimal for shortest paths, web crawling, and social networks. DFS is used for topological sorting, cycle detection, and solving puzzles (mazes). BFS uses O(V) memory; DFS uses O(h) where h is max depth.",
       difficulty: "medium",
       tags: ["algorithms", "graph-traversal"],
       is_top50: true,
     },
     {
       question: "Explain the concept of recursion and give an example.",
-      answer: "Recursion is when a function calls itself to solve a problem by breaking it into smaller subproblems. Every recursive function needs a base case (termination condition) and a recursive case (the self-call). Example: factorial — factorial(n) = n * factorial(n-1) with base case factorial(0) = 1. Each recursive call adds a stack frame, so deep recursion can cause stack overflow. Iterative solutions are often more memory-efficient but recursion is more elegant for tree traversal, divide-and-conquer, and backtracking problems.",
+      answer:
+        "Recursion is when a function calls itself to solve a problem by breaking it into smaller subproblems. Every recursive function needs a base case (termination condition) and a recursive case (the self-call). Example: factorial — factorial(n) = n * factorial(n-1) with base case factorial(0) = 1. Each recursive call adds a stack frame, so deep recursion can cause stack overflow. Iterative solutions are often more memory-efficient but recursion is more elegant for tree traversal, divide-and-conquer, and backtracking problems.",
       difficulty: "easy",
       tags: ["algorithms", "recursion"],
       is_top50: true,
     },
     {
       question: "What is the difference between a min-heap and a max-heap?",
-      answer: "A min-heap is a complete binary tree where each parent node is less than or equal to its children — the smallest element is at the root. A max-heap has each parent greater than or equal to its children — the largest element is at the root. Both support O(log n) insert and extract (min or max). Heaps are used for priority queues, heap sort (O(n log n)), and the median-finding problem. Implemented as arrays: for index i, children are at 2i+1 and 2i+2.",
+      answer:
+        "A min-heap is a complete binary tree where each parent node is less than or equal to its children — the smallest element is at the root. A max-heap has each parent greater than or equal to its children — the largest element is at the root. Both support O(log n) insert and extract (min or max). Heaps are used for priority queues, heap sort (O(n log n)), and the median-finding problem. Implemented as arrays: for index i, children are at 2i+1 and 2i+2.",
       difficulty: "easy",
       tags: ["data-structures", "heaps"],
       is_top50: true,
     },
     {
       question: "How does merge sort work and what is its time complexity?",
-      answer: "Merge sort is a divide-and-conquer algorithm: divide the array into two halves, recursively sort each half, then merge the sorted halves. The merge step compares elements from both halves and places the smaller one into the result. Time: O(n log n) in all cases (best, average, worst). Space: O(n) for the temporary array during merge. Stable sort. Used when O(n log n) guarantee is needed. Drawback: O(n) extra space makes it less cache-friendly than quicksort.",
+      answer:
+        "Merge sort is a divide-and-conquer algorithm: divide the array into two halves, recursively sort each half, then merge the sorted halves. The merge step compares elements from both halves and places the smaller one into the result. Time: O(n log n) in all cases (best, average, worst). Space: O(n) for the temporary array during merge. Stable sort. Used when O(n log n) guarantee is needed. Drawback: O(n) extra space makes it less cache-friendly than quicksort.",
       difficulty: "medium",
       tags: ["algorithms", "sorting"],
       is_top50: true,
     },
     {
-      question: "What is the difference between an adjacency list and an adjacency matrix?",
-      answer: "An adjacency list stores each vertex's neighbors in a list (or set). Space: O(V + E). Adding an edge is O(1), checking if an edge exists is O(degree(v)) worst-case. An adjacency matrix is a V x V boolean matrix. Space: O(V^2). Adding and checking edges are O(1). Use adjacency lists for sparse graphs (most real-world graphs); use adjacency matrices for dense graphs or when fast edge existence checks are critical. Lists are more memory-efficient for large graphs.",
+      question:
+        "What is the difference between an adjacency list and an adjacency matrix?",
+      answer:
+        "An adjacency list stores each vertex's neighbors in a list (or set). Space: O(V + E). Adding an edge is O(1), checking if an edge exists is O(degree(v)) worst-case. An adjacency matrix is a V x V boolean matrix. Space: O(V^2). Adding and checking edges are O(1). Use adjacency lists for sparse graphs (most real-world graphs); use adjacency matrices for dense graphs or when fast edge existence checks are critical. Lists are more memory-efficient for large graphs.",
       difficulty: "medium",
       tags: ["data-structures", "graphs"],
       is_top50: true,
     },
     {
-      question: "Explain what a balanced binary search tree is and why it matters.",
-      answer: "A balanced BST automatically keeps its height O(log n) by enforcing balance invariants after insertions and deletions. Examples: AVL trees (strict balance — heights differ by at most 1), Red-Black trees (weaker balance — faster inserts/deletes). Balance ensures O(log n) operations in the worst case. Unbalanced BSTs can degenerate into a linked list (O(n)). Balanced trees are implemented in language standard libraries: TreeMap (Java), std::map (C++), and database indexes (B-trees).",
+      question:
+        "Explain what a balanced binary search tree is and why it matters.",
+      answer:
+        "A balanced BST automatically keeps its height O(log n) by enforcing balance invariants after insertions and deletions. Examples: AVL trees (strict balance — heights differ by at most 1), Red-Black trees (weaker balance — faster inserts/deletes). Balance ensures O(log n) operations in the worst case. Unbalanced BSTs can degenerate into a linked list (O(n)). Balanced trees are implemented in language standard libraries: TreeMap (Java), std::map (C++), and database indexes (B-trees).",
       difficulty: "medium",
       tags: ["data-structures", "trees"],
       is_top50: true,
     },
     {
-      question: "What is the difference between linear search and binary search?",
-      answer: "Linear search scans each element sequentially — O(n) time, works on any data (sorted or unsorted), no preprocessing needed. Binary search repeatedly halves the search space — O(log n) time, requires sorted data and random access. Binary search is faster for large sorted datasets (example: searching 1 million items — linear takes 500k comparisons average, binary takes ~20). Linear search is better for small arrays or unsorted data where sorting overhead would negate the benefit.",
+      question:
+        "What is the difference between linear search and binary search?",
+      answer:
+        "Linear search scans each element sequentially — O(n) time, works on any data (sorted or unsorted), no preprocessing needed. Binary search repeatedly halves the search space — O(log n) time, requires sorted data and random access. Binary search is faster for large sorted datasets (example: searching 1 million items — linear takes 500k comparisons average, binary takes ~20). Linear search is better for small arrays or unsorted data where sorting overhead would negate the benefit.",
       difficulty: "easy",
       tags: ["algorithms", "searching"],
       is_top50: true,
     },
     {
       question: "What are circular buffers and when would you use them?",
-      answer: "A circular buffer (ring buffer) is a fixed-size array that wraps around — when the buffer is full and a new element is written, it overwrites the oldest element. Uses a head pointer (read) and tail pointer (write). Used in audio/video streaming, I/O buffering, producer-consumer queues, and embedded systems. Advantages: O(1) enqueue/dequeue, no memory allocation, predictable performance. Disadvantage: fixed size — if the buffer overflows, data is lost unless using an overwrite strategy.",
+      answer:
+        "A circular buffer (ring buffer) is a fixed-size array that wraps around — when the buffer is full and a new element is written, it overwrites the oldest element. Uses a head pointer (read) and tail pointer (write). Used in audio/video streaming, I/O buffering, producer-consumer queues, and embedded systems. Advantages: O(1) enqueue/dequeue, no memory allocation, predictable performance. Disadvantage: fixed size — if the buffer overflows, data is lost unless using an overwrite strategy.",
       difficulty: "medium",
       tags: ["data-structures", "buffers"],
       is_top50: false,
     },
     {
-      question: "What is the difference between a static array and a dynamic array?",
-      answer: "A static array has a fixed size determined at compile time — cannot grow or shrink. Memory is allocated on the stack (or in a fixed block). Access is O(1), no overhead. A dynamic array (like ArrayList in Java, vector in C++, list in Python) automatically resizes when full — typically doubling capacity, copying elements (amortized O(1) append). Uses heap memory. Dynamic arrays have slight overhead for resizing but provide flexibility. Static arrays are faster and more predictable; dynamic arrays are more practical for variable-sized data.",
+      question:
+        "What is the difference between a static array and a dynamic array?",
+      answer:
+        "A static array has a fixed size determined at compile time — cannot grow or shrink. Memory is allocated on the stack (or in a fixed block). Access is O(1), no overhead. A dynamic array (like ArrayList in Java, vector in C++, list in Python) automatically resizes when full — typically doubling capacity, copying elements (amortized O(1) append). Uses heap memory. Dynamic arrays have slight overhead for resizing but provide flexibility. Static arrays are faster and more predictable; dynamic arrays are more practical for variable-sized data.",
       difficulty: "easy",
       tags: ["data-structures", "arrays"],
       is_top50: true,
@@ -501,77 +607,95 @@ export const questionsData: Record<string, { question: string; answer: string; d
     // ──────── Chapter 2: System Design & Architecture (Additional) ────────
     {
       question: "What is caching and why is it important?",
-      answer: "Caching stores frequently accessed data in a fast storage layer (memory) to reduce latency and load on the primary data store. Common caching layers: browser cache, CDN, reverse proxy cache, application cache (Redis, Memcached), database query cache. Caching improves response time, reduces database load, and lowers server costs. Cache invalidation is hard: strategies include TTL-based expiration, write-through (update cache on write), write-around (invalidate cache on write), and write-back (async write to DB). Cache-aside is the most common pattern: check cache first, on miss query DB and populate cache.",
+      answer:
+        "Caching stores frequently accessed data in a fast storage layer (memory) to reduce latency and load on the primary data store. Common caching layers: browser cache, CDN, reverse proxy cache, application cache (Redis, Memcached), database query cache. Caching improves response time, reduces database load, and lowers server costs. Cache invalidation is hard: strategies include TTL-based expiration, write-through (update cache on write), write-around (invalidate cache on write), and write-back (async write to DB). Cache-aside is the most common pattern: check cache first, on miss query DB and populate cache.",
       difficulty: "medium",
       tags: ["system-design", "caching"],
       is_top50: true,
     },
     {
-      question: "What is the difference between horizontal and vertical scaling?",
-      answer: "Vertical scaling (scale up) adds more power to a single server — more CPU, RAM, storage. Simpler but has a hardware limit and creates a single point of failure. Horizontal scaling (scale out) adds more servers to distribute the load. Requires load balancing, is more fault-tolerant, and can scale nearly infinitely. Horizontal scaling is the modern approach for cloud-native applications but adds complexity (distributed data, consistency challenges). Most systems start with vertical scaling and migrate to horizontal when needed.",
+      question:
+        "What is the difference between horizontal and vertical scaling?",
+      answer:
+        "Vertical scaling (scale up) adds more power to a single server — more CPU, RAM, storage. Simpler but has a hardware limit and creates a single point of failure. Horizontal scaling (scale out) adds more servers to distribute the load. Requires load balancing, is more fault-tolerant, and can scale nearly infinitely. Horizontal scaling is the modern approach for cloud-native applications but adds complexity (distributed data, consistency challenges). Most systems start with vertical scaling and migrate to horizontal when needed.",
       difficulty: "medium",
       tags: ["system-design", "scaling"],
       is_top50: true,
     },
     {
       question: "What is a CDN and how does it improve performance?",
-      answer: "A CDN (Content Delivery Network) is a distributed network of edge servers that cache static content (images, CSS, JS, videos) at locations close to users. When a user requests content, the CDN serves from the nearest edge server, reducing latency and offloading the origin server. CDNs also handle DDoS mitigation, TLS termination, and dynamic content acceleration. Popular CDNs: Cloudflare, AWS CloudFront, Akamai, Fastly. Key metrics: cache hit ratio, edge response time, origin offload percentage.",
+      answer:
+        "A CDN (Content Delivery Network) is a distributed network of edge servers that cache static content (images, CSS, JS, videos) at locations close to users. When a user requests content, the CDN serves from the nearest edge server, reducing latency and offloading the origin server. CDNs also handle DDoS mitigation, TLS termination, and dynamic content acceleration. Popular CDNs: Cloudflare, AWS CloudFront, Akamai, Fastly. Key metrics: cache hit ratio, edge response time, origin offload percentage.",
       difficulty: "easy",
       tags: ["system-design", "networking"],
       is_top50: true,
     },
     {
       question: "Explain what a message queue is and when would you use one.",
-      answer: "A message queue is a communication mechanism where producers send messages and consumers process them asynchronously. Messages are stored durably until consumed. Producers and consumers are decoupled — they don't need to run simultaneously. Use cases: sending emails after user registration, processing image uploads, handling order fulfillment, decoupling microservices. Popular implementations: RabbitMQ, Apache Kafka, AWS SQS, Redis Streams. Message queues provide at-least-once or at-most-once delivery guarantees and enable load leveling, fault tolerance, and asynchronous processing.",
+      answer:
+        "A message queue is a communication mechanism where producers send messages and consumers process them asynchronously. Messages are stored durably until consumed. Producers and consumers are decoupled — they don't need to run simultaneously. Use cases: sending emails after user registration, processing image uploads, handling order fulfillment, decoupling microservices. Popular implementations: RabbitMQ, Apache Kafka, AWS SQS, Redis Streams. Message queues provide at-least-once or at-most-once delivery guarantees and enable load leveling, fault tolerance, and asynchronous processing.",
       difficulty: "medium",
       tags: ["system-design", "message-queues"],
       is_top50: true,
     },
     {
-      question: "What is the difference between stateful and stateless architecture?",
-      answer: "Stateful architecture stores session data on the server — the same server must handle all requests from a client (sticky sessions). Simpler for small apps but hard to scale — if a server fails, its sessions are lost. Stateless architecture stores all state on the client (tokens) or in an external store (Redis, database). Any server can handle any request — enables horizontal scaling and fault tolerance. Modern microservices prefer stateless design. Authentication tokens (JWT) are a common stateless pattern. Stateful is sometimes needed for real-time apps or complex transactions.",
+      question:
+        "What is the difference between stateful and stateless architecture?",
+      answer:
+        "Stateful architecture stores session data on the server — the same server must handle all requests from a client (sticky sessions). Simpler for small apps but hard to scale — if a server fails, its sessions are lost. Stateless architecture stores all state on the client (tokens) or in an external store (Redis, database). Any server can handle any request — enables horizontal scaling and fault tolerance. Modern microservices prefer stateless design. Authentication tokens (JWT) are a common stateless pattern. Stateful is sometimes needed for real-time apps or complex transactions.",
       difficulty: "medium",
       tags: ["system-design", "architecture"],
       is_top50: true,
     },
     {
-      question: "What is sharding and how does it help with database scalability?",
-      answer: "Sharding splits a large database across multiple smaller databases (shards) based on a shard key. Each shard holds a subset of the data and runs on its own server. Common strategies: hash-based sharding (hash shard key, modulo by shard count), range-based sharding (contiguous ranges per shard), directory-based sharding (lookup table). Benefits: horizontal scaling, higher throughput, fault isolation. Challenges: resharding is expensive, cross-shard queries are complex, and choosing a good shard key is critical for even data distribution.",
+      question:
+        "What is sharding and how does it help with database scalability?",
+      answer:
+        "Sharding splits a large database across multiple smaller databases (shards) based on a shard key. Each shard holds a subset of the data and runs on its own server. Common strategies: hash-based sharding (hash shard key, modulo by shard count), range-based sharding (contiguous ranges per shard), directory-based sharding (lookup table). Benefits: horizontal scaling, higher throughput, fault isolation. Challenges: resharding is expensive, cross-shard queries are complex, and choosing a good shard key is critical for even data distribution.",
       difficulty: "hard",
       tags: ["system-design", "databases"],
       is_top50: true,
     },
     {
       question: "Explain the concept of idempotency in API design.",
-      answer: "Idempotency ensures that making the same API request multiple times produces the same result as making it once. GET, PUT, DELETE are naturally idempotent. POST is not — creating the same order twice would be a problem. Clients send an idempotency key (UUID) in a header: Idempotency-Key: unique-id. The server checks if this key was already processed — if yes, return the previous response; if no, process and store the key. Critical for payment processing, order creation, and any operation with real-world consequences.",
+      answer:
+        "Idempotency ensures that making the same API request multiple times produces the same result as making it once. GET, PUT, DELETE are naturally idempotent. POST is not — creating the same order twice would be a problem. Clients send an idempotency key (UUID) in a header: Idempotency-Key: unique-id. The server checks if this key was already processed — if yes, return the previous response; if no, process and store the key. Critical for payment processing, order creation, and any operation with real-world consequences.",
       difficulty: "medium",
       tags: ["system-design", "api-design"],
       is_top50: true,
     },
     {
-      question: "What is a microservice and what are its advantages and disadvantages?",
-      answer: "A microservice is a small, independent service that handles one specific business capability. Advantages: independent deployment, polyglot technology stack, team autonomy, fault isolation (one service crash doesn't bring down everything), easier scaling. Disadvantages: complexity — network communication, distributed data, service discovery, monitoring, debugging across services, eventual consistency challenges. A monolith is simpler for small teams and early stages. Microservices are justified when independent scaling, deployment frequency, or team size demands them.",
+      question:
+        "What is a microservice and what are its advantages and disadvantages?",
+      answer:
+        "A microservice is a small, independent service that handles one specific business capability. Advantages: independent deployment, polyglot technology stack, team autonomy, fault isolation (one service crash doesn't bring down everything), easier scaling. Disadvantages: complexity — network communication, distributed data, service discovery, monitoring, debugging across services, eventual consistency challenges. A monolith is simpler for small teams and early stages. Microservices are justified when independent scaling, deployment frequency, or team size demands them.",
       difficulty: "medium",
       tags: ["system-design", "architecture"],
       is_top50: true,
     },
     {
-      question: "What is the difference between synchronous and asynchronous communication in distributed systems?",
-      answer: "Synchronous communication (REST, gRPC) blocks the caller until a response is received. Simpler to implement but couples services in time and can cascade failures if a downstream service is slow. Asynchronous communication (message queues, events) decouples services — the sender publishes a message and continues without waiting. More resilient and scalable but harder to debug and requires handling eventual consistency. Use synchronous for commands that need immediate confirmation (payment); use asynchronous for non-critical work (notification, analytics).",
+      question:
+        "What is the difference between synchronous and asynchronous communication in distributed systems?",
+      answer:
+        "Synchronous communication (REST, gRPC) blocks the caller until a response is received. Simpler to implement but couples services in time and can cascade failures if a downstream service is slow. Asynchronous communication (message queues, events) decouples services — the sender publishes a message and continues without waiting. More resilient and scalable but harder to debug and requires handling eventual consistency. Use synchronous for commands that need immediate confirmation (payment); use asynchronous for non-critical work (notification, analytics).",
       difficulty: "medium",
       tags: ["system-design", "communication"],
       is_top50: true,
     },
     {
-      question: "Explain the concept of rate limiting and common algorithms used.",
-      answer: "Rate limiting controls how many requests a client can make within a time window. Common algorithms: Token Bucket (tokens refill at a fixed rate — burst-friendly), Leaky Bucket (requests processed at a fixed rate — smooth), Fixed Window (counter per window — simple but allows edge bursts), Sliding Window Log (tracks timestamps — accurate but memory-heavy), Sliding Window Counter (approximate but efficient). Rate limiting is implemented at the API gateway or middleware level using Redis for distributed counters. HTTP status 429 Too Many Requests is returned when limit is exceeded.",
+      question:
+        "Explain the concept of rate limiting and common algorithms used.",
+      answer:
+        "Rate limiting controls how many requests a client can make within a time window. Common algorithms: Token Bucket (tokens refill at a fixed rate — burst-friendly), Leaky Bucket (requests processed at a fixed rate — smooth), Fixed Window (counter per window — simple but allows edge bursts), Sliding Window Log (tracks timestamps — accurate but memory-heavy), Sliding Window Counter (approximate but efficient). Rate limiting is implemented at the API gateway or middleware level using Redis for distributed counters. HTTP status 429 Too Many Requests is returned when limit is exceeded.",
       difficulty: "medium",
       tags: ["system-design", "rate-limiting"],
       is_top50: true,
     },
     {
-      question: "What is database indexing and how does it improve query performance?",
-      answer: "A database index is a data structure (usually a B-tree) that speeds up data retrieval at the cost of slower writes and additional storage. Without an index, the database must scan the entire table (full table scan). An index creates a sorted structure mapping indexed columns to row locations, reducing lookup from O(n) to O(log n). Types: primary index (on primary key), secondary index (on other columns), composite index (multiple columns), unique index (enforces uniqueness), full-text index (for text search). Use indexes on columns used in WHERE, JOIN, and ORDER BY clauses. Too many indexes slow down INSERT/UPDATE/DELETE.",
+      question:
+        "What is database indexing and how does it improve query performance?",
+      answer:
+        "A database index is a data structure (usually a B-tree) that speeds up data retrieval at the cost of slower writes and additional storage. Without an index, the database must scan the entire table (full table scan). An index creates a sorted structure mapping indexed columns to row locations, reducing lookup from O(n) to O(log n). Types: primary index (on primary key), secondary index (on other columns), composite index (multiple columns), unique index (enforces uniqueness), full-text index (for text search). Use indexes on columns used in WHERE, JOIN, and ORDER BY clauses. Too many indexes slow down INSERT/UPDATE/DELETE.",
       difficulty: "medium",
       tags: ["system-design", "databases", "indexing"],
       is_top50: true,
@@ -580,77 +704,90 @@ export const questionsData: Record<string, { question: string; answer: string; d
     // ──────── Chapter 3: OOP (Additional) ────────
     {
       question: "What is encapsulation and why is it important?",
-      answer: "Encapsulation bundles data (fields) and methods that operate on that data within a class, hiding internal implementation details. Access modifiers (private, protected, public) control visibility. Benefits: data protection (prevents external code from directly modifying internal state), modularity (changes to implementation don't affect callers), and reduced complexity (users only need to understand the public interface). Achieved through private fields with public getter/setter methods that can include validation logic.",
+      answer:
+        "Encapsulation bundles data (fields) and methods that operate on that data within a class, hiding internal implementation details. Access modifiers (private, protected, public) control visibility. Benefits: data protection (prevents external code from directly modifying internal state), modularity (changes to implementation don't affect callers), and reduced complexity (users only need to understand the public interface). Achieved through private fields with public getter/setter methods that can include validation logic.",
       difficulty: "easy",
       tags: ["oop"],
       is_top50: true,
     },
     {
       question: "Explain the difference between inheritance and composition.",
-      answer: "Inheritance is an 'is-a' relationship — a Dog class extends Animal, inheriting its properties and methods. Promotes code reuse but creates tight coupling: changes to the parent class affect all children. Composition is a 'has-a' relationship — a Car class has an Engine object. Components can be swapped independently (different engine types) without changing the Car class. Favor composition over inheritance: it provides looser coupling, greater flexibility, and easier testing. Inheritance is appropriate when the relationship is truly hierarchical and unlikely to change.",
+      answer:
+        "Inheritance is an 'is-a' relationship — a Dog class extends Animal, inheriting its properties and methods. Promotes code reuse but creates tight coupling: changes to the parent class affect all children. Composition is a 'has-a' relationship — a Car class has an Engine object. Components can be swapped independently (different engine types) without changing the Car class. Favor composition over inheritance: it provides looser coupling, greater flexibility, and easier testing. Inheritance is appropriate when the relationship is truly hierarchical and unlikely to change.",
       difficulty: "medium",
       tags: ["oop", "design-patterns"],
       is_top50: true,
     },
     {
-      question: "What is the difference between method overloading and method overriding?",
-      answer: "Method overloading (compile-time polymorphism) defines multiple methods with the same name but different parameters in the same class. The compiler selects the right method based on arguments. Method overriding (runtime polymorphism) redefines a parent class method in a child class with the same signature. The JVM selects the method based on the actual object type at runtime. Overloading is for convenience (different ways to call); overriding is for specialized behavior. Overriding requires inheritance; overloading does not.",
+      question:
+        "What is the difference between method overloading and method overriding?",
+      answer:
+        "Method overloading (compile-time polymorphism) defines multiple methods with the same name but different parameters in the same class. The compiler selects the right method based on arguments. Method overriding (runtime polymorphism) redefines a parent class method in a child class with the same signature. The JVM selects the method based on the actual object type at runtime. Overloading is for convenience (different ways to call); overriding is for specialized behavior. Overriding requires inheritance; overloading does not.",
       difficulty: "easy",
       tags: ["oop", "polymorphism"],
       is_top50: true,
     },
     {
       question: "Explain the Singleton pattern and when would you use it.",
-      answer: "Singleton ensures a class has exactly one instance and provides a global access point. Implemented with a private constructor and a static method that returns the single instance. Thread-safe implementations use double-checked locking or the enum approach (Java). Use cases: logging, configuration management, thread pools, database connection pools. Drawbacks: introduces global state that makes unit testing difficult because tests can't easily isolate the instance, and violates the Single Responsibility Principle. Consider dependency injection as an alternative for most cases.",
+      answer:
+        "Singleton ensures a class has exactly one instance and provides a global access point. Implemented with a private constructor and a static method that returns the single instance. Thread-safe implementations use double-checked locking or the enum approach (Java). Use cases: logging, configuration management, thread pools, database connection pools. Drawbacks: introduces global state that makes unit testing difficult because tests can't easily isolate the instance, and violates the Single Responsibility Principle. Consider dependency injection as an alternative for most cases.",
       difficulty: "medium",
       tags: ["oop", "design-patterns"],
       is_top50: true,
     },
     {
       question: "What is the Factory pattern and what problem does it solve?",
-      answer: "The Factory pattern provides an interface for creating objects without specifying their concrete classes. A factory method or class encapsulates the creation logic, hiding the instantiation details from the client. Problem solved: avoid hardcoding concrete classes — adding a new product type means extending the factory rather than modifying client code. Example: a LoggerFactory that creates ConsoleLogger, FileLogger, or RemoteLogger based on configuration. Factory decouples client code from implementation classes, making the system more extensible and easier to test.",
+      answer:
+        "The Factory pattern provides an interface for creating objects without specifying their concrete classes. A factory method or class encapsulates the creation logic, hiding the instantiation details from the client. Problem solved: avoid hardcoding concrete classes — adding a new product type means extending the factory rather than modifying client code. Example: a LoggerFactory that creates ConsoleLogger, FileLogger, or RemoteLogger based on configuration. Factory decouples client code from implementation classes, making the system more extensible and easier to test.",
       difficulty: "medium",
       tags: ["oop", "design-patterns"],
       is_top50: true,
     },
     {
       question: "Explain the Observer pattern with a real-world example.",
-      answer: "The Observer pattern defines a one-to-many dependency where when one object (subject) changes state, all its dependents (observers) are notified automatically. Real-world example: a weather station (subject) that broadcasts temperature changes to multiple displays (observers — mobile app, website, billboard). When the temperature updates, all displays receive the new data without the weather station knowing their details. Implemented with a list of observers and a notify method that iterates through them. Widely used in event-driven systems, UI frameworks (listeners), and pub/sub systems.",
+      answer:
+        "The Observer pattern defines a one-to-many dependency where when one object (subject) changes state, all its dependents (observers) are notified automatically. Real-world example: a weather station (subject) that broadcasts temperature changes to multiple displays (observers — mobile app, website, billboard). When the temperature updates, all displays receive the new data without the weather station knowing their details. Implemented with a list of observers and a notify method that iterates through them. Widely used in event-driven systems, UI frameworks (listeners), and pub/sub systems.",
       difficulty: "medium",
       tags: ["oop", "design-patterns"],
       is_top50: true,
     },
     {
       question: "What is the difference between a class and an object?",
-      answer: "A class is a blueprint or template that defines the structure (fields) and behavior (methods) that objects of that class will have. It is a compile-time concept — defines the type. An object (or instance) is a concrete entity created from a class at runtime — it has its own memory for its fields and its own state. One class can create many objects, each with different state. Example: 'Car' is a class; 'myRedTesla' and 'yourBlueToyota' are objects (instances) of the Car class, each with different color, model, and speed.",
+      answer:
+        "A class is a blueprint or template that defines the structure (fields) and behavior (methods) that objects of that class will have. It is a compile-time concept — defines the type. An object (or instance) is a concrete entity created from a class at runtime — it has its own memory for its fields and its own state. One class can create many objects, each with different state. Example: 'Car' is a class; 'myRedTesla' and 'yourBlueToyota' are objects (instances) of the Car class, each with different color, model, and speed.",
       difficulty: "easy",
       tags: ["oop"],
       is_top50: true,
     },
     {
       question: "What is abstraction in OOP and how do you achieve it?",
-      answer: "Abstraction hides complex implementation details and exposes only the essential features of an object. It reduces complexity by letting users interact with an interface without understanding internal workings. In Java/C#, abstraction is achieved through abstract classes (partial abstraction — can have implementation) and interfaces (full abstraction — only method signatures). Example: a Car interface defines drive() and stop() methods — users call them without knowing about the engine, transmission, or fuel injection system. Abstraction is closely related to encapsulation but focuses on what an object does rather than protecting its state.",
+      answer:
+        "Abstraction hides complex implementation details and exposes only the essential features of an object. It reduces complexity by letting users interact with an interface without understanding internal workings. In Java/C#, abstraction is achieved through abstract classes (partial abstraction — can have implementation) and interfaces (full abstraction — only method signatures). Example: a Car interface defines drive() and stop() methods — users call them without knowing about the engine, transmission, or fuel injection system. Abstraction is closely related to encapsulation but focuses on what an object does rather than protecting its state.",
       difficulty: "easy",
       tags: ["oop"],
       is_top50: true,
     },
     {
       question: "Explain the Strategy pattern and when would you use it.",
-      answer: "The Strategy pattern defines a family of algorithms, encapsulates each one, and makes them interchangeable at runtime. The client chooses which strategy to use without changing the code that uses it. Example: a PaymentProcessor that accepts different payment strategies (CreditCard, PayPal, Crypto). Each strategy implements the same interface (pay(amount)). The client selects the strategy at checkout. Use the Strategy pattern when you have multiple algorithms for the same task, want to avoid conditional statements (if-else/switch), or need to add new algorithms without modifying existing code.",
+      answer:
+        "The Strategy pattern defines a family of algorithms, encapsulates each one, and makes them interchangeable at runtime. The client chooses which strategy to use without changing the code that uses it. Example: a PaymentProcessor that accepts different payment strategies (CreditCard, PayPal, Crypto). Each strategy implements the same interface (pay(amount)). The client selects the strategy at checkout. Use the Strategy pattern when you have multiple algorithms for the same task, want to avoid conditional statements (if-else/switch), or need to add new algorithms without modifying existing code.",
       difficulty: "medium",
       tags: ["oop", "design-patterns"],
       is_top50: true,
     },
     {
       question: "What is the Decorator pattern and how does it work?",
-      answer: "The Decorator pattern dynamically adds behavior to an object without modifying its class. It wraps the original object with one or more decorator classes that implement the same interface. Each decorator adds its own behavior before/after delegating to the wrapped object. Example: a Coffee interface with basic implementations (SimpleCoffee). Decorators (MilkDecorator, SugarDecorator, WhipDecorator) wrap the coffee and add cost/description. Processing order matters — decorators apply in the order they are wrapped. Use for adding cross-cutting concerns like logging, compression, or encryption to existing objects.",
+      answer:
+        "The Decorator pattern dynamically adds behavior to an object without modifying its class. It wraps the original object with one or more decorator classes that implement the same interface. Each decorator adds its own behavior before/after delegating to the wrapped object. Example: a Coffee interface with basic implementations (SimpleCoffee). Decorators (MilkDecorator, SugarDecorator, WhipDecorator) wrap the coffee and add cost/description. Processing order matters — decorators apply in the order they are wrapped. Use for adding cross-cutting concerns like logging, compression, or encryption to existing objects.",
       difficulty: "medium",
       tags: ["oop", "design-patterns"],
       is_top50: true,
     },
     {
-      question: "What is the difference between tight coupling and loose coupling?",
-      answer: "Tight coupling means classes are highly dependent on each other — changing one class forces changes in many others. Example: class OrderProcessor directly instantiates a MySqlDatabase class. Switching to MongoDB requires modifying OrderProcessor. Loose coupling means classes depend on abstractions (interfaces) rather than concrete implementations. Example: OrderProcessor depends on a Database interface — any database implementation can be injected. Loose coupling improves maintainability, testability (easier mocking), and flexibility. Achieve it through dependency injection, interfaces, and the Factory pattern.",
+      question:
+        "What is the difference between tight coupling and loose coupling?",
+      answer:
+        "Tight coupling means classes are highly dependent on each other — changing one class forces changes in many others. Example: class OrderProcessor directly instantiates a MySqlDatabase class. Switching to MongoDB requires modifying OrderProcessor. Loose coupling means classes depend on abstractions (interfaces) rather than concrete implementations. Example: OrderProcessor depends on a Database interface — any database implementation can be injected. Loose coupling improves maintainability, testability (easier mocking), and flexibility. Achieve it through dependency injection, interfaces, and the Factory pattern.",
       difficulty: "medium",
       tags: ["oop", "design-patterns"],
       is_top50: true,
@@ -658,85 +795,99 @@ export const questionsData: Record<string, { question: string; answer: string; d
 
     // ──────── Chapter 4: Operating Systems (Additional) ────────
     {
-      question: "What is the difference between preemptive and non-preemptive scheduling?",
-      answer: "Preemptive scheduling allows the OS to interrupt a running process and switch to another — supports time-sharing, prevents CPU monopolization, and provides responsive multitasking. Examples: Round Robin, Shortest Remaining Time First. Non-preemptive scheduling lets a process run until it voluntarily releases the CPU (completes, blocks for I/O, or yields). Examples: First-Come First-Served, Shortest Job First (non-preemptive). Preemptive scheduling is more responsive but has higher overhead due to context switching and requires handling race conditions with shared data.",
+      question:
+        "What is the difference between preemptive and non-preemptive scheduling?",
+      answer:
+        "Preemptive scheduling allows the OS to interrupt a running process and switch to another — supports time-sharing, prevents CPU monopolization, and provides responsive multitasking. Examples: Round Robin, Shortest Remaining Time First. Non-preemptive scheduling lets a process run until it voluntarily releases the CPU (completes, blocks for I/O, or yields). Examples: First-Come First-Served, Shortest Job First (non-preemptive). Preemptive scheduling is more responsive but has higher overhead due to context switching and requires handling race conditions with shared data.",
       difficulty: "medium",
       tags: ["operating-systems", "scheduling"],
       is_top50: true,
     },
     {
-      question: "Explain the concept of a race condition and how to prevent it.",
-      answer: "A race condition occurs when multiple threads access shared data concurrently and the outcome depends on the timing of their execution. Example: two threads incrementing a counter — if both read the value at the same time, both write the same incremented value, losing one increment. Prevention: use synchronization mechanisms — mutexes (mutual exclusion locks), atomic operations (CAS — compare-and-swap), or higher-level constructs like synchronized blocks (Java) or locks in C#. Design approaches: avoid shared state when possible, use thread-safe data structures, or adopt immutability.",
+      question:
+        "Explain the concept of a race condition and how to prevent it.",
+      answer:
+        "A race condition occurs when multiple threads access shared data concurrently and the outcome depends on the timing of their execution. Example: two threads incrementing a counter — if both read the value at the same time, both write the same incremented value, losing one increment. Prevention: use synchronization mechanisms — mutexes (mutual exclusion locks), atomic operations (CAS — compare-and-swap), or higher-level constructs like synchronized blocks (Java) or locks in C#. Design approaches: avoid shared state when possible, use thread-safe data structures, or adopt immutability.",
       difficulty: "medium",
       tags: ["operating-systems", "concurrency"],
       is_top50: true,
     },
     {
       question: "What is the difference between concurrency and parallelism?",
-      answer: "Concurrency is about structure — multiple tasks making progress in overlapping time periods, interleaved on a single CPU core. It's about dealing with many things at once through task switching. Parallelism is about execution — multiple tasks running simultaneously on multiple CPU cores. It's about doing many things at once. Concurrency enables responsiveness (I/O-bound tasks), while parallelism improves throughput (CPU-bound tasks). Modern systems need both: concurrency for handling many connections, parallelism for leveraging multi-core processors.",
+      answer:
+        "Concurrency is about structure — multiple tasks making progress in overlapping time periods, interleaved on a single CPU core. It's about dealing with many things at once through task switching. Parallelism is about execution — multiple tasks running simultaneously on multiple CPU cores. It's about doing many things at once. Concurrency enables responsiveness (I/O-bound tasks), while parallelism improves throughput (CPU-bound tasks). Modern systems need both: concurrency for handling many connections, parallelism for leveraging multi-core processors.",
       difficulty: "medium",
       tags: ["operating-systems", "concurrency"],
       is_top50: true,
     },
     {
       question: "Explain the producer-consumer problem and how to solve it.",
-      answer: "The producer-consumer problem involves two types of threads sharing a bounded buffer. Producers add items to the buffer, consumers remove items. Challenges: producers must block when the buffer is full, consumers must block when the buffer is empty, and access must be thread-safe. Solution: use a mutex to protect buffer access, and two semaphores — one tracking empty slots, one tracking filled slots. Producers wait on empty semaphore, consume a slot, and signal filled. Consumers wait on filled semaphore, consume an item, and signal empty. Modern implementations use blocking queues (Java's BlockingQueue, Python's queue.Queue).",
+      answer:
+        "The producer-consumer problem involves two types of threads sharing a bounded buffer. Producers add items to the buffer, consumers remove items. Challenges: producers must block when the buffer is full, consumers must block when the buffer is empty, and access must be thread-safe. Solution: use a mutex to protect buffer access, and two semaphores — one tracking empty slots, one tracking filled slots. Producers wait on empty semaphore, consume a slot, and signal filled. Consumers wait on filled semaphore, consume an item, and signal empty. Modern implementations use blocking queues (Java's BlockingQueue, Python's queue.Queue).",
       difficulty: "medium",
       tags: ["operating-systems", "concurrency", "synchronization"],
       is_top50: true,
     },
     {
       question: "What is the difference between a process and a program?",
-      answer: "A program is a passive entity — a file on disk containing executable instructions (binary or script). It has no state, no memory, and no execution context. A process is an active entity — a program in execution with its own memory space (code, data, heap, stack), registers, program counter, and OS resources (open files, sockets). One program can spawn multiple processes (e.g., opening a browser three times creates three processes). Processes are isolated — one process crashing does not affect others. A program becomes a process when the OS loads it into memory and starts executing it.",
+      answer:
+        "A program is a passive entity — a file on disk containing executable instructions (binary or script). It has no state, no memory, and no execution context. A process is an active entity — a program in execution with its own memory space (code, data, heap, stack), registers, program counter, and OS resources (open files, sockets). One program can spawn multiple processes (e.g., opening a browser three times creates three processes). Processes are isolated — one process crashing does not affect others. A program becomes a process when the OS loads it into memory and starts executing it.",
       difficulty: "easy",
       tags: ["operating-systems"],
       is_top50: true,
     },
     {
       question: "What is context switching and what causes overhead?",
-      answer: "Context switching is the process where the OS saves the current process state (registers, program counter, stack pointer) and loads the saved state of another process. Causes: interrupt handling, time-slice expiration (preemptive scheduling), I/O waiting, higher-priority process becoming ready. Overhead: CPU cycles spent saving/loading state (typically microseconds), cache pollution (the new process doesn't have warm caches), TLB flush, and OS scheduler execution. Frequent context switching reduces throughput — there's a trade-off between responsiveness and context-switch overhead.",
+      answer:
+        "Context switching is the process where the OS saves the current process state (registers, program counter, stack pointer) and loads the saved state of another process. Causes: interrupt handling, time-slice expiration (preemptive scheduling), I/O waiting, higher-priority process becoming ready. Overhead: CPU cycles spent saving/loading state (typically microseconds), cache pollution (the new process doesn't have warm caches), TLB flush, and OS scheduler execution. Frequent context switching reduces throughput — there's a trade-off between responsiveness and context-switch overhead.",
       difficulty: "medium",
       tags: ["operating-systems", "scheduling"],
       is_top50: true,
     },
     {
       question: "Explain the concept of thrashing in operating systems.",
-      answer: "Thrashing occurs when the system spends more time swapping pages between memory and disk than executing user processes. It happens when the sum of working sets of all active processes exceeds available physical memory. Each process constantly experiences page faults, causing the OS to bring in pages while evicting others that are immediately needed again. Disk I/O saturates, CPU utilization drops (processes are waiting for pages), and system throughput collapses. Solutions: reduce degree of multiprogramming, increase physical memory, use a better page replacement algorithm (LRU approximating), or implement working set models.",
+      answer:
+        "Thrashing occurs when the system spends more time swapping pages between memory and disk than executing user processes. It happens when the sum of working sets of all active processes exceeds available physical memory. Each process constantly experiences page faults, causing the OS to bring in pages while evicting others that are immediately needed again. Disk I/O saturates, CPU utilization drops (processes are waiting for pages), and system throughput collapses. Solutions: reduce degree of multiprogramming, increase physical memory, use a better page replacement algorithm (LRU approximating), or implement working set models.",
       difficulty: "hard",
       tags: ["operating-systems", "memory-management"],
       is_top50: true,
     },
     {
       question: "What is the difference between kernel mode and user mode?",
-      answer: "Kernel mode (privileged mode, ring 0) has full access to hardware and all memory addresses. The OS kernel runs in kernel mode. User mode (ring 3) restricts access — user processes cannot execute privileged instructions, cannot access hardware directly, and have limited memory access. Switching from user mode to kernel mode requires a system call (e.g., reading a file, creating a process). This switch is expensive (context switch overhead) but essential for security and stability — a user process crash cannot bring down the entire system because it cannot corrupt kernel memory or hardware state.",
+      answer:
+        "Kernel mode (privileged mode, ring 0) has full access to hardware and all memory addresses. The OS kernel runs in kernel mode. User mode (ring 3) restricts access — user processes cannot execute privileged instructions, cannot access hardware directly, and have limited memory access. Switching from user mode to kernel mode requires a system call (e.g., reading a file, creating a process). This switch is expensive (context switch overhead) but essential for security and stability — a user process crash cannot bring down the entire system because it cannot corrupt kernel memory or hardware state.",
       difficulty: "medium",
       tags: ["operating-systems", "security"],
       is_top50: true,
     },
     {
       question: "Explain the readers-writers problem and its solutions.",
-      answer: "The readers-writers problem manages access to shared data where multiple readers can read simultaneously but writers need exclusive access. First readers-writers solution: readers can read as long as no writer is writing — writers may starve if readers keep arriving. Second readers-writers solution: once a writer is ready, new readers must wait — writers get priority but readers may starve. Third solution: fair queuing — readers and writers wait in the same queue, preventing starvation for both. Implementation: mutex for shared data access, read count tracking, and condition variables or semaphores.",
+      answer:
+        "The readers-writers problem manages access to shared data where multiple readers can read simultaneously but writers need exclusive access. First readers-writers solution: readers can read as long as no writer is writing — writers may starve if readers keep arriving. Second readers-writers solution: once a writer is ready, new readers must wait — writers get priority but readers may starve. Third solution: fair queuing — readers and writers wait in the same queue, preventing starvation for both. Implementation: mutex for shared data access, read count tracking, and condition variables or semaphores.",
       difficulty: "hard",
       tags: ["operating-systems", "concurrency", "synchronization"],
       is_top50: false,
     },
     {
       question: "What is spooling and how does it work?",
-      answer: "Spooling (Simultaneous Peripheral Operations On-Line) is a process where data is temporarily placed in a buffer (typically on disk) for processing by another device or program. Common example: print spooling — when multiple applications send documents to a printer, the spooler queues each job on disk and feeds them to the printer one at a time. This decouples the fast application from the slow printer. Spooling differs from buffering: buffers are temporary and small; spools use persistent storage and manage queues of jobs. Used in print servers, email servers (mail spool), and batch processing systems.",
+      answer:
+        "Spooling (Simultaneous Peripheral Operations On-Line) is a process where data is temporarily placed in a buffer (typically on disk) for processing by another device or program. Common example: print spooling — when multiple applications send documents to a printer, the spooler queues each job on disk and feeds them to the printer one at a time. This decouples the fast application from the slow printer. Spooling differs from buffering: buffers are temporary and small; spools use persistent storage and manage queues of jobs. Used in print servers, email servers (mail spool), and batch processing systems.",
       difficulty: "medium",
       tags: ["operating-systems", "io"],
       is_top50: false,
     },
     {
       question: "What is the difference between paging and segmentation?",
-      answer: "Paging divides memory into fixed-size frames (physical) and pages (logical). A page table maps virtual pages to physical frames. No external fragmentation, but possible internal fragmentation (last page). Paging is transparent to the user. Segmentation divides memory into variable-sized segments (code, data, stack, heap) based on logical divisions. A segment table maps segment number + offset to physical addresses. Segmentation can have external fragmentation. Segments are visible to the programmer (each segment is a logical unit). Many modern systems use paged segmentation — segments divided into pages for both logical organization and efficient management.",
+      answer:
+        "Paging divides memory into fixed-size frames (physical) and pages (logical). A page table maps virtual pages to physical frames. No external fragmentation, but possible internal fragmentation (last page). Paging is transparent to the user. Segmentation divides memory into variable-sized segments (code, data, stack, heap) based on logical divisions. A segment table maps segment number + offset to physical addresses. Segmentation can have external fragmentation. Segments are visible to the programmer (each segment is a logical unit). Many modern systems use paged segmentation — segments divided into pages for both logical organization and efficient management.",
       difficulty: "medium",
       tags: ["operating-systems", "memory-management"],
       is_top50: true,
     },
     {
       question: "Explain the concept of a system call and give examples.",
-      answer: "A system call is the programmatic way a user-mode process requests a service from the OS kernel. It switches execution from user mode to kernel mode. Categories: process control (fork, exec, exit), file management (open, read, write, close), device management (ioctl, read, write), information maintenance (getpid, gettimeofday), and communication (pipe, socket, shmget). Example: printf() calls write() system call to output text. System calls are the only way to access hardware, create processes, or communicate between processes. They have higher overhead than function calls due to the mode switch.",
+      answer:
+        "A system call is the programmatic way a user-mode process requests a service from the OS kernel. It switches execution from user mode to kernel mode. Categories: process control (fork, exec, exit), file management (open, read, write, close), device management (ioctl, read, write), information maintenance (getpid, gettimeofday), and communication (pipe, socket, shmget). Example: printf() calls write() system call to output text. System calls are the only way to access hardware, create processes, or communicate between processes. They have higher overhead than function calls due to the mode switch.",
       difficulty: "medium",
       tags: ["operating-systems"],
       is_top50: true,
@@ -745,84 +896,98 @@ export const questionsData: Record<string, { question: string; answer: string; d
     // ──────── Chapter 5: Networking (Additional) ────────
     {
       question: "Explain the OSI model and its seven layers.",
-      answer: "The OSI model is a conceptual framework for understanding network communication across seven layers: 1) Physical — raw bit transmission over wire/fiber/radio. 2) Data Link — frames, MAC addresses, error detection (Ethernet, WiFi). 3) Network — routing, IP addressing (IPv4, IPv6). 4) Transport — reliable delivery, segmentation (TCP, UDP). 5) Session — connection establishment, management (not commonly used in modern networking). 6) Presentation — data formatting, encryption, compression (SSL/TLS operates here and below). 7) Application — end-user protocols (HTTP, FTP, SMTP, DNS). The TCP/IP model combines these into four layers: Link, Internet, Transport, Application.",
+      answer:
+        "The OSI model is a conceptual framework for understanding network communication across seven layers: 1) Physical — raw bit transmission over wire/fiber/radio. 2) Data Link — frames, MAC addresses, error detection (Ethernet, WiFi). 3) Network — routing, IP addressing (IPv4, IPv6). 4) Transport — reliable delivery, segmentation (TCP, UDP). 5) Session — connection establishment, management (not commonly used in modern networking). 6) Presentation — data formatting, encryption, compression (SSL/TLS operates here and below). 7) Application — end-user protocols (HTTP, FTP, SMTP, DNS). The TCP/IP model combines these into four layers: Link, Internet, Transport, Application.",
       difficulty: "medium",
       tags: ["networking", "osi-model"],
       is_top50: true,
     },
     {
       question: "What is the difference between IPv4 and IPv6?",
-      answer: "IPv4 uses 32-bit addresses (4.3 billion possible) written as four octets (192.168.1.1). IPv6 uses 128-bit addresses (3.4 × 10^38 possible) written as eight groups of hex digits (2001:0db8::1). IPv4 has run out of public addresses — NAT (Network Address Translation) extends its life. IPv6 eliminates NAT, restores end-to-end connectivity, includes built-in IPsec (security), supports auto-configuration, and has simplified header format for faster processing. Transition mechanisms: dual-stack (both protocols), tunneling (IPv6 over IPv4), and NAT64 (translate between them).",
+      answer:
+        "IPv4 uses 32-bit addresses (4.3 billion possible) written as four octets (192.168.1.1). IPv6 uses 128-bit addresses (3.4 × 10^38 possible) written as eight groups of hex digits (2001:0db8::1). IPv4 has run out of public addresses — NAT (Network Address Translation) extends its life. IPv6 eliminates NAT, restores end-to-end connectivity, includes built-in IPsec (security), supports auto-configuration, and has simplified header format for faster processing. Transition mechanisms: dual-stack (both protocols), tunneling (IPv6 over IPv4), and NAT64 (translate between them).",
       difficulty: "medium",
       tags: ["networking", "ip"],
       is_top50: true,
     },
     {
       question: "Explain the three-way handshake in TCP.",
-      answer: "The TCP three-way handshake establishes a reliable connection before data transmission: 1) SYN — client sends a TCP segment with SYN flag set, chooses an initial sequence number (ISN). 2) SYN-ACK — server responds with SYN and ACK flags set, acknowledges client's SYN (ACK = client ISN + 1), and sends its own ISN. 3) ACK — client acknowledges server's SYN (ACK = server ISN + 1). After this, the connection is established and data can be exchanged. Purpose: ensures both sides are ready to communicate, synchronizes sequence numbers, and prevents old duplicate connections from causing confusion.",
+      answer:
+        "The TCP three-way handshake establishes a reliable connection before data transmission: 1) SYN — client sends a TCP segment with SYN flag set, chooses an initial sequence number (ISN). 2) SYN-ACK — server responds with SYN and ACK flags set, acknowledges client's SYN (ACK = client ISN + 1), and sends its own ISN. 3) ACK — client acknowledges server's SYN (ACK = server ISN + 1). After this, the connection is established and data can be exchanged. Purpose: ensures both sides are ready to communicate, synchronizes sequence numbers, and prevents old duplicate connections from causing confusion.",
       difficulty: "medium",
       tags: ["networking", "tcp"],
       is_top50: true,
     },
     {
       question: "What is a subnet mask and how does it work?",
-      answer: "A subnet mask separates an IP address into network and host portions. It is a 32-bit number where consecutive 1s represent the network prefix and 0s represent the host address. Example: IP 192.168.1.100 with subnet mask 255.255.255.0 (/24) means the network portion is 192.168.1.0 and host portion is .100. Subnetting divides a large network into smaller subnetworks — improves routing efficiency, reduces broadcast domains, and enhances security. CIDR (Classless Inter-Domain Routing) notation: /24 = 255.255.255.0 = 256 addresses (254 usable). Calculate subnet by ANDing IP with subnet mask.",
+      answer:
+        "A subnet mask separates an IP address into network and host portions. It is a 32-bit number where consecutive 1s represent the network prefix and 0s represent the host address. Example: IP 192.168.1.100 with subnet mask 255.255.255.0 (/24) means the network portion is 192.168.1.0 and host portion is .100. Subnetting divides a large network into smaller subnetworks — improves routing efficiency, reduces broadcast domains, and enhances security. CIDR (Classless Inter-Domain Routing) notation: /24 = 255.255.255.0 = 256 addresses (254 usable). Calculate subnet by ANDing IP with subnet mask.",
       difficulty: "medium",
       tags: ["networking", "subnetting"],
       is_top50: true,
     },
     {
-      question: "What is the difference between a MAC address and an IP address?",
-      answer: "A MAC (Media Access Control) address is a 48-bit hardware identifier burned into a network interface card (NIC). It operates at Layer 2 (Data Link) and is unique per device. MAC addresses are used for local network communication within a subnet. An IP address is a logical address assigned by the network — operates at Layer 3 (Network). IP addresses are hierarchical and routable across the internet. ARP (Address Resolution Protocol) maps IP addresses to MAC addresses on a local network. Think of IP as a mailing address (changes when you move) and MAC as a social security number (permanent per device).",
+      question:
+        "What is the difference between a MAC address and an IP address?",
+      answer:
+        "A MAC (Media Access Control) address is a 48-bit hardware identifier burned into a network interface card (NIC). It operates at Layer 2 (Data Link) and is unique per device. MAC addresses are used for local network communication within a subnet. An IP address is a logical address assigned by the network — operates at Layer 3 (Network). IP addresses are hierarchical and routable across the internet. ARP (Address Resolution Protocol) maps IP addresses to MAC addresses on a local network. Think of IP as a mailing address (changes when you move) and MAC as a social security number (permanent per device).",
       difficulty: "easy",
       tags: ["networking"],
       is_top50: true,
     },
     {
       question: "Explain what happens during a TLS handshake.",
-      answer: "The TLS handshake establishes an encrypted connection: 1) Client sends ClientHello with supported TLS versions, cipher suites, and a random number. 2) Server responds with ServerHello selecting the TLS version and cipher suite, its certificate (containing public key), and another random number. 3) Client verifies the certificate against trusted Certificate Authorities (CA). 4) Client generates a pre-master secret (random bytes), encrypts it with the server's public key, and sends it. 5) Server decrypts with its private key. 6) Both derive session keys from the pre-master secret and random numbers. 7) Both send ChangeCipherSpec and Finished messages to confirm encrypted communication.",
+      answer:
+        "The TLS handshake establishes an encrypted connection: 1) Client sends ClientHello with supported TLS versions, cipher suites, and a random number. 2) Server responds with ServerHello selecting the TLS version and cipher suite, its certificate (containing public key), and another random number. 3) Client verifies the certificate against trusted Certificate Authorities (CA). 4) Client generates a pre-master secret (random bytes), encrypts it with the server's public key, and sends it. 5) Server decrypts with its private key. 6) Both derive session keys from the pre-master secret and random numbers. 7) Both send ChangeCipherSpec and Finished messages to confirm encrypted communication.",
       difficulty: "medium",
       tags: ["networking", "security", "tls"],
       is_top50: true,
     },
     {
       question: "What is the difference between HTTP/1.1 and HTTP/2?",
-      answer: "HTTP/1.1 uses text-based, request-response with one outstanding request per TCP connection (head-of-line blocking). Workarounds: multiple parallel connections, domain sharding. HTTP/2 is binary, multiplexed — multiple streams share one TCP connection, eliminating head-of-line blocking. HTTP/2 features: server push (server sends resources before requested), header compression (HPACK — reduces overhead), stream prioritization. Result: lower latency, better bandwidth utilization. HTTP/2 requires TLS in practice (browser support). Downside: single TCP connection means a lost packet blocks all streams (TCP head-of-line blocking — addressed by HTTP/3 over QUIC).",
+      answer:
+        "HTTP/1.1 uses text-based, request-response with one outstanding request per TCP connection (head-of-line blocking). Workarounds: multiple parallel connections, domain sharding. HTTP/2 is binary, multiplexed — multiple streams share one TCP connection, eliminating head-of-line blocking. HTTP/2 features: server push (server sends resources before requested), header compression (HPACK — reduces overhead), stream prioritization. Result: lower latency, better bandwidth utilization. HTTP/2 requires TLS in practice (browser support). Downside: single TCP connection means a lost packet blocks all streams (TCP head-of-line blocking — addressed by HTTP/3 over QUIC).",
       difficulty: "medium",
       tags: ["networking", "http"],
       is_top50: true,
     },
     {
       question: "What is a proxy server and how does it work?",
-      answer: "A proxy server sits between a client and the internet, forwarding client requests on their behalf. Forward proxy: acts for clients — hides client IP, bypasses geo-restrictions, caches content, filters access (corporate networks). Reverse proxy: acts for servers — load balancing, SSL termination, caching, hiding backend server details (NGINX, HAProxy). Transparent proxy: intercepts traffic without client configuration (captive portals). SOCKS proxy: operates at a lower level, handling any protocol. Proxy servers improve security, performance (caching), and enable access control policies.",
+      answer:
+        "A proxy server sits between a client and the internet, forwarding client requests on their behalf. Forward proxy: acts for clients — hides client IP, bypasses geo-restrictions, caches content, filters access (corporate networks). Reverse proxy: acts for servers — load balancing, SSL termination, caching, hiding backend server details (NGINX, HAProxy). Transparent proxy: intercepts traffic without client configuration (captive portals). SOCKS proxy: operates at a lower level, handling any protocol. Proxy servers improve security, performance (caching), and enable access control policies.",
       difficulty: "medium",
       tags: ["networking", "proxy"],
       is_top50: true,
     },
     {
-      question: "What is the difference between symmetric and asymmetric encryption?",
-      answer: "Symmetric encryption uses the same key for both encryption and decryption — fast (AES, ChaCha20) but requires secure key distribution. Used for bulk data encryption. Asymmetric encryption uses a public/private key pair — slower but eliminates key distribution (RSA, ECC). The public key encrypts, the private key decrypts. Used for key exchange and digital signatures. Practical systems combine both: asymmetric encryption for the initial handshake to exchange a session key, then symmetric encryption for bulk data transfer. TLS/HTTPS uses this hybrid approach.",
+      question:
+        "What is the difference between symmetric and asymmetric encryption?",
+      answer:
+        "Symmetric encryption uses the same key for both encryption and decryption — fast (AES, ChaCha20) but requires secure key distribution. Used for bulk data encryption. Asymmetric encryption uses a public/private key pair — slower but eliminates key distribution (RSA, ECC). The public key encrypts, the private key decrypts. Used for key exchange and digital signatures. Practical systems combine both: asymmetric encryption for the initial handshake to exchange a session key, then symmetric encryption for bulk data transfer. TLS/HTTPS uses this hybrid approach.",
       difficulty: "medium",
       tags: ["networking", "security", "cryptography"],
       is_top50: true,
     },
     {
       question: "What is a firewall and what types of firewalls exist?",
-      answer: "A firewall is a network security device that monitors and controls incoming and outgoing traffic based on predetermined security rules. Types: Packet Filtering Firewall — inspects packets based on source/dest IP, port, and protocol (stateless, fast but limited). Stateful Firewall — tracks connection state, allows return traffic automatically (more secure). Application (Layer 7) Firewall — inspects application data (WAF — Web Application Firewall blocks SQL injection, XSS). Next-Generation Firewall (NGFW) — combines stateful inspection, application awareness, and intrusion prevention. Firewalls can be hardware (dedicated appliance), software (iptables, Windows Firewall), or cloud-based (AWS Security Groups, Cloudflare WAF).",
+      answer:
+        "A firewall is a network security device that monitors and controls incoming and outgoing traffic based on predetermined security rules. Types: Packet Filtering Firewall — inspects packets based on source/dest IP, port, and protocol (stateless, fast but limited). Stateful Firewall — tracks connection state, allows return traffic automatically (more secure). Application (Layer 7) Firewall — inspects application data (WAF — Web Application Firewall blocks SQL injection, XSS). Next-Generation Firewall (NGFW) — combines stateful inspection, application awareness, and intrusion prevention. Firewalls can be hardware (dedicated appliance), software (iptables, Windows Firewall), or cloud-based (AWS Security Groups, Cloudflare WAF).",
       difficulty: "medium",
       tags: ["networking", "security"],
       is_top50: true,
     },
     {
       question: "What is the difference between a hub, a switch, and a router?",
-      answer: "A hub operates at Layer 1 (Physical) — it broadcasts all incoming data to all ports. No intelligence, no security, shared bandwidth. Obsolete for most networks. A switch operates at Layer 2 (Data Link) — it learns MAC addresses and forwards frames only to the specific destination port. Provides dedicated bandwidth per port, full-duplex communication. Used for local network connections. A router operates at Layer 3 (Network) — it routes packets between different networks based on IP addresses. Maintains routing tables, performs NAT, connects your home network to the internet. Most home 'routers' are actually a router + switch + access point + firewall combined.",
+      answer:
+        "A hub operates at Layer 1 (Physical) — it broadcasts all incoming data to all ports. No intelligence, no security, shared bandwidth. Obsolete for most networks. A switch operates at Layer 2 (Data Link) — it learns MAC addresses and forwards frames only to the specific destination port. Provides dedicated bandwidth per port, full-duplex communication. Used for local network connections. A router operates at Layer 3 (Network) — it routes packets between different networks based on IP addresses. Maintains routing tables, performs NAT, connects your home network to the internet. Most home 'routers' are actually a router + switch + access point + firewall combined.",
       difficulty: "easy",
       tags: ["networking", "hardware"],
       is_top50: true,
     },
     {
       question: "Explain the concept of a port number and list common ports.",
-      answer: "A port number is a 16-bit number (0-65535) that identifies a specific process or service on a host. Combined with an IP address, it uniquely identifies a network connection (socket). Ports 0-1023 are well-known ports assigned to common services: HTTP (80), HTTPS (443), FTP (21), SSH (22), Telnet (23), SMTP (25), DNS (53), DHCP (67/68), POP3 (110), IMAP (143). Ports 1024-49151 are registered ports for user applications. Ports 49152-65535 are dynamic/ephemeral ports used by clients for outgoing connections. When you visit https://example.com, your browser connects to 192.0.2.1:443.",
+      answer:
+        "A port number is a 16-bit number (0-65535) that identifies a specific process or service on a host. Combined with an IP address, it uniquely identifies a network connection (socket). Ports 0-1023 are well-known ports assigned to common services: HTTP (80), HTTPS (443), FTP (21), SSH (22), Telnet (23), SMTP (25), DNS (53), DHCP (67/68), POP3 (110), IMAP (143). Ports 1024-49151 are registered ports for user applications. Ports 49152-65535 are dynamic/ephemeral ports used by clients for outgoing connections. When you visit https://example.com, your browser connects to 192.0.2.1:443.",
       difficulty: "easy",
       tags: ["networking", "ports"],
       is_top50: true,
@@ -855,7 +1020,8 @@ The DOCTYPE is not an HTML element or tag — it is a declaration that must appe
       is_top50: true,
     },
     {
-      question: "What are the essential elements of an HTML document structure?",
+      question:
+        "What are the essential elements of an HTML document structure?",
       answer: `Every valid HTML document follows a standard structure comprising four essential sections:
 
 \`\`\`html
@@ -1019,7 +1185,8 @@ The viewport meta tag (\`width=device-width, initial-scale=1.0\`) is **required*
       is_top50: true,
     },
     {
-      question: "Explain the purpose of HTML5 semantic elements: header, nav, main, section, article, aside, footer.",
+      question:
+        "Explain the purpose of HTML5 semantic elements: header, nav, main, section, article, aside, footer.",
       answer: `HTML5 introduced a set of semantic elements that define the structure of a web page more meaningfully than generic \`<div>\` elements. Here's how each is used:
 
 \`\`\`html
@@ -1089,7 +1256,8 @@ The viewport meta tag (\`width=device-width, initial-scale=1.0\`) is **required*
       is_top50: true,
     },
     {
-      question: "What is the purpose of the <figure> and <figcaption> elements?",
+      question:
+        "What is the purpose of the <figure> and <figcaption> elements?",
       answer: `The \`<figure>\` element represents self-contained content, such as illustrations, diagrams, code snippets, or photos, optionally with a caption (\`<figcaption>\`). It creates a semantic association between the media and its description:
 
 \`\`\`html
@@ -1182,7 +1350,8 @@ This is the only native HTML widget that provides show/hide behavior without any
       is_top50: true,
     },
     {
-      question: "Explain the difference between innerHTML, textContent, and innerText.",
+      question:
+        "Explain the difference between innerHTML, textContent, and innerText.",
       answer: `These three properties read and write content inside an element, but they behave very differently:
 
 \`\`\`html
@@ -1229,7 +1398,8 @@ el.innerText = "Visible text"; // Sets visible text
       is_top50: true,
     },
     {
-      question: "What is the DOMContentLoaded event and how is it different from the load event?",
+      question:
+        "What is the DOMContentLoaded event and how is it different from the load event?",
       answer: `The \`DOMContentLoaded\` and \`load\` events fire at different points in the page lifecycle:
 
 \`\`\`javascript
@@ -1271,7 +1441,8 @@ if (document.readyState === "loading") {
       is_top50: true,
     },
     {
-      question: "How do you create, append, and remove DOM elements dynamically?",
+      question:
+        "How do you create, append, and remove DOM elements dynamically?",
       answer: `DOM manipulation is fundamental to dynamic web applications. Here are the modern approaches:
 
 \`\`\`javascript
@@ -1335,7 +1506,8 @@ parent.appendChild(fragment); // Single reflow instead of 1000
       is_top50: true,
     },
     {
-      question: "What is the difference between event bubbling and event capturing?",
+      question:
+        "What is the difference between event bubbling and event capturing?",
       answer: `Event propagation in the DOM happens in three phases: **capturing**, **target**, and **bubbling**. Understanding these phases is critical for debugging event handling and implementing patterns like event delegation.
 
 \`\`\`html
@@ -1483,7 +1655,8 @@ document.addEventListener("keydown", (e) => {
       is_top50: true,
     },
     {
-      question: "How do you stop event propagation and prevent default browser behavior?",
+      question:
+        "How do you stop event propagation and prevent default browser behavior?",
       answer: `Two methods control event behavior: \`stopPropagation()\` stops the event from traveling further, while \`preventDefault()\` cancels the browser's default action. Understanding the difference is critical:
 
 \`\`\`javascript
@@ -1536,7 +1709,8 @@ element.addEventListener("click", () => console.log("Third listener")); // Never
       is_top50: true,
     },
     {
-      question: "What are custom events and how do you create and dispatch them?",
+      question:
+        "What are custom events and how do you create and dispatch them?",
       answer: `Custom events allow you to define your own event types and dispatch them on any DOM element. This is essential for decoupled component communication:
 
 \`\`\`javascript
@@ -1600,7 +1774,8 @@ customElements.define("form-validator", FormValidator);
       is_top50: true,
     },
     {
-      question: "Explain the addEventListener method and its options parameter.",
+      question:
+        "Explain the addEventListener method and its options parameter.",
       answer: `\`addEventListener\` is the modern, preferred way to register event handlers. Its third parameter accepts either a boolean (for capturing) or an options object for fine-grained control:
 
 \`\`\`javascript
@@ -1745,7 +1920,8 @@ input:user-invalid { /* Firefox: user interacted and value is invalid */
       is_top50: true,
     },
     {
-      question: "What are the different input types in HTML5 and when should you use each?",
+      question:
+        "What are the different input types in HTML5 and when should you use each?",
       answer: `HTML5 introduced several new input types that provide specialized keyboard, validation, and user experience enhancements:
 
 \`\`\`html
@@ -1807,7 +1983,8 @@ input:user-invalid { /* Firefox: user interacted and value is invalid */
       is_top50: true,
     },
     {
-      question: "Explain the difference between GET and POST methods in HTML forms.",
+      question:
+        "Explain the difference between GET and POST methods in HTML forms.",
       answer: `The \`method\` attribute on an HTML \`<form>\` determines how form data is sent to the server:
 
 \`\`\`html
@@ -1858,7 +2035,8 @@ input:user-invalid { /* Firefox: user interacted and value is invalid */
       is_top50: true,
     },
     {
-      question: "What are form attributes like required, pattern, min, max, placeholder, and autocomplete?",
+      question:
+        "What are form attributes like required, pattern, min, max, placeholder, and autocomplete?",
       answer: `HTML form attributes control validation, UX, and browser behavior without JavaScript:
 
 \`\`\`html
@@ -1983,7 +2161,8 @@ input::placeholder { color: #999; font-style: italic; }
       is_top50: true,
     },
     {
-      question: "What is the difference between aria-label, aria-labelledby, and aria-describedby?",
+      question:
+        "What is the difference between aria-label, aria-labelledby, and aria-describedby?",
       answer: `These ARIA attributes provide accessible names and descriptions for elements. They are critical for screen reader users who cannot visually perceive the UI:
 
 \`\`\`html
@@ -2137,7 +2316,8 @@ setTimeout(() => {
       is_top50: true,
     },
     {
-      question: "What is the purpose of the alt attribute and what happens when it's missing?",
+      question:
+        "What is the purpose of the alt attribute and what happens when it's missing?",
       answer: `The \`alt\` attribute on \`<img>\` elements provides a text alternative for users who cannot see the image. Its impact spans accessibility, SEO, and user experience:
 
 \`\`\`html
@@ -2437,7 +2617,8 @@ console.log(customElements.get("expandable-section")); // Returns the class
       is_top50: true,
     },
     {
-      question: "Explain the difference between async and defer attributes on script tags.",
+      question:
+        "Explain the difference between async and defer attributes on script tags.",
       answer: `The \`async\` and \`defer\` attributes change how external scripts are downloaded and executed relative to HTML parsing:
 
 \`\`\`html
@@ -2572,14 +2753,16 @@ window.addEventListener("load", () => {
     },
     {
       question: "What is the DOM and how does it work?",
-      answer: "The DOM (Document Object Model) is a tree-like representation of an HTML document that JavaScript can manipulate. When a page loads, the browser parses HTML into DOM nodes. JavaScript can traverse, add, remove, or modify nodes, which triggers re-rendering. Virtual DOM (used by React) batches changes for performance.",
+      answer:
+        "The DOM (Document Object Model) is a tree-like representation of an HTML document that JavaScript can manipulate. When a page loads, the browser parses HTML into DOM nodes. JavaScript can traverse, add, remove, or modify nodes, which triggers re-rendering. Virtual DOM (used by React) batches changes for performance.",
       difficulty: "easy",
       tags: ["dom", "javascript"],
       is_top50: true,
     },
     // ──────── CSS & Visual Design ────────
     {
-      question: "Explain the CSS box model and the difference between content-box and border-box.",
+      question:
+        "Explain the CSS box model and the difference between content-box and border-box.",
       answer: `The CSS box model describes how every element is rendered as a rectangular box. Every box consists of four layers from inside out: **content** (where text/images appear), **padding** (space around content, inside border), **border** (line around padding), and **margin** (space outside border, invisible).
 
 \`\`\`css
@@ -2624,7 +2807,8 @@ window.addEventListener("load", () => {
       is_top50: true,
     },
     {
-      question: "Explain the concept of specificity in CSS and how the cascade works.",
+      question:
+        "Explain the concept of specificity in CSS and how the cascade works.",
       answer: `Specificity determines which CSS rule is applied when multiple rules target the same element. The cascade algorithm calculates specificity as a four-part value (a, b, c, d):
 
 | Selector Type | Specificity | Example |
@@ -2837,7 +3021,8 @@ footer { grid-area: footer; }
       is_top50: true,
     },
     {
-      question: "Explain CSS positioning: static, relative, absolute, fixed, and sticky.",
+      question:
+        "Explain CSS positioning: static, relative, absolute, fixed, and sticky.",
       answer: `The \`position\` property controls how an element is placed in the document flow. Each value behaves fundamentally differently:
 
 \`\`\`css
@@ -3009,7 +3194,8 @@ body { font-size: 16px; }
       is_top50: true,
     },
     {
-      question: "What are CSS custom properties (variables) and how do they differ from preprocessor variables?",
+      question:
+        "What are CSS custom properties (variables) and how do they differ from preprocessor variables?",
       answer: `CSS Custom Properties (CSS variables) are native to the browser and cascade through the DOM, while preprocessor variables (Sass, Less) are compiled away at build time:
 
 \`\`\`css
@@ -3083,7 +3269,8 @@ document.documentElement.style.setProperty('--primary', '#e74c3c');
       is_top50: true,
     },
     {
-      question: "What is the difference between em, rem, px, vw, and other CSS units?",
+      question:
+        "What is the difference between em, rem, px, vw, and other CSS units?",
       answer: `CSS units fall into two categories: **absolute** (fixed size) and **relative** (size depends on context). Choosing the right unit is critical for accessible, responsive designs:
 
 \`\`\`css
@@ -3239,7 +3426,8 @@ html { font-size: 100%; } /* Usually 16px — respect user's browser settings */
       is_top50: true,
     },
     {
-      question: "What are container queries and how are they different from media queries?",
+      question:
+        "What are container queries and how are they different from media queries?",
       answer: `Container queries allow components to respond to their **parent container's size** rather than the **viewport size**. This is a paradigm shift — components can be truly reusable regardless of where they're placed:
 
 \`\`\`css
@@ -3429,7 +3617,8 @@ html { font-size: 100%; } /* Usually 16px — respect user's browser settings */
       is_top50: true,
     },
     {
-      question: "What is the difference between CSS transitions and animations?",
+      question:
+        "What is the difference between CSS transitions and animations?",
       answer: `Transitions smoothly change between two states (usually triggered by a state change like :hover), while animations run independently with keyframed steps:
 
 \`\`\`css
@@ -3839,7 +4028,8 @@ dialog::backdrop {
       is_top50: true,
     },
     {
-      question: "What are CSS functions like calc(), min(), max(), and clamp()?",
+      question:
+        "What are CSS functions like calc(), min(), max(), and clamp()?",
       answer: `CSS mathematical functions perform calculations directly in stylesheets, enabling fluid layouts without JavaScript:
 
 \`\`\`css
@@ -4151,7 +4341,8 @@ clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); /* Diamond */\`\`\`
       is_top50: true,
     },
     {
-      question: "What is the :has() selector and why is it called the 'parent selector'?",
+      question:
+        "What is the :has() selector and why is it called the 'parent selector'?",
       answer: `The \`:has()\` pseudo-class selects an element based on whether it **contains** (or is followed by) a specific element. It's often called the "parent selector" because it lets you style a parent based on its children:
 
 \`\`\`css
@@ -4676,7 +4867,8 @@ h1 { font-size: 4rem; }    /* Highest — overrides all layers */
       is_top50: true,
     },
     {
-      question: "What are CSS preprocessors (Sass, Less) and when should you use them?",
+      question:
+        "What are CSS preprocessors (Sass, Less) and when should you use them?",
       answer: `CSS preprocessors extend CSS with programming features like variables, nesting, mixins, functions, and logic. They compile to standard CSS. While modern CSS has adopted many of these features natively, preprocessors still offer unique capabilities:
 
 \`\`\`scss
@@ -4787,7 +4979,8 @@ $breakpoint-md: 768px;
       is_top50: true,
     },
     {
-      question: "Explain CSS methodologies like BEM, SMACSS, and utility-first CSS.",
+      question:
+        "Explain CSS methodologies like BEM, SMACSS, and utility-first CSS.",
       answer: `CSS methodologies provide naming conventions and organization patterns to keep styles maintainable at scale:
 
 \`\`\`css
@@ -4895,7 +5088,8 @@ $breakpoint-md: 768px;
       is_top50: true,
     },
     {
-      question: "How does the CSS display property work and what values are available?",
+      question:
+        "How does the CSS display property work and what values are available?",
       answer: `The \`display\` property controls an element's box type and how it interacts with other elements in the layout. It is the most impactful CSS property:
 
 \`\`\`css
@@ -5280,112 +5474,132 @@ element.addEventListener('transitioncancel', (e) => {
     },
     {
       question: "Explain closures in JavaScript.",
-      answer: "A closure is a function that retains access to variables from its outer (enclosing) scope even after the outer function has returned. Example: a function inside another function can access the outer function's variables. Closures enable data privacy, partial application, and callback patterns.",
+      answer:
+        "A closure is a function that retains access to variables from its outer (enclosing) scope even after the outer function has returned. Example: a function inside another function can access the outer function's variables. Closures enable data privacy, partial application, and callback patterns.",
       difficulty: "medium",
       tags: ["javascript"],
       is_top50: true,
     },
     {
       question: "What is the virtual DOM and how does React use it?",
-      answer: "The virtual DOM is a lightweight JavaScript representation of the actual DOM. React uses it to optimize updates: when state changes, React creates a new virtual DOM tree, diffs it against the previous one (reconciliation), calculates minimal DOM mutations, and applies them in batch. This avoids expensive direct DOM manipulation.",
+      answer:
+        "The virtual DOM is a lightweight JavaScript representation of the actual DOM. React uses it to optimize updates: when state changes, React creates a new virtual DOM tree, diffs it against the previous one (reconciliation), calculates minimal DOM mutations, and applies them in batch. This avoids expensive direct DOM manipulation.",
       difficulty: "medium",
       tags: ["react"],
       is_top50: true,
     },
     {
       question: "Explain event delegation in JavaScript.",
-      answer: "Event delegation leverages event bubbling to handle events at a parent level rather than attaching listeners to each child. A single listener on a parent catches events from all children via `event.target`. Benefits: fewer listeners, works for dynamically added elements, better memory usage.",
+      answer:
+        "Event delegation leverages event bubbling to handle events at a parent level rather than attaching listeners to each child. A single listener on a parent catches events from all children via `event.target`. Benefits: fewer listeners, works for dynamically added elements, better memory usage.",
       difficulty: "medium",
       tags: ["javascript"],
       is_top50: true,
     },
     {
       question: "What are Web Workers and when would you use them?",
-      answer: "Web Workers run JavaScript in background threads separate from the main UI thread. They communicate via postMessage. Use them for CPU-intensive tasks (image processing, large computations, data parsing) that would otherwise block the UI. They don't have DOM access and must be served from the same origin.",
+      answer:
+        "Web Workers run JavaScript in background threads separate from the main UI thread. They communicate via postMessage. Use them for CPU-intensive tasks (image processing, large computations, data parsing) that would otherwise block the UI. They don't have DOM access and must be served from the same origin.",
       difficulty: "hard",
       tags: ["javascript", "performance"],
       is_top50: true,
     },
     {
-      question: "What is the difference between var, let, and const in JavaScript?",
-      answer: "var is function-scoped and can cause bugs due to hoisting. let and const are block-scoped, which makes code safer. const is used when the value should not be reassigned. In modern JavaScript, prefer let and const because they avoid scoping issues and temporal dead zone problems.",
+      question:
+        "What is the difference between var, let, and const in JavaScript?",
+      answer:
+        "var is function-scoped and can cause bugs due to hoisting. let and const are block-scoped, which makes code safer. const is used when the value should not be reassigned. In modern JavaScript, prefer let and const because they avoid scoping issues and temporal dead zone problems.",
       difficulty: "easy",
       tags: ["javascript"],
       is_top50: true,
     },
     {
-      question: "Explain Observable and Promise difference in JavaScript/Angular.",
-      answer: "A Promise handles one async result, while an Observable can handle multiple values over time. Observables are lazy (don't execute until subscribed), cancellable via unsubscribe, and support rich operators like map, filter, debounce. Angular's HttpClient returns Observables, favoring reactive programming.",
+      question:
+        "Explain Observable and Promise difference in JavaScript/Angular.",
+      answer:
+        "A Promise handles one async result, while an Observable can handle multiple values over time. Observables are lazy (don't execute until subscribed), cancellable via unsubscribe, and support rich operators like map, filter, debounce. Angular's HttpClient returns Observables, favoring reactive programming.",
       difficulty: "medium",
       tags: ["javascript", "angular"],
       is_top50: true,
     },
     {
       question: "What is the Virtual DOM in React and why is it useful?",
-      answer: "The Virtual DOM is a lightweight JavaScript copy of the real DOM. React compares the new Virtual DOM with the previous one (diffing), calculates the minimal set of changes, and updates only those parts in the real DOM. This avoids expensive full-DOM operations and makes rendering efficient.",
+      answer:
+        "The Virtual DOM is a lightweight JavaScript copy of the real DOM. React compares the new Virtual DOM with the previous one (diffing), calculates the minimal set of changes, and updates only those parts in the real DOM. This avoids expensive full-DOM operations and makes rendering efficient.",
       difficulty: "medium",
       tags: ["react"],
       is_top50: true,
     },
     {
       question: "What is the use of TypeScript in Angular?",
-      answer: "Angular is fully built on TypeScript for type safety, better tooling (auto-complete, IntelliSense), early error detection at compile time, and OOP features like interfaces, classes, and generics. TypeScript makes Angular applications easier to scale and maintain.",
+      answer:
+        "Angular is fully built on TypeScript for type safety, better tooling (auto-complete, IntelliSense), early error detection at compile time, and OOP features like interfaces, classes, and generics. TypeScript makes Angular applications easier to scale and maintain.",
       difficulty: "easy",
       tags: ["typescript", "angular"],
       is_top50: true,
     },
     {
       question: "What is two-way data binding in Angular?",
-      answer: "Two-way data binding keeps the UI and component data in sync automatically. Angular uses [(ngModel)] syntax to bind data both ways — when the user types in an input, the component variable updates, and when the component changes the value, the UI updates instantly.",
+      answer:
+        "Two-way data binding keeps the UI and component data in sync automatically. Angular uses [(ngModel)] syntax to bind data both ways — when the user types in an input, the component variable updates, and when the component changes the value, the UI updates instantly.",
       difficulty: "easy",
       tags: ["angular"],
       is_top50: true,
     },
     {
       question: "What are Pure Components in React?",
-      answer: "A Pure Component in React prevents unnecessary re-renders by using shallow comparison on props and state. Class components extend React.PureComponent; functional components use React.memo(). Useful when props mostly remain the same and performance optimization is needed.",
+      answer:
+        "A Pure Component in React prevents unnecessary re-renders by using shallow comparison on props and state. Class components extend React.PureComponent; functional components use React.memo(). Useful when props mostly remain the same and performance optimization is needed.",
       difficulty: "medium",
       tags: ["react", "performance"],
       is_top50: true,
     },
     {
-      question: "What is the difference between template-driven and reactive forms in Angular?",
-      answer: "Template-driven forms are easy and suitable for small forms — validation logic lives in the HTML template. Reactive forms use FormGroup and FormControl in TypeScript, providing better structure, scalability, testability, and programmatic validation. Reactive forms are ideal for enterprise-level apps.",
+      question:
+        "What is the difference between template-driven and reactive forms in Angular?",
+      answer:
+        "Template-driven forms are easy and suitable for small forms — validation logic lives in the HTML template. Reactive forms use FormGroup and FormControl in TypeScript, providing better structure, scalability, testability, and programmatic validation. Reactive forms are ideal for enterprise-level apps.",
       difficulty: "medium",
       tags: ["angular"],
       is_top50: true,
     },
     {
       question: "What are React Hooks and why do we use them?",
-      answer: "Hooks let React functional components use state and lifecycle features. useState manages state, useEffect handles side effects (data fetching, subscriptions), useContext accesses context, and useMemo/useCallback optimize performance. Hooks reduce boilerplate, make code reusable via custom hooks, and eliminate the need for class components.",
+      answer:
+        "Hooks let React functional components use state and lifecycle features. useState manages state, useEffect handles side effects (data fetching, subscriptions), useContext accesses context, and useMemo/useCallback optimize performance. Hooks reduce boilerplate, make code reusable via custom hooks, and eliminate the need for class components.",
       difficulty: "medium",
       tags: ["react", "hooks"],
       is_top50: true,
     },
     {
       question: "What is Lazy Loading in Angular?",
-      answer: "Lazy loading loads Angular modules only when the user navigates to them, not during the initial bundle load. Using loadChildren in routing configuration, the module is fetched on demand. This reduces initial load time, improves performance, and optimizes bundle size.",
+      answer:
+        "Lazy loading loads Angular modules only when the user navigates to them, not during the initial bundle load. Using loadChildren in routing configuration, the module is fetched on demand. This reduces initial load time, improves performance, and optimizes bundle size.",
       difficulty: "medium",
       tags: ["angular", "performance"],
       is_top50: true,
     },
     {
       question: "What is Change Detection in Angular?",
-      answer: "Change detection updates the view whenever component data changes. Angular uses Zone.js to detect async operations and trigger change detection automatically. For performance optimization, OnPush strategy can be used to check only when inputs change, events fire, or observables emit.",
+      answer:
+        "Change detection updates the view whenever component data changes. Angular uses Zone.js to detect async operations and trigger change detection automatically. For performance optimization, OnPush strategy can be used to check only when inputs change, events fire, or observables emit.",
       difficulty: "medium",
       tags: ["angular", "performance"],
       is_top50: true,
     },
     {
       question: "What is JSX in React?",
-      answer: "JSX (JavaScript XML) is a syntax extension that lets us write HTML-like code in JavaScript. It makes UI code cleaner and more readable. Under the hood, Babel compiles JSX to React.createElement() calls, which create the virtual DOM elements.",
+      answer:
+        "JSX (JavaScript XML) is a syntax extension that lets us write HTML-like code in JavaScript. It makes UI code cleaner and more readable. Under the hood, Babel compiles JSX to React.createElement() calls, which create the virtual DOM elements.",
       difficulty: "easy",
       tags: ["react"],
       is_top50: true,
     },
     {
-      question: "What is the difference between useEffect and useLayoutEffect in React?",
-      answer: "useEffect runs after the UI is painted to the screen, making it non-blocking. useLayoutEffect runs synchronously before the browser paints, blocking rendering until it completes. Use useLayoutEffect only for layout measurements and synchronous DOM operations; prefer useEffect for most cases.",
+      question:
+        "What is the difference between useEffect and useLayoutEffect in React?",
+      answer:
+        "useEffect runs after the UI is painted to the screen, making it non-blocking. useLayoutEffect runs synchronously before the browser paints, blocking rendering until it completes. Use useLayoutEffect only for layout measurements and synchronous DOM operations; prefer useEffect for most cases.",
       difficulty: "medium",
       tags: ["react", "hooks"],
       is_top50: true,
@@ -5927,7 +6141,8 @@ function outer() {
       is_top50: true,
     },
     {
-      question: "Explain the difference between global scope, function scope, and block scope.",
+      question:
+        "Explain the difference between global scope, function scope, and block scope.",
       answer: `| | Global | Function (\`var\`) | Block (\`let\`/\`const\`) |
 |--|--------|-------------------|------------------------|
 | Declared | Outside any function/block | Inside a function | Inside \`{}\` |
@@ -6331,7 +6546,8 @@ infinite();
       is_top50: true,
     },
     {
-      question: "Explain the difference between function declarations and function expressions.",
+      question:
+        "Explain the difference between function declarations and function expressions.",
       answer: `| | Function Declaration | Function Expression |
 |--|---------------------|-------------------|
 | Syntax | \`function foo() {}\` | \`const foo = function() {}\` |
@@ -6385,7 +6601,8 @@ console.log(decl());  // ✅ or ❌ depending on engine
       is_top50: true,
     },
     {
-      question: "What is the difference between a regular function and an arrow function in terms of scope?",
+      question:
+        "What is the difference between a regular function and an arrow function in terms of scope?",
       answer: `| Feature | Regular Function | Arrow Function |
 |---------|-----------------|---------------|
 | \`this\` | Dynamic (determined by call site) | Lexical (inherits from enclosing scope) |
@@ -7075,7 +7292,8 @@ boundLog('Something broke');                   // [ERROR] Something broke
       is_top50: true,
     },
     {
-      question: "What is the difference between arrow functions and regular functions?",
+      question:
+        "What is the difference between arrow functions and regular functions?",
       answer: `Arrow functions and regular functions differ fundamentally in how they handle \`this\`, arguments, constructors, and more.
 
 **Comparison table:**
@@ -8240,7 +8458,8 @@ The event loop prioritizes: **Call Stack → Microtask Queue (entirely) → Macr
       is_top50: true,
     },
     {
-      question: "What is the difference between synchronous and asynchronous code?",
+      question:
+        "What is the difference between synchronous and asynchronous code?",
       answer: `# Synchronous vs Asynchronous Code
 
 ## Synchronous (Blocking)
@@ -8453,7 +8672,8 @@ Microtask queue priority ensures Promise reactions are handled as soon as possib
       is_top50: true,
     },
     {
-      question: "Explain the difference between setTimeout and Promise in terms of execution order.",
+      question:
+        "Explain the difference between setTimeout and Promise in terms of execution order.",
       answer: `# setTimeout vs Promise — Execution Order
 
 **\`setTimeout\`** schedules a **macrotask** in the callback queue.
@@ -8714,7 +8934,8 @@ Async/await doesn't change the underlying event loop mechanics — it's still Pr
       is_top50: true,
     },
     {
-      question: "What will the following code output and why? console.log('1'); setTimeout(() => console.log('2'), 0); Promise.resolve().then(() => console.log('3')); console.log('4');",
+      question:
+        "What will the following code output and why? console.log('1'); setTimeout(() => console.log('2'), 0); Promise.resolve().then(() => console.log('3')); console.log('4');",
       answer: `# Output: 1, 4, 3, 2
 
 ## Code
@@ -9279,7 +9500,8 @@ module.exports = { count, increment: () => count++ };
       is_top50: true,
     },
     {
-      question: "What is optional chaining and nullish coalescing in JavaScript?",
+      question:
+        "What is optional chaining and nullish coalescing in JavaScript?",
       answer: `**Optional chaining (\`?.\`)** safely accesses nested properties without throwing on \`null\`/\`undefined\`. **Nullish coalescing (\`??\`)** returns the right side only when the left is \`null\`/\`undefined\`.
 
 \`\`\`javascript
@@ -9543,7 +9765,8 @@ class ErrorBoundary extends React.Component {
       is_top50: true,
     },
     {
-      question: "How do JavaScript timers work? (setTimeout, setInterval, requestAnimationFrame)",
+      question:
+        "How do JavaScript timers work? (setTimeout, setInterval, requestAnimationFrame)",
       answer: `JavaScript timers schedule callbacks but don't guarantee precise timing — they queue tasks for the event loop.
 
 \`\`\`javascript
@@ -9604,7 +9827,8 @@ function debounce(fn, delay) {
       is_top50: true,
     },
     {
-      question: "What is the difference between localStorage, sessionStorage, and cookies?",
+      question:
+        "What is the difference between localStorage, sessionStorage, and cookies?",
       answer: `| Feature | localStorage | sessionStorage | Cookies |
 |---------|-------------|---------------|---------|
 | Persistence | Until manually cleared | Until tab is closed | Until expires (configurable) |
@@ -10009,7 +10233,8 @@ const isNode = typeof globalThis.process !== "undefined";
       is_top50: true,
     },
     {
-      question: "What are the different Array methods and how do map, filter, and reduce work?",
+      question:
+        "What are the different Array methods and how do map, filter, and reduce work?",
       answer: `JavaScript arrays have powerful built-in iteration methods. The "big three" are \`map\`, \`filter\`, and \`reduce\`.
 
 **Comparison table:**
@@ -10203,7 +10428,8 @@ console.log(1, 2);   // logs 1 then 2 (multiple arguments)
       is_top50: true,
     },
     {
-      question: "Explain the concept of temporal dead zone with let and const variables.",
+      question:
+        "Explain the concept of temporal dead zone with let and const variables.",
       answer: `The **Temporal Dead Zone (TDZ)** is the time between entering a scope and a \`let\`/\`const\` declaration, during which the variable cannot be accessed.
 
 \`\`\`javascript
@@ -10261,14 +10487,16 @@ let letVar = 5;
     },
     // ──────── React ────────
     {
-      question: "What is React and how does it differ from other JavaScript frameworks?",
+      question:
+        "What is React and how does it differ from other JavaScript frameworks?",
       answer: `React is a declarative, component-based UI library developed by Meta. Unlike full-fledged frameworks (Angular, Vue), React focuses solely on the view layer and can be integrated with other libraries for routing, state management, etc. It uses a virtual DOM for efficient updates, a unidirectional data flow, and JSX syntax. React's ecosystem is modular, giving developers flexibility to choose their tools.`,
       difficulty: "easy",
       tags: ["react", "framework"],
       is_top50: true,
     },
     {
-      question: "Explain the Virtual DOM and how React uses it for performance.",
+      question:
+        "Explain the Virtual DOM and how React uses it for performance.",
       answer: `The virtual DOM is a lightweight JavaScript representation of the actual DOM. When state changes, React creates a new virtual DOM tree, diffs it against the previous one (reconciliation), calculates the minimal set of DOM mutations, and applies them in batch. This avoids expensive direct DOM manipulation and layout recalculations. React's Fiber architecture enables incremental rendering, prioritizing urgent updates (like user input) over background ones.`,
       difficulty: "medium",
       tags: ["react", "virtual-dom", "performance"],
@@ -10389,7 +10617,8 @@ function useLocalStorage(key, initial) {
       is_top50: true,
     },
     {
-      question: "Controlled vs uncontrolled components -- difference and use cases.",
+      question:
+        "Controlled vs uncontrolled components -- difference and use cases.",
       answer: `Controlled components have their value managed by React state. The component re-renders on every change. Uncontrolled components store their value in the DOM (using \`ref\`), like traditional HTML forms. Controlled components give more control (instant validation, conditional inputs) but require more code. Prefer controlled for most cases; use uncontrolled for simple, non-critical inputs or when integrating with non-React code.`,
       difficulty: "medium",
       tags: ["react", "forms", "controlled-components"],
@@ -10464,7 +10693,8 @@ Profile with React DevTools to identify bottlenecks.`,
       is_top50: true,
     },
     {
-      question: "Explain React Context API -- when is it appropriate vs prop drilling?",
+      question:
+        "Explain React Context API -- when is it appropriate vs prop drilling?",
       answer: `The Context API provides a way to share values across the component tree without passing props through every level. Create context with \`createContext\`, provide with \`Provider\`, consume with \`useContext\`. Use it for low-frequency global state (theme, locale, auth user). It is not a full state management solution. Avoid it for frequently updating state (causes entire subtree re-renders). For high-frequency updates, use Zustand, Redux, or pair Context with \`useReducer\` and memoization.`,
       difficulty: "medium",
       tags: ["react", "context-api"],
@@ -10710,7 +10940,8 @@ It guarantees uniqueness even if multiple instances of the same component render
       is_top50: true,
     },
     {
-      question: "Explain the difference between server-side rendering (SSR) and client-side rendering (CSR).",
+      question:
+        "Explain the difference between server-side rendering (SSR) and client-side rendering (CSR).",
       answer: `CSR renders the entire UI in the browser. The server sends an empty HTML shell and JavaScript builds the page. Initial load is slower (all JS must download and execute) but subsequent navigation is fast. SSR renders HTML on the server and sends a fully populated page to the client. Faster initial paint, better SEO, but slower Time to Interactive (hydration). Next.js supports both, and React Server Components blur the line by rendering on the server and streaming interactive chunks.`,
       difficulty: "medium",
       tags: ["react", "ssr", "csr", "rendering"],
@@ -11251,7 +11482,8 @@ Benefits: simpler project setup (no NgModule for small apps), easier lazy loadin
       is_top50: false,
     },
     {
-      question: "Explain Angular's change detection strategy (Default vs OnPush).",
+      question:
+        "Explain Angular's change detection strategy (Default vs OnPush).",
       answer: `Angular's change detection checks if template expressions changed. Two strategies:
 
 **Default** — checks every component in the tree when any async event occurs. Simple but can be slow for large component trees.
@@ -11615,7 +11847,8 @@ Benefits: faster initial load, smaller main bundle, code-split by route. Use \`n
       is_top50: false,
     },
     {
-      question: "What is content projection in Angular and how does `<ng-content>` work?",
+      question:
+        "What is content projection in Angular and how does `<ng-content>` work?",
       answer: `Content projection (transclusion) lets you pass content into a child component using \`<ng-content>\`.
 
 Child component template:
@@ -11680,7 +11913,8 @@ Use \`{ static: true }\` for elements available in \`ngOnInit\` (not in \`*ngIf\
       is_top50: false,
     },
     {
-      question: "What is `@ContentChild` and how is it different from `@ViewChild`?",
+      question:
+        "What is `@ContentChild` and how is it different from `@ViewChild`?",
       answer: `\`@ContentChild\` queries projected content (passed via \`<ng-content>\`), while \`@ViewChild\` queries the component's own template.
 
 \`\`\`typescript
@@ -11751,7 +11985,8 @@ The async pipe is the preferred approach — simpler, no manual unsubscribe, wor
       is_top50: false,
     },
     {
-      question: "What are Angular element references (`#ref`) and template reference variables?",
+      question:
+        "What are Angular element references (`#ref`) and template reference variables?",
       answer: `Template reference variables allow access to DOM elements or Angular directives from within the template. Declared with \`#variableName\`.
 
 \`\`\`html
@@ -11883,7 +12118,8 @@ Signals trigger change detection automatically. Use \`ChangeDetectorRef.markForC
       is_top50: false,
     },
     {
-      question: "What is the difference between `providedIn: 'root'` and registering in `NgModule.providers`?",
+      question:
+        "What is the difference between `providedIn: 'root'` and registering in `NgModule.providers`?",
       answer: `\`@Injectable({ providedIn: 'root' })\` registers the service with the root injector using tree-shakeable registration. Angular includes the service in the bundle only if it's actually used.
 
 \`\`\`typescript
@@ -11910,7 +12146,8 @@ export class FeatureModule { }
       is_top50: false,
     },
     {
-      question: "What is the Angular `@HostBinding` and `@HostListener` decorator?",
+      question:
+        "What is the Angular `@HostBinding` and `@HostListener` decorator?",
       answer: `\`@HostBinding\` binds a property or attribute to the host element. \`@HostListener\` listens for events on the host element.
 
 \`\`\`typescript
@@ -11942,7 +12179,8 @@ Usage: \`<p appHighlight>Hover over me</p>\` — the \`<p>\` gets \`class.highli
       is_top50: false,
     },
     {
-      question: "What are Angular environments and how do you manage configuration?",
+      question:
+        "What are Angular environments and how do you manage configuration?",
       answer: `Angular uses environment files for managing different configurations per build target.
 
 Default files:
@@ -12011,7 +12249,8 @@ Use cases: reusable template fragments, conditional rendering with custom logic,
       is_top50: false,
     },
     {
-      question: "What are Angular guards and how are they different from resolvers?",
+      question:
+        "What are Angular guards and how are they different from resolvers?",
       answer: `Guards control ROUTE ACCESS (can/cannot enter). Resolvers pre-fetch DATA before activation.
 
 Guards:
@@ -12279,7 +12518,8 @@ Benefits:
     },
     // ──────── State Management ────────
     {
-      question: "What is state management and why is it needed in frontend applications?",
+      question:
+        "What is state management and why is it needed in frontend applications?",
       answer: `State management is the practice of managing data that changes over time in a UI. It becomes necessary when multiple components need to share, synchronize, or react to the same data.
 
 Why it's needed:
@@ -12486,7 +12726,8 @@ Key features:
       is_top50: false,
     },
     {
-      question: "What is createAsyncThunk and how does it handle async actions?",
+      question:
+        "What is createAsyncThunk and how does it handle async actions?",
       answer: `\`createAsyncThunk\` generates action types and thunks for async operations (API calls). It automatically dispatches \`pending\`, \`fulfilled\`, and \`rejected\` actions.
 
 \`\`\`javascript
@@ -12538,7 +12779,8 @@ The \`fulfilled\` action payload is the resolved value; \`rejected\` carries the
       is_top50: false,
     },
     {
-      question: "What is RTK Query and how does it differ from createAsyncThunk?",
+      question:
+        "What is RTK Query and how does it differ from createAsyncThunk?",
       answer: `RTK Query is a data-fetching and caching solution built into Redux Toolkit. It eliminates the need to write thunks, reducers, and loading/error state management manually.
 
 \`\`\`javascript
@@ -12620,7 +12862,8 @@ Why memoization matters:
       is_top50: false,
     },
     {
-      question: "What is Redux middleware? Explain applyMiddleware and the middleware chain.",
+      question:
+        "What is Redux middleware? Explain applyMiddleware and the middleware chain.",
       answer: `Redux middleware provides a third-party extension point between dispatching an action and the moment it reaches the reducer. It's used for logging, crash reporting, async handling, and more.
 
 \`\`\`javascript
@@ -13341,7 +13584,8 @@ function Profile() {
       is_top50: false,
     },
     {
-      question: "What is the Context API and when would you use it with useReducer?",
+      question:
+        "What is the Context API and when would you use it with useReducer?",
       answer: `Context API + \`useReducer\` creates a lightweight Redux-like pattern for local state management without external dependencies.
 
 \`\`\`javascript
@@ -13691,7 +13935,8 @@ Store undoable state as \`{ past: [], present: {}, future: [] }\`. The reducer p
     },
     // ──────── AI Basics ────────
     {
-      question: "What is Artificial Intelligence and how does it differ from traditional programming?",
+      question:
+        "What is Artificial Intelligence and how does it differ from traditional programming?",
       answer: `Traditional programming uses explicit rules (if-else, algorithms) written by developers to transform inputs into outputs. AI, specifically Machine Learning, learns patterns from data without being explicitly programmed for every scenario.
 
 **Key differences:**
@@ -13787,7 +14032,8 @@ SQL: \${query}
       is_top50: false,
     },
     {
-      question: "How do you integrate OpenAI or Anthropic APIs into a frontend application?",
+      question:
+        "How do you integrate OpenAI or Anthropic APIs into a frontend application?",
       answer: `AI API integration typically happens through a backend proxy (for security — never expose API keys in client code). Here's the recommended architecture:
 
 \`\`\`
@@ -13858,7 +14104,8 @@ function ChatComponent() {
       is_top50: false,
     },
     {
-      question: "What is streaming in AI responses and how do you implement it?",
+      question:
+        "What is streaming in AI responses and how do you implement it?",
       answer: `Streaming delivers AI responses token-by-token as they are generated, instead of waiting for the complete response. This dramatically improves perceived performance and user experience.
 
 **Server-Sent Events (SSE) implementation:**
@@ -13938,7 +14185,8 @@ Streaming is preferred for chatbots, code generation, and any AI feature where l
       is_top50: false,
     },
     {
-      question: "What are tokens in the context of LLMs and how do they affect cost and performance?",
+      question:
+        "What are tokens in the context of LLMs and how do they affect cost and performance?",
       answer: `Tokens are the basic units that LLMs process. They are not words — a token can be a word, part of a word, or a character, depending on the model's tokenizer.
 
 **Key facts about tokens:**
@@ -13984,7 +14232,8 @@ Best practice: minimize prompt tokens by removing unnecessary context, using con
       is_top50: false,
     },
     {
-      question: "What is the difference between fine-tuning and RAG (Retrieval Augmented Generation)?",
+      question:
+        "What is the difference between fine-tuning and RAG (Retrieval Augmented Generation)?",
       answer: `Both approaches customize LLM behavior but serve different purposes:
 
 **Fine-tuning** trains a pre-trained model on additional task-specific data, updating the model's weights. **RAG** retrieves relevant documents from a knowledge base and injects them into the prompt at inference time — no weight changes.
@@ -14092,7 +14341,8 @@ function cosineSimilarity(a, b) {
       is_top50: false,
     },
     {
-      question: "What is temperature in LLM parameters and how does it affect output?",
+      question:
+        "What is temperature in LLM parameters and how does it affect output?",
       answer: `Temperature controls the randomness of LLM output by scaling the probability distribution before sampling. It is a key parameter for controlling creativity vs determinism.
 
 **How it works:**
@@ -14141,7 +14391,8 @@ Best practice: Start with temperature 0 for factual tasks, and only increase whe
       is_top50: false,
     },
     {
-      question: "What are AI-powered UI patterns that frontend engineers build?",
+      question:
+        "What are AI-powered UI patterns that frontend engineers build?",
       answer: `AI integration in frontend applications goes beyond chatbots. Here are common patterns:
 
 **1. AI Autocomplete / Smart Input:**
@@ -14223,7 +14474,8 @@ Flag inappropriate user-generated content using AI classification APIs before di
       is_top50: false,
     },
     {
-      question: "How do you handle AI API errors and rate limits in frontend applications?",
+      question:
+        "How do you handle AI API errors and rate limits in frontend applications?",
       answer: `AI APIs have specific error patterns and rate limits that must be handled gracefully in frontend applications.
 
 **Common AI API errors:**
@@ -14430,7 +14682,8 @@ Good evaluation is essential because LLMs are non-deterministic — the same pro
       is_top50: false,
     },
     {
-      question: "What is an AI agent and how does it differ from a simple LLM call?",
+      question:
+        "What is an AI agent and how does it differ from a simple LLM call?",
       answer: `An AI agent is an LLM-powered system that can use tools, make decisions, and execute multi-step tasks autonomously. Unlike a simple LLM call (single prompt → single response), agents can:
 
 1. **Use tools** — call APIs, run code, query databases
@@ -14490,7 +14743,8 @@ Agent: → Calls: bookFlight(flightId)
       is_top50: false,
     },
     {
-      question: "What is AI safety and what should frontend engineers consider?",
+      question:
+        "What is AI safety and what should frontend engineers consider?",
       answer: `AI safety encompasses practices to ensure AI systems behave as intended and don't cause harm. Frontend engineers play a crucial role because they build the user-facing layer.
 
 **Key safety considerations:**
@@ -14560,7 +14814,8 @@ function AIGeneratedContent({ content }) {
       is_top50: false,
     },
     {
-      question: "How do you build AI-powered search with embeddings and vector databases?",
+      question:
+        "How do you build AI-powered search with embeddings and vector databases?",
       answer: `AI-powered search uses embeddings to find results by semantic meaning, not just keyword matching. It dramatically improves search quality for natural language queries.
 
 **Architecture:**
@@ -14651,7 +14906,8 @@ async function hybridSearch(query, limit = 5) {
       is_top50: false,
     },
     {
-      question: "What is Retrieval Augmented Generation (RAG) and how do you implement it?",
+      question:
+        "What is Retrieval Augmented Generation (RAG) and how do you implement it?",
       answer: `RAG enhances LLM responses by retrieving relevant information from a knowledge base and injecting it into the prompt. It's the most common pattern for building AI features that require up-to-date or domain-specific knowledge.
 
 **RAG flow:**
@@ -14953,7 +15209,8 @@ test('AI response within latency budget', async () => {
       is_top50: false,
     },
     {
-      question: "What are the ethical considerations when building AI features?",
+      question:
+        "What are the ethical considerations when building AI features?",
       answer: `Building AI features comes with ethical responsibilities that frontend engineers should understand:
 
 **1. Transparency:**
@@ -15022,7 +15279,8 @@ function anonymize(text) {
     },
     // ──────── Frontend Testing ────────
     {
-      question: "What are the different types of testing in frontend applications?",
+      question:
+        "What are the different types of testing in frontend applications?",
       answer: `Frontend testing is organized in a pyramid structure: from fast, isolated tests at the bottom to slow, holistic tests at the top.
 
 **Testing pyramid:**
@@ -15290,7 +15548,8 @@ MSW also works in the browser for development — your app makes real requests t
       is_top50: false,
     },
     {
-      question: "What is the purpose of \`data-testid\` and when should you use it?",
+      question:
+        "What is the purpose of \`data-testid\` and when should you use it?",
       answer: `\`data-testid\` is an HTML attribute that provides a stable selector for tests. It's a fallback query method in React Testing Library.
 
 \`\`\`jsx
@@ -15754,7 +16013,8 @@ it('renders with custom render', () => {
       is_top50: false,
     },
     {
-      question: "What is End-to-End (E2E) testing and which tools are commonly used?",
+      question:
+        "What is End-to-End (E2E) testing and which tools are commonly used?",
       answer: `E2E testing automates real browser interactions to test complete user flows. It gives the highest confidence but is the slowest and most expensive testing layer.
 
 **Popular E2E tools:**
@@ -16241,7 +16501,8 @@ it('renders desktop layout', () => {
       is_top50: false,
     },
     {
-      question: "What is the Testing Trophy and how does it differ from the Testing Pyramid?",
+      question:
+        "What is the Testing Trophy and how does it differ from the Testing Pyramid?",
       answer: `The Testing Trophy, introduced by Kent C. Dodds, reimagines the traditional testing pyramid with a focus on integration tests.
 
 **Traditional Testing Pyramid:**
@@ -16560,7 +16821,8 @@ PercyScript.run(async (page, percySnapshot) => {
       is_top50: false,
     },
     {
-      question: "What is the difference between \`screen.getBy\`, \`screen.queryBy\`, and \`screen.findBy\`?",
+      question:
+        "What is the difference between \`screen.getBy\`, \`screen.queryBy\`, and \`screen.findBy\`?",
       answer: `These three query methods differ in what happens when the element is not found or takes time to appear:
 
 | Method | Element not found | Multiple matches | Async? | Use case |
@@ -16964,7 +17226,8 @@ it('renders in document.body, not in the component tree', () => {
       is_top50: false,
     },
     {
-      question: "How do you test form validation libraries like React Hook Form or Formik?",
+      question:
+        "How do you test form validation libraries like React Hook Form or Formik?",
       answer: `Form libraries handle validation, submission, and state. Tests should verify the integration between your form component and the library.
 
 **React Hook Form example:**
@@ -17053,7 +17316,8 @@ it('submits with valid data', async () => {
       is_top50: false,
     },
     {
-      question: "What is the purpose of testing library \`container\` and \`baseElement\`?",
+      question:
+        "What is the purpose of testing library \`container\` and \`baseElement\`?",
       answer: `The \`render\` function from React Testing Library returns several utilities, including \`container\` and \`baseElement\`:
 
 \`\`\`jsx
@@ -17209,7 +17473,8 @@ test.describe('Flaky suite', () => {
       is_top50: false,
     },
     {
-      question: "How do you test components that use WebSockets or Server-Sent Events?",
+      question:
+        "How do you test components that use WebSockets or Server-Sent Events?",
       answer: `Testing real-time communication requires mocking the WebSocket or SSE connection to control message timing and content.
 
 **1. Mocking WebSocket:**
@@ -17425,7 +17690,8 @@ it('sends welcome email on registration', async () => {
       is_top50: false,
     },
     {
-      question: "How do you test memoized components with React.memo and useMemo?",
+      question:
+        "How do you test memoized components with React.memo and useMemo?",
       answer: `Memoization prevents unnecessary re-renders. Testing it involves verifying that props changes trigger or skip re-renders as expected.
 
 \`\`\`jsx
@@ -17653,7 +17919,8 @@ npx vitest --ui
       is_top50: true,
     },
     {
-      question: "What is normalization in databases and what are the normal forms?",
+      question:
+        "What is normalization in databases and what are the normal forms?",
       answer: `Normalization is the process of organizing relational database schemas to reduce data redundancy and improve data integrity. It divides large tables into smaller, related tables and defines relationships between them.
 
 **First Normal Form (1NF):** Each column contains atomic (indivisible) values; each row is unique; each column has a single value per row. No arrays or nested objects in cells.
@@ -17819,7 +18086,8 @@ const users = await User.find().include('posts');  // 1 query with JOIN
       is_top50: false,
     },
     {
-      question: "What is the EXPLAIN command and how do you use it for query optimization?",
+      question:
+        "What is the EXPLAIN command and how do you use it for query optimization?",
       answer: `EXPLAIN (or EXPLAIN ANALYZE) shows the database's query execution plan — how it intends to execute a query, which indexes it uses, join methods, and estimated costs.
 
 **Key information from EXPLAIN:**
@@ -17859,7 +18127,8 @@ HashAggregate  (cost=1240.32..1245.45 rows=513 width=42)
       is_top50: false,
     },
     {
-      question: "What is the difference between a primary key and a foreign key?",
+      question:
+        "What is the difference between a primary key and a foreign key?",
       answer: `**Primary key:** A column (or set of columns) that uniquely identifies each row in a table. Every table should have a primary key. Constraints: unique, not null, only one per table. Commonly an auto-incrementing integer (SERIAL, AUTO_INCREMENT) or a UUID.
 
 **Foreign key:** A column that references the primary key of another table. It enforces referential integrity — ensuring that relationships between tables remain valid.
@@ -18049,7 +18318,8 @@ Establishing a database connection requires a TCP handshake, SSL negotiation, an
       is_top50: false,
     },
     {
-      question: "What are read replicas and how do they improve database performance?",
+      question:
+        "What are read replicas and how do they improve database performance?",
       answer: `A read replica is a copy of the primary database that serves read-only queries. Writes go to the primary; reads can be distributed across replicas to reduce load.
 
 **How replication works:**
@@ -18127,7 +18397,8 @@ REFRESH MATERIALIZED VIEW daily_sales_summary;
       is_top50: false,
     },
     {
-      question: "Explain the different types of indexes (B-tree, Hash, GiST, GIN).",
+      question:
+        "Explain the different types of indexes (B-tree, Hash, GiST, GIN).",
       answer: `**B-tree (Balanced Tree):** The default and most common index type. Stores data in a balanced tree structure with logarithmic search time (O(log n)). Supports equality, range (\>, <, BETWEEN), prefix matching (LIKE 'abc%'), and sorting (ORDER BY). Best for high-cardinality columns (unique or nearly unique values) like IDs, emails, timestamps.
 
 **Hash index:** Uses a hash table for exact equality lookups. Faster than B-tree for = and IN queries because it's a single hash computation instead of tree traversal. Does NOT support range queries or sorting. Useful for columns with exact-match lookups only (e.g., status codes, country codes).
@@ -18161,7 +18432,8 @@ CREATE INDEX idx_docs_content ON docs USING GIN(to_tsvector('english', content))
       is_top50: false,
     },
     {
-      question: "How does composite index column order affect query performance?",
+      question:
+        "How does composite index column order affect query performance?",
       answer: `A composite index is an index on multiple columns. The column order is critical — it determines which queries the index can serve efficiently.
 
 **The leftmost prefix rule:** A composite index can only be used for queries that filter on a prefix of the indexed columns. An index on (A, B, C) can optimize:
@@ -18257,7 +18529,8 @@ async function executeWithRetry(fn, maxRetries = 3) {
       is_top50: false,
     },
     {
-      question: "What is the difference between a UNIQUE constraint and a PRIMARY KEY?",
+      question:
+        "What is the difference between a UNIQUE constraint and a PRIMARY KEY?",
       answer: `Both enforce uniqueness, but they have distinct differences:
 
 **PRIMARY KEY:**
@@ -18343,7 +18616,8 @@ ALTER TABLE users DROP COLUMN phone;
       is_top50: false,
     },
     {
-      question: "What is the difference between ORM and raw SQL? When should you use each?",
+      question:
+        "What is the difference between ORM and raw SQL? When should you use each?",
       answer: `An ORM (Object-Relational Mapper) maps database tables to programming language objects, letting you work with data using the language's syntax instead of writing SQL strings.
 
 **ORM advantages:**
@@ -18391,7 +18665,8 @@ const users = await db.query(
       is_top50: false,
     },
     {
-      question: "What is full-text search and how does it differ from LIKE queries?",
+      question:
+        "What is full-text search and how does it differ from LIKE queries?",
       answer: `Full-text search allows searching natural language text in documents, handling linguistic features like stemming, ranking, and fuzzy matching — things that simple LIKE queries cannot do efficiently.
 
 **Why LIKE is insufficient:**
@@ -18557,7 +18832,8 @@ The transaction reaches its lock point when it has all its locks — this guaran
       is_top50: false,
     },
     {
-      question: "What is the difference between TRUNCATE, DELETE, and DROP in SQL?",
+      question:
+        "What is the difference between TRUNCATE, DELETE, and DROP in SQL?",
       answer: `All three remove data, but they work very differently:
 
 | Operation | Removes | Speed | Transactional | Auto-increment reset | Triggers | Rollback possible? |
@@ -18778,7 +19054,8 @@ If the order is already paid, the "pay" link disappears. Benefits: loose couplin
       is_top50: false,
     },
     {
-      question: "Explain JWT — structure, workflow, and security considerations.",
+      question:
+        "Explain JWT — structure, workflow, and security considerations.",
       answer: `JWT (JSON Web Token) is a compact, URL-safe token format for transmitting claims between parties, commonly used for authentication.
 
 **Structure:** header.payload.signature (three Base64URL-encoded parts)
@@ -18957,69 +19234,82 @@ POST /webhooks/stripe
     },
     {
       question: "What is an API and how does it work?",
-      answer: "An API (Application Programming Interface) defines how software components communicate. REST APIs use HTTP methods (GET, POST, PUT, DELETE) to perform CRUD operations on resources. Clients send requests with headers and body; servers return responses with status codes and data (usually JSON).",
+      answer:
+        "An API (Application Programming Interface) defines how software components communicate. REST APIs use HTTP methods (GET, POST, PUT, DELETE) to perform CRUD operations on resources. Clients send requests with headers and body; servers return responses with status codes and data (usually JSON).",
       difficulty: "easy",
       tags: ["api-design"],
       is_top50: true,
     },
     {
       question: "What is JWT and how does authentication work with it?",
-      answer: "JWT (JSON Web Token) is a compact, self-contained token format for securely transmitting information. It consists of a header, payload (claims), and signature. For authentication: user logs in → server returns a JWT → client stores it (localStorage/httpOnly cookie) → sends it in Authorization header → server verifies signature.",
+      answer:
+        "JWT (JSON Web Token) is a compact, self-contained token format for securely transmitting information. It consists of a header, payload (claims), and signature. For authentication: user logs in → server returns a JWT → client stores it (localStorage/httpOnly cookie) → sends it in Authorization header → server verifies signature.",
       difficulty: "medium",
       tags: ["authentication", "security"],
       is_top50: true,
     },
     {
-      question: "Explain the difference between authentication and authorization.",
-      answer: "Authentication verifies identity ('who you are') — usually via credentials (password, OAuth, biometrics). Authorization determines access ('what you can do') — checks permissions/roles after authentication. First you authenticate, then you authorize. Example: logging in (authN) vs accessing admin panel (authZ).",
+      question:
+        "Explain the difference between authentication and authorization.",
+      answer:
+        "Authentication verifies identity ('who you are') — usually via credentials (password, OAuth, biometrics). Authorization determines access ('what you can do') — checks permissions/roles after authentication. First you authenticate, then you authorize. Example: logging in (authN) vs accessing admin panel (authZ).",
       difficulty: "easy",
       tags: ["security"],
       is_top50: true,
     },
     {
-      question: "What is the difference between horizontal and vertical scaling?",
-      answer: "Vertical scaling adds more resources (CPU, RAM, disk) to a single machine — simpler but has hardware limits and creates a single point of failure. Horizontal scaling adds more machines to a pool — more complex (load balancers, distributed data) but virtually unlimited and provides fault tolerance. Modern systems favor horizontal scaling.",
+      question:
+        "What is the difference between horizontal and vertical scaling?",
+      answer:
+        "Vertical scaling adds more resources (CPU, RAM, disk) to a single machine — simpler but has hardware limits and creates a single point of failure. Horizontal scaling adds more machines to a pool — more complex (load balancers, distributed data) but virtually unlimited and provides fault tolerance. Modern systems favor horizontal scaling.",
       difficulty: "medium",
       tags: ["system-design"],
       is_top50: true,
     },
     {
       question: "Explain REST and its key principles.",
-      answer: "REST (Representational State Transfer) is a stateless architecture where the server exposes resources using standard HTTP methods (GET, POST, PUT, DELETE). Each request contains all necessary information. Resources are identified by URIs and represented using JSON or XML. This makes systems scalable and easy to maintain.",
+      answer:
+        "REST (Representational State Transfer) is a stateless architecture where the server exposes resources using standard HTTP methods (GET, POST, PUT, DELETE). Each request contains all necessary information. Resources are identified by URIs and represented using JSON or XML. This makes systems scalable and easy to maintain.",
       difficulty: "easy",
       tags: ["api-design"],
       is_top50: true,
     },
     {
-      question: "What is the difference between GET, POST, PUT, PATCH, and DELETE in REST APIs?",
-      answer: "GET retrieves data, POST creates a resource, PUT fully replaces an existing resource, PATCH partially updates a resource, and DELETE removes a resource. GET, PUT, and DELETE are idempotent — calling them multiple times gives the same result. POST is not idempotent — multiple calls create multiple resources.",
+      question:
+        "What is the difference between GET, POST, PUT, PATCH, and DELETE in REST APIs?",
+      answer:
+        "GET retrieves data, POST creates a resource, PUT fully replaces an existing resource, PATCH partially updates a resource, and DELETE removes a resource. GET, PUT, and DELETE are idempotent — calling them multiple times gives the same result. POST is not idempotent — multiple calls create multiple resources.",
       difficulty: "easy",
       tags: ["api-design", "rest"],
       is_top50: true,
     },
     {
       question: "What is CORS and why do we need it?",
-      answer: "CORS (Cross-Origin Resource Sharing) is a browser security mechanism that blocks requests from a different origin (domain, port, protocol) unless the server explicitly allows it. It protects users from malicious cross-origin requests. Enable it on the backend using headers like Access-Control-Allow-Origin.",
+      answer:
+        "CORS (Cross-Origin Resource Sharing) is a browser security mechanism that blocks requests from a different origin (domain, port, protocol) unless the server explicitly allows it. It protects users from malicious cross-origin requests. Enable it on the backend using headers like Access-Control-Allow-Origin.",
       difficulty: "medium",
       tags: ["security", "api-design"],
       is_top50: true,
     },
     {
       question: "What is the difference between PUT and PATCH in REST API?",
-      answer: "PUT replaces the entire resource with the data sent in the request body — it's a full update. PATCH updates only the fields that are sent in the request body — it's a partial update. PUT is idempotent; PATCH is not guaranteed to be idempotent.",
+      answer:
+        "PUT replaces the entire resource with the data sent in the request body — it's a full update. PATCH updates only the fields that are sent in the request body — it's a partial update. PUT is idempotent; PATCH is not guaranteed to be idempotent.",
       difficulty: "easy",
       tags: ["api-design", "rest"],
       is_top50: true,
     },
     {
       question: "What is Middleware in Node.js / Express?",
-      answer: "Middleware functions execute during the request-response cycle. They can modify requests, perform authentication, logging, error handling, or parse bodies before the final response is sent. Express supports application-level, router-level, error-handling, and built-in middleware (express.json()).",
+      answer:
+        "Middleware functions execute during the request-response cycle. They can modify requests, perform authentication, logging, error handling, or parse bodies before the final response is sent. Express supports application-level, router-level, error-handling, and built-in middleware (express.json()).",
       difficulty: "medium",
       tags: ["nodejs", "api-design"],
       is_top50: true,
     },
     {
-      question: "What is Spring Boot and how does it differ from Spring Framework?",
+      question:
+        "What is Spring Boot and how does it differ from Spring Framework?",
       answer: `Spring Boot sits on top of the core Spring Framework and removes the boilerplate.
       
 **Spring Framework** gives you DI, AOP, MVC, and transaction management — but you write lots of XML or Java config.
@@ -19035,7 +19325,8 @@ POST /webhooks/stripe
       is_top50: true,
     },
     {
-      question: "Explain auto-configuration in Spring Boot and how @EnableAutoConfiguration works.",
+      question:
+        "Explain auto-configuration in Spring Boot and how @EnableAutoConfiguration works.",
       answer: `Auto-configuration is Spring Boot's way of automatically wiring beans based on what libraries it finds on the classpath.
 
 **How it works:**
@@ -19052,7 +19343,8 @@ POST /webhooks/stripe
       is_top50: true,
     },
     {
-      question: "What is the difference between @Component, @Service, @Repository, and @Controller?",
+      question:
+        "What is the difference between @Component, @Service, @Repository, and @Controller?",
       answer: `All four are stereotype annotations that register classes as Spring beans. The difference is semantic and comes with special behaviour:
 
 | Annotation | Layer | Special Behaviour |
@@ -19069,7 +19361,8 @@ POST /webhooks/stripe
       is_top50: true,
     },
     {
-      question: "How does dependency injection work in Spring Boot? Explain constructor vs field injection.",
+      question:
+        "How does dependency injection work in Spring Boot? Explain constructor vs field injection.",
       answer: `Spring Boot's IoC (Inversion of Control) container manages bean creation and automatically wires dependencies.
 
 **Constructor injection (recommended):**
@@ -19133,7 +19426,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
       is_top50: true,
     },
     {
-      question: "Explain @Transactional — propagation, isolation levels, and rollback rules.",
+      question:
+        "Explain @Transactional — propagation, isolation levels, and rollback rules.",
       answer: `\`@Transactional\` manages database transaction boundaries in Spring.
 
 **Propagation — how transactions relate to each other:**
@@ -19162,7 +19456,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
       is_top50: true,
     },
     {
-      question: "How does Spring Security work? Explain the SecurityFilterChain and JWT authentication flow.",
+      question:
+        "How does Spring Security work? Explain the SecurityFilterChain and JWT authentication flow.",
       answer: `Spring Security works as a chain of servlet filters that intercept every request.
 
 **SecurityFilterChain — the modern approach:**
@@ -19191,7 +19486,8 @@ This replaces the old \`WebSecurityConfigurerAdapter\` pattern.
       is_top50: true,
     },
     {
-      question: "What is @ControllerAdvice and how do you use it for global exception handling?",
+      question:
+        "What is @ControllerAdvice and how do you use it for global exception handling?",
       answer: `\`@ControllerAdvice\` lets you handle exceptions globally across all controllers — no more try-catch in every endpoint.
 
 **Basic usage:**
@@ -19225,7 +19521,8 @@ public class GlobalExceptionHandler {
       is_top50: true,
     },
     {
-      question: "Explain the different testing slices: @WebMvcTest, @DataJpaTest, @RestClientTest.",
+      question:
+        "Explain the different testing slices: @WebMvcTest, @DataJpaTest, @RestClientTest.",
       answer: `Spring Boot testing slices load only the beans you need for a specific layer — much faster than loading the full context.
 
 | Slice | Loads | Does NOT load | Use with |
@@ -19257,7 +19554,8 @@ Each slice excludes full auto-configuration, making tests faster and more focuse
       is_top50: true,
     },
     {
-      question: "What is Spring Boot Actuator and what production endpoints does it provide?",
+      question:
+        "What is Spring Boot Actuator and what production endpoints does it provide?",
       answer: `Actuator exposes production-ready monitoring and management endpoints. Add \`spring-boot-starter-actuator\` and configure with \`management.endpoints.web.exposure.include=*\`.
 
 **Key endpoints:**
@@ -19281,7 +19579,8 @@ Each slice excludes full auto-configuration, making tests faster and more focuse
       is_top50: true,
     },
     {
-      question: "How do you configure external properties in Spring Boot? Explain application.yml, profiles, and @ConfigurationProperties.",
+      question:
+        "How do you configure external properties in Spring Boot? Explain application.yml, profiles, and @ConfigurationProperties.",
       answer: `Spring Boot externalizes configuration so the same code can run in different environments.
 
 **Property sources (highest to lowest priority):**
@@ -19324,7 +19623,8 @@ Enable with \`@EnableConfigurationProperties\` or \`@ConfigurationPropertiesScan
       is_top50: true,
     },
     {
-      question: "What is the difference between @RestController and @Controller in Spring MVC?",
+      question:
+        "What is the difference between @RestController and @Controller in Spring MVC?",
       answer: `The difference is how the return value is handled:
 
 | | \`@Controller\` | \`@RestController\` |
@@ -19362,7 +19662,8 @@ public class UserApiController {
       is_top50: true,
     },
     {
-      question: "Explain AOP in Spring — @Aspect, @Before, @After, @Around, and common use cases (logging, transactions).",
+      question:
+        "Explain AOP in Spring — @Aspect, @Before, @After, @Around, and common use cases (logging, transactions).",
       answer: `AOP (Aspect-Oriented Programming) lets you inject behaviour before/after/around methods without modifying the business code.
 
 **Key annotations:**
@@ -19406,7 +19707,8 @@ public class LoggingAspect {
       is_top50: true,
     },
     {
-      question: "What is Spring Cloud and how does it help with microservices (service discovery, config server, circuit breaker)?",
+      question:
+        "What is Spring Cloud and how does it help with microservices (service discovery, config server, circuit breaker)?",
       answer: `Spring Cloud provides a suite of tools that solve common distributed system problems in microservices architectures.
 
 | Problem | Spring Cloud Solution | What it Does |
@@ -19428,7 +19730,8 @@ public class LoggingAspect {
       is_top50: true,
     },
     {
-      question: "How does Spring Boot handle database migrations? Explain Flyway and Liquibase integration.",
+      question:
+        "How does Spring Boot handle database migrations? Explain Flyway and Liquibase integration.",
       answer: `Database migrations version-control your schema changes alongside your application code.
 
 **Flyway (SQL-based, simpler):**
@@ -19464,7 +19767,8 @@ CREATE INDEX idx_users_email ON users(email);
       is_top50: true,
     },
     {
-      question: "What is the Spring Boot bean lifecycle? Explain @PostConstruct, @PreDestroy, and BeanPostProcessor.",
+      question:
+        "What is the Spring Boot bean lifecycle? Explain @PostConstruct, @PreDestroy, and BeanPostProcessor.",
       answer: `Spring manages every bean through a well-defined lifecycle.
 
 **Full lifecycle (in order):**
@@ -19505,7 +19809,8 @@ public class MyService {
       is_top50: true,
     },
     {
-      question: "How do you implement caching in Spring Boot with @Cacheable, @CacheEvict, and @CachePut?",
+      question:
+        "How do you implement caching in Spring Boot with @Cacheable, @CacheEvict, and @CachePut?",
       answer: `Spring's caching abstraction lets you add caching without touching business logic.
 
 **Step 1 — Enable caching:**
@@ -19550,7 +19855,8 @@ public class UserService {
       is_top50: true,
     },
     {
-      question: "Explain the difference between PUT and PATCH in REST APIs built with Spring Boot.",
+      question:
+        "Explain the difference between PUT and PATCH in REST APIs built with Spring Boot.",
       answer: `PUT and PATCH both update resources but differ in semantics.
 
 | | PUT | PATCH |
@@ -19585,7 +19891,8 @@ Spring also supports JSON Patch (RFC 6902) and JSON Merge Patch (RFC 7396) for s
       is_top50: true,
     },
     {
-      question: "What is Spring WebFlux and when would you use it over Spring MVC?",
+      question:
+        "What is Spring WebFlux and when would you use it over Spring MVC?",
       answer: `Spring WebFlux is a reactive web framework built on Project Reactor (\`Mono\` and \`Flux\`). It uses non-blocking I/O and Netty instead of the traditional thread-per-request model.
 
 **WebFlux vs MVC:**
@@ -19629,7 +19936,8 @@ public class UserReactiveController {
       is_top50: true,
     },
     {
-      question: "How do you secure a Spring Boot REST API with OAuth2 and Keycloak/Auth0?",
+      question:
+        "How do you secure a Spring Boot REST API with OAuth2 and Keycloak/Auth0?",
       answer: `Spring Boot integrates with OAuth2 providers through Spring Security's resource server support.
 
 **Step 1 — Add dependency:**
@@ -19855,7 +20163,8 @@ public class GlobalExceptionHandler {
       is_top50: true,
     },
     {
-      question: "How do you configure logging in Spring Boot with SLF4J/Logback?",
+      question:
+        "How do you configure logging in Spring Boot with SLF4J/Logback?",
       answer: `Spring Boot uses **SLF4J** as the logging facade and **Logback** as the default implementation.
 
 **Basic config in application.yml:**
@@ -20258,7 +20567,8 @@ public class StaticResourceConfig implements WebMvcConfigurer {
       is_top50: true,
     },
     {
-      question: "What is the difference between @Value and @ConfigurationProperties?",
+      question:
+        "What is the difference between @Value and @ConfigurationProperties?",
       answer: `Both inject external configuration values, but they serve different purposes.
 
 | | \`@Value\` | \`@ConfigurationProperties\` |
@@ -20321,7 +20631,8 @@ app:
       is_top50: true,
     },
     {
-      question: "How do you use @Profile to configure environment-specific beans?",
+      question:
+        "How do you use @Profile to configure environment-specific beans?",
       answer: `\`@Profile\` lets you activate different beans based on the running environment.
 
 **Profile-specific beans:**
@@ -20407,7 +20718,8 @@ public class ConfigChecker {
       is_top50: true,
     },
     {
-      question: "What is the difference between application.properties and application.yml?",
+      question:
+        "What is the difference between application.properties and application.yml?",
       answer: `Both configure Spring Boot applications but use different syntax.
 
 **application.properties (flat key-value):**
@@ -20488,7 +20800,8 @@ server:
       is_top50: true,
     },
     {
-      question: "How do you use @RequestParam, @PathVariable, and @RequestBody in Spring Boot?",
+      question:
+        "How do you use @RequestParam, @PathVariable, and @RequestBody in Spring Boot?",
       answer: `These are the three main annotations for extracting data from HTTP requests.
 
 **@PathVariable — values from the URL path:**
@@ -20660,7 +20973,8 @@ class UserServiceIntegrationTest {
     },
     // ──────── C# Language Deep Dive ────────
     {
-      question: "What are records in C# and how do they differ from classes? Explain with expressions and value-based equality.",
+      question:
+        "What are records in C# and how do they differ from classes? Explain with expressions and value-based equality.",
       answer: `Records (C# 9+) are reference types with built-in value-based equality, immutability, and a concise syntax. Unlike classes (reference equality), records compare by value — two records with the same property values are equal. The \`with\` expression creates a new record copy with modified properties. Records generate compiler-synthesized methods: \`Equals\`, \`GetHashCode\`, \`ToString\`, \`Deconstruct\`, and \`==\`/\`!=\`. Use records for DTOs, API responses, and immutable domain events. Use classes when identity matters (entities with IDs) or when you need mutable state.
 
 \`\`\`csharp
@@ -20676,7 +20990,8 @@ C# 10 introduces record structs for value-type semantics with the same features.
       is_top50: false,
     },
     {
-      question: "Explain pattern matching in C# — switch expressions, property patterns, positional patterns, and list patterns.",
+      question:
+        "Explain pattern matching in C# — switch expressions, property patterns, positional patterns, and list patterns.",
       answer: `Pattern matching (enhanced in C# 7-11) lets you express conditional logic concisely. A switch expression returns a value based on matching patterns:
 
 \`\`\`csharp
@@ -20696,7 +21011,8 @@ List patterns (C# 11) match sequences: \`[1, 2, .. var rest]\` matches an array 
       is_top50: false,
     },
     {
-      question: "How does async/await work at the compiler and CLR level? Explain IAsyncStateMachine and synchronization contexts.",
+      question:
+        "How does async/await work at the compiler and CLR level? Explain IAsyncStateMachine and synchronization contexts.",
       answer: `When the compiler encounters \`async\`, it generates a struct implementing \`IAsyncStateMachine\`. The method is rewritten into a state machine with states representing each \`await\` point. The \`AsyncTaskMethodBuilder\` orchestrates transitions.
 
 At an \`await\`, if the awaited operation is incomplete, the state machine saves its state (local variables, current state number) and returns an incomplete task to the caller. When the awaited operation completes, it calls back into the state machine via a continuation on the captured \`SynchronizationContext\` or \`TaskScheduler\`. This context determines whether the continuation runs on the original thread (UI apps — \`DispatcherSynchronizationContext\`) or a thread pool thread (ASP.NET Core — uses \`TaskScheduler.Default\` without a synchronization context).
@@ -20707,7 +21023,8 @@ ASP.NET Core does NOT have a synchronization context, so continuations run on an
       is_top50: false,
     },
     {
-      question: "What are nullable reference types in C# 8+? Explain the ? and ! operators and [NotNull] attributes.",
+      question:
+        "What are nullable reference types in C# 8+? Explain the ? and ! operators and [NotNull] attributes.",
       answer: `Nullable reference types (NRTs) help prevent NullReferenceException by tracking null-state at compile time. Enable with \`<Nullable>enable</Nullable>\` in project file or \`#nullable enable\` directive.
 
 - \`string?\` means the value MAY be null — compiler requires null checks before dereferencing
@@ -20731,7 +21048,8 @@ If \`TryGetValue\` returns true, \`value\` is known non-null. NRTs are a compile
       is_top50: false,
     },
     {
-      question: "Explain LINQ — the difference between IEnumerable and IQueryable, deferred vs immediate execution.",
+      question:
+        "Explain LINQ — the difference between IEnumerable and IQueryable, deferred vs immediate execution.",
       answer: `LINQ (Language Integrated Query) provides a declarative way to query data. \`IEnumerable<T>\` is for in-memory queries (LINQ to Objects): filtering, projection, and aggregation happen client-side. \`IQueryable<T>\` represents a query that can be translated to a data source (LINQ to SQL, EF Core): the expression tree is translated to SQL and executed server-side.
 
 Deferred execution: queries defined with \`Where\`, \`Select\`, \`OrderBy\` do NOT execute until the result is iterated. Immediate execution methods (\`ToList\`, \`ToArray\`, \`Count\`, \`First\`, \`Any\`) force query execution.
@@ -20753,7 +21071,8 @@ Key difference: with \`IQueryable\`, the \`Where\` predicate becomes SQL \`WHERE
       is_top50: false,
     },
     {
-      question: "What is Span<T> and when should you use it over arrays? Explain stackalloc and Memory<T>.",
+      question:
+        "What is Span<T> and when should you use it over arrays? Explain stackalloc and Memory<T>.",
       answer: `\`Span<T>\` is a stack-allocated ref struct that provides a type-safe, memory-safe view over contiguous memory — arrays, native memory, or stack memory. It avoids heap allocations and provides slicing without copying.
 
 \`\`\`csharp
@@ -20778,7 +21097,8 @@ async Task ProcessAsync(Memory<byte> buffer)
       is_top50: false,
     },
     {
-      question: "What are top-level statements, file-scoped namespaces, and global usings in modern C#?",
+      question:
+        "What are top-level statements, file-scoped namespaces, and global usings in modern C#?",
       answer: `These C# 9-10 features reduce boilerplate for simple programs and libraries:
 
 **Top-level statements** (C# 9): Eliminate the Program.Main wrapper — the compiler generates Main automatically:
@@ -20806,7 +21126,8 @@ Combined, these reduce a typical Program.cs from ~15 lines to 1-3 lines, used ex
       is_top50: false,
     },
     {
-      question: "How do closures and variable capture work in C#? Explain the foreach capture bug in older versions.",
+      question:
+        "How do closures and variable capture work in C#? Explain the foreach capture bug in older versions.",
       answer: `A closure captures the *variable* (not the value) from the outer scope. This means if the variable changes after the lambda is created, the lambda sees the new value. This caused the infamous \`foreach\` capture bug in C# 5 and earlier:
 
 \`\`\`csharp
@@ -20833,7 +21154,8 @@ C# 5+ fixed this for \`foreach\` (each iteration now gets a fresh variable), but
     },
     // ──────── .NET Runtime & Memory ────────
     {
-      question: "Explain the .NET garbage collector — generations, mark-and-sweep, compaction, and the Large Object Heap.",
+      question:
+        "Explain the .NET garbage collector — generations, mark-and-sweep, compaction, and the Large Object Heap.",
       answer: `The .NET GC is a generational, compacting, tracing garbage collector. It divides objects into 3 generations:
 - **Gen 0**: Short-lived objects (local variables). Collected most frequently — fast, small collections.
 - **Gen 1**: Objects that survived Gen 0 collection. Acts as a buffer between Gen 0 and 2.
@@ -20849,7 +21171,8 @@ C# 5+ fixed this for \`foreach\` (each iteration now gets a fresh variable), but
       is_top50: false,
     },
     {
-      question: "Explain value types vs reference types — where they are stored, boxing/unboxing, and performance implications.",
+      question:
+        "Explain value types vs reference types — where they are stored, boxing/unboxing, and performance implications.",
       answer: `**Value types** (structs, enums, primitives) store data directly. Declared as local variables, they live on the stack. Declared as fields of a class, they live inline on the heap within the class's memory. Passed by value — copied on assignment. **Reference types** (classes, arrays, delegates, strings) store a reference on the stack/field, pointing to heap memory. Passed by reference — only the reference is copied on assignment.
 
 **Boxing**: Converting a value type to \`object\` or an interface it implements. Allocates heap memory, copies the value into the heap, creates a reference — expensive. **Unboxing**: Extracting the value type back — requires a type check (InvalidCastException if wrong type).
@@ -20868,7 +21191,8 @@ Performance tips: Avoid boxing by using generics (\`List<int>\` not \`ArrayList\
       is_top50: false,
     },
     {
-      question: "How does the JIT compiler work in .NET? Explain tiered compilation and ReadyToRun.",
+      question:
+        "How does the JIT compiler work in .NET? Explain tiered compilation and ReadyToRun.",
       answer: `The .NET JIT (Just-In-Time) compiler converts IL (Intermediate Language) to native machine code at runtime. When a method is first called, the JIT compiles it and caches the native code. Key components:
 
 - **Tiered compilation (default .NET Core 3.0+)**: Methods initially compile with a quick, minimal-optimized tier (Tier 0). Frequently called methods are recompiled with full optimizations (Tier 1) — better startup time without sacrificing peak performance.
@@ -20882,7 +21206,8 @@ Use \`<TieredCompilation>false</TieredCompilation>\` in runtimeconfig.json for m
       is_top50: false,
     },
     {
-      question: "Explain ref struct, ref return, and in parameters in C#. When should each be used?",
+      question:
+        "Explain ref struct, ref return, and in parameters in C#. When should each be used?",
       answer: `These features enable high-performance code by reducing copies and heap allocations:
 
 **ref struct**: A struct type that can ONLY live on the stack. Cannot be boxed, used as a field in a class, used in async methods, or used in lambda expressions. \`Span<T>\` and \`ReadOnlySpan<T>\` are ref structs. Use for performance-critical temporary buffers and zero-allocation parsers.
@@ -20912,7 +21237,8 @@ Use \`in\` for large structs (>16 bytes) passed to read-only methods. Use \`ref 
       is_top50: false,
     },
     {
-      question: "What is Memory<T> and how does it differ from Span<T>? Explain their roles in async I/O.",
+      question:
+        "What is Memory<T> and how does it differ from Span<T>? Explain their roles in async I/O.",
       answer: `Both \`Memory<T>\` and \`Span<T>\` represent contiguous regions of memory without ownership — they are views, not buffers. The key difference:
 
 **Span<T>**: A ref struct — stack-only, cannot be used as a field of a class, in async methods, in lambdas, or in generic collections. Best for synchronous, high-performance processing.
@@ -20936,7 +21262,8 @@ Use \`Memory<T>\` as parameters in async APIs (\`Stream.ReadAsync\`, \`Socket.Re
     },
     // ──────── ASP.NET Core Fundamentals ────────
     {
-      question: "What is ASP.NET Core and how does it differ from the legacy ASP.NET Framework?",
+      question:
+        "What is ASP.NET Core and how does it differ from the legacy ASP.NET Framework?",
       answer: `ASP.NET Core is a complete redesign of ASP.NET — cross-platform, modular, and high-performance. Key differences:
 
 - **Cross-platform**: Runs on Linux, macOS, Windows. Legacy ASP.NET only runs on Windows with IIS.
@@ -20954,7 +21281,8 @@ Migrate to ASP.NET Core for better performance, cross-platform deployment, conta
       is_top50: true,
     },
     {
-      question: "Explain the ASP.NET Core middleware pipeline — ordering, short-circuiting, and how to create custom middleware.",
+      question:
+        "Explain the ASP.NET Core middleware pipeline — ordering, short-circuiting, and how to create custom middleware.",
       answer: `The middleware pipeline processes HTTP requests sequentially. Each middleware component decides whether to pass the request to the next component or short-circuit and return a response. Configured via \`app.Use()\`, \`app.Run()\`, and \`app.Map()\` in \`Program.cs\`.
 
 **Built-in middleware order** (critical):
@@ -21003,7 +21331,8 @@ Short-circuit by NOT calling \`next(context)\` — common in auth, maintenance m
       is_top50: false,
     },
     {
-      question: "What is Kestrel and how does it relate to IIS, NGINX, and other web servers in ASP.NET Core?",
+      question:
+        "What is Kestrel and how does it relate to IIS, NGINX, and other web servers in ASP.NET Core?",
       answer: `Kestrel is the cross-platform, high-performance HTTP server built into ASP.NET Core. It handles HTTP requests directly using libuv (or managed sockets in .NET 5+). Kestrel is designed to be fast and secure but lacks enterprise features like kernel-mode auth, dynamic port sharing, and advanced request filtering.
 
 **Deployment patterns**:
@@ -21030,7 +21359,8 @@ Kestrel supports HTTP/1.1, HTTP/2, and HTTP/3 (QUIC) depending on the platform a
       is_top50: false,
     },
     {
-      question: "How does the ASP.NET Core hosting model work? Explain WebApplication, HostBuilder, and the app lifecycle.",
+      question:
+        "How does the ASP.NET Core hosting model work? Explain WebApplication, HostBuilder, and the app lifecycle.",
       answer: `The ASP.NET Core hosting model has evolved across versions. Since .NET 6, the \`WebApplication\` builder provides a simplified approach:
 
 \`\`\`csharp
@@ -21068,7 +21398,8 @@ The host manages graceful shutdown, background service coordination, and health 
       is_top50: false,
     },
     {
-      question: "How does configuration work in ASP.NET Core? Explain the configuration builder, sources, and the Options pattern.",
+      question:
+        "How does configuration work in ASP.NET Core? Explain the configuration builder, sources, and the Options pattern.",
       answer: `ASP.NET Core configuration is hierarchical and composed from multiple sources applied in order — later sources override earlier ones:
 
 \`\`\`csharp
@@ -21107,7 +21438,8 @@ Use \`Bind()\` for manual binding, \`Get<T>()\` for one-shot access, and \`Valid
     },
     // ──────── Dependency Injection ────────
     {
-      question: "Explain the three DI service lifetimes in ASP.NET Core — Singleton, Scoped, Transient — with real-world examples.",
+      question:
+        "Explain the three DI service lifetimes in ASP.NET Core — Singleton, Scoped, Transient — with real-world examples.",
       answer: `**Singleton**: One instance per application (created first request, reused for all). Use for stateless services, configuration wrappers, logging, caching, and in-memory state shared across all requests.
 \`\`\`csharp
 builder.Services.AddSingleton<IProductCache, InMemoryProductCache>();
@@ -21154,7 +21486,8 @@ public class CleanupService : BackgroundService
       is_top50: false,
     },
     {
-      question: "How does the built-in DI container resolve services? Explain container resolution, open generics, and factory patterns.",
+      question:
+        "How does the built-in DI container resolve services? Explain container resolution, open generics, and factory patterns.",
       answer: `The default DI container (\`Microsoft.Extensions.DependencyInjection\`) resolves services by walking the constructor dependency chain. It auto-resolves all registration types — no configuration file or attributes needed.
 
 **Resolution process**: When \`IServiceProvider.GetService<T>()\` is called, the container:
@@ -21189,7 +21522,8 @@ The container validates at runtime (not compile time) — missing registrations 
       is_top50: false,
     },
     {
-      question: "What are the Options pattern interfaces (IOptions, IOptionsSnapshot, IOptionsMonitor) and when should each be used?",
+      question:
+        "What are the Options pattern interfaces (IOptions, IOptionsSnapshot, IOptionsMonitor) and when should each be used?",
       answer: `The Options pattern provides strongly-typed configuration access with DI integration.
 
 **IOptions<T>**: Singleton — reads configuration once at first resolution. Does NOT support hot-reload. Use for static configuration that doesn't change at runtime (API keys, feature flags loaded at startup, database connection strings in single-instance apps).
@@ -21225,7 +21559,8 @@ Options are validated on first access by default. \`ValidateOnStart()\` validate
       is_top50: false,
     },
     {
-      question: "Explain the Captive Dependency problem in DI and how to avoid it. Give a concrete example.",
+      question:
+        "Explain the Captive Dependency problem in DI and how to avoid it. Give a concrete example.",
       answer: `A captive dependency occurs when a service with a shorter lifetime is injected into a service with a longer lifetime — the shorter-lived service is "captured" and behaves as if it has the longer lifetime, leading to stale state, memory leaks, or incorrect behavior.
 
 **Concrete example**:
@@ -21274,7 +21609,8 @@ public class ReportGenerator
     },
     // ──────── Entity Framework Core ────────
     {
-      question: "What is Entity Framework Core and how do you configure it with a DbContext?",
+      question:
+        "What is Entity Framework Core and how do you configure it with a DbContext?",
       answer: `Entity Framework Core (EF Core) is a lightweight, extensible ORM for .NET. It maps database tables to C# objects and provides LINQ-based querying, change tracking, and migrations.
 
 **Configuration in Program.cs**:
@@ -21315,7 +21651,8 @@ public class AppDbContext : DbContext
       is_top50: false,
     },
     {
-      question: "Explain EF Core migrations — how to create, apply, and roll them back.",
+      question:
+        "Explain EF Core migrations — how to create, apply, and roll them back.",
       answer: `EF Core migrations track schema changes as C# code files, enabling version-controlled database evolution.
 
 **CLI commands** (using dotnet ef or Package Manager Console):
@@ -21366,7 +21703,8 @@ public partial class AddProductCategory : Migration
       is_top50: false,
     },
     {
-      question: "What is the difference between eager loading (Include), lazy loading, and explicit loading in EF Core?",
+      question:
+        "What is the difference between eager loading (Include), lazy loading, and explicit loading in EF Core?",
       answer: `**Eager loading**: Loads related data upfront in a single query using \`Include()\` and \`ThenInclude()\`:
 \`\`\`csharp
 var orders = await context.Orders
@@ -21393,7 +21731,8 @@ Useful when loading related data conditionally or later in the same unit of work
       is_top50: false,
     },
     {
-      question: "What is AsNoTracking and when should you use it? Explain compiled queries and FromSql.",
+      question:
+        "What is AsNoTracking and when should you use it? Explain compiled queries and FromSql.",
       answer: `**AsNoTracking()**: Tells EF Core NOT to track entities in the change tracker. The entity is read-only — no snapshots are stored, no identity resolution is performed. Use for read-only queries where entities are not modified:
 \`\`\`csharp
 var products = await context.Products
@@ -21430,7 +21769,8 @@ Use \`FromSql\` for complex reporting, full-text search, or database-specific fe
       is_top50: false,
     },
     {
-      question: "How does the EF Core change tracker work? Explain added, modified, deleted, and detached states.",
+      question:
+        "How does the EF Core change tracker work? Explain added, modified, deleted, and detached states.",
       answer: `The change tracker monitors every entity loaded or attached to a DbContext. Each entity has one of five states:
 
 \`\`\`csharp
@@ -21473,7 +21813,8 @@ For high-throughput scenarios, use \`.AsNoTracking()\` for reads and \`ExecuteUp
       is_top50: false,
     },
     {
-      question: "How do you handle concurrency conflicts in EF Core? Explain row versioning and the DbUpdateConcurrencyException.",
+      question:
+        "How do you handle concurrency conflicts in EF Core? Explain row versioning and the DbUpdateConcurrencyException.",
       answer: `Concurrency conflicts occur when two users modify the same entity simultaneously. EF Core supports optimistic concurrency via a concurrency token — a column that EF Core checks during UPDATE/DELETE.
 
 **Using a row version (SQL Server rowversion/timestamp)**:
@@ -21528,7 +21869,8 @@ Use \`IsConcurrencyToken()\` in Fluent API for non-EF Core attribute scenarios. 
       is_top50: false,
     },
     {
-      question: "What is the difference between database-first and code-first approaches in EF Core? When would you use each?",
+      question:
+        "What is the difference between database-first and code-first approaches in EF Core? When would you use each?",
       answer: `**Code-First**: Write C# entity classes and DbContext first, then generate the database schema from them via migrations. The database is a persistence detail — your domain model drives the schema.
 
 - Pros: Full control over the domain model, works well with DDD, version-controlled migrations, no DB schema lock-in.
@@ -21551,7 +21893,8 @@ dotnet ef dbcontext scaffold "Server=.;Database=Shop;..." Microsoft.EntityFramew
     },
     // ──────── Authentication & Authorization ────────
     {
-      question: "How do you implement JWT authentication in ASP.NET Core Web API?",
+      question:
+        "How do you implement JWT authentication in ASP.NET Core Web API?",
       answer: `JWT (JSON Web Token) authentication uses a self-contained token with claims signed by the server. Implementation steps:
 
 **1. Configure services**:
@@ -21612,7 +21955,8 @@ app.MapControllers();
       is_top50: false,
     },
     {
-      question: "How does ASP.NET Core Identity work? Explain user management, roles, claims, and external login providers.",
+      question:
+        "How does ASP.NET Core Identity work? Explain user management, roles, claims, and external login providers.",
       answer: `ASP.NET Core Identity provides a complete authentication system built on EF Core. It manages users, roles, password hashing, two-factor authentication, and external logins.
 
 **Setup**:
@@ -21667,7 +22011,8 @@ Identity is extensible — replace \`ApplicationUser\` with custom user types, a
       is_top50: false,
     },
     {
-      question: "What are policy-based authorization and resource-based authorization in ASP.NET Core?",
+      question:
+        "What are policy-based authorization and resource-based authorization in ASP.NET Core?",
       answer: `**Policy-based authorization**: Authorization is defined as named policies composed of requirements. Decouples auth logic from controllers.
 
 \`\`\`csharp
@@ -21788,7 +22133,8 @@ public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
     },
     // ──────── Minimal APIs vs Controllers ────────
     {
-      question: "What is the difference between Minimal APIs and Controller-based APIs in ASP.NET Core? When would you use each?",
+      question:
+        "What is the difference between Minimal APIs and Controller-based APIs in ASP.NET Core? When would you use each?",
       answer: `**Minimal APIs**: Introduced in .NET 6, Minimal APIs provide a lightweight approach with minimal ceremony:
 \`\`\`csharp
 var app = WebApplication.Create(args);
@@ -21830,7 +22176,8 @@ Both can coexist in the same project — use controllers for complex areas and m
       is_top50: false,
     },
     {
-      question: "How do you handle validation in Minimal APIs? Compare with FluentValidation and Data Annotations.",
+      question:
+        "How do you handle validation in Minimal APIs? Compare with FluentValidation and Data Annotations.",
       answer: `Minimal APIs lack the automatic model validation that [ApiController] provides. Validation must be explicit:
 
 **1. Manual validation** (simple, but verbose):
@@ -21901,7 +22248,8 @@ For controllers, [ApiController] automatically validates Data Annotations and re
       is_top50: false,
     },
     {
-      question: "How do you organize a large Minimal API project? Explain MapGroup and extension methods.",
+      question:
+        "How do you organize a large Minimal API project? Explain MapGroup and extension methods.",
       answer: `Minimal APIs can scale by using \`MapGroup\` and extension methods to organize endpoints logically:
 
 **MapGroup** — prefix and tag endpoints:
@@ -21966,7 +22314,8 @@ Use \`WithOpenApi()\` for Swagger, \`WithSummary()\`/\`WithDescription()\` for d
     },
     // ──────── Real-time & Background ────────
     {
-      question: "What is SignalR and how does it work in ASP.NET Core? Explain hubs, groups, and connection management.",
+      question:
+        "What is SignalR and how does it work in ASP.NET Core? Explain hubs, groups, and connection management.",
       answer: `SignalR is a real-time communication library for ASP.NET Core. It automatically selects the best transport: WebSocket (preferred), Server-Sent Events, or long polling — falling back as needed.
 
 **Hub** — the central communication endpoint:
@@ -22021,7 +22370,8 @@ Requires \`AddSignalR().AddHubOptions()\` and \`app.MapHub<ChatHub>("/chat")\` f
       is_top50: false,
     },
     {
-      question: "How does SignalR handle scale-out across multiple servers? Explain the Redis backplane and Azure SignalR Service.",
+      question:
+        "How does SignalR handle scale-out across multiple servers? Explain the Redis backplane and Azure SignalR Service.",
       answer: `SignalR's in-memory state (connection IDs, groups) is per-server. With multiple servers (load-balanced), a client connected to Server A cannot receive messages sent via Server B. Two solutions:
 
 **Redis Backplane**: Publishes SignalR messages to Redis, which relays to all connected servers:
@@ -22054,7 +22404,8 @@ For smaller deployments (single server or sticky sessions), neither is needed. U
       is_top50: false,
     },
     {
-      question: "What are IHostedService and BackgroundService in ASP.NET Core? Provide real-world examples.",
+      question:
+        "What are IHostedService and BackgroundService in ASP.NET Core? Provide real-world examples.",
       answer: `Both run background tasks in the ASP.NET Core process alongside the web server.
 
 **IHostedService** — the interface:
@@ -22124,7 +22475,8 @@ builder.Services.AddHostedService<OrderCleanupService>();
       is_top50: false,
     },
     {
-      question: "Explain the Channel<T> type in .NET and how it implements producer-consumer patterns.",
+      question:
+        "Explain the Channel<T> type in .NET and how it implements producer-consumer patterns.",
       answer: `\`System.Threading.Channels.Channel<T>\` is an async-safe, thread-safe producer-consumer queue introduced in .NET Core 3.0. It supports bounded (limited capacity, backpressure) and unbounded modes.
 
 **Basic usage**:
@@ -22200,7 +22552,8 @@ Channel<T> is ideal for decoupling request handling from background processing w
     },
     // ──────── Testing ────────
     {
-      question: "How do you test ASP.NET Core APIs using WebApplicationFactory? Explain integration testing patterns.",
+      question:
+        "How do you test ASP.NET Core APIs using WebApplicationFactory? Explain integration testing patterns.",
       answer: `\`WebApplicationFactory<T>\` spins up an in-memory test server that hosts your full ASP.NET Core application, enabling integration tests against real endpoints without deploying.
 
 **Setup**:
@@ -22269,7 +22622,8 @@ Integration tests with WebApplicationFactory catch real issues — middleware or
       is_top50: false,
     },
     {
-      question: "How do you use Moq or NSubstitute for mocking in .NET unit tests? Explain best practices.",
+      question:
+        "How do you use Moq or NSubstitute for mocking in .NET unit tests? Explain best practices.",
       answer: `Mocking frameworks isolate the code under test by replacing dependencies with controlled implementations. Moq and NSubstitute are the most popular.
 
 **Moq**:
@@ -22322,7 +22676,8 @@ var options = new DbContextOptionsBuilder<AppDbContext>()
       is_top50: false,
     },
     {
-      question: "What is xUnit and how does it compare to NUnit and MSTest? Explain theories, fixtures, and parallelization.",
+      question:
+        "What is xUnit and how does it compare to NUnit and MSTest? Explain theories, fixtures, and parallelization.",
       answer: `xUnit is the most popular .NET testing framework (created by the original NUnit author). Key features and comparisons:
 
 **Compared to NUnit/MSTest**:
@@ -22387,7 +22742,8 @@ public class DatabaseTest2 { ... } // With each other
       is_top50: false,
     },
     {
-      question: "How do you use Verify (Snapshooter) for snapshot testing in .NET?",
+      question:
+        "How do you use Verify (Snapshooter) for snapshot testing in .NET?",
       answer: `Snapshot testing captures the output of a test (serialized object, rendered HTML, API response) and compares it against a stored snapshot file. Changes are reviewed (approved/rejected) — ideal for detecting unintended changes.
 
 **Verify** (popular by Simon Cropp):
@@ -22434,7 +22790,8 @@ await Verify(result)
     },
     // ──────── Performance & Caching ────────
     {
-      question: "How do you implement caching in ASP.NET Core? Explain IMemoryCache, IDistributedCache, and output caching.",
+      question:
+        "How do you implement caching in ASP.NET Core? Explain IMemoryCache, IDistributedCache, and output caching.",
       answer: `ASP.NET Core provides three caching layers:
 
 **1. IMemoryCache** (in-process, single server):
@@ -22527,7 +22884,8 @@ Use IMemoryCache for single-server, per-request caching. Use IDistributedCache f
       is_top50: false,
     },
     {
-      question: "How does rate limiting work in ASP.NET Core 7+? Explain the built-in rate limiting middleware.",
+      question:
+        "How does rate limiting work in ASP.NET Core 7+? Explain the built-in rate limiting middleware.",
       answer: `ASP.NET Core 7+ includes built-in rate limiting middleware with configurable policies:
 
 **Basic setup**:
@@ -22585,7 +22943,8 @@ Apply to specific endpoints via [EnableRateLimiting] attribute or chaining on Mi
       is_top50: false,
     },
     {
-      question: "What is IAsyncEnumerable in C# and how does it improve streaming performance?",
+      question:
+        "What is IAsyncEnumerable in C# and how does it improve streaming performance?",
       answer: `\`IAsyncEnumerable<T>\` (C# 8+) enables asynchronous streaming — yielding results as they become available without loading the entire set into memory. Each element is awaited individually, enabling efficient streaming of paginated DB results, file processing, or API responses.
 
 \`\`\`csharp
@@ -22637,7 +22996,8 @@ Combine with cancellation tokens for graceful shutdown: \`AsAsyncEnumerable().Wi
       is_top50: false,
     },
     {
-      question: "Explain response compression in ASP.NET Core. When should you use it and what are the trade-offs?",
+      question:
+        "Explain response compression in ASP.NET Core. When should you use it and what are the trade-offs?",
       answer: `Response compression reduces payload size before sending to the client, typically gzip or brotli. ASP.NET Core provides built-in middleware:
 
 \`\`\`csharp
@@ -22683,7 +23043,8 @@ app.UseResponseCompression(); // Before app.MapControllers()
     },
     // ──────── gRPC & Blazor ────────
     {
-      question: "What is gRPC and how does it compare to REST? When would you use gRPC in .NET?",
+      question:
+        "What is gRPC and how does it compare to REST? When would you use gRPC in .NET?",
       answer: `gRPC is a high-performance RPC framework using HTTP/2, Protocol Buffers (protobuf), and bidirectional streaming. Developed by Google, it's a first-class citizen in .NET Core 3.0+.
 
 **Key differences from REST**:
@@ -22739,7 +23100,8 @@ public class ProductServiceImpl : ProductService.ProductServiceBase
       is_top50: false,
     },
     {
-      question: "How does Blazor work? Explain Blazor Server, Blazor WebAssembly, the .NET runtime in the browser, and auto render mode.",
+      question:
+        "How does Blazor work? Explain Blazor Server, Blazor WebAssembly, the .NET runtime in the browser, and auto render mode.",
       answer: `Blazor is a .NET framework for building interactive web UIs using C# instead of JavaScript. It offers three hosting models:
 
 **Blazor Server**: The app runs on the server. UI updates are sent to the browser over a persistent SignalR connection. DOM diffing happens server-side; only delta updates are sent over the wire.
@@ -22775,7 +23137,8 @@ public class ProductServiceImpl : ProductService.ProductServiceBase
       is_top50: false,
     },
     {
-      question: "Explain the difference between Blazor Server and Blazor WebAssembly render modes. When would you choose each?",
+      question:
+        "Explain the difference between Blazor Server and Blazor WebAssembly render modes. When would you choose each?",
       answer: `The decision between Blazor Server and Blazor WebAssembly affects architecture, performance, deployment, and user experience:
 
 **Connection model**:
@@ -22803,7 +23166,8 @@ public class ProductServiceImpl : ProductService.ProductServiceBase
       is_top50: false,
     },
     {
-      question: "How does gRPC-Web enable gRPC usage in browser applications? Explain the needed proxy configuration.",
+      question:
+        "How does gRPC-Web enable gRPC usage in browser applications? Explain the needed proxy configuration.",
       answer: `Browsers cannot directly call gRPC services because gRPC uses HTTP/2 trailers, which are not accessible from the browser's Fetch API. gRPC-Web bridges this gap:
 
 **How it works**: gRPC-Web translates standard gRPC calls into a format the browser can process. Two approaches:
@@ -22876,7 +23240,8 @@ gRPC-Web is production-ready for .NET 7+ and is the recommended way to use gRPC 
     },
     // ──────── Architecture & Best Practices ────────
     {
-      question: "What is Clean Architecture in .NET and how do you structure a solution using it?",
+      question:
+        "What is Clean Architecture in .NET and how do you structure a solution using it?",
       answer: `Clean Architecture (Robert C. Martin) layers a solution with dependencies pointing inward — the Domain layer knows nothing about Infrastructure.
 
 **Typical .NET solution structure**:
@@ -22939,7 +23304,8 @@ public async Task<ActionResult<int>> Create(CreateProductCommand cmd)
       is_top50: false,
     },
     {
-      question: "What is MediatR and how does it implement CQRS and the mediator pattern in .NET?",
+      question:
+        "What is MediatR and how does it implement CQRS and the mediator pattern in .NET?",
       answer: `MediatR is a .NET library implementing the mediator pattern — it decouples request senders from handlers by routing requests through a mediator. Enables CQRS by separating commands (write) from queries (read).
 
 **Basic usage**:
@@ -23004,7 +23370,8 @@ public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, 
       is_top50: false,
     },
     {
-      question: "How do you implement structured logging with Serilog in ASP.NET Core?",
+      question:
+        "How do you implement structured logging with Serilog in ASP.NET Core?",
       answer: `Structured logging captures log events as structured data (not just text), enabling rich querying and analysis. Serilog is the most popular structured logging library for .NET.
 
 **Setup**:
@@ -23060,7 +23427,8 @@ public class OrderService
       is_top50: false,
     },
     {
-      question: "What are health checks in ASP.NET Core and how do you configure them for Kubernetes liveness and readiness probes?",
+      question:
+        "What are health checks in ASP.NET Core and how do you configure them for Kubernetes liveness and readiness probes?",
       answer: `Health checks expose the application's ability to handle requests. They're essential for container orchestration (Kubernetes) and load balancer management.
 
 **Setup**:
@@ -23133,7 +23501,8 @@ Health checks are also useful for load balancer target group health checks, serv
       is_top50: false,
     },
     {
-      question: "How do you handle database migrations in production with EF Core? Explain idempotent scripts, bundle, and CI/CD integration.",
+      question:
+        "How do you handle database migrations in production with EF Core? Explain idempotent scripts, bundle, and CI/CD integration.",
       answer: `Running \`dotnet ef database update\` directly in production is dangerous — it could fail halfway, apply unintended changes, or require interactive input. Production-safe approaches:
 
 **1. Idempotent SQL scripts** (recommended for most teams):
@@ -23190,7 +23559,8 @@ jobs:
     },
     // ──────── Laravel (PHP) ────────
     {
-      question: "What is Laravel and its core features? Explain the MVC architecture in Laravel.",
+      question:
+        "What is Laravel and its core features? Explain the MVC architecture in Laravel.",
       answer: `Laravel is a PHP web framework following the MVC (Model-View-Controller) architectural pattern. Core features include Eloquent ORM, Blade templating, Artisan CLI, migration system, queue system, built-in authentication, and extensive ecosystem (Sanctum, Passport, Horizon, Telescope, Octane).
 
 The MVC flow in Laravel:
@@ -23265,7 +23635,8 @@ Artisan commands can be created custom via \`make:command\` and registered in \`
       is_top50: false,
     },
     {
-      question: "Explain Eloquent ORM — what are models, relationships, accessors, mutators, and scopes?",
+      question:
+        "Explain Eloquent ORM — what are models, relationships, accessors, mutators, and scopes?",
       answer: `Eloquent is Laravel's ActiveRecord ORM implementation. Each database table has a corresponding Model class.
 
 **Models**: Extend \`Illuminate\\Database\\Eloquent\\Model\` and typically correspond to a database table (snake_case plural of the class name):
@@ -23315,7 +23686,8 @@ public function scopePriceBetween($query, $min, $max) { return $query->whereBetw
       is_top50: false,
     },
     {
-      question: "What is the difference between hasMany, belongsTo, and belongsToMany relationships in Eloquent?",
+      question:
+        "What is the difference between hasMany, belongsTo, and belongsToMany relationships in Eloquent?",
       answer: `These define the three core relationship types:
 
 **hasMany** (1→N): A parent model has many children. \`Product hasMany Review\` — the child table (reviews) has a \`product_id\` foreign key.
@@ -23348,7 +23720,8 @@ Choose based on cardinality: 1→N = hasMany/belongsTo, N↔N = belongsToMany. U
       is_top50: false,
     },
     {
-      question: "How does eager loading work in Laravel and why is it important for performance?",
+      question:
+        "How does eager loading work in Laravel and why is it important for performance?",
       answer: `Eager loading solves the N+1 query problem. Without it, accessing a relationship inside a loop triggers a separate query per iteration.
 
 **The N+1 problem**:
@@ -23382,7 +23755,8 @@ Always use eager loading when you know related data will be accessed. Use Larave
       is_top50: false,
     },
     {
-      question: "Explain migrations and seeders in Laravel — how do you manage database schema changes?",
+      question:
+        "Explain migrations and seeders in Laravel — how do you manage database schema changes?",
       answer: `Migrations are version-controlled schema definitions written in PHP. Each migration has \`up()\` (apply) and \`down()\` (revert) methods.
 
 \`\`\`php
@@ -23475,7 +23849,8 @@ if ($request->user()->tokenCan('orders:read')) { ... }
       is_top50: false,
     },
     {
-      question: "How do you build a REST API with Laravel? Explain API Resources and JSON responses.",
+      question:
+        "How do you build a REST API with Laravel? Explain API Resources and JSON responses.",
       answer: `Building REST APIs in Laravel follows a structured pattern:
 
 **Routes** — separate api.php for API routes with automatic prefix (/api):
@@ -23603,7 +23978,8 @@ Always implement \`failed()\` method on jobs for custom failure handling and use
       is_top50: false,
     },
     {
-      question: "Explain events and listeners in Laravel — how do they decouple application logic?",
+      question:
+        "Explain events and listeners in Laravel — how do they decouple application logic?",
       answer: `Events and listeners implement the Observer pattern — when something happens (event), registered listeners react (handle). This decouples the code that triggers an action from the code that responds to it.
 
 **Creating event + listener**:
@@ -23667,7 +24043,8 @@ class SendShipmentNotification implements ShouldQueue
       is_top50: false,
     },
     {
-      question: "What are Form Requests in Laravel and how do they handle validation and authorization?",
+      question:
+        "What are Form Requests in Laravel and how do they handle validation and authorization?",
       answer: `Form Requests are custom request classes that encapsulate validation rules and authorization logic, keeping controllers clean.
 
 **Creating**:
@@ -23727,7 +24104,8 @@ Form Requests automatically redirect back with errors on failure (web) or return
       is_top50: false,
     },
     {
-      question: "How does authentication work in Laravel? Explain the built-in Auth system and middleware guards.",
+      question:
+        "How does authentication work in Laravel? Explain the built-in Auth system and middleware guards.",
       answer: `Laravel's authentication system is modular and driver-based. It provides guards (how users are authenticated for each request) and providers (how users are retrieved from storage).
 
 **Default setup** (Laravel 11+):
@@ -23782,7 +24160,8 @@ Auth::confirmPassword();       // Requires recent password confirmation
       is_top50: false,
     },
     {
-      question: "What is Laravel's service container and how does dependency injection work?",
+      question:
+        "What is Laravel's service container and how does dependency injection work?",
       answer: `The service container (IoC container) is Laravel's dependency injection container — it manages class dependencies and performs automatic resolution.
 
 **Automatic injection**: Type-hint dependencies in constructors or methods, and the container resolves them automatically:
@@ -23840,7 +24219,8 @@ The container also handles contextual conditions, primitive binding (\`$this->ap
       is_top50: false,
     },
     {
-      question: "Explain Laravel service providers — what is their role in the bootstrapping process?",
+      question:
+        "Explain Laravel service providers — what is their role in the bootstrapping process?",
       answer: `Service providers are the central bootstrapping mechanism in Laravel. All framework and application initialization flows through providers. They're registered in \`config/app.php\` under the \`providers\` array.
 
 Each provider has two methods:
@@ -23883,7 +24263,8 @@ class StripeServiceProvider extends ServiceProvider
       is_top50: false,
     },
     {
-      question: "What are Laravel facades and how do they differ from dependency injection?",
+      question:
+        "What are Laravel facades and how do they differ from dependency injection?",
       answer: `Facades provide a static-like interface to services in the container. Each facade proxies calls to an underlying bound instance.
 
 \`\`\`php
@@ -23928,7 +24309,8 @@ class OrderProcessor
       is_top50: false,
     },
     {
-      question: "How does caching work in Laravel? Explain Cache::remember, cache drivers, and cache tags.",
+      question:
+        "How does caching work in Laravel? Explain Cache::remember, cache drivers, and cache tags.",
       answer: `Laravel provides a unified caching API with multiple drivers: file, database, Redis, Memcached, DynamoDB, and array (testing).
 
 **Cache::remember** — most common pattern — returns cached value or stores the result of the closure:
@@ -24020,7 +24402,8 @@ Octane is ideal for high-traffic APIs and applications where reducing latency is
       is_top50: false,
     },
     {
-      question: "How do you test Laravel applications? Explain PHPUnit, HTTP tests, and factories.",
+      question:
+        "How do you test Laravel applications? Explain PHPUnit, HTTP tests, and factories.",
       answer: `Laravel uses PHPUnit with rich testing helpers. Tests live in \`tests/\` directory with \`Unit\` (single class) and \`Feature\` (HTTP, database, full request) subdirectories.
 
 **Basic test**:
@@ -24098,7 +24481,8 @@ class ProductFactory extends Factory
       is_top50: false,
     },
     {
-      question: "What is the Laravel scheduler and how do you define recurring tasks?",
+      question:
+        "What is the Laravel scheduler and how do you define recurring tasks?",
       answer: `The Laravel Scheduler (formerly Cron) lets you define scheduled tasks in PHP instead of server crontab. A single server cron entry runs \`php artisan schedule:run\` every minute, and Laravel evaluates which tasks are due.
 
 **Defining tasks** in \`app/Console/Kernel.php\`:
@@ -24154,7 +24538,8 @@ $schedule->command('report:generate')
       is_top50: false,
     },
     {
-      question: "How does Laravel handle file storage? Explain the filesystem configuration, local vs cloud (S3) disks.",
+      question:
+        "How does Laravel handle file storage? Explain the filesystem configuration, local vs cloud (S3) disks.",
       answer: `Laravel's filesystem abstraction provides a unified API for local and cloud storage via Flysystem. Configured in \`config/filesystems.php\`.
 
 **Configuration**:
@@ -24218,7 +24603,8 @@ php artisan storage:link
       is_top50: false,
     },
     {
-      question: "Explain Laravel Blade templating — sections, layouts, components, and directives.",
+      question:
+        "Explain Laravel Blade templating — sections, layouts, components, and directives.",
       answer: `Blade is Laravel's templating engine that compiles to plain PHP for performance. Key features:
 
 **Layout inheritance**:
@@ -24299,7 +24685,8 @@ Use \`@json($data)\` for passing PHP data to JavaScript, \`@dd($var)\` for debug
       is_top50: false,
     },
     {
-      question: "Explain Laravel broadcasting and Echo — how do real-time WebSocket events work?",
+      question:
+        "Explain Laravel broadcasting and Echo — how do real-time WebSocket events work?",
       answer: `Laravel Broadcasting pushes server-side events to the client in real-time using WebSocket connections. Laravel Echo is the JavaScript client that listens for these events.
 
 **Installation**:
@@ -24378,7 +24765,8 @@ Channels: \`public\` (anyone), \`private\` (auth required), \`presence\` (auth +
       is_top50: false,
     },
     {
-      question: "What are Laravel policies and gates — how do you implement authorization?",
+      question:
+        "What are Laravel policies and gates — how do you implement authorization?",
       answer: `Authorization in Laravel uses Gates (Closure-based, simple) and Policies (class-based, organized by model).
 
 **Gates** — define in \`AppServiceProvider\`:
@@ -24454,7 +24842,8 @@ Policies auto-resolve via route-model binding in controllers. Use \`—model\` f
       is_top50: false,
     },
     {
-      question: "How does Laravel handle database query optimization? Explain the query builder, N+1 detection, and indexes.",
+      question:
+        "How does Laravel handle database query optimization? Explain the query builder, N+1 detection, and indexes.",
       answer: `Laravel provides multiple layers for database optimization:
 
 **Query Builder** — fluent SQL builder with built-in protection:
@@ -24517,7 +24906,8 @@ Use \`DB::listen()\` in service provider to log all queries, \`explain()\` for q
       is_top50: false,
     },
     {
-      question: "What are Laravel middleware and how do you create custom middleware? Explain middleware groups and priorities.",
+      question:
+        "What are Laravel middleware and how do you create custom middleware? Explain middleware groups and priorities.",
       answer: `Middleware filters HTTP requests entering your application. Built-in middleware covers auth, CORS, CSRF, rate limiting, and more.
 
 **Creating custom middleware**:
@@ -24590,7 +24980,8 @@ Route::get('/admin', fn() => ...)->middleware(['auth', 'verified', 'log', 'throt
       is_top50: false,
     },
     {
-      question: "What is route-model binding in Laravel? Explain implicit vs explicit binding.",
+      question:
+        "What is route-model binding in Laravel? Explain implicit vs explicit binding.",
       answer: `Route-model binding automatically injects model instances into routes based on route parameters instead of manually fetching them.
 
 **Implicit binding** — Laravel automatically resolves the model by ID:
@@ -24707,7 +25098,8 @@ Route::middleware('api')->group(function () {
       is_top50: false,
     },
     {
-      question: "Explain Laravel Telescope — what does it monitor and how does it help with debugging?",
+      question:
+        "Explain Laravel Telescope — what does it monitor and how does it help with debugging?",
       answer: `Telescope is Laravel's debugging and monitoring assistant for local development. It provides insight into requests, exceptions, queries, logs, cache operations, queues, mail, notifications, and more.
 
 **Installation**:
@@ -24845,7 +25237,8 @@ Register commands in \`app/Console/Kernel.php\` \`$commands\` array or use auto-
       is_top50: false,
     },
     {
-      question: "How does Laravel handle soft deletes? Explain the SoftDeletes trait and querying trashed models.",
+      question:
+        "How does Laravel handle soft deletes? Explain the SoftDeletes trait and querying trashed models.",
       answer: `Soft deletes mark records as "deleted" without removing them from the database. Laravel uses the \`SoftDeletes\` trait and a \`deleted_at\` timestamp column.
 
 **Setup**:
@@ -24927,7 +25320,8 @@ Soft deletes are essential for audit trails, undo functionality, and data recove
       is_top50: false,
     },
     {
-      question: "What is Laravel Reverb and how does it compare to Pusher for real-time broadcasting?",
+      question:
+        "What is Laravel Reverb and how does it compare to Pusher for real-time broadcasting?",
       answer: `Laravel Reverb (Laravel 11+) is a first-party, self-hosted WebSocket server for real-time broadcasting. It replaces the need for third-party services like Pusher.
 
 **Reverb**:
@@ -24976,7 +25370,8 @@ Reverb is the recommended choice for Laravel 11+ apps where self-hosting is feas
       is_top50: false,
     },
     {
-      question: "How do you handle localization and internationalization (i18n) in Laravel?",
+      question:
+        "How do you handle localization and internationalization (i18n) in Laravel?",
       answer: `Laravel provides robust localization support. Language strings stored in \`resources/lang/\` (or \`lang/\` in Laravel 11+).
 
 **Language files**:
@@ -25128,7 +25523,8 @@ class UploadAvatarRequest extends FormRequest
       is_top50: false,
     },
     {
-      question: "What is the Laravel Debugbar and how do you use it for performance profiling?",
+      question:
+        "What is the Laravel Debugbar and how do you use it for performance profiling?",
       answer: `Laravel Debugbar is a development package that adds a developer toolbar to your application, providing detailed performance insights.
 
 **Installation**:
@@ -25178,7 +25574,8 @@ Debugbar::debug($exception);
       is_top50: false,
     },
     {
-      question: "How does Laravel's notification system work? Explain mail, database, and on-demand notifications.",
+      question:
+        "How does Laravel's notification system work? Explain mail, database, and on-demand notifications.",
       answer: `Laravel Notifications provide a unified API for sending notifications across multiple channels (mail, database, SMS, Slack, Vonage, etc.).
 
 **Creating a notification**:
@@ -25351,7 +25748,8 @@ Use rate limiting on all public endpoints, login/registration (prevent brute for
       is_top50: false,
     },
     {
-      question: "How do you implement search functionality in Laravel with Scout and Algolia/MeiliSearch?",
+      question:
+        "How do you implement search functionality in Laravel with Scout and Algolia/MeiliSearch?",
       answer: `Laravel Scout provides a driver-based solution for full-text search on Eloquent models. It supports Algolia, MeiliSearch, and database-based (collection) engines.
 
 **Installation**:
@@ -25537,7 +25935,8 @@ Use \`->whenLoaded()\` for conditional eager loading, \`->whenCounted()\` for co
       is_top50: false,
     },
     {
-      question: "How does Laravel handle HTTP client requests? Explain the Http facade and testing HTTP fakes.",
+      question:
+        "How does Laravel handle HTTP client requests? Explain the Http facade and testing HTTP fakes.",
       answer: `Laravel's Http facade provides a fluent API for making outgoing HTTP requests, wrapping Guzzle.
 
 **Basic usage**:
@@ -25632,7 +26031,8 @@ Use macros for reusable request configurations, \`withToken()\` for bearer auth,
       is_top50: false,
     },
     {
-      question: "How do you handle database transactions in Laravel? Explain DB::transaction and optimistic locking.",
+      question:
+        "How do you handle database transactions in Laravel? Explain DB::transaction and optimistic locking.",
       answer: `Database transactions ensure atomicity — either all operations succeed or none are persisted. Laravel provides a clean API:
 
 **DB::transaction** — automatic rollback on exception:
@@ -25711,7 +26111,8 @@ Use transactions for any operation involving multiple writes. Use pessimistic lo
       is_top50: false,
     },
     {
-      question: "How do you deploy a Laravel application? Explain optimization commands and server requirements.",
+      question:
+        "How do you deploy a Laravel application? Explain optimization commands and server requirements.",
       answer: `**Server requirements**:
 - PHP 8.1+ with extensions: BCMath, Ctype, Fileinfo, JSON, Mbstring, OpenSSL, PDO, Tokenizer, XML, CURL, GD
 - Composer
@@ -25797,43 +26198,52 @@ chown -R www-data:www-data storage bootstrap/cache
     // ──────── Django (Python) — Junior Level ────────
 
     {
-      question: "What is Django and what is the MVT (Model-View-Template) architecture?",
-      answer: "Django is a high-level Python web framework that follows the 'batteries-included' philosophy — it provides built-in components for common web development tasks. Django follows the MVT (Model-View-Template) architecture: **Models** define the database structure (tables, fields, relationships), **Views** contain the business logic that processes requests and returns responses, and **Templates** handle the presentation layer (HTML with Django Template Language). The flow: a URL pattern maps to a View, the View queries Models (database) and passes data to a Template, which renders the final HTML response.",
+      question:
+        "What is Django and what is the MVT (Model-View-Template) architecture?",
+      answer:
+        "Django is a high-level Python web framework that follows the 'batteries-included' philosophy — it provides built-in components for common web development tasks. Django follows the MVT (Model-View-Template) architecture: **Models** define the database structure (tables, fields, relationships), **Views** contain the business logic that processes requests and returns responses, and **Templates** handle the presentation layer (HTML with Django Template Language). The flow: a URL pattern maps to a View, the View queries Models (database) and passes data to a Template, which renders the final HTML response.",
       difficulty: "easy",
       tags: ["django", "python", "architecture"],
       is_top50: true,
     },
     {
-      question: "What is the difference between a Django project and a Django app?",
-      answer: "A **Django project** is the entire web application — it contains the settings, URL configurations, and WSGI/ASGI configuration for deployment. A **Django app** is a self-contained module within a project that handles a specific feature (e.g., a blog app, a user profile app, a payment app). One project can contain multiple apps, and ideally one app should do one thing well. You create a project with `django-admin startproject` and an app with `python manage.py startapp`.",
+      question:
+        "What is the difference between a Django project and a Django app?",
+      answer:
+        "A **Django project** is the entire web application — it contains the settings, URL configurations, and WSGI/ASGI configuration for deployment. A **Django app** is a self-contained module within a project that handles a specific feature (e.g., a blog app, a user profile app, a payment app). One project can contain multiple apps, and ideally one app should do one thing well. You create a project with `django-admin startproject` and an app with `python manage.py startapp`.",
       difficulty: "easy",
       tags: ["django", "python", "basics"],
       is_top50: true,
     },
     {
       question: "What is the purpose of the manage.py file in Django?",
-      answer: "`manage.py` is a command-line utility that comes with every Django project. It sets the `DJANGO_SETTINGS_MODULE` environment variable and wraps `django-admin` for project-specific commands. Common commands: `python manage.py runserver` (start dev server), `python manage.py startapp` (create a new app), `python manage.py makemigrations` (generate migrations), `python manage.py migrate` (apply migrations), `python manage.py createsuperuser` (create admin user), and `python manage.py test` (run tests).",
+      answer:
+        "`manage.py` is a command-line utility that comes with every Django project. It sets the `DJANGO_SETTINGS_MODULE` environment variable and wraps `django-admin` for project-specific commands. Common commands: `python manage.py runserver` (start dev server), `python manage.py startapp` (create a new app), `python manage.py makemigrations` (generate migrations), `python manage.py migrate` (apply migrations), `python manage.py createsuperuser` (create admin user), and `python manage.py test` (run tests).",
       difficulty: "easy",
       tags: ["django", "python", "basics"],
       is_top50: false,
     },
     {
       question: "What is the Django admin interface and how do you access it?",
-      answer: "Django's admin interface is an automatically generated, customizable dashboard for managing application data through a web UI. To access it: (1) create a superuser with `python manage.py createsuperuser`, (2) start the server with `python manage.py runserver`, (3) visit `/admin/` in your browser and log in. To make a model visible in the admin, register it in `admin.py` using `admin.site.register(ModelName)` or the `@admin.register()` decorator with a custom `ModelAdmin` class.",
+      answer:
+        "Django's admin interface is an automatically generated, customizable dashboard for managing application data through a web UI. To access it: (1) create a superuser with `python manage.py createsuperuser`, (2) start the server with `python manage.py runserver`, (3) visit `/admin/` in your browser and log in. To make a model visible in the admin, register it in `admin.py` using `admin.site.register(ModelName)` or the `@admin.register()` decorator with a custom `ModelAdmin` class.",
       difficulty: "easy",
       tags: ["django", "python", "admin"],
       is_top50: true,
     },
     {
       question: "Explain the Django request-response cycle.",
-      answer: "The Django request-response cycle follows this flow: (1) A user's browser sends an HTTP request to the Django server. (2) The **URL dispatcher** (urls.py) matches the requested URL against defined patterns and calls the corresponding **View**. (3) **Middleware** classes process the request before and after the view (e.g., CSRF protection, authentication, session handling). (4) The View executes business logic — typically querying the **Model** (database) and preparing context data. (5) The View renders a **Template** (HTML) with the context data, or returns a JSON response. (6) The response passes back through the **Middleware** chain and is sent to the browser.",
+      answer:
+        "The Django request-response cycle follows this flow: (1) A user's browser sends an HTTP request to the Django server. (2) The **URL dispatcher** (urls.py) matches the requested URL against defined patterns and calls the corresponding **View**. (3) **Middleware** classes process the request before and after the view (e.g., CSRF protection, authentication, session handling). (4) The View executes business logic — typically querying the **Model** (database) and preparing context data. (5) The View renders a **Template** (HTML) with the context data, or returns a JSON response. (6) The response passes back through the **Middleware** chain and is sent to the browser.",
       difficulty: "medium",
       tags: ["django", "python", "architecture"],
       is_top50: true,
     },
     {
-      question: "What are Django settings and how do you configure them for different environments?",
-      answer: "Django settings are defined in `settings.py` and control the entire application behavior — database configuration, installed apps, middleware, templates, static files, security keys, etc. Common settings: `DATABASES`, `INSTALLED_APPS`, `MIDDLEWARE`, `TEMPLATES`, `STATIC_URL`, `SECRET_KEY`. For different environments (development, staging, production), best practices include: using environment variables for sensitive values (like `SECRET_KEY` and database passwords), creating separate settings files (e.g., `settings/base.py`, `settings/dev.py`, `settings/prod.py`), or using `python-decouple` / `django-environ` for .env file management.",
+      question:
+        "What are Django settings and how do you configure them for different environments?",
+      answer:
+        "Django settings are defined in `settings.py` and control the entire application behavior — database configuration, installed apps, middleware, templates, static files, security keys, etc. Common settings: `DATABASES`, `INSTALLED_APPS`, `MIDDLEWARE`, `TEMPLATES`, `STATIC_URL`, `SECRET_KEY`. For different environments (development, staging, production), best practices include: using environment variables for sensitive values (like `SECRET_KEY` and database passwords), creating separate settings files (e.g., `settings/base.py`, `settings/dev.py`, `settings/prod.py`), or using `python-decouple` / `django-environ` for .env file management.",
       difficulty: "medium",
       tags: ["django", "python", "configuration"],
       is_top50: false,
@@ -25843,42 +26253,50 @@ chown -R www-data:www-data storage bootstrap/cache
 
     {
       question: "How do you define a model in Django and what is it used for?",
-      answer: "A Django model is a Python class that subclasses `django.db.models.Model` and represents a database table. Each attribute of the class corresponds to a database column. Models define the structure of your data and provide the ORM (Object-Relational Mapping) layer to create, read, update, and delete records without writing raw SQL. Example:\n\n```python\nfrom django.db import models\n\nclass Post(models.Model):\n    title = models.CharField(max_length=200)\n    content = models.TextField()\n    published_date = models.DateTimeField(auto_now_add=True)\n    is_published = models.BooleanField(default=False)\n```",
+      answer:
+        "A Django model is a Python class that subclasses `django.db.models.Model` and represents a database table. Each attribute of the class corresponds to a database column. Models define the structure of your data and provide the ORM (Object-Relational Mapping) layer to create, read, update, and delete records without writing raw SQL. Example:\n\n```python\nfrom django.db import models\n\nclass Post(models.Model):\n    title = models.CharField(max_length=200)\n    content = models.TextField()\n    published_date = models.DateTimeField(auto_now_add=True)\n    is_published = models.BooleanField(default=False)\n```",
       difficulty: "easy",
       tags: ["django", "python", "models"],
       is_top50: true,
     },
     {
       question: "What are common field types in Django models?",
-      answer: "Django provides many field types for different data: **CharField** (short strings, requires max_length), **TextField** (long text), **IntegerField**, **FloatField**, **DecimalField** (precise decimals, requires max_digits and decimal_places), **BooleanField**, **DateField** / **DateTimeField** (dates and timestamps), **EmailField** (validates email format), **URLField**, **FileField** / **ImageField** (file uploads), **ForeignKey** (many-to-one), **ManyToManyField**, and **OneToOneField**. Each field type has specific validation and database column type.",
+      answer:
+        "Django provides many field types for different data: **CharField** (short strings, requires max_length), **TextField** (long text), **IntegerField**, **FloatField**, **DecimalField** (precise decimals, requires max_digits and decimal_places), **BooleanField**, **DateField** / **DateTimeField** (dates and timestamps), **EmailField** (validates email format), **URLField**, **FileField** / **ImageField** (file uploads), **ForeignKey** (many-to-one), **ManyToManyField**, and **OneToOneField**. Each field type has specific validation and database column type.",
       difficulty: "easy",
       tags: ["django", "python", "models"],
       is_top50: true,
     },
     {
       question: "What are migrations in Django and how do they work?",
-      answer: "Migrations are Django's way of tracking and applying changes to the database schema. When you modify a model (add/remove a field, change a field type), you run `python manage.py makemigrations` which generates a migration file describing the changes. Then `python manage.py migrate` applies those changes to the actual database by executing SQL. Migrations are version-controlled Python files stored in each app's `migrations/` directory. They allow you to evolve the database schema alongside your code.",
+      answer:
+        "Migrations are Django's way of tracking and applying changes to the database schema. When you modify a model (add/remove a field, change a field type), you run `python manage.py makemigrations` which generates a migration file describing the changes. Then `python manage.py migrate` applies those changes to the actual database by executing SQL. Migrations are version-controlled Python files stored in each app's `migrations/` directory. They allow you to evolve the database schema alongside your code.",
       difficulty: "easy",
       tags: ["django", "python", "migrations", "models"],
       is_top50: true,
     },
     {
-      question: "What is the difference between `makemigrations` and `migrate` in Django?",
-      answer: "`makemigrations` and `migrate` are two separate steps in Django's migration workflow. **`makemigrations`** analyzes your current model definitions compared to the last migration and creates new migration files (Python files) that describe the database schema changes. It does NOT modify the database. **`migrate`** reads those migration files and executes the corresponding SQL against the actual database, applying the schema changes. The workflow is: change models → `makemigrations` (generate) → `migrate` (apply). Always run both in sequence.",
+      question:
+        "What is the difference between `makemigrations` and `migrate` in Django?",
+      answer:
+        "`makemigrations` and `migrate` are two separate steps in Django's migration workflow. **`makemigrations`** analyzes your current model definitions compared to the last migration and creates new migration files (Python files) that describe the database schema changes. It does NOT modify the database. **`migrate`** reads those migration files and executes the corresponding SQL against the actual database, applying the schema changes. The workflow is: change models → `makemigrations` (generate) → `migrate` (apply). Always run both in sequence.",
       difficulty: "easy",
       tags: ["django", "python", "migrations"],
       is_top50: true,
     },
     {
       question: "What are the three types of relationships in Django models?",
-      answer: "Django supports three relationship types: (1) **ForeignKey** — many-to-one relationship (e.g., many Posts belong to one Author). The model with the ForeignKey field contains the database column. (2) **ManyToManyField** — many-to-many relationship (e.g., a Post can have many Tags, and a Tag can belong to many Posts). Creates a junction table automatically. (3) **OneToOneField** — one-to-one relationship (e.g., a User has one Profile). Similar to ForeignKey but with `unique=True`. Useful for extending models with additional data.",
+      answer:
+        "Django supports three relationship types: (1) **ForeignKey** — many-to-one relationship (e.g., many Posts belong to one Author). The model with the ForeignKey field contains the database column. (2) **ManyToManyField** — many-to-many relationship (e.g., a Post can have many Tags, and a Tag can belong to many Posts). Creates a junction table automatically. (3) **OneToOneField** — one-to-one relationship (e.g., a User has one Profile). Similar to ForeignKey but with `unique=True`. Useful for extending models with additional data.",
       difficulty: "medium",
       tags: ["django", "python", "models", "relationships"],
       is_top50: true,
     },
     {
-      question: "What is the `__str__` method in Django models and why is it important?",
-      answer: "The `__str__` method defines the human-readable string representation of a model instance. It is used in the Django admin interface, in the Django shell, and in debug output. Without it, Django displays '<ModelName object (id)>' which is not helpful. Example:\n\n```python\nclass Post(models.Model):\n    title = models.CharField(max_length=200)\n\n    def __str__(self):\n        return self.title\n```\nThis makes the admin list view and dropdowns show meaningful names instead of generic object references.",
+      question:
+        "What is the `__str__` method in Django models and why is it important?",
+      answer:
+        "The `__str__` method defines the human-readable string representation of a model instance. It is used in the Django admin interface, in the Django shell, and in debug output. Without it, Django displays '<ModelName object (id)>' which is not helpful. Example:\n\n```python\nclass Post(models.Model):\n    title = models.CharField(max_length=200)\n\n    def __str__(self):\n        return self.title\n```\nThis makes the admin list view and dropdowns show meaningful names instead of generic object references.",
       difficulty: "easy",
       tags: ["django", "python", "models"],
       is_top50: false,
@@ -25888,42 +26306,50 @@ chown -R www-data:www-data storage bootstrap/cache
 
     {
       question: "What is a QuerySet in Django?",
-      answer: "A QuerySet is Django's way of representing a collection of database queries. It allows you to chain filters, exclude, annotate, and order operations before executing the actual database query. QuerySets are lazy — they only hit the database when evaluated. Example: `Post.objects.filter(published=True).order_by('-created_at')` builds a query but doesn't execute it until you iterate, call `list()`, or access it. Every Django model has a default manager `objects` that returns a QuerySet.",
+      answer:
+        "A QuerySet is Django's way of representing a collection of database queries. It allows you to chain filters, exclude, annotate, and order operations before executing the actual database query. QuerySets are lazy — they only hit the database when evaluated. Example: `Post.objects.filter(published=True).order_by('-created_at')` builds a query but doesn't execute it until you iterate, call `list()`, or access it. Every Django model has a default manager `objects` that returns a QuerySet.",
       difficulty: "easy",
       tags: ["django", "python", "orm"],
       is_top50: true,
     },
     {
       question: "What does it mean that Django QuerySets are lazy?",
-      answer: "Lazy evaluation means QuerySets do not hit the database until they are explicitly evaluated. You can chain multiple filters, excludes, and annotations — Django builds a SQL query object internally but does NOT execute it. The database is only queried when you: iterate over the QuerySet (e.g., `for post in posts`), call `list()`, `len()`, `bool()`, `exists()`, `count()`, or access an index. This allows efficient query building where the final SQL includes all chained conditions.",
+      answer:
+        "Lazy evaluation means QuerySets do not hit the database until they are explicitly evaluated. You can chain multiple filters, excludes, and annotations — Django builds a SQL query object internally but does NOT execute it. The database is only queried when you: iterate over the QuerySet (e.g., `for post in posts`), call `list()`, `len()`, `bool()`, `exists()`, `count()`, or access an index. This allows efficient query building where the final SQL includes all chained conditions.",
       difficulty: "medium",
       tags: ["django", "python", "orm"],
       is_top50: true,
     },
     {
       question: "How do you perform CRUD operations using the Django ORM?",
-      answer: "CRUD operations using the Django ORM:\n\n**Create**: `Post.objects.create(title='Hello', content='World')` or `post = Post(title='Hello'); post.save()`.\n\n**Read**: `Post.objects.all()` (all records), `Post.objects.get(id=1)` (single record, raises error if not found), `Post.objects.filter(published=True)` (filtered results).\n\n**Update**: `post.title = 'New Title'; post.save()` or `Post.objects.filter(published=False).update(status='archived')` (bulk update).\n\n**Delete**: `post.delete()` or `Post.objects.filter(published=False).delete()` (bulk delete).\n\nEach model has a default `objects` manager with these methods.",
+      answer:
+        "CRUD operations using the Django ORM:\n\n**Create**: `Post.objects.create(title='Hello', content='World')` or `post = Post(title='Hello'); post.save()`.\n\n**Read**: `Post.objects.all()` (all records), `Post.objects.get(id=1)` (single record, raises error if not found), `Post.objects.filter(published=True)` (filtered results).\n\n**Update**: `post.title = 'New Title'; post.save()` or `Post.objects.filter(published=False).update(status='archived')` (bulk update).\n\n**Delete**: `post.delete()` or `Post.objects.filter(published=False).delete()` (bulk delete).\n\nEach model has a default `objects` manager with these methods.",
       difficulty: "easy",
       tags: ["django", "python", "orm", "crud"],
       is_top50: true,
     },
     {
       question: "How do you filter QuerySets in Django?",
-      answer: "Django provides several methods to filter QuerySets: **`filter(**kwargs)`** — returns a QuerySet matching the given conditions. **`exclude(**kwargs)`** — returns a QuerySet that does NOT match the conditions. **`get(**kwargs)`** — returns a single object (raises `DoesNotExist` or `MultipleObjectsReturned`). Filter lookups use double-underscore syntax: `field__exact`, `field__contains`, `field__icontains` (case-insensitive), `field__gt` (greater than), `field__lt` (less than), `field__in`, `field__startswith`, `field__range`, `field__isnull`. Example: `Post.objects.filter(title__icontains='django', created_at__year=2024)`.",
+      answer:
+        "Django provides several methods to filter QuerySets: **`filter(**kwargs)`** — returns a QuerySet matching the given conditions. **`exclude(**kwargs)`** — returns a QuerySet that does NOT match the conditions. **`get(**kwargs)`** — returns a single object (raises `DoesNotExist` or `MultipleObjectsReturned`). Filter lookups use double-underscore syntax: `field__exact`, `field__contains`, `field__icontains` (case-insensitive), `field__gt` (greater than), `field__lt` (less than), `field__in`, `field__startswith`, `field__range`, `field__isnull`. Example: `Post.objects.filter(title__icontains='django', created_at__year=2024)`.",
       difficulty: "medium",
       tags: ["django", "python", "orm", "queries"],
       is_top50: true,
     },
     {
-      question: "What is the difference between `get()` and `filter()` in Django ORM?",
-      answer: "**`get()`** returns a single model instance matching the given conditions. It raises `Model.DoesNotExist` if no record matches and `Model.MultipleObjectsReturned` if more than one matches. Use it when you expect exactly one result (e.g., fetching by primary key). **`filter()`** returns a QuerySet (possibly empty) containing all matching records. It never raises an error for zero or multiple results. Use it when you expect zero, one, or many results. Example: `User.objects.get(id=1)` vs `User.objects.filter(is_active=True)`.",
+      question:
+        "What is the difference between `get()` and `filter()` in Django ORM?",
+      answer:
+        "**`get()`** returns a single model instance matching the given conditions. It raises `Model.DoesNotExist` if no record matches and `Model.MultipleObjectsReturned` if more than one matches. Use it when you expect exactly one result (e.g., fetching by primary key). **`filter()`** returns a QuerySet (possibly empty) containing all matching records. It never raises an error for zero or multiple results. Use it when you expect zero, one, or many results. Example: `User.objects.get(id=1)` vs `User.objects.filter(is_active=True)`.",
       difficulty: "easy",
       tags: ["django", "python", "orm"],
       is_top50: true,
     },
     {
-      question: "What is the difference between `select_related()` and `prefetch_related()` in Django?",
-      answer: "Both are used to prevent the **N+1 query problem** (querying related objects in a loop). **`select_related()`** uses a SQL JOIN to fetch related objects in the same query. It works for ForeignKey and OneToOneField relationships. **`prefetch_related()`** does a separate query for the related objects and joins them in Python. It works for ManyToManyField and reverse ForeignKey relationships. Example: `Post.objects.select_related('author').all()` — 1 query with JOIN. `Author.objects.prefetch_related('posts').all()` — 2 queries (authors + posts).",
+      question:
+        "What is the difference between `select_related()` and `prefetch_related()` in Django?",
+      answer:
+        "Both are used to prevent the **N+1 query problem** (querying related objects in a loop). **`select_related()`** uses a SQL JOIN to fetch related objects in the same query. It works for ForeignKey and OneToOneField relationships. **`prefetch_related()`** does a separate query for the related objects and joins them in Python. It works for ManyToManyField and reverse ForeignKey relationships. Example: `Post.objects.select_related('author').all()` — 1 query with JOIN. `Author.objects.prefetch_related('posts').all()` — 2 queries (authors + posts).",
       difficulty: "medium",
       tags: ["django", "python", "orm", "performance"],
       is_top50: true,
@@ -25932,29 +26358,34 @@ chown -R www-data:www-data storage bootstrap/cache
     // ──────── Views & URLs ────────
 
     {
-      question: "What is the difference between function-based views and class-based views in Django?",
-      answer: "**Function-Based Views (FBVs)** are simple Python functions that take a `request` and return a `response`. They are explicit, easy to understand, and good for custom logic. **Class-Based Views (CBVs)** are Python classes that inherit from Django's generic views (like `ListView`, `DetailView`, `CreateView`). They reduce boilerplate — common patterns like displaying a list or creating an object are handled with a few lines. FBVs are better for complex custom views; CBVs are better for standard CRUD operations where you want less code.",
+      question:
+        "What is the difference between function-based views and class-based views in Django?",
+      answer:
+        "**Function-Based Views (FBVs)** are simple Python functions that take a `request` and return a `response`. They are explicit, easy to understand, and good for custom logic. **Class-Based Views (CBVs)** are Python classes that inherit from Django's generic views (like `ListView`, `DetailView`, `CreateView`). They reduce boilerplate — common patterns like displaying a list or creating an object are handled with a few lines. FBVs are better for complex custom views; CBVs are better for standard CRUD operations where you want less code.",
       difficulty: "medium",
       tags: ["django", "python", "views"],
       is_top50: true,
     },
     {
       question: "How do you define URL patterns in Django?",
-      answer: "URL patterns are defined in `urls.py` using the `urlpatterns` list. Each entry uses `path()` or `re_path()` to map a URL pattern to a view function or class. Example:\n\n```python\nfrom django.urls import path\nfrom . import views\n\nurlpatterns = [\n    path('', views.index, name='home'),\n    path('posts/', views.PostListView.as_view(), name='post_list'),\n    path('posts/<int:pk>/', views.post_detail, name='post_detail'),\n]\n```\n\nYou can include other URL configs using `include()` for app-specific URLs. Each path can have a `name` for reverse URL resolution with the `{% url %}` template tag or `reverse()` in Python.",
+      answer:
+        "URL patterns are defined in `urls.py` using the `urlpatterns` list. Each entry uses `path()` or `re_path()` to map a URL pattern to a view function or class. Example:\n\n```python\nfrom django.urls import path\nfrom . import views\n\nurlpatterns = [\n    path('', views.index, name='home'),\n    path('posts/', views.PostListView.as_view(), name='post_list'),\n    path('posts/<int:pk>/', views.post_detail, name='post_detail'),\n]\n```\n\nYou can include other URL configs using `include()` for app-specific URLs. Each path can have a `name` for reverse URL resolution with the `{% url %}` template tag or `reverse()` in Python.",
       difficulty: "easy",
       tags: ["django", "python", "urls"],
       is_top50: true,
     },
     {
       question: "What path converters are available in Django URL patterns?",
-      answer: "Django provides built-in path converters for capturing URL parameters with type validation: **`str`** — matches any non-empty string, excluding the path separator '/'. **`int`** — matches zero or a positive integer. **`slug`** — matches any slug string (letters, numbers, hyphens, underscores). **`uuid`** — matches a formatted UUID. **`path`** — matches any non-empty string including '/'. Example: `path('posts/<int:year>/<slug:slug>/', views.post_detail)` captures year as an integer and slug as a string, automatically converted to the correct Python type.",
+      answer:
+        "Django provides built-in path converters for capturing URL parameters with type validation: **`str`** — matches any non-empty string, excluding the path separator '/'. **`int`** — matches zero or a positive integer. **`slug`** — matches any slug string (letters, numbers, hyphens, underscores). **`uuid`** — matches a formatted UUID. **`path`** — matches any non-empty string including '/'. Example: `path('posts/<int:year>/<slug:slug>/', views.post_detail)` captures year as an integer and slug as a string, automatically converted to the correct Python type.",
       difficulty: "medium",
       tags: ["django", "python", "urls"],
       is_top50: false,
     },
     {
       question: "What are generic class-based views in Django?",
-      answer: "Generic class-based views are built-in Django views that handle common web development patterns with minimal code. Key ones include: **ListView** — display a list of objects (handles pagination). **DetailView** — display details of a single object. **CreateView** — display a form and create an object. **UpdateView** — display a form and update an existing object. **DeleteView** — confirm and delete an object. Example:\n```python\nfrom django.views.generic import ListView\nfrom .models import Post\n\nclass PostListView(ListView):\n    model = Post\n    template_name = 'posts/list.html'\n    context_object_name = 'posts'\n    paginate_by = 10\n```",
+      answer:
+        "Generic class-based views are built-in Django views that handle common web development patterns with minimal code. Key ones include: **ListView** — display a list of objects (handles pagination). **DetailView** — display details of a single object. **CreateView** — display a form and create an object. **UpdateView** — display a form and update an existing object. **DeleteView** — confirm and delete an object. Example:\n```python\nfrom django.views.generic import ListView\nfrom .models import Post\n\nclass PostListView(ListView):\n    model = Post\n    template_name = 'posts/list.html'\n    context_object_name = 'posts'\n    paginate_by = 10\n```",
       difficulty: "medium",
       tags: ["django", "python", "views"],
       is_top50: true,
@@ -25963,22 +26394,26 @@ chown -R www-data:www-data storage bootstrap/cache
     // ──────── Templates ────────
 
     {
-      question: "What is the Django Template Language (DTL) and how does it work?",
-      answer: "The Django Template Language (DTL) is Django's built-in templating system for generating HTML dynamically. It uses variables `{{ variable }}`, filters `{{ value|filter }}`, and tags `{% tag %}` to control rendering. DTL prevents XSS by auto-escaping all variable output. Variables are passed from the view to the template via a context dictionary. Example template: `<h1>{{ post.title }}</h1><p>{{ post.content|linebreaks }}</p>`. Tags control logic: `{% for post in posts %}`, `{% if user.is_authenticated %}`, `{% url 'post_detail' post.id %}`.",
+      question:
+        "What is the Django Template Language (DTL) and how does it work?",
+      answer:
+        "The Django Template Language (DTL) is Django's built-in templating system for generating HTML dynamically. It uses variables `{{ variable }}`, filters `{{ value|filter }}`, and tags `{% tag %}` to control rendering. DTL prevents XSS by auto-escaping all variable output. Variables are passed from the view to the template via a context dictionary. Example template: `<h1>{{ post.title }}</h1><p>{{ post.content|linebreaks }}</p>`. Tags control logic: `{% for post in posts %}`, `{% if user.is_authenticated %}`, `{% url 'post_detail' post.id %}`.",
       difficulty: "easy",
       tags: ["django", "python", "templates"],
       is_top50: true,
     },
     {
       question: "How does template inheritance work in Django?",
-      answer: "Template inheritance allows you to create a base template with common HTML structure and override specific sections in child templates. The base template uses `{% block blockname %}{% endblock %}` to define overrideable sections. Child templates use `{% extends 'base.html' %}` at the top and override blocks with their own content. Example base: `<html><head><title>{% block title %}My Site{% endblock %}</title></head><body>{% block content %}{% endblock %}</body></html>`. Child: `{% extends 'base.html' %} {% block title %}Blog{% endblock %} {% block content %}<h1>My Posts</h1>{% endblock %}`. This keeps the site layout DRY.",
+      answer:
+        "Template inheritance allows you to create a base template with common HTML structure and override specific sections in child templates. The base template uses `{% block blockname %}{% endblock %}` to define overrideable sections. Child templates use `{% extends 'base.html' %}` at the top and override blocks with their own content. Example base: `<html><head><title>{% block title %}My Site{% endblock %}</title></head><body>{% block content %}{% endblock %}</body></html>`. Child: `{% extends 'base.html' %} {% block title %}Blog{% endblock %} {% block content %}<h1>My Posts</h1>{% endblock %}`. This keeps the site layout DRY.",
       difficulty: "easy",
       tags: ["django", "python", "templates"],
       is_top50: true,
     },
     {
       question: "How do you use built-in template tags and filters in Django?",
-      answer: "Django provides many built-in template tags and filters. Common **tags**: `{% for %}` / `{% endfor %}` (loop), `{% if %}` / `{% elif %}` / `{% else %}` (conditions), `{% url 'view_name' arg %}` (reverse URL), `{% csrf_token %}` (CSRF protection in forms), `{% load static %}` (load static files), `{% include 'file.html' %}` (include another template). Common **filters**: `{{ value|date:'Y-m-d' }}` (format date), `{{ value|linebreaks }}` (convert newlines to HTML), `{{ value|default:'N/A' }}` (fallback value), `{{ value|length }}` (string length), `{{ value|truncatewords:20 }}` (truncate text). All filters can be chained: `{{ text|truncatewords:10|linebreaks }}`.",
+      answer:
+        "Django provides many built-in template tags and filters. Common **tags**: `{% for %}` / `{% endfor %}` (loop), `{% if %}` / `{% elif %}` / `{% else %}` (conditions), `{% url 'view_name' arg %}` (reverse URL), `{% csrf_token %}` (CSRF protection in forms), `{% load static %}` (load static files), `{% include 'file.html' %}` (include another template). Common **filters**: `{{ value|date:'Y-m-d' }}` (format date), `{{ value|linebreaks }}` (convert newlines to HTML), `{{ value|default:'N/A' }}` (fallback value), `{{ value|length }}` (string length), `{{ value|truncatewords:20 }}` (truncate text). All filters can be chained: `{{ text|truncatewords:10|linebreaks }}`.",
       difficulty: "easy",
       tags: ["django", "python", "templates"],
       is_top50: true,
@@ -25988,21 +26423,25 @@ chown -R www-data:www-data storage bootstrap/cache
 
     {
       question: "How do you create a form in Django?",
-      answer: "Django provides two ways to create forms: **`forms.Form`** for standalone forms not tied to a model (e.g., contact form, search form), and **`forms.ModelForm`** for forms tied to a model (auto-generates fields from the model). A form class defines fields with validation rules. Example:\n```python\nfrom django import forms\n\nclass ContactForm(forms.Form):\n    name = forms.CharField(max_length=100)\n    email = forms.EmailField()\n    message = forms.CharField(widget=forms.Textarea)\n\nclass PostForm(forms.ModelForm):\n    class Meta:\n        model = Post\n        fields = ['title', 'content', 'category']\n```\nIn the view, instantiate the form with `request.POST` on submission and call `is_valid()` to validate.",
+      answer:
+        "Django provides two ways to create forms: **`forms.Form`** for standalone forms not tied to a model (e.g., contact form, search form), and **`forms.ModelForm`** for forms tied to a model (auto-generates fields from the model). A form class defines fields with validation rules. Example:\n```python\nfrom django import forms\n\nclass ContactForm(forms.Form):\n    name = forms.CharField(max_length=100)\n    email = forms.EmailField()\n    message = forms.CharField(widget=forms.Textarea)\n\nclass PostForm(forms.ModelForm):\n    class Meta:\n        model = Post\n        fields = ['title', 'content', 'category']\n```\nIn the view, instantiate the form with `request.POST` on submission and call `is_valid()` to validate.",
       difficulty: "medium",
       tags: ["django", "python", "forms"],
       is_top50: true,
     },
     {
       question: "What happens when you call `is_valid()` on a Django form?",
-      answer: "`is_valid()` triggers the full validation pipeline: (1) **`_clean_fields()`** — each field's built-in validators run (e.g., max_length, required), then the field-specific `clean_<fieldname>()` method runs if defined. (2) **`_clean_form()`** — the form's `clean()` method runs for cross-field validation (e.g., password confirmation match). (3) **`_post_clean()`** — for ModelForms, model-level validation runs. If any step raises `ValidationError`, the error is stored in `form.errors` and `is_valid()` returns `False`. Validated data ends up in `form.cleaned_data` as a dictionary. If invalid, the form re-renders with error messages.",
+      answer:
+        "`is_valid()` triggers the full validation pipeline: (1) **`_clean_fields()`** — each field's built-in validators run (e.g., max_length, required), then the field-specific `clean_<fieldname>()` method runs if defined. (2) **`_clean_form()`** — the form's `clean()` method runs for cross-field validation (e.g., password confirmation match). (3) **`_post_clean()`** — for ModelForms, model-level validation runs. If any step raises `ValidationError`, the error is stored in `form.errors` and `is_valid()` returns `False`. Validated data ends up in `form.cleaned_data` as a dictionary. If invalid, the form re-renders with error messages.",
       difficulty: "medium",
       tags: ["django", "python", "forms", "validation"],
       is_top50: true,
     },
     {
-      question: "What is the difference between `forms.Form` and `forms.ModelForm` in Django?",
-      answer: "**`forms.Form`** is a standalone form that is not tied to any database model. You manually define each field and handle saving the data yourself. Used for search forms, login forms, contact forms — anything that doesn't directly map to a model. **`forms.ModelForm`** is a shortcut that auto-generates form fields from a model definition. It provides a `save()` method that creates or updates a model instance. Choose `Form` for custom input not tied to a model, and `ModelForm` for CRUD operations on models to reduce boilerplate.",
+      question:
+        "What is the difference between `forms.Form` and `forms.ModelForm` in Django?",
+      answer:
+        "**`forms.Form`** is a standalone form that is not tied to any database model. You manually define each field and handle saving the data yourself. Used for search forms, login forms, contact forms — anything that doesn't directly map to a model. **`forms.ModelForm`** is a shortcut that auto-generates form fields from a model definition. It provides a `save()` method that creates or updates a model instance. Choose `Form` for custom input not tied to a model, and `ModelForm` for CRUD operations on models to reduce boilerplate.",
       difficulty: "medium",
       tags: ["django", "python", "forms"],
       is_top50: false,
@@ -26012,14 +26451,16 @@ chown -R www-data:www-data storage bootstrap/cache
 
     {
       question: "What is Django REST Framework (DRF) and why would you use it?",
-      answer: "Django REST Framework (DRF) is a powerful library for building RESTful APIs with Django. It provides: **Serializers** — convert Django model instances to JSON (and validate incoming JSON back to Python objects). **ViewSets** — group API actions (list, create, retrieve, update, delete) into one class. **Routers** — auto-generate URL patterns from ViewSets. **Authentication & Permissions** — built-in support for session auth, token auth, JWT, and permission classes. **Browsable API** — each endpoint renders a UI for testing. DRF reduces the boilerplate of building APIs significantly compared to writing JSON responses manually.",
+      answer:
+        "Django REST Framework (DRF) is a powerful library for building RESTful APIs with Django. It provides: **Serializers** — convert Django model instances to JSON (and validate incoming JSON back to Python objects). **ViewSets** — group API actions (list, create, retrieve, update, delete) into one class. **Routers** — auto-generate URL patterns from ViewSets. **Authentication & Permissions** — built-in support for session auth, token auth, JWT, and permission classes. **Browsable API** — each endpoint renders a UI for testing. DRF reduces the boilerplate of building APIs significantly compared to writing JSON responses manually.",
       difficulty: "medium",
       tags: ["django", "python", "drf", "api"],
       is_top50: true,
     },
     {
       question: "What are serializers in Django REST Framework?",
-      answer: "Serializers in DRF convert complex data types (like Django model instances and QuerySets) into JSON for API responses, and validate/deserialize incoming JSON data back into Python objects. **`ModelSerializer`** auto-generates fields based on a model definition. Example:\n```python\nfrom rest_framework import serializers\nfrom .models import Post\n\nclass PostSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Post\n        fields = ['id', 'title', 'content', 'author', 'created_at']\n```\nSerializers also handle validation — you can add custom validation with `validate_<field>()` methods or a `validate()` method for cross-field checks.",
+      answer:
+        "Serializers in DRF convert complex data types (like Django model instances and QuerySets) into JSON for API responses, and validate/deserialize incoming JSON data back into Python objects. **`ModelSerializer`** auto-generates fields based on a model definition. Example:\n```python\nfrom rest_framework import serializers\nfrom .models import Post\n\nclass PostSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Post\n        fields = ['id', 'title', 'content', 'author', 'created_at']\n```\nSerializers also handle validation — you can add custom validation with `validate_<field>()` methods or a `validate()` method for cross-field checks.",
       difficulty: "medium",
       tags: ["django", "python", "drf", "serializers"],
       is_top50: true,
@@ -26029,14 +26470,16 @@ chown -R www-data:www-data storage bootstrap/cache
 
     {
       question: "How does authentication work in Django?",
-      answer: "Django's built-in authentication system (`django.contrib.auth`) provides: a **User model** with username, password, email, and permission flags; `authenticate()` to verify credentials; `login()` to create a session; `logout()` to clear it; and the `@login_required` decorator to protect views. For API authentication, common approaches are **Session auth** (same-site apps, cookie-based), **Token auth** (via DRF's TokenAuthentication — a static token per user), and **JWT** (JSON Web Tokens via `djangorestframework-simplejwt` for stateless auth).",
+      answer:
+        "Django's built-in authentication system (`django.contrib.auth`) provides: a **User model** with username, password, email, and permission flags; `authenticate()` to verify credentials; `login()` to create a session; `logout()` to clear it; and the `@login_required` decorator to protect views. For API authentication, common approaches are **Session auth** (same-site apps, cookie-based), **Token auth** (via DRF's TokenAuthentication — a static token per user), and **JWT** (JSON Web Tokens via `djangorestframework-simplejwt` for stateless auth).",
       difficulty: "medium",
       tags: ["django", "python", "authentication"],
       is_top50: true,
     },
     {
       question: "How does Django protect against common security threats?",
-      answer: "Django has built-in protections for common web vulnerabilities: **CSRF** — `CsrfViewMiddleware` generates a unique token for each session; all POST forms must include `{% csrf_token %}`. **XSS** — Django's template engine auto-escapes all variable output (converts `<`, `>`, `&` to HTML entities). **SQL Injection** — Django's ORM uses parameterized queries, separating SQL code from user data. **Clickjacking** — `X-Frame-Options` middleware prevents your site from being embedded in iframes. **HTTPS** — `SECURE_SSL_REDIRECT`, `SESSION_COOKIE_SECURE`, and `CSRF_COOKIE_SECURE` settings enforce secure connections. Run `python manage.py check --deploy` to audit production security.",
+      answer:
+        "Django has built-in protections for common web vulnerabilities: **CSRF** — `CsrfViewMiddleware` generates a unique token for each session; all POST forms must include `{% csrf_token %}`. **XSS** — Django's template engine auto-escapes all variable output (converts `<`, `>`, `&` to HTML entities). **SQL Injection** — Django's ORM uses parameterized queries, separating SQL code from user data. **Clickjacking** — `X-Frame-Options` middleware prevents your site from being embedded in iframes. **HTTPS** — `SECURE_SSL_REDIRECT`, `SESSION_COOKIE_SECURE`, and `CSRF_COOKIE_SECURE` settings enforce secure connections. Run `python manage.py check --deploy` to audit production security.",
       difficulty: "medium",
       tags: ["django", "python", "security"],
       is_top50: true,
@@ -26046,7 +26489,8 @@ chown -R www-data:www-data storage bootstrap/cache
 
     {
       question: "How do you test Django applications?",
-      answer: "Django uses Python's `unittest` library with extensions: **`TestCase`** — a base test class that wraps each test in a database transaction (rolled back after each test for isolation). Use `self.client.get()`/`self.client.post()` to simulate HTTP requests. Example:\n```python\nfrom django.test import TestCase\nfrom .models import Post\n\nclass PostModelTest(TestCase):\n    def test_create_post(self):\n        post = Post.objects.create(title='Test', content='Hello')\n        self.assertEqual(post.title, 'Test')\n        self.assertEqual(Post.objects.count(), 1)\n\n    def test_post_list_view(self):\n        response = self.client.get('/posts/')\n        self.assertEqual(response.status_code, 200)\n        self.assertTemplateUsed(response, 'posts/list.html')\n```\nOther testing tools: **`pytest-django`** integrates pytest with Django for simpler syntax, **Factory Boy** creates test data factories, and **`assertNumQueries()`** ensures optimized queries.",
+      answer:
+        "Django uses Python's `unittest` library with extensions: **`TestCase`** — a base test class that wraps each test in a database transaction (rolled back after each test for isolation). Use `self.client.get()`/`self.client.post()` to simulate HTTP requests. Example:\n```python\nfrom django.test import TestCase\nfrom .models import Post\n\nclass PostModelTest(TestCase):\n    def test_create_post(self):\n        post = Post.objects.create(title='Test', content='Hello')\n        self.assertEqual(post.title, 'Test')\n        self.assertEqual(Post.objects.count(), 1)\n\n    def test_post_list_view(self):\n        response = self.client.get('/posts/')\n        self.assertEqual(response.status_code, 200)\n        self.assertTemplateUsed(response, 'posts/list.html')\n```\nOther testing tools: **`pytest-django`** integrates pytest with Django for simpler syntax, **Factory Boy** creates test data factories, and **`assertNumQueries()`** ensures optimized queries.",
       difficulty: "medium",
       tags: ["django", "python", "testing"],
       is_top50: true,
@@ -26060,14 +26504,16 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between require() and import in Node.js?",
+      question:
+        "What is the difference between require() and import in Node.js?",
       answer: `require() is the CommonJS module loading function — synchronous, runtime resolution, cached after first load. import is the ES module syntax — static, asynchronous, top-level only. require() can be called conditionally; import must be at the top level. import supports named exports and tree-shaking. Node.js supports both, determined by package.json "type" field or file extension (.mjs for ES modules, .cjs for CommonJS).`,
       difficulty: "medium",
       tags: ["nodejs-express"],
       is_top50: true,
     },
     {
-      question: "What are the differences between CommonJS and ES modules in Node.js?",
+      question:
+        "What are the differences between CommonJS and ES modules in Node.js?",
       answer: `CommonJS uses require()/module.exports, is synchronous, and loads modules at runtime. ES modules use import/export, are static and asynchronous, and support tree-shaking. CommonJS allows dynamic require(), while ESM requires top-level import statements. ESM supports named exports and import.meta. Node.js uses "type": "module" in package.json or .mjs extension for ESM.`,
       difficulty: "medium",
       tags: ["nodejs-express"],
@@ -26081,7 +26527,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between fs.readFile and streams for reading files?",
+      question:
+        "What is the difference between fs.readFile and streams for reading files?",
       answer: `fs.readFile loads the entire file into memory before providing the data via callback/promise. Streams process data in chunks, allowing you to handle large files without consuming excessive memory. fs.readFile is simpler for small files. Streams use fs.createReadStream, emit 'data' events, and support backpressure — they are essential for handling large files or network responses.`,
       difficulty: "medium",
       tags: ["nodejs-express"],
@@ -26109,7 +26556,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between spawn() and exec() in child_process?",
+      question:
+        "What is the difference between spawn() and exec() in child_process?",
       answer: `spawn() launches a new process with a stream of output — it returns a ChildProcess object with stdout/stderr streams, making it ideal for large data. exec() buffers the output in memory and provides it via callback — simpler but limited by the maxBuffer size (default 200KB). spawn() does not create a shell by default (more efficient), while exec() uses a shell. Use spawn() for long-running processes and large output; use exec() for simple commands with small output.`,
       difficulty: "medium",
       tags: ["nodejs-express"],
@@ -26193,7 +26641,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between process.nextTick() and setImmediate()?",
+      question:
+        "What is the difference between process.nextTick() and setImmediate()?",
       answer: `process.nextTick() schedules a callback to run after the current operation completes, before the next event loop phase begins — it has the highest priority. setImmediate() schedules a callback to run in the check phase of the next event loop iteration. process.nextTick() can cause I/O starvation if called recursively because it blocks the poll phase. setImmediate() is generally preferred because it respects the event loop phases and does not block I/O.`,
       difficulty: "medium",
       tags: ["nodejs-express"],
@@ -26221,7 +26670,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between app.use() and app.get() in Express?",
+      question:
+        "What is the difference between app.use() and app.get() in Express?",
       answer: `app.use() mounts middleware for all HTTP methods at a specified path (or all paths if no path is given). app.get() handles only GET requests at the specified path. Use app.use() for global middleware (logging, auth, parsing) and app.get() for specific route handlers. app.use('/api', router) applies to any HTTP method under /api; app.get('/api/users') only matches GET /api/users.`,
       difficulty: "medium",
       tags: ["nodejs-express"],
@@ -26242,7 +26692,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between res.json(), res.send(), and res.end() in Express?",
+      question:
+        "What is the difference between res.json(), res.send(), and res.end() in Express?",
       answer: `res.json() sends a JSON response — it calls JSON.stringify() and sets Content-Type to application/json. res.send() automatically detects the content type (string, Buffer, object, array) and sends the response. res.end() ends the response without sending any body — it is used for terminating responses with no data. Prefer res.json() for APIs (explicit), res.send() for mixed content, and res.end() for 204 No Content responses.`,
       difficulty: "easy",
       tags: ["nodejs-express"],
@@ -26270,7 +26721,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is a good application structure for an Express.js project?",
+      question:
+        "What is a good application structure for an Express.js project?",
       answer: `A production Express app follows separation of concerns: src/routes/ (route definitions), src/controllers/ (request handlers), src/middleware/ (custom middleware), src/models/ (data access), src/services/ (business logic), src/config/ (configuration), src/utils/ (helpers), src/app.js (Express setup), and src/server.js (server start). Use the Router pattern to keep route files small. Environment-specific config uses .env files. This structure scales from small APIs to large applications.`,
       difficulty: "hard",
       tags: ["nodejs-express"],
@@ -26284,7 +26736,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: false,
     },
     {
-      question: "What are the best practices for designing REST APIs with Express?",
+      question:
+        "What are the best practices for designing REST APIs with Express?",
       answer: `Use consistent naming (plural nouns: /users, /products), proper HTTP methods (GET, POST, PUT, PATCH, DELETE), versioning (/api/v1/users), pagination (page/limit or cursor), filtering/sorting via query parameters, proper status codes (200, 201, 204, 400, 401, 403, 404, 500), and JSON responses with consistent structure: { data, error, meta }. Validate input with libraries like Joi or Zod. Document APIs with OpenAPI/Swagger. Secure with authentication middleware and rate limiting.`,
       difficulty: "hard",
       tags: ["nodejs-express"],
@@ -26296,11 +26749,11 @@ chown -R www-data:www-data storage bootstrap/cache
       difficulty: "easy",
       tags: ["nodejs-express"],
       is_top50: true,
-    }
-,
+    },
 
     {
-      question: "What is authentication and how does it differ from authorization?",
+      question:
+        "What is authentication and how does it differ from authorization?",
       answer: `Authentication verifies who a user is (their identity), while authorization determines what they are allowed to do. Authentication typically requires credentials like passwords, biometrics, or tokens. Authorization uses policies and roles to grant or deny access to resources. Both are often chained: authenticate first, then authorize each request.`,
       difficulty: "easy",
       tags: ["authentication-authorization"],
@@ -26335,7 +26788,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "Explain the difference between symmetric and asymmetric encryption in JWT.",
+      question:
+        "Explain the difference between symmetric and asymmetric encryption in JWT.",
       answer: `Symmetric algorithms (HS256) use a single shared secret to both sign and verify tokens — faster but require the secret to be shared across services. Asymmetric algorithms (RS256, ES256) use a private key for signing and a public key for verification. This lets any service verify a token without access to the private key, making RS256 preferable for microservice architectures.`,
       difficulty: "medium",
       tags: ["authentication-authorization"],
@@ -26412,7 +26866,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between access tokens and refresh tokens?",
+      question:
+        "What is the difference between access tokens and refresh tokens?",
       answer: `Access tokens (short-lived, typically 15-60 minutes) authenticate API requests. Refresh tokens (long-lived, days to months) are used to obtain new access tokens without requiring the user to re-authenticate. Refresh tokens are stored more securely (server-side) and can be revoked individually. This architecture limits the damage if an access token is leaked — it expires quickly.`,
       difficulty: "medium",
       tags: ["authentication-authorization"],
@@ -26433,7 +26888,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "Explain the difference between authentication and session management.",
+      question:
+        "Explain the difference between authentication and session management.",
       answer: `Authentication is the process of verifying a user's identity (login). Session management maintains the user's authenticated state across multiple requests. Authentication happens once per session; session management happens on every request via cookies or tokens. Poor session management (e.g., predictable session IDs, missing expiration) can undermine strong authentication.`,
       difficulty: "medium",
       tags: ["authentication-authorization"],
@@ -26489,7 +26945,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between stateful and stateless authentication?",
+      question:
+        "What is the difference between stateful and stateless authentication?",
       answer: `Stateful authentication (sessions) stores user session data server-side, allowing immediate revocation. Stateless authentication (JWT) stores all user data in the token itself — no server-side store is needed, but revocation requires additional infrastructure. JWTs scale better horizontally since no shared session store is required, but they cannot be invalidated before expiration without a blocklist.`,
       difficulty: "medium",
       tags: ["authentication-authorization"],
@@ -26538,20 +26995,25 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between horizontal and vertical authorization?",
+      question:
+        "What is the difference between horizontal and vertical authorization?",
       answer: `Horizontal authorization controls access to resources at the same level — for example, a user can only view their own orders. Vertical authorization controls access across different privilege levels — for example, an admin can view all orders. Both must be implemented at the application layer because authentication alone does not prevent users from accessing resources they should not see.`,
       difficulty: "medium",
       tags: ["authentication-authorization"],
       is_top50: true,
     },
     {
-      question: "What is Rate Limiting and how does it relate to authentication?",
+      question:
+        "What is Rate Limiting and how does it relate to authentication?",
       answer: `Rate limiting restricts the number of requests a client can make in a time window. For authentication endpoints, it is critical to prevent brute-force password guessing. Common approaches include IP-based throttling, account lockout after N failed attempts, and progressive delays. Implement rate limiting at the API gateway or middleware level using Redis or in-memory counters.`,
       difficulty: "medium",
-      tags: ["authentication-authorization", "security-basics", "background-jobs-message-queues"],
+      tags: [
+        "authentication-authorization",
+        "security-basics",
+        "background-jobs-message-queues",
+      ],
       is_top50: false,
-    }
-,
+    },
 
     {
       question: "What is SQL injection and how do you prevent it?",
@@ -26603,7 +27065,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between authentication and authorization?",
+      question:
+        "What is the difference between authentication and authorization?",
       answer: `Authentication verifies identity ("who you are"), while authorization determines permissions ("what you can do"). Authentication happens first, usually via passwords, tokens, or biometrics. Authorization uses roles, policies, or ACLs to control access to resources. Both must be implemented together; authentication without authorization provides no access control.`,
       difficulty: "easy",
       tags: ["security-basics", "authentication-authorization"],
@@ -26631,7 +27094,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between encoding, encryption, and hashing?",
+      question:
+        "What is the difference between encoding, encryption, and hashing?",
       answer: `Encoding transforms data for safe transmission (Base64, URL encoding) — reversible with no key. Encryption transforms data using a key to maintain confidentiality — reversible with the correct key. Hashing is a one-way function that produces a fixed-size digest — it cannot be reversed. Use encoding for data transport, encryption for confidentiality, and hashing for integrity verification and password storage.`,
       difficulty: "easy",
       tags: ["security-basics"],
@@ -26666,7 +27130,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between symmetric and asymmetric encryption?",
+      question:
+        "What is the difference between symmetric and asymmetric encryption?",
       answer: `Symmetric encryption uses the same key for both encryption and decryption — fast but requires secure key distribution. Asymmetric encryption uses a public/private key pair — slower but eliminates key distribution problems. HTTPS uses asymmetric encryption for the handshake (key exchange) and symmetric encryption for bulk data transfer (performance).`,
       difficulty: "easy",
       tags: ["security-basics"],
@@ -26694,7 +27159,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between white-box and black-box security testing?",
+      question:
+        "What is the difference between white-box and black-box security testing?",
       answer: `White-box testing gives the tester full knowledge of the application architecture, source code, and infrastructure. Black-box testing simulates an external attacker with no inside knowledge. Gray-box testing combines both. White-box finds deeper issues (logic flaws, backdoors) but is time-intensive. Black-box finds surface-level vulnerabilities quickly and is closer to real-world attack scenarios.`,
       difficulty: "medium",
       tags: ["security-basics"],
@@ -26729,7 +27195,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between authentication bypass and privilege escalation?",
+      question:
+        "What is the difference between authentication bypass and privilege escalation?",
       answer: `Authentication bypass allows an attacker to access the application without valid credentials (e.g., exploiting a broken login flow). Privilege escalation occurs after gaining access — vertical escalation (user becomes admin) or horizontal escalation (user accesses another user's data). Both result from flawed access control logic and inadequate server-side authorization checks.`,
       difficulty: "medium",
       tags: ["security-basics", "authentication-authorization"],
@@ -26743,7 +27210,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: false,
     },
     {
-      question: "What is the difference between authentication and session management failures?",
+      question:
+        "What is the difference between authentication and session management failures?",
       answer: `Authentication failures involve weak credential verification (e.g., allowing weak passwords, no rate limiting). Session management failures involve poor handling of authenticated state (e.g., predictable session IDs, no session expiration, missing logout functionality). Both are in the OWASP Top 10. Proper implementation requires secure password policies, session ID regeneration, HttpOnly cookies, and session timeouts.`,
       difficulty: "medium",
       tags: ["security-basics", "authentication-authorization"],
@@ -26771,7 +27239,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: false,
     },
     {
-      question: "What is the difference between authentication and session management?",
+      question:
+        "What is the difference between authentication and session management?",
       answer: `Authentication verifies the user's identity at login time. Session management maintains that authenticated state across subsequent requests via session IDs stored in cookies or tokens. Weak session management (predictable IDs, missing expiration, no rotation after login) can allow attackers to hijack sessions even if authentication is strong. Both must be hardened together.`,
       difficulty: "medium",
       tags: ["security-basics", "authentication-authorization"],
@@ -26785,7 +27254,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between whitelisting and blacklisting in security?",
+      question:
+        "What is the difference between whitelisting and blacklisting in security?",
       answer: `Whitelisting (allowlisting) permits only explicitly approved items and denies everything else — more secure but requires maintenance. Blacklisting (denylisting) blocks known bad patterns while allowing everything else — easier to maintain but can miss novel attacks. When possible, prefer allowlisting for input validation, file types, and network destinations.`,
       difficulty: "easy",
       tags: ["security-basics"],
@@ -26797,8 +27267,7 @@ chown -R www-data:www-data storage bootstrap/cache
       difficulty: "medium",
       tags: ["security-basics"],
       is_top50: false,
-    }
-,
+    },
 
     {
       question: "What is caching and why is it important?",
@@ -26885,7 +27354,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between Cache-Control: no-cache and no-store?",
+      question:
+        "What is the difference between Cache-Control: no-cache and no-store?",
       answer: `no-cache means the browser can cache the response but must revalidate with the server (using ETag or Last-Modified) before using it on every request. no-store means the response must not be cached at all — the browser must fetch it from the server every time. Use no-cache for dynamic content that changes frequently but benefits from bandwidth-saving revalidation. Use no-store for sensitive data.`,
       difficulty: "medium",
       tags: ["caching-strategies"],
@@ -26906,14 +27376,16 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between local cache and distributed cache?",
+      question:
+        "What is the difference between local cache and distributed cache?",
       answer: `Local cache stores data in the application process's memory (e.g., in-memory Map, LRU cache). It is fast (no network hop) but limited to a single instance — each server has its own copy, causing inconsistency. Distributed cache (Redis, Memcached) spans multiple servers, providing a shared, consistent cache pool. Use local cache for read-only reference data; use distributed cache for shared state across instances.`,
       difficulty: "medium",
       tags: ["caching-strategies"],
       is_top50: true,
     },
     {
-      question: "What is a reverse proxy cache and how does NGINX implement it?",
+      question:
+        "What is a reverse proxy cache and how does NGINX implement it?",
       answer: `A reverse proxy cache sits between clients and the origin server, caching responses. NGINX implements this with proxy_cache_path and proxy_cache directives. It can cache static and dynamic content based on URL, query parameters, and headers. Reverse proxy caching offloads the application server and can serve cached responses at near-zero latency. NGINX also supports cache purging and cache key customization.`,
       difficulty: "medium",
       tags: ["caching-strategies"],
@@ -26969,14 +27441,16 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: false,
     },
     {
-      question: "What are cache tags and how do they enable selective invalidation?",
+      question:
+        "What are cache tags and how do they enable selective invalidation?",
       answer: `Cache tags are labels attached to cached entries (e.g., "user:42", "post:blog"). When a related resource is updated, you purge all entries with a matching tag. This enables granular, grouped cache invalidation without flushing the entire cache. Redis does not natively support tags; implementations typically use Redis Sets to store cache keys by tag for efficient lookup and bulk deletion.`,
       difficulty: "hard",
       tags: ["caching-strategies"],
       is_top50: true,
     },
     {
-      question: "What is the operating system page cache and how does it affect database performance?",
+      question:
+        "What is the operating system page cache and how does it affect database performance?",
       answer: `The OS page cache caches disk blocks in memory. When a database reads data from disk, the OS caches those pages. Subsequent reads from the same pages are served from memory — orders of magnitude faster than disk I/O. This means even without application-level caching, frequently accessed database data may be served from the OS page cache. Proper indexing and working set sizing maximize page cache effectiveness.`,
       difficulty: "medium",
       tags: ["caching-strategies"],
@@ -27011,14 +27485,16 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is TTL-based cache expiration and what are its limitations?",
+      question:
+        "What is TTL-based cache expiration and what are its limitations?",
       answer: `TTL-based expiration automatically removes cache entries after a fixed time. It is simple and ensures data is periodically refreshed. Limitations: data may become stale before the TTL expires (serving outdated info), and a cache stampede can occur when multiple entries expire simultaneously. Solutions: add jitter to TTL values, use early recomputation, or combine TTL with explicit invalidation on writes.`,
       difficulty: "medium",
       tags: ["caching-strategies"],
       is_top50: true,
     },
     {
-      question: "What is compression caching (gzip, brotli) and how does it interact with CDNs?",
+      question:
+        "What is compression caching (gzip, brotli) and how does it interact with CDNs?",
       answer: `Compression caching stores compressed versions of responses to reduce bandwidth and speed up delivery. CDNs typically cache compressed responses based on the Accept-Encoding header. The Vary: Accept-Encoding header ensures the CDN serves the correct compression variant. Brotli offers better compression than gzip but may not be supported at all CDN edge nodes. Pre-compress static assets for best performance.`,
       difficulty: "medium",
       tags: ["caching-strategies"],
@@ -27030,11 +27506,11 @@ chown -R www-data:www-data storage bootstrap/cache
       difficulty: "medium",
       tags: ["caching-strategies"],
       is_top50: true,
-    }
-,
+    },
 
     {
-      question: "What are LLM APIs and how do you integrate them into a backend?",
+      question:
+        "What are LLM APIs and how do you integrate them into a backend?",
       answer: `LLM APIs (like OpenAI, Mistral, Anthropic) provide access to large language models via HTTP endpoints. Backend integration involves sending prompts with parameters (temperature, max_tokens) and receiving generated text. Use server-side calls to protect API keys, implement streaming for responsiveness, add rate limiting, and handle errors (timeouts, content moderation, token limits). Always proxy through your backend rather than calling from the client.`,
       difficulty: "easy",
       tags: ["ai-basics-backend"],
@@ -27055,7 +27531,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is a vector database and how is it used in AI applications?",
+      question:
+        "What is a vector database and how is it used in AI applications?",
       answer: `A vector database stores and indexes high-dimensional vectors for fast similarity search. Examples: Pinecone, Weaviate, Qdrant, pgvector (PostgreSQL extension). They support operations like nearest neighbor search using cosine similarity, Euclidean distance, or dot product. In AI backends, vector DBs store embeddings for RAG, recommendation systems, semantic search, and anomaly detection.`,
       difficulty: "medium",
       tags: ["ai-basics-backend", "caching-strategies"],
@@ -27097,7 +27574,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is cosine similarity and why is it used in vector search?",
+      question:
+        "What is cosine similarity and why is it used in vector search?",
       answer: `Cosine similarity measures the cosine of the angle between two vectors, ranging from -1 (opposite) to 1 (identical). It is the most common similarity metric for embedding vectors because it is invariant to vector magnitude — focusing on direction, which captures semantic orientation. In practice, normalized embeddings allow using dot product interchangeably with cosine similarity.`,
       difficulty: "medium",
       tags: ["ai-basics-backend"],
@@ -27111,14 +27589,16 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What are the main challenges when integrating LLMs into production?",
+      question:
+        "What are the main challenges when integrating LLMs into production?",
       answer: `Key challenges: latency (LLMs take seconds to generate), cost (per-token pricing at scale), hallucinations (model generates false information), token limits (context window constraints), security (prompt injection, data leakage), and rate limits. Solutions include caching common prompts, using smaller/faster models for simple tasks, implementing content filters, and designing guardrails.`,
       difficulty: "medium",
       tags: ["ai-basics-backend"],
       is_top50: true,
     },
     {
-      question: "What is a system prompt and how is it different from a user prompt?",
+      question:
+        "What is a system prompt and how is it different from a user prompt?",
       answer: `A system prompt sets the behavior, persona, and constraints for the LLM — it is the "instructions" for how to respond. User prompts are the actual queries or tasks. The system prompt is typically injected by the backend and hidden from the end user. Example: "You are a helpful tutor. Answer concisely. If you do not know, say so." A well-crafted system prompt significantly improves output quality.`,
       difficulty: "easy",
       tags: ["ai-basics-backend"],
@@ -27167,7 +27647,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: false,
     },
     {
-      question: "What is context window and how does it affect application design?",
+      question:
+        "What is context window and how does it affect application design?",
       answer: `The context window is the maximum number of tokens an LLM can process at once (input + output). Larger windows (128K-1M tokens) allow processing entire documents. Design implications: you must track total token usage, implement conversation summarization for long chats, chunk documents for RAG within the window, and design prompts that stay within limits. Exceeding the window causes truncated or dropped input.`,
       difficulty: "easy",
       tags: ["ai-basics-backend"],
@@ -27181,14 +27662,16 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What are the different types of LLM models (base vs. instruct vs. chat)?",
+      question:
+        "What are the different types of LLM models (base vs. instruct vs. chat)?",
       answer: `Base models are pre-trained on raw text for next-token prediction — they complete text but do not follow instructions well. Instruct models are fine-tuned to follow instructions (e.g., "Summarize this"). Chat models are optimized for multi-turn conversations with system/user/assistant roles. Most production backends use instruct or chat models. Base models are typically only used as starting points for fine-tuning.`,
       difficulty: "medium",
       tags: ["ai-basics-backend"],
       is_top50: false,
     },
     {
-      question: "What is embedding dimensionality and how does it affect storage and search?",
+      question:
+        "What is embedding dimensionality and how does it affect storage and search?",
       answer: `Embedding dimensionality is the number of dimensions in the vector (e.g., 384, 768, 1536). Higher dimensions capture more semantic nuance but require more storage and slower search due to the curse of dimensionality. Lower dimensions are faster and cheaper but may lose semantic precision. Most production applications use 256-768 dimensions. Techniques like PCA or Matryoshka embeddings can reduce dimensionality.`,
       difficulty: "medium",
       tags: ["ai-basics-backend"],
@@ -27202,7 +27685,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between one-shot, few-shot, and zero-shot prompting?",
+      question:
+        "What is the difference between one-shot, few-shot, and zero-shot prompting?",
       answer: `Zero-shot: the LLM performs a task with only an instruction and no examples. One-shot: one example is provided in the prompt. Few-shot: multiple examples (typically 3-5) are provided. More examples improve performance but consume tokens. Few-shot prompting is often sufficient for many tasks; fine-tuning is needed when few-shot performance is inadequate or when many examples would exceed the context window.`,
       difficulty: "easy",
       tags: ["ai-basics-backend"],
@@ -27223,7 +27707,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is an AI agent and how is it different from a simple LLM call?",
+      question:
+        "What is an AI agent and how is it different from a simple LLM call?",
       answer: `An AI agent can autonomously reason, plan, and execute actions using tools. Unlike a simple LLM call (one prompt → one response), an agent can: call multiple tools, incorporate results into reasoning, loop until a task is complete, and maintain state across steps. Frameworks like LangChain, Vercel AI SDK, and Autogen enable agent development. Agents are powerful but require careful guardrails.`,
       difficulty: "hard",
       tags: ["ai-basics-backend"],
@@ -27244,7 +27729,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the role of the backend in an LLM-powered application?",
+      question:
+        "What is the role of the backend in an LLM-powered application?",
       answer: `The backend manages API keys, constructs prompts, handles authentication, enforces rate limits, manages conversation state, caches responses, monitors usage and cost, implements content moderation, and logs interactions. It serves as the security and orchestration layer between the client and the LLM. Never expose raw LLM API access to clients — always proxy through the backend.`,
       difficulty: "medium",
       tags: ["ai-basics-backend"],
@@ -27263,8 +27749,7 @@ chown -R www-data:www-data storage bootstrap/cache
       difficulty: "medium",
       tags: ["ai-basics-backend", "caching-strategies"],
       is_top50: false,
-    }
-,
+    },
 
     {
       question: "What is a background job and why is it needed?",
@@ -27295,14 +27780,16 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is Apache Kafka and how is it different from traditional message queues?",
+      question:
+        "What is Apache Kafka and how is it different from traditional message queues?",
       answer: `Kafka is a distributed event streaming platform designed for high-throughput, fault-tolerant, and replayable event processing. Unlike traditional queues (RabbitMQ), Kafka persists all messages to disk and allows consumers to replay from any offset. It uses a pull-based model (consumers control read rate) and supports partitioning for massive parallelism. Kafka excels at log aggregation, event sourcing, and stream processing.`,
       difficulty: "medium",
       tags: ["background-jobs-message-queues"],
       is_top50: true,
     },
     {
-      question: "What is the difference between a job queue and a message queue?",
+      question:
+        "What is the difference between a job queue and a message queue?",
       answer: `A job queue is specifically designed for discrete work items (jobs) with execution tracking, retries, and status updates. A message queue is a general-purpose communication channel for passing data between services. Job queues (BullMQ, Sidekiq) include features like job scheduling, progress tracking, and result storage. Message queues (RabbitMQ, Kafka) focus on reliable message delivery and streaming.`,
       difficulty: "medium",
       tags: ["background-jobs-message-queues"],
@@ -27337,7 +27824,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What is the difference between at-least-once and exactly-once delivery?",
+      question:
+        "What is the difference between at-least-once and exactly-once delivery?",
       answer: `At-least-once delivery guarantees every message is delivered at least once but may be delivered multiple times due to retries. Exactly-once delivery ensures each message is processed exactly once. At-least-once is simpler and more common; applications must implement idempotency to handle duplicates. Exactly-once requires distributed coordination (Kafka transactions, two-phase commit) and has higher overhead.`,
       difficulty: "medium",
       tags: ["background-jobs-message-queues"],
@@ -27351,7 +27839,8 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "What are the advantages of using a message broker in a microservice architecture?",
+      question:
+        "What are the advantages of using a message broker in a microservice architecture?",
       answer: `Message brokers decouple services — one service can emit events without knowing which services consume them. They buffer messages during traffic spikes, preventing downstream service overload. They improve resilience: if a consumer is down, messages queue up and are processed when it recovers. Brokers enable event-driven communication, which scales better than synchronous HTTP calls for non-critical operations.`,
       difficulty: "medium",
       tags: ["background-jobs-message-queues"],
@@ -27372,14 +27861,16 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: true,
     },
     {
-      question: "How do you handle job failures that require manual intervention?",
+      question:
+        "How do you handle job failures that require manual intervention?",
       answer: `Move failed jobs to a dead-letter queue with full error context (error message, stack trace, input data, attempt count). Set up alerts on DLQ depth. Build an admin dashboard where operators can view failures, edit job data, and requeue jobs. Log all job attempts with timing and outcomes. For non-critical failures, consider silent retry with exponential backoff before moving to the DLQ.`,
       difficulty: "medium",
       tags: ["background-jobs-message-queues"],
       is_top50: true,
     },
     {
-      question: "What is the difference between RabbitMQ exchanges and Kafka topics?",
+      question:
+        "What is the difference between RabbitMQ exchanges and Kafka topics?",
       answer: `RabbitMQ exchanges route messages to queues based on binding rules (direct, topic, fanout). Kafka topics are partitioned logs — all messages in a topic are stored and consumers read from specific offsets. RabbitMQ is message-oriented (push to consumers); Kafka is stream-oriented (pull from log). RabbitMQ excels at complex routing; Kafka excels at high-throughput replayable event streaming.`,
       difficulty: "medium",
       tags: ["background-jobs-message-queues"],
@@ -27491,67 +27982,78 @@ chown -R www-data:www-data storage bootstrap/cache
       is_top50: false,
     },
     {
-      question: "What is the difference between synchronous and asynchronous communication in microservices?",
+      question:
+        "What is the difference between synchronous and asynchronous communication in microservices?",
       answer: `Synchronous communication (HTTP/REST, gRPC) blocks the caller until a response is received. It is simpler but couples services in time and can cascade failures. Asynchronous communication (message queues, events) decouples services — the sender does not wait for a response. Asynchronous is more resilient and scalable but harder to debug. Use synchronous for commands that need immediate acknowledgment; use asynchronous for events and non-critical work.`,
       difficulty: "medium",
       tags: ["background-jobs-message-queues"],
       is_top50: true,
-    }
-,
+    },
   ],
   "fullstack-engineer": [
     {
       question: "How does a full-stack application handle CORS?",
-      answer: "CORS (Cross-Origin Resource Sharing) is a browser security mechanism that restricts requests from different origins. The server must include specific headers: `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Headers`. Browsers send a preflight OPTIONS request for non-simple requests. Solutions: server-side CORS config, reverse proxy, or same-origin deployment.",
+      answer:
+        "CORS (Cross-Origin Resource Sharing) is a browser security mechanism that restricts requests from different origins. The server must include specific headers: `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Headers`. Browsers send a preflight OPTIONS request for non-simple requests. Solutions: server-side CORS config, reverse proxy, or same-origin deployment.",
       difficulty: "medium",
       tags: ["security", "api-design"],
       is_top50: true,
     },
     {
       question: "What is the role of a reverse proxy in web applications?",
-      answer: "A reverse proxy (Nginx, Caddy, HAProxy) sits in front of application servers handling: load balancing (distribute traffic), SSL termination, caching, compression, rate limiting, and serving static files. It improves security by hiding backend servers and provides a single entry point for clients.",
+      answer:
+        "A reverse proxy (Nginx, Caddy, HAProxy) sits in front of application servers handling: load balancing (distribute traffic), SSL termination, caching, compression, rate limiting, and serving static files. It improves security by hiding backend servers and provides a single entry point for clients.",
       difficulty: "medium",
       tags: ["devops", "networking"],
       is_top50: true,
     },
     {
-      question: "Explain the concept of state management in frontend applications.",
-      answer: "State management handles the data that changes over time in a UI. Options: local state (React useState, component-level), global state (Redux, Zustand, Context API), server state (React Query, SWR), URL state (query params), and persisted state (localStorage). Choose based on scope and sharing needs.",
+      question:
+        "Explain the concept of state management in frontend applications.",
+      answer:
+        "State management handles the data that changes over time in a UI. Options: local state (React useState, component-level), global state (Redux, Zustand, Context API), server state (React Query, SWR), URL state (query params), and persisted state (localStorage). Choose based on scope and sharing needs.",
       difficulty: "medium",
       tags: ["react", "architecture"],
       is_top50: true,
     },
     {
-      question: "What is the difference between monolithic and microservices architecture?",
-      answer: "Monolithic architecture is a single codebase deployed as one unit — simpler to develop and test initially but hard to scale and maintain as it grows. Microservices split functionality into independent services — each with its own database, deployable separately, independently scalable, but introduces distributed system complexity (network latency, data consistency, service discovery).",
+      question:
+        "What is the difference between monolithic and microservices architecture?",
+      answer:
+        "Monolithic architecture is a single codebase deployed as one unit — simpler to develop and test initially but hard to scale and maintain as it grows. Microservices split functionality into independent services — each with its own database, deployable separately, independently scalable, but introduces distributed system complexity (network latency, data consistency, service discovery).",
       difficulty: "hard",
       tags: ["architecture", "system-design"],
       is_top50: true,
     },
     {
       question: "How do you optimize a web application for performance?",
-      answer: "Frontend: lazy loading, code splitting, image optimization, bundling/minification, CDN, caching headers. Backend: database query optimization, connection pooling, caching (Redis), compression, async processing. Full-stack: SSR/SSG, edge functions, performance monitoring (Lighthouse, Web Vitals), reduce waterfall requests.",
+      answer:
+        "Frontend: lazy loading, code splitting, image optimization, bundling/minification, CDN, caching headers. Backend: database query optimization, connection pooling, caching (Redis), compression, async processing. Full-stack: SSR/SSG, edge functions, performance monitoring (Lighthouse, Web Vitals), reduce waterfall requests.",
       difficulty: "hard",
       tags: ["performance", "optimization"],
       is_top50: true,
     },
     {
       question: "What is a WebSocket and when would you use it?",
-      answer: "WebSocket provides full-duplex, persistent communication between client and server over a single TCP connection. Unlike HTTP (request-response), the server can push data to clients at any time. Use cases: real-time chat, live notifications, collaborative editing, gaming, financial tickers. Upgrade from HTTP via the `Upgrade` header.",
+      answer:
+        "WebSocket provides full-duplex, persistent communication between client and server over a single TCP connection. Unlike HTTP (request-response), the server can push data to clients at any time. Use cases: real-time chat, live notifications, collaborative editing, gaming, financial tickers. Upgrade from HTTP via the `Upgrade` header.",
       difficulty: "medium",
       tags: ["networking", "real-time"],
       is_top50: true,
     },
     {
-      question: "Explain the concept of server-side rendering (SSR) vs client-side rendering (CSR).",
-      answer: "CSR loads a minimal HTML shell that renders in the browser via JavaScript — fast initial load but slow time-to-interactive (TTI) and poor SEO. SSR generates HTML on the server per request — better SEO, faster first paint, but higher server load. Next.js offers both: SSR, SSG (static generation), and ISR (incremental static regeneration).",
+      question:
+        "Explain the concept of server-side rendering (SSR) vs client-side rendering (CSR).",
+      answer:
+        "CSR loads a minimal HTML shell that renders in the browser via JavaScript — fast initial load but slow time-to-interactive (TTI) and poor SEO. SSR generates HTML on the server per request — better SEO, faster first paint, but higher server load. Next.js offers both: SSR, SSG (static generation), and ISR (incremental static regeneration).",
       difficulty: "medium",
       tags: ["react", "architecture"],
       is_top50: true,
     },
     {
       question: "What are the key considerations when designing a RESTful API?",
-      answer: "Consider: resource naming (plural nouns, /users not /getUsers), HTTP methods (GET for read, POST for create, PUT/PATCH for update, DELETE for remove), consistent error responses (status codes + error body), versioning (/v1/users), pagination (offset/limit or cursor-based), authentication (JWT/API keys), rate limiting, and documentation (OpenAPI/Swagger).",
+      answer:
+        "Consider: resource naming (plural nouns, /users not /getUsers), HTTP methods (GET for read, POST for create, PUT/PATCH for update, DELETE for remove), consistent error responses (status codes + error body), versioning (/v1/users), pagination (offset/limit or cursor-based), authentication (JWT/API keys), rate limiting, and documentation (OpenAPI/Swagger).",
       difficulty: "medium",
       tags: ["api-design"],
       is_top50: true,
@@ -27560,56 +28062,64 @@ chown -R www-data:www-data storage bootstrap/cache
   "devops-engineer": [
     {
       question: "What is CI/CD and why is it important?",
-      answer: "CI/CD stands for Continuous Integration/Continuous Deployment. CI automatically builds and tests code on every push to catch bugs early. CD automatically deploys code to production after passing tests. Benefits: faster release cycles, reduced manual errors, consistent processes, rapid feedback, and reliable deployments.",
+      answer:
+        "CI/CD stands for Continuous Integration/Continuous Deployment. CI automatically builds and tests code on every push to catch bugs early. CD automatically deploys code to production after passing tests. Benefits: faster release cycles, reduced manual errors, consistent processes, rapid feedback, and reliable deployments.",
       difficulty: "easy",
       tags: ["ci-cd"],
       is_top50: true,
     },
     {
       question: "Explain the difference between Docker and virtual machines.",
-      answer: "Docker containers share the host OS kernel (lightweight), start in seconds, and have minimal overhead. VMs include a full guest OS per instance (heavyweight), start in minutes, and provide stronger isolation. Containers are better for microservices and scaling; VMs are better when running different OS kernels or requiring stronger security boundaries.",
+      answer:
+        "Docker containers share the host OS kernel (lightweight), start in seconds, and have minimal overhead. VMs include a full guest OS per instance (heavyweight), start in minutes, and provide stronger isolation. Containers are better for microservices and scaling; VMs are better when running different OS kernels or requiring stronger security boundaries.",
       difficulty: "medium",
       tags: ["docker", "virtualization"],
       is_top50: true,
     },
     {
       question: "What is Kubernetes and what problem does it solve?",
-      answer: "Kubernetes (K8s) is a container orchestration platform that automates deployment, scaling, and management of containerized applications. It solves: service discovery, load balancing, automatic scaling, rolling updates, self-healing (restarting failed containers), storage orchestration, and configuration management. It abstracts away the underlying infrastructure.",
+      answer:
+        "Kubernetes (K8s) is a container orchestration platform that automates deployment, scaling, and management of containerized applications. It solves: service discovery, load balancing, automatic scaling, rolling updates, self-healing (restarting failed containers), storage orchestration, and configuration management. It abstracts away the underlying infrastructure.",
       difficulty: "hard",
       tags: ["kubernetes", "orchestration"],
       is_top50: true,
     },
     {
       question: "What is Infrastructure as Code (IaC)?",
-      answer: "IaC manages infrastructure (servers, networks, databases) through code and configuration files rather than manual processes. Tools: Terraform (multi-cloud), AWS CloudFormation, Pulumi, Ansible. Benefits: version control, reproducibility, automation, self-documentation, consistency across environments (dev/staging/prod), and reduced human error.",
+      answer:
+        "IaC manages infrastructure (servers, networks, databases) through code and configuration files rather than manual processes. Tools: Terraform (multi-cloud), AWS CloudFormation, Pulumi, Ansible. Benefits: version control, reproducibility, automation, self-documentation, consistency across environments (dev/staging/prod), and reduced human error.",
       difficulty: "medium",
       tags: ["iac", "automation"],
       is_top50: true,
     },
     {
       question: "Explain the concept of blue-green deployment.",
-      answer: "Blue-green deployment maintains two identical environments. Blue is live (production); green has the new version. Once green is ready and tested, the router switches traffic from blue to green. This enables zero-downtime deployments, instant rollback (switch back to blue), and easy validation before full rollout.",
+      answer:
+        "Blue-green deployment maintains two identical environments. Blue is live (production); green has the new version. Once green is ready and tested, the router switches traffic from blue to green. This enables zero-downtime deployments, instant rollback (switch back to blue), and easy validation before full rollout.",
       difficulty: "medium",
       tags: ["deployment", "strategies"],
       is_top50: true,
     },
     {
       question: "What is monitoring and observability in DevOps?",
-      answer: "Monitoring collects metrics (CPU, memory, latency, error rates) and alerts on anomalies. Observability goes deeper — understanding system state from outputs (logs, metrics, traces). The three pillars: logs (detailed events), metrics (aggregated numbers), and traces (request flow across services). Tools: Prometheus, Grafana, Datadog, OpenTelemetry.",
+      answer:
+        "Monitoring collects metrics (CPU, memory, latency, error rates) and alerts on anomalies. Observability goes deeper — understanding system state from outputs (logs, metrics, traces). The three pillars: logs (detailed events), metrics (aggregated numbers), and traces (request flow across services). Tools: Prometheus, Grafana, Datadog, OpenTelemetry.",
       difficulty: "medium",
       tags: ["monitoring", "observability"],
       is_top50: true,
     },
     {
       question: "What is a load balancer and how does it work?",
-      answer: "A load balancer distributes incoming traffic across multiple backend servers. Algorithms: round-robin, least connections, IP hash, weighted distribution. It handles health checks (removing unhealthy servers), SSL termination, and can provide session persistence. Types: Layer 4 (transport-level, faster) and Layer 7 (application-level, content-aware).",
+      answer:
+        "A load balancer distributes incoming traffic across multiple backend servers. Algorithms: round-robin, least connections, IP hash, weighted distribution. It handles health checks (removing unhealthy servers), SSL termination, and can provide session persistence. Types: Layer 4 (transport-level, faster) and Layer 7 (application-level, content-aware).",
       difficulty: "easy",
       tags: ["networking"],
       is_top50: true,
     },
     {
       question: "Explain the concept of 'shift-left' in DevOps.",
-      answer: "Shift-left moves testing, security, and quality checks earlier in the development lifecycle (left on the timeline). Instead of finding bugs in production, catch them during development. Practices: unit tests, static code analysis, security scanning in CI, linting, code review. Benefits: cheaper to fix early, faster feedback, higher quality releases.",
+      answer:
+        "Shift-left moves testing, security, and quality checks earlier in the development lifecycle (left on the timeline). Instead of finding bugs in production, catch them during development. Practices: unit tests, static code analysis, security scanning in CI, linting, code review. Benefits: cheaper to fix early, faster feedback, higher quality releases.",
       difficulty: "medium",
       tags: ["testing", "best-practices"],
       is_top50: true,
@@ -27618,56 +28128,66 @@ chown -R www-data:www-data storage bootstrap/cache
   "qa-engineer": [
     {
       question: "What is the difference between manual and automated testing?",
-      answer: "Manual testing relies on human testers to execute test cases — good for exploratory, usability, and ad-hoc testing. Automated testing uses scripts/tools (Selenium, Cypress, Playwright) to run tests — faster, repeatable, and scalable. Best approach: automate regression, smoke, and data-driven tests; keep manual for UX and exploratory testing.",
+      answer:
+        "Manual testing relies on human testers to execute test cases — good for exploratory, usability, and ad-hoc testing. Automated testing uses scripts/tools (Selenium, Cypress, Playwright) to run tests — faster, repeatable, and scalable. Best approach: automate regression, smoke, and data-driven tests; keep manual for UX and exploratory testing.",
       difficulty: "easy",
       tags: ["testing-basics"],
       is_top50: true,
     },
     {
-      question: "Explain the difference between unit, integration, and end-to-end testing.",
-      answer: "Unit testing tests individual functions/components in isolation. Integration testing verifies that different modules work together (API + database). End-to-end (E2E) testing simulates real user flows across the entire system. The testing pyramid suggests: many unit tests, fewer integration tests, fewest E2E tests.",
+      question:
+        "Explain the difference between unit, integration, and end-to-end testing.",
+      answer:
+        "Unit testing tests individual functions/components in isolation. Integration testing verifies that different modules work together (API + database). End-to-end (E2E) testing simulates real user flows across the entire system. The testing pyramid suggests: many unit tests, fewer integration tests, fewest E2E tests.",
       difficulty: "easy",
       tags: ["testing-types"],
       is_top50: true,
     },
     {
       question: "What is the testing pyramid?",
-      answer: "The testing pyramid (by Mike Cohn) recommends: Base — many fast unit tests (isolated functions). Middle — fewer integration tests (module interactions). Top — few slow E2E tests (full user flows). This ensures fast feedback from unit tests while E2E tests catch system-level issues. Modern variants include the trophy or honeycomb shapes.",
+      answer:
+        "The testing pyramid (by Mike Cohn) recommends: Base — many fast unit tests (isolated functions). Middle — fewer integration tests (module interactions). Top — few slow E2E tests (full user flows). This ensures fast feedback from unit tests while E2E tests catch system-level issues. Modern variants include the trophy or honeycomb shapes.",
       difficulty: "easy",
       tags: ["testing-strategy"],
       is_top50: true,
     },
     {
       question: "What is TDD (Test-Driven Development)?",
-      answer: "TDD follows a red-green-refactor cycle: 1) Write a failing test (red). 2) Write minimal code to pass it (green). 3) Refactor while keeping tests green. Benefits: ensures test coverage, drives better design, provides documentation, and gives confidence for refactoring. Critics note it can slow initial development.",
+      answer:
+        "TDD follows a red-green-refactor cycle: 1) Write a failing test (red). 2) Write minimal code to pass it (green). 3) Refactor while keeping tests green. Benefits: ensures test coverage, drives better design, provides documentation, and gives confidence for refactoring. Critics note it can slow initial development.",
       difficulty: "medium",
       tags: ["testing-methodology"],
       is_top50: true,
     },
     {
-      question: "What is the difference between black-box and white-box testing?",
-      answer: "Black-box testing focuses on inputs and outputs without knowledge of internal code structure — tests functionality from user perspective. White-box testing uses knowledge of internal code to design tests — covers specific paths, branches, and conditions. Gray-box testing combines both approaches.",
+      question:
+        "What is the difference between black-box and white-box testing?",
+      answer:
+        "Black-box testing focuses on inputs and outputs without knowledge of internal code structure — tests functionality from user perspective. White-box testing uses knowledge of internal code to design tests — covers specific paths, branches, and conditions. Gray-box testing combines both approaches.",
       difficulty: "medium",
       tags: ["testing-methodology"],
       is_top50: true,
     },
     {
       question: "What are mocking and stubbing in testing?",
-      answer: "Mocking replaces real objects with simulated ones to test behavior (verify interactions). Stubbing provides predefined responses to method calls (controls inputs). Both isolate the unit under test from dependencies (databases, APIs, file systems). Libraries: Jest, Sinon, Mockito. Essential for reliable unit testing.",
+      answer:
+        "Mocking replaces real objects with simulated ones to test behavior (verify interactions). Stubbing provides predefined responses to method calls (controls inputs). Both isolate the unit under test from dependencies (databases, APIs, file systems). Libraries: Jest, Sinon, Mockito. Essential for reliable unit testing.",
       difficulty: "medium",
       tags: ["testing-tools"],
       is_top50: true,
     },
     {
       question: "What is regression testing and why is it important?",
-      answer: "Regression testing verifies that new code changes don't break existing functionality. It's critical after bug fixes, feature additions, or refactoring. Automated regression suites provide rapid feedback. Risk-based regression prioritizes critical paths. Without it, software quality degrades over time.",
+      answer:
+        "Regression testing verifies that new code changes don't break existing functionality. It's critical after bug fixes, feature additions, or refactoring. Automated regression suites provide rapid feedback. Risk-based regression prioritizes critical paths. Without it, software quality degrades over time.",
       difficulty: "easy",
       tags: ["testing-types"],
       is_top50: true,
     },
     {
       question: "What is the Page Object Model (POM) in test automation?",
-      answer: "POM is a design pattern where each web page is represented by a class. The class encapsulates page elements (locators) and interactions (methods). Tests use page objects instead of directly manipulating DOM. Benefits: reduces code duplication, centralizes element changes, improves maintainability of test suites.",
+      answer:
+        "POM is a design pattern where each web page is represented by a class. The class encapsulates page elements (locators) and interactions (methods). Tests use page objects instead of directly manipulating DOM. Benefits: reduces code duplication, centralizes element changes, improves maintainability of test suites.",
       difficulty: "medium",
       tags: ["automation", "design-patterns"],
       is_top50: true,

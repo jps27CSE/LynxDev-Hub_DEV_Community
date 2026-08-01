@@ -20,9 +20,8 @@ export default async function CategoryPage({
 
   const chapters = await getChaptersByCategorySlug(slug);
   const chapterIds = chapters.map((ch) => ch.id);
-  const questionsByChapter = chapterIds.length > 0
-    ? await getQuestionsByChapterIds(chapterIds)
-    : {};
+  const questionsByChapter =
+    chapterIds.length > 0 ? await getQuestionsByChapterIds(chapterIds) : {};
 
   const chaptersWithQuestions = chapters.map((ch) => ({
     ...ch,
@@ -30,6 +29,9 @@ export default async function CategoryPage({
   }));
 
   return (
-    <CategoryClient category={cat} chaptersWithQuestions={chaptersWithQuestions} />
+    <CategoryClient
+      category={cat}
+      chaptersWithQuestions={chaptersWithQuestions}
+    />
   );
 }

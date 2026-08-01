@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { validationError, badJson, unauthorized, notFound } from "@/lib/api-error";
+import {
+  validationError,
+  badJson,
+  unauthorized,
+  notFound,
+} from "@/lib/api-error";
 import { currentUser } from "@clerk/nextjs/server";
-import { getUserContext, buildSystemPrompt, callMistral, type Message } from "@/lib/mentor";
+import {
+  getUserContext,
+  buildSystemPrompt,
+  callMistral,
+  type Message,
+} from "@/lib/mentor";
 
 const MessageSchema = z.object({
   message: z.string().min(1).max(10000),
@@ -29,8 +39,11 @@ export async function POST(req: Request) {
   if (!email) return notFound("Email");
 
   let body: unknown;
-  try { body = await req.json(); }
-  catch { return badJson(); }
+  try {
+    body = await req.json();
+  } catch {
+    return badJson();
+  }
 
   const parsed = MessageSchema.safeParse(body);
   if (!parsed.success) return validationError(parsed.error);

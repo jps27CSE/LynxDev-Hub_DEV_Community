@@ -63,16 +63,19 @@ export const interviewCategories = mysqlTable("interview_categories", {
   order_index: int("order_index").default(0),
 });
 
-export const interviewCategoryChapters = mysqlTable("interview_category_chapters", {
-  id: int().primaryKey().autoincrement(),
-  category_id: int("category_id")
-    .references(() => interviewCategories.id)
-    .notNull(),
-  chapter_id: int("chapter_id")
-    .references(() => interviewChapters.id)
-    .notNull(),
-  order_index: int("order_index").default(0),
-});
+export const interviewCategoryChapters = mysqlTable(
+  "interview_category_chapters",
+  {
+    id: int().primaryKey().autoincrement(),
+    category_id: int("category_id")
+      .references(() => interviewCategories.id)
+      .notNull(),
+    chapter_id: int("chapter_id")
+      .references(() => interviewChapters.id)
+      .notNull(),
+    order_index: int("order_index").default(0),
+  },
+);
 
 export const interviewChapters = mysqlTable("interview_chapters", {
   id: int().primaryKey().autoincrement(),
@@ -89,15 +92,18 @@ export const interviewQuestions = mysqlTable("interview_questions", {
   is_top50: boolean("is_top50").default(false),
 });
 
-export const interviewQuestionChapters = mysqlTable("interview_question_chapters", {
-  id: int().primaryKey().autoincrement(),
-  question_id: int("question_id")
-    .references(() => interviewQuestions.id)
-    .notNull(),
-  chapter_id: int("chapter_id")
-    .references(() => interviewChapters.id)
-    .notNull(),
-});
+export const interviewQuestionChapters = mysqlTable(
+  "interview_question_chapters",
+  {
+    id: int().primaryKey().autoincrement(),
+    question_id: int("question_id")
+      .references(() => interviewQuestions.id)
+      .notNull(),
+    chapter_id: int("chapter_id")
+      .references(() => interviewChapters.id)
+      .notNull(),
+  },
+);
 
 export const mentorConversations = mysqlTable("mentor_conversations", {
   id: int().primaryKey().autoincrement(),

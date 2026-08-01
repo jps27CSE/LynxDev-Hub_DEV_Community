@@ -20,53 +20,53 @@ export type TestCase = {
   expected: string;
 };
 
-export const getAllProblems = cache(async (
-  opts?: {
+export const getAllProblems = cache(
+  async (opts?: {
     limit?: number;
     offset?: number;
     difficulty?: string;
     category?: string;
-  }
-): Promise<{ problems: Problem[]; total: number }> => {
-  try {
-    const conditions = [];
-    if (opts?.difficulty && opts.difficulty !== "all") {
-      conditions.push(eq(problems.difficulty, opts.difficulty));
+  }): Promise<{ problems: Problem[]; total: number }> => {
+    try {
+      const conditions = [];
+      if (opts?.difficulty && opts.difficulty !== "all") {
+        conditions.push(eq(problems.difficulty, opts.difficulty));
+      }
+      if (opts?.category && opts.category !== "all") {
+        conditions.push(eq(problems.category, opts.category));
+      }
+      const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+      const [{ value: rawTotal }] = await db
+        .select({ value: count() })
+        .from(problems)
+        .where(where);
+      const total = Number(rawTotal);
+
+      const query = db
+        .select()
+        .from(problems)
+        .where(where)
+        .orderBy(asc(problems.order_index))
+        .$dynamic();
+
+      const result = await (opts?.limit
+        ? query.limit(opts.limit).offset(opts?.offset ?? 0)
+        : query);
+      return {
+        problems: result.map((p) => ({
+          ...p,
+          tags: p.tags as string[],
+          test_cases: p.test_cases as TestCase[] | null,
+        })),
+        total,
+      };
+    } catch (error) {
+      console.error("[problem-data] getAllProblems:", error);
+      return { problems: [], total: 0 };
     }
-    if (opts?.category && opts.category !== "all") {
-      conditions.push(eq(problems.category, opts.category));
-    }
-    const where = conditions.length > 0 ? and(...conditions) : undefined;
-
-    const [{ value: rawTotal }] = await db
-      .select({ value: count() })
-      .from(problems)
-      .where(where);
-    const total = Number(rawTotal);
-
-    const query = db
-      .select()
-      .from(problems)
-      .where(where)
-      .orderBy(asc(problems.order_index))
-      .$dynamic();
-
-    const result = await (opts?.limit
-      ? query.limit(opts.limit).offset(opts?.offset ?? 0)
-      : query);
-    return {
-      problems: result.map((p) => ({
-        ...p,
-        tags: p.tags as string[],
-        test_cases: p.test_cases as TestCase[] | null,
-      })),
-      total,
-    };
-  } catch (error) {
-    console.error("[problem-data] getAllProblems:", error);
-    return { problems: [], total: 0 };
-  }
-});
+  },
+);
 
 export const getProblemCategories = cache(async (): Promise<string[]> => {
   try {
@@ -83,22 +83,24 @@ export const getProblemCategories = cache(async (): Promise<string[]> => {
   }
 });
 
-export const getProblemById = cache(async (id: number): Promise<Problem | null> => {
-  try {
-    const result = await db
-      .select()
-      .from(problems)
-      .where(eq(problems.id, id))
-      .limit(1);
-    if (result.length === 0) return null;
-    const p = result[0];
-    return {
-      ...p,
-      tags: p.tags as string[],
-      test_cases: p.test_cases as TestCase[] | null,
-    };
-  } catch (error) {
-    console.error("[problem-data] getProblemById:", error);
-    return null;
-  }
-});
+export const getProblemById = cache(
+  async (id: number): Promise<Problem | null> => {
+    try {
+      const result = await db
+        .select()
+        .from(problems)
+        .where(eq(problems.id, id))
+        .limit(1);
+      if (result.length === 0) return null;
+      const p = result[0];
+      return {
+        ...p,
+        tags: p.tags as string[],
+        test_cases: p.test_cases as TestCase[] | null,
+      };
+    } catch (error) {
+      console.error("[problem-data] getProblemById:", error);
+      return null;
+    }
+  },
+);

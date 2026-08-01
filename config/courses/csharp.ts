@@ -2,7 +2,8 @@ import type { CourseData } from "./types";
 
 export const csharpCourse: CourseData = {
   title: "C# for Absolute Beginners",
-  description: "Learn C# from scratch — the language for .NET apps, games (Unity), and enterprise software. Modern, powerful, and versatile.",
+  description:
+    "Learn C# from scratch — the language for .NET apps, games (Unity), and enterprise software. Modern, powerful, and versatile.",
   icon: "💠",
   difficulty: "Beginner",
   category: "Programming",

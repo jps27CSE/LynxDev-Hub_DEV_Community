@@ -2,7 +2,8 @@ import type { CourseData } from "./types";
 
 export const pythonCourse: CourseData = {
   title: "Python for Absolute Beginners",
-  description: "Learn Python from scratch — the most beginner-friendly language. Used for web dev, data science, AI, and automation.",
+  description:
+    "Learn Python from scratch — the most beginner-friendly language. Used for web dev, data science, AI, and automation.",
   icon: "🐍",
   difficulty: "Beginner",
   category: "Programming",

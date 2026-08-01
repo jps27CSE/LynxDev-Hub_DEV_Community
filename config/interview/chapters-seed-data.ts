@@ -1700,7 +1700,8 @@ Access-Control-Allow-Methods: GET, POST
           "Test components via TestBed + ComponentFixture; test services with HttpClientTestingModule",
           "Use inject() function instead of constructor DI for cleaner functional patterns",
         ],
-        sampleQuestions: [          "What is Angular and how is it different from AngularJS?",
+        sampleQuestions: [
+          "What is Angular and how is it different from AngularJS?",
           "Explain the architecture of an Angular application.",
           "What are the main building blocks of Angular?",
           "What is a component in Angular and how do you create one?",
@@ -1937,7 +1938,8 @@ Access-Control-Allow-Methods: GET, POST
         ],
       },
     },
-  ],  "backend-engineer": [
+  ],
+  "backend-engineer": [
     {
       title: "Database Design & Optimization",
       content: {
@@ -2323,14 +2325,14 @@ Access-Control-Allow-Methods: GET, POST
         ],
       },
     },
-  {
-    title: "Node.js & Express.js",
-    content: {
-      overview:
-        "Node.js is the most popular JavaScript runtime for building server-side applications, and Express.js is the leading web framework built on top of it. This chapter covers the Node.js event loop, module system, file I/O, streams, process management, npm, and Express.js concepts including middleware, routing, error handling, CORS, and REST API design.",
-      realLifeScenario:
-        "You are building a real-time dashboard API that aggregates data from multiple third-party services, transforms it, and serves it to thousands of concurrent clients. You choose Node.js for its non-blocking I/O model — the event loop efficiently handles hundreds of simultaneous API calls to external services without creating a thread per request. You use Express.js with a Router-based structure: /api/users, /api/metrics, /api/reports. For large CSV exports, you use Node.js streams to pipe data directly to the response without buffering the entire file in memory. You add middleware for authentication (JWT verification), rate limiting (express-rate-limit), CORS for the frontend domain, and a centralized error handler. Worker threads handle CPU-intensive aggregation tasks off the main thread. The result: a lean, high-throughput API that handles 10,000 concurrent connections on a single server instance.",
-      explanation: `## The Event Loop
+    {
+      title: "Node.js & Express.js",
+      content: {
+        overview:
+          "Node.js is the most popular JavaScript runtime for building server-side applications, and Express.js is the leading web framework built on top of it. This chapter covers the Node.js event loop, module system, file I/O, streams, process management, npm, and Express.js concepts including middleware, routing, error handling, CORS, and REST API design.",
+        realLifeScenario:
+          "You are building a real-time dashboard API that aggregates data from multiple third-party services, transforms it, and serves it to thousands of concurrent clients. You choose Node.js for its non-blocking I/O model — the event loop efficiently handles hundreds of simultaneous API calls to external services without creating a thread per request. You use Express.js with a Router-based structure: /api/users, /api/metrics, /api/reports. For large CSV exports, you use Node.js streams to pipe data directly to the response without buffering the entire file in memory. You add middleware for authentication (JWT verification), rate limiting (express-rate-limit), CORS for the frontend domain, and a centralized error handler. Worker threads handle CPU-intensive aggregation tasks off the main thread. The result: a lean, high-throughput API that handles 10,000 concurrent connections on a single server instance.",
+        explanation: `## The Event Loop
 
   Node.js uses a single-threaded event loop to handle asynchronous operations. The loop runs in six phases:
 
@@ -2496,51 +2498,51 @@ Access-Control-Allow-Methods: GET, POST
   - Consistent JSON responses: { data, error, meta }
   - Input validation (Zod, Joi), authentication middleware, rate limiting
   - Proper status codes: 200 OK, 201 Created, 204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error`,
-      keyPoints: [
-        "The event loop has six phases (timers, pending, idle/prepare, poll, check, close) — process.nextTick runs between phases, not as a phase",
-        "CommonJS (require) is synchronous; ES modules (import) are static and support tree-shaking; both coexist in Node.js",
-        "Streams process data in chunks — essential for large files and network responses; four types: Readable, Writable, Duplex, Transform",
-        "Worker threads handle CPU-intensive work; Cluster distributes load across CPU cores; child_process.spawn vs exec depends on output size",
-        "npm uses semver (^ for minor, ~ for patch); package-lock.json ensures reproducible installs; npx runs packages without global install",
-        "Express middleware runs in registration order — call next() to pass control; error-handling middleware has four parameters (err, req, res, next)",
-        "express.Router() enables modular route separation — the standard pattern for structuring Express applications",
-        "Async errors in Express must be explicitly forwarded via next(err) or an async wrapper — they are not caught automatically",
-      ],
-      tips: [
-        "Memorize the six event loop phases and where process.nextTick and setImmediate run — this is the most common Node.js deep-dive question",
-        "Know the stream types (Readable, Writable, Duplex, Transform) and backpressure — mention pipe() for automatic backpressure handling",
-        "Compare CommonJS vs ESM explicitly: require is runtime, dynamic, synchronous; import is static, top-level, asynchronous",
-        "For Express, understand the full middleware chain — app.use vs app.get, Router, error middleware, and the async error wrapping pattern",
-        "Discuss CORS as a browser security mechanism (not server-to-server) and how to configure it with the cors package",
-        "Be ready to design a REST API structure: naming conventions, HTTP methods, status codes, versioning, pagination, and consistent response format",
-      ],
-      sampleQuestions: [
-        "What is the Node.js event loop?",
-        "What is the difference between require() and import in Node.js?",
-        "What are the differences between CommonJS and ES modules in Node.js?",
-        "What are the global objects available in Node.js?",
-        "What is the difference between fs.readFile and streams for reading files?",
-        "What is the Buffer class in Node.js?",
-        "How does the path module work in Node.js?",
-        "How do you use environment variables in Node.js?",
-        "What is the difference between spawn() and exec() in child_process?",
-        "What are Worker Threads in Node.js?",
-        "What is the Cluster module in Node.js?",
-        "How do you handle errors in Node.js?",
-        "What are the essential fields in a package.json file?",
-        "What is semantic versioning (semver) in Node.js?",
-        "What are the different dependency types in package.json?",
-      ],
+        keyPoints: [
+          "The event loop has six phases (timers, pending, idle/prepare, poll, check, close) — process.nextTick runs between phases, not as a phase",
+          "CommonJS (require) is synchronous; ES modules (import) are static and support tree-shaking; both coexist in Node.js",
+          "Streams process data in chunks — essential for large files and network responses; four types: Readable, Writable, Duplex, Transform",
+          "Worker threads handle CPU-intensive work; Cluster distributes load across CPU cores; child_process.spawn vs exec depends on output size",
+          "npm uses semver (^ for minor, ~ for patch); package-lock.json ensures reproducible installs; npx runs packages without global install",
+          "Express middleware runs in registration order — call next() to pass control; error-handling middleware has four parameters (err, req, res, next)",
+          "express.Router() enables modular route separation — the standard pattern for structuring Express applications",
+          "Async errors in Express must be explicitly forwarded via next(err) or an async wrapper — they are not caught automatically",
+        ],
+        tips: [
+          "Memorize the six event loop phases and where process.nextTick and setImmediate run — this is the most common Node.js deep-dive question",
+          "Know the stream types (Readable, Writable, Duplex, Transform) and backpressure — mention pipe() for automatic backpressure handling",
+          "Compare CommonJS vs ESM explicitly: require is runtime, dynamic, synchronous; import is static, top-level, asynchronous",
+          "For Express, understand the full middleware chain — app.use vs app.get, Router, error middleware, and the async error wrapping pattern",
+          "Discuss CORS as a browser security mechanism (not server-to-server) and how to configure it with the cors package",
+          "Be ready to design a REST API structure: naming conventions, HTTP methods, status codes, versioning, pagination, and consistent response format",
+        ],
+        sampleQuestions: [
+          "What is the Node.js event loop?",
+          "What is the difference between require() and import in Node.js?",
+          "What are the differences between CommonJS and ES modules in Node.js?",
+          "What are the global objects available in Node.js?",
+          "What is the difference between fs.readFile and streams for reading files?",
+          "What is the Buffer class in Node.js?",
+          "How does the path module work in Node.js?",
+          "How do you use environment variables in Node.js?",
+          "What is the difference between spawn() and exec() in child_process?",
+          "What are Worker Threads in Node.js?",
+          "What is the Cluster module in Node.js?",
+          "How do you handle errors in Node.js?",
+          "What are the essential fields in a package.json file?",
+          "What is semantic versioning (semver) in Node.js?",
+          "What are the different dependency types in package.json?",
+        ],
+      },
     },
-  },
-  {
-    title: "Authentication & Authorization",
-    content: {
-      overview:
-        "Authentication and authorization are the foundation of web application security. Authentication verifies who a user is; authorization determines what they can access. This chapter covers JWT, sessions, OAuth 2.0, RBAC, Clerk, bcrypt, SSO, MFA, and related security patterns essential for backend interviews.",
-      realLifeScenario:
-        "Your SaaS platform needs to support 50,000 users with role-based access (admin, editor, viewer), social login (Google, GitHub), MFA for admin accounts, and API access for third-party integrations. You start with session-based auth in a monolith but quickly hit scaling issues — sessions require a shared Redis store, and the monolith cannot be split without re-authenticating on every service. You migrate to JWT-based auth with RS256 signing, allowing any microservice to verify tokens using a public key. You integrate Clerk for social login and user management, implement RBAC with a middleware that checks roles from the JWT claims, and add TOTP-based MFA for admin accounts. The result: stateless authentication, zero shared session store, and granular access control across all services.",
-      explanation: `## Authentication Fundamentals
+    {
+      title: "Authentication & Authorization",
+      content: {
+        overview:
+          "Authentication and authorization are the foundation of web application security. Authentication verifies who a user is; authorization determines what they can access. This chapter covers JWT, sessions, OAuth 2.0, RBAC, Clerk, bcrypt, SSO, MFA, and related security patterns essential for backend interviews.",
+        realLifeScenario:
+          "Your SaaS platform needs to support 50,000 users with role-based access (admin, editor, viewer), social login (Google, GitHub), MFA for admin accounts, and API access for third-party integrations. You start with session-based auth in a monolith but quickly hit scaling issues — sessions require a shared Redis store, and the monolith cannot be split without re-authenticating on every service. You migrate to JWT-based auth with RS256 signing, allowing any microservice to verify tokens using a public key. You integrate Clerk for social login and user management, implement RBAC with a middleware that checks roles from the JWT claims, and add TOTP-based MFA for admin accounts. The result: stateless authentication, zero shared session store, and granular access control across all services.",
+        explanation: `## Authentication Fundamentals
 
   Authentication answers "who are you?" Users prove their identity via one or more factors: something you know (password), something you have (phone, hardware token), or something you are (biometrics). The authentication process typically involves credential validation, session creation, and token issuance.
 
@@ -2626,50 +2628,50 @@ Access-Control-Allow-Methods: GET, POST
   - Implement rate limiting on auth endpoints to prevent brute-force attacks
   - Use MFA for privileged accounts
   - Regenerate session IDs after login to prevent session fixation`,
-      keyPoints: [
-        "Authentication verifies identity; authorization controls access — both must be implemented together",
-        "bcrypt/Argon2 for password hashing — slow, salted, adaptive to hardware improvements",
-        "JWT provides stateless authentication — header.payload.signature, RS256 for microservices",
-        "Sessions are stateful and revocable but require shared storage across instances",
-        "OAuth 2.0 is an authorization framework; OIDC adds authentication on top",
-        "RBAC assigns permissions to roles, roles to users — simplifies access control at scale",
-        "MFA adds a second factor (TOTP, SMS, biometric) — critical for privileged accounts",
-        "JWT security: short TTL, HttpOnly cookies, signature verification, never store secrets in payload",
-      ],
-      tips: [
-        "Know the OAuth 2.0 authorization code flow end-to-end — it is the most common interview deep-dive",
-        "Compare JWT vs sessions explicitly: stateless scalability vs immediate revocation",
-        "Explain why bcrypt is preferred over SHA-256 for passwords — the speed difference is the key point",
-        "Discuss token storage: HttpOnly cookies are safer than localStorage against XSS",
-        "Mention PKCE when discussing SPAs and mobile OAuth flows — shows recent standards knowledge",
-      ],
-      sampleQuestions: [
-        "What is authentication and how does it differ from authorization?",
-        "Explain how JWT (JSON Web Token) works.",
-        "What are the main parts of a JWT?",
-        "How do sessions work in web applications?",
-        "Explain the OAuth 2.0 authorization code flow.",
-        "What is the difference between OAuth 2.0 and OpenID Connect?",
-        "What is bcrypt and why is it used for password hashing?",
-        "What is RBAC (Role-Based Access Control)?",
-        "What is SSO (Single Sign-On) and how does it work?",
-        "What is MFA (Multi-Factor Authentication)?",
-        "What is the difference between access tokens and refresh tokens?",
-        "How do you securely store passwords?",
-        "What are the security considerations when using JWT?",
-        "How do microservices handle authentication?",
-        "What is the difference between stateful and stateless authentication?",
-      ],
+        keyPoints: [
+          "Authentication verifies identity; authorization controls access — both must be implemented together",
+          "bcrypt/Argon2 for password hashing — slow, salted, adaptive to hardware improvements",
+          "JWT provides stateless authentication — header.payload.signature, RS256 for microservices",
+          "Sessions are stateful and revocable but require shared storage across instances",
+          "OAuth 2.0 is an authorization framework; OIDC adds authentication on top",
+          "RBAC assigns permissions to roles, roles to users — simplifies access control at scale",
+          "MFA adds a second factor (TOTP, SMS, biometric) — critical for privileged accounts",
+          "JWT security: short TTL, HttpOnly cookies, signature verification, never store secrets in payload",
+        ],
+        tips: [
+          "Know the OAuth 2.0 authorization code flow end-to-end — it is the most common interview deep-dive",
+          "Compare JWT vs sessions explicitly: stateless scalability vs immediate revocation",
+          "Explain why bcrypt is preferred over SHA-256 for passwords — the speed difference is the key point",
+          "Discuss token storage: HttpOnly cookies are safer than localStorage against XSS",
+          "Mention PKCE when discussing SPAs and mobile OAuth flows — shows recent standards knowledge",
+        ],
+        sampleQuestions: [
+          "What is authentication and how does it differ from authorization?",
+          "Explain how JWT (JSON Web Token) works.",
+          "What are the main parts of a JWT?",
+          "How do sessions work in web applications?",
+          "Explain the OAuth 2.0 authorization code flow.",
+          "What is the difference between OAuth 2.0 and OpenID Connect?",
+          "What is bcrypt and why is it used for password hashing?",
+          "What is RBAC (Role-Based Access Control)?",
+          "What is SSO (Single Sign-On) and how does it work?",
+          "What is MFA (Multi-Factor Authentication)?",
+          "What is the difference between access tokens and refresh tokens?",
+          "How do you securely store passwords?",
+          "What are the security considerations when using JWT?",
+          "How do microservices handle authentication?",
+          "What is the difference between stateful and stateless authentication?",
+        ],
+      },
     },
-  },
-  {
-    title: "Security Basics",
-    content: {
-      overview:
-        "Web security is every backend engineer's responsibility. This chapter covers the most critical vulnerabilities — SQL injection, XSS, CSRF, SSRF, IDOR — and defensive measures like HTTPS, CSP, input validation, secure headers, and the OWASP Top 10 framework.",
-      realLifeScenario:
-        "Your e-commerce platform handles 10,000 orders per day. A penetration test reveals: the search endpoint is vulnerable to SQL injection (an attacker can dump the entire users table), the product review section has stored XSS (malicious scripts execute in admin browsers), and the password reset endpoint has no rate limiting (attackers can brute-force tokens). You implement parameterized queries everywhere, add a strict CSP header to block inline scripts, sanitize all user-generated content before rendering, add rate limiting with exponential backoff to sensitive endpoints, and enable HSTS. The next penetration test passes with zero critical findings.",
-      explanation: `## SQL Injection
+    {
+      title: "Security Basics",
+      content: {
+        overview:
+          "Web security is every backend engineer's responsibility. This chapter covers the most critical vulnerabilities — SQL injection, XSS, CSRF, SSRF, IDOR — and defensive measures like HTTPS, CSP, input validation, secure headers, and the OWASP Top 10 framework.",
+        realLifeScenario:
+          "Your e-commerce platform handles 10,000 orders per day. A penetration test reveals: the search endpoint is vulnerable to SQL injection (an attacker can dump the entire users table), the product review section has stored XSS (malicious scripts execute in admin browsers), and the password reset endpoint has no rate limiting (attackers can brute-force tokens). You implement parameterized queries everywhere, add a strict CSP header to block inline scripts, sanitize all user-generated content before rendering, add rate limiting with exponential backoff to sensitive endpoints, and enable HSTS. The next penetration test passes with zero critical findings.",
+        explanation: `## SQL Injection
 
   SQL injection occurs when untrusted input is concatenated into SQL queries. Attackers can read, modify, or delete data. Prevention: always use parameterized queries (prepared statements) — never string concatenation.
 
@@ -2741,50 +2743,50 @@ Access-Control-Allow-Methods: GET, POST
   - \`X-Frame-Options\`: Prevent clickjacking (DENY or SAMEORIGIN)
   - \`X-Content-Type-Options\`: Prevent MIME sniffing (nosniff)
   - \`Referrer-Policy\`: Control referrer information`,
-      keyPoints: [
-        "SQL injection — always use parameterized queries, never concatenate user input into SQL",
-        "XSS — sanitize input, escape output, use CSP to restrict script execution",
-        "CSRF — use anti-forgery tokens, SameSite cookies, and custom headers for state-changing requests",
-        "HTTPS/TLS — encrypt all traffic, enforce with HSTS header",
-        "CSP — defense-in-depth against XSS, deploy in report-only mode first",
-        "Input validation — validate server-side with Zod/Joi, use allowlisting, never trust client",
-        "IDOR — always authorize access to specific resources, not just authenticate the user",
-        "OWASP Top 10 — broken access control, cryptographic failures, and injection are the top risks",
-      ],
-      tips: [
-        "Know concrete examples: demonstrate how SQL injection works with a specific query example",
-        "Explain defense in depth: no single control is sufficient — layers of protection are essential",
-        "Distinguish between encoding, encryption, and hashing — this is a frequently tested distinction",
-        "Discuss CSP report-only mode for safe deployment — shows production experience",
-        "Mention OWASP Top 10 early — it signals security awareness and structured knowledge",
-      ],
-      sampleQuestions: [
-        "What is SQL injection and how do you prevent it?",
-        "What is XSS (Cross-Site Scripting) and what are its types?",
-        "What is CSRF and how does it differ from XSS?",
-        "Why is HTTPS important and how does TLS work?",
-        "What is Content Security Policy (CSP)?",
-        "What is OWASP and why is it important?",
-        "What is input validation and why is it critical?",
-        "What is the principle of defense in depth?",
-        "What are security headers and which ones matter most?",
-        "What is IDOR (Insecure Direct Object Reference)?",
-        "How do you protect against brute-force attacks?",
-        "What is the OWASP Top 10?",
-        "What is SSRF (Server-Side Request Forgery)?",
-        "How do you handle file uploads securely?",
-        "What is the difference between whitelisting and blacklisting in security?",
-      ],
+        keyPoints: [
+          "SQL injection — always use parameterized queries, never concatenate user input into SQL",
+          "XSS — sanitize input, escape output, use CSP to restrict script execution",
+          "CSRF — use anti-forgery tokens, SameSite cookies, and custom headers for state-changing requests",
+          "HTTPS/TLS — encrypt all traffic, enforce with HSTS header",
+          "CSP — defense-in-depth against XSS, deploy in report-only mode first",
+          "Input validation — validate server-side with Zod/Joi, use allowlisting, never trust client",
+          "IDOR — always authorize access to specific resources, not just authenticate the user",
+          "OWASP Top 10 — broken access control, cryptographic failures, and injection are the top risks",
+        ],
+        tips: [
+          "Know concrete examples: demonstrate how SQL injection works with a specific query example",
+          "Explain defense in depth: no single control is sufficient — layers of protection are essential",
+          "Distinguish between encoding, encryption, and hashing — this is a frequently tested distinction",
+          "Discuss CSP report-only mode for safe deployment — shows production experience",
+          "Mention OWASP Top 10 early — it signals security awareness and structured knowledge",
+        ],
+        sampleQuestions: [
+          "What is SQL injection and how do you prevent it?",
+          "What is XSS (Cross-Site Scripting) and what are its types?",
+          "What is CSRF and how does it differ from XSS?",
+          "Why is HTTPS important and how does TLS work?",
+          "What is Content Security Policy (CSP)?",
+          "What is OWASP and why is it important?",
+          "What is input validation and why is it critical?",
+          "What is the principle of defense in depth?",
+          "What are security headers and which ones matter most?",
+          "What is IDOR (Insecure Direct Object Reference)?",
+          "How do you protect against brute-force attacks?",
+          "What is the OWASP Top 10?",
+          "What is SSRF (Server-Side Request Forgery)?",
+          "How do you handle file uploads securely?",
+          "What is the difference between whitelisting and blacklisting in security?",
+        ],
+      },
     },
-  },
-  {
-    title: "Caching Strategies",
-    content: {
-      overview:
-        "Caching is the single most effective performance optimization for web applications. This chapter covers Redis, CDN caching, HTTP caching headers (Cache-Control, ETag), caching strategies (cache-aside, write-through, write-behind), cache invalidation, TTL management, and distributed caching patterns.",
-      realLifeScenario:
-        "Your news aggregator API serves 1 million requests per day. The database is at 80% CPU, and p95 response time is 1.2 seconds. You introduce Redis as a cache-aside store: popular articles are cached for 5 minutes, reducing database reads by 90%. You add ETag headers to article endpoints so browsers and CDNs can validate cache freshness without full responses. You implement a CDN (Cloudflare) for static assets and article images, reducing origin load by another 60%. Finally, you add Redis rate limiting to prevent API abuse. Response time drops to 40ms p95, and database CPU drops to 15%.",
-      explanation: `## Why Cache?
+    {
+      title: "Caching Strategies",
+      content: {
+        overview:
+          "Caching is the single most effective performance optimization for web applications. This chapter covers Redis, CDN caching, HTTP caching headers (Cache-Control, ETag), caching strategies (cache-aside, write-through, write-behind), cache invalidation, TTL management, and distributed caching patterns.",
+        realLifeScenario:
+          "Your news aggregator API serves 1 million requests per day. The database is at 80% CPU, and p95 response time is 1.2 seconds. You introduce Redis as a cache-aside store: popular articles are cached for 5 minutes, reducing database reads by 90%. You add ETag headers to article endpoints so browsers and CDNs can validate cache freshness without full responses. You implement a CDN (Cloudflare) for static assets and article images, reducing origin load by another 60%. Finally, you add Redis rate limiting to prevent API abuse. Response time drops to 40ms p95, and database CPU drops to 15%.",
+        explanation: `## Why Cache?
 
   Caching stores frequently accessed data in a fast storage layer. It reduces latency (memory vs. disk/network), decreases database load, and improves throughput. The fundamental trade-off: speed vs. freshness.
 
@@ -2863,50 +2865,50 @@ Access-Control-Allow-Methods: GET, POST
   \`\`\`
   Cache-Control: max-age=60, stale-while-revalidate=3600
   \`\`\``,
-      keyPoints: [
-        "Cache-aside (lazy loading) is the simplest and most common pattern — check cache, miss loads from DB, then cache",
-        "Write-through ensures cache-DB consistency at the cost of write latency",
-        "Write-behind provides fast writes but risks data loss on cache failure",
-        "HTTP Cache-Control headers control browser and CDN caching — public, private, no-cache, no-store",
-        "ETags and Last-Modified enable conditional requests that save bandwidth with 304 responses",
-        "Redis provides sub-millisecond caching with TTL, eviction policies, and data structures",
-        "CDN caching moves content closer to users — critical for global applications",
-        "Cache invalidation is the hardest part — use TTL, explicit invalidation, or write-through based on consistency needs",
-      ],
-      tips: [
-        "Know the four main cache strategies (cache-aside, write-through, write-behind, read-through) and their trade-offs",
-        "Explain the cache stampede problem and solutions (lock-based regeneration, early recomputation, probabilistic expiration)",
-        "Discuss browser vs. CDN vs. server vs. database caching — each layer serves a different purpose",
-        "Mention stale-while-revalidate as a modern pattern that balances freshness with performance",
-        "Know Redis eviction policies — allkeys-lru is the most common caching choice",
-      ],
-      sampleQuestions: [
-        "What is caching and why is it important?",
-        "What is Redis and how is it used for caching?",
-        "What is a CDN and how does it improve performance?",
-        "Explain the cache-aside strategy.",
-        "Explain the write-through caching strategy.",
-        "What is TTL (Time To Live) in caching?",
-        "What is an ETag and how is it used in HTTP caching?",
-        "What is cache invalidation and why is it hard?",
-        "What is a cache stampede (cache thundering herd)?",
-        "How does browser caching work with Cache-Control headers?",
-        "What is the difference between Cache-Control: no-cache and no-store?",
-        "What is Redis EVICTION policy?",
-        "What is the difference between local cache and distributed cache?",
-        "How do you monitor cache performance?",
-        "What is stale-while-revalidate?",
-      ],
+        keyPoints: [
+          "Cache-aside (lazy loading) is the simplest and most common pattern — check cache, miss loads from DB, then cache",
+          "Write-through ensures cache-DB consistency at the cost of write latency",
+          "Write-behind provides fast writes but risks data loss on cache failure",
+          "HTTP Cache-Control headers control browser and CDN caching — public, private, no-cache, no-store",
+          "ETags and Last-Modified enable conditional requests that save bandwidth with 304 responses",
+          "Redis provides sub-millisecond caching with TTL, eviction policies, and data structures",
+          "CDN caching moves content closer to users — critical for global applications",
+          "Cache invalidation is the hardest part — use TTL, explicit invalidation, or write-through based on consistency needs",
+        ],
+        tips: [
+          "Know the four main cache strategies (cache-aside, write-through, write-behind, read-through) and their trade-offs",
+          "Explain the cache stampede problem and solutions (lock-based regeneration, early recomputation, probabilistic expiration)",
+          "Discuss browser vs. CDN vs. server vs. database caching — each layer serves a different purpose",
+          "Mention stale-while-revalidate as a modern pattern that balances freshness with performance",
+          "Know Redis eviction policies — allkeys-lru is the most common caching choice",
+        ],
+        sampleQuestions: [
+          "What is caching and why is it important?",
+          "What is Redis and how is it used for caching?",
+          "What is a CDN and how does it improve performance?",
+          "Explain the cache-aside strategy.",
+          "Explain the write-through caching strategy.",
+          "What is TTL (Time To Live) in caching?",
+          "What is an ETag and how is it used in HTTP caching?",
+          "What is cache invalidation and why is it hard?",
+          "What is a cache stampede (cache thundering herd)?",
+          "How does browser caching work with Cache-Control headers?",
+          "What is the difference between Cache-Control: no-cache and no-store?",
+          "What is Redis EVICTION policy?",
+          "What is the difference between local cache and distributed cache?",
+          "How do you monitor cache performance?",
+          "What is stale-while-revalidate?",
+        ],
+      },
     },
-  },
-  {
-    title: "AI Basics for Backend",
-    content: {
-      overview:
-        "AI integration is now a core backend skill. This chapter covers LLM APIs (OpenAI, Mistral), embeddings, RAG (Retrieval-Augmented Generation), vector databases, prompt engineering, streaming responses, function calling, and production considerations for AI-powered features.",
-      realLifeScenario:
-        "Your team is building a customer support chatbot that answers product questions using your documentation. You start by sending the entire docset with every prompt — this quickly exceeds token limits and costs $0.50 per query. You implement RAG: chunk the documentation into 256-token segments, generate embeddings with Mistral Embed, store them in pgvector (PostgreSQL), and on each query, retrieve the top-5 relevant chunks. The prompt now includes only relevant context, reducing cost to $0.01 per query and eliminating hallucinations about out-of-scope topics. You add streaming (SSE) so users see responses appear character by character, and implement semantic caching so identical questions are answered from cache in under 50ms.",
-      explanation: `## LLM APIs
+    {
+      title: "AI Basics for Backend",
+      content: {
+        overview:
+          "AI integration is now a core backend skill. This chapter covers LLM APIs (OpenAI, Mistral), embeddings, RAG (Retrieval-Augmented Generation), vector databases, prompt engineering, streaming responses, function calling, and production considerations for AI-powered features.",
+        realLifeScenario:
+          "Your team is building a customer support chatbot that answers product questions using your documentation. You start by sending the entire docset with every prompt — this quickly exceeds token limits and costs $0.50 per query. You implement RAG: chunk the documentation into 256-token segments, generate embeddings with Mistral Embed, store them in pgvector (PostgreSQL), and on each query, retrieve the top-5 relevant chunks. The prompt now includes only relevant context, reducing cost to $0.01 per query and eliminating hallucinations about out-of-scope topics. You add streaming (SSE) so users see responses appear character by character, and implement semantic caching so identical questions are answered from cache in under 50ms.",
+        explanation: `## LLM APIs
 
   Large Language Model APIs provide access to models like GPT-4, Mistral Large, and Claude via HTTP endpoints. Backend integration: protect API keys, construct prompts server-side, handle streaming, implement rate limiting, and manage token usage.
 
@@ -2992,50 +2994,50 @@ Access-Control-Allow-Methods: GET, POST
   - **Error handling**: Retry with backoff, circuit breakers, fallback responses
   - **Content moderation**: Filter inputs and outputs for harmful content
   - **Hallucination mitigation**: RAG, low temperature, output validation`,
-      keyPoints: [
-        "LLM APIs are proxied through the backend — never expose API keys to clients",
-        "Embeddings are vector representations of text for semantic similarity search",
-        "RAG retrieves relevant context from a knowledge base before LLM generation — reduces hallucinations",
-        "Vector databases index embeddings for fast nearest-neighbor search using cosine similarity",
-        "Prompt engineering: system prompts, few-shot examples, chain-of-thought, and structured output format",
-        "Streaming (SSE) delivers LLM responses token-by-token for better UX",
-        "Function calling enables LLMs to invoke external tools and APIs",
-        "Production AI: rate limiting, caching, cost tracking, error handling, and content moderation",
-      ],
-      tips: [
-        "Explain RAG thoroughly — it is the most asked AI backend topic in interviews",
-        "Distinguish RAG from fine-tuning: RAG for knowledge, fine-tuning for behavior/style",
-        "Discuss token limits and context window management — shows practical deployment experience",
-        "Know the difference between temperature, top-p, and top-k sampling parameters",
-        "Mention semantic caching for LLMs — a newer pattern that reduces cost for repeated queries",
-      ],
-      sampleQuestions: [
-        "What are LLM APIs and how do you integrate them into a backend?",
-        "What are embeddings in the context of AI/LLMs?",
-        "What is RAG (Retrieval-Augmented Generation)?",
-        "What is a vector database and how is it used in AI applications?",
-        "What is prompt engineering and why is it important?",
-        "How does streaming work with LLM APIs?",
-        "What is the difference between fine-tuning and RAG?",
-        "What are tokens in the context of LLMs?",
-        "What is the temperature parameter in LLMs?",
-        "What is a system prompt and how is it different from a user prompt?",
-        "What is a hallucination in LLMs and how do you mitigate it?",
-        "What is prompt injection and how do you prevent it?",
-        "What is function calling (tool use) in LLMs?",
-        "What is chain-of-thought prompting?",
-        "How do you implement a simple RAG pipeline?",
-      ],
+        keyPoints: [
+          "LLM APIs are proxied through the backend — never expose API keys to clients",
+          "Embeddings are vector representations of text for semantic similarity search",
+          "RAG retrieves relevant context from a knowledge base before LLM generation — reduces hallucinations",
+          "Vector databases index embeddings for fast nearest-neighbor search using cosine similarity",
+          "Prompt engineering: system prompts, few-shot examples, chain-of-thought, and structured output format",
+          "Streaming (SSE) delivers LLM responses token-by-token for better UX",
+          "Function calling enables LLMs to invoke external tools and APIs",
+          "Production AI: rate limiting, caching, cost tracking, error handling, and content moderation",
+        ],
+        tips: [
+          "Explain RAG thoroughly — it is the most asked AI backend topic in interviews",
+          "Distinguish RAG from fine-tuning: RAG for knowledge, fine-tuning for behavior/style",
+          "Discuss token limits and context window management — shows practical deployment experience",
+          "Know the difference between temperature, top-p, and top-k sampling parameters",
+          "Mention semantic caching for LLMs — a newer pattern that reduces cost for repeated queries",
+        ],
+        sampleQuestions: [
+          "What are LLM APIs and how do you integrate them into a backend?",
+          "What are embeddings in the context of AI/LLMs?",
+          "What is RAG (Retrieval-Augmented Generation)?",
+          "What is a vector database and how is it used in AI applications?",
+          "What is prompt engineering and why is it important?",
+          "How does streaming work with LLM APIs?",
+          "What is the difference between fine-tuning and RAG?",
+          "What are tokens in the context of LLMs?",
+          "What is the temperature parameter in LLMs?",
+          "What is a system prompt and how is it different from a user prompt?",
+          "What is a hallucination in LLMs and how do you mitigate it?",
+          "What is prompt injection and how do you prevent it?",
+          "What is function calling (tool use) in LLMs?",
+          "What is chain-of-thought prompting?",
+          "How do you implement a simple RAG pipeline?",
+        ],
+      },
     },
-  },
-  {
-    title: "Background Jobs & Message Queues",
-    content: {
-      overview:
-        "Background jobs and message queues decouple time-consuming work from the request-response cycle. This chapter covers BullMQ, RabbitMQ, Kafka, pub/sub patterns, retry strategies, dead-letter queues, consumer groups, and production considerations for asynchronous processing at scale.",
-      realLifeScenario:
-        "Your video processing platform handles 10,000 uploads per day. Each upload requires transcoding to multiple formats (MP4, WebM, HLS), generating thumbnails, extracting metadata, and sending notification emails. Processing a single video takes 2-5 minutes — impossible to do synchronously. You implement BullMQ with Redis: uploads create a job with the video ID and metadata. Workers (separate Node.js processes) pick up jobs, transcode, generate thumbnails, and mark completion. Failed jobs retry with exponential backoff (3 attempts), then move to a dead-letter queue for manual inspection. A second queue handles notifications (email, webhook) with lower priority. The system processes 10,000 daily uploads with zero user-facing latency.",
-      explanation: `## Why Message Queues?
+    {
+      title: "Background Jobs & Message Queues",
+      content: {
+        overview:
+          "Background jobs and message queues decouple time-consuming work from the request-response cycle. This chapter covers BullMQ, RabbitMQ, Kafka, pub/sub patterns, retry strategies, dead-letter queues, consumer groups, and production considerations for asynchronous processing at scale.",
+        realLifeScenario:
+          "Your video processing platform handles 10,000 uploads per day. Each upload requires transcoding to multiple formats (MP4, WebM, HLS), generating thumbnails, extracting metadata, and sending notification emails. Processing a single video takes 2-5 minutes — impossible to do synchronously. You implement BullMQ with Redis: uploads create a job with the video ID and metadata. Workers (separate Node.js processes) pick up jobs, transcode, generate thumbnails, and mark completion. Failed jobs retry with exponential backoff (3 attempts), then move to a dead-letter queue for manual inspection. A second queue handles notifications (email, webhook) with lower priority. The system processes 10,000 daily uploads with zero user-facing latency.",
+        explanation: `## Why Message Queues?
 
   Message queues decouple producers from consumers, enabling asynchronous processing. Benefits: improved user experience (fast responses), load leveling (smooth traffic spikes), fault tolerance (messages persist if consumers fail), and independent scaling of producers and consumers.
 
@@ -3134,42 +3136,42 @@ Access-Control-Allow-Methods: GET, POST
     });
   }
   \`\`\``,
-      keyPoints: [
-        "Message queues decouple producers from consumers — enabling async processing, load leveling, and fault tolerance",
-        "BullMQ is the standard Node.js job queue — Redis-based, supports retries, delays, priorities, and lifecycle events",
-        "RabbitMQ supports flexible routing (direct, topic, fanout, headers) via exchanges and bindings",
-        "Kafka is a distributed event log for high-throughput streaming — pull-based, replayable, partitionable",
-        "Retries should use exponential backoff with jitter to prevent thundering herd on recovery",
-        "Dead-letter queues capture messages that fail after retry exhaustion — critical for operational debugging",
-        "Pub/sub enables event-driven architectures with loose coupling between services",
-        "Idempotent processing is essential for at-least-once delivery — deduplicate with processed message IDs",
-      ],
-      tips: [
-        "Compare BullMQ vs RabbitMQ vs Kafka explicitly — know each one's strengths and use cases",
-        "Explain the difference between job queues (discrete work items) and message queues (general communication)",
-        "Discuss consumer groups in Kafka — partition assignment, rebalancing, and parallel consumption",
-        "Mention the saga pattern for distributed transactions — shows understanding of async coordination",
-        "Always discuss idempotency when talking about message processing — it shows production experience",
-      ],
-      sampleQuestions: [
-        "What is a background job and why is it needed?",
-        "What is a message queue and how does it work?",
-        "What is Bull (BullMQ) and how is it used in Node.js?",
-        "What is RabbitMQ and what messaging patterns does it support?",
-        "What is Apache Kafka and how is it different from traditional message queues?",
-        "What is the difference between a job queue and a message queue?",
-        "What is pub/sub (publish-subscribe) pattern?",
-        "How do you implement retries in a job queue?",
-        "What is a dead-letter queue (DLQ)?",
-        "What is a consumer group in Kafka?",
-        "What is the difference between at-least-once and exactly-once delivery?",
-        "What is idempotency in the context of message processing?",
-        "What is the saga pattern in distributed transactions?",
-        "How does backpressure work in message processing?",
-        "What is the difference between synchronous and asynchronous communication in microservices?",
-      ],
+        keyPoints: [
+          "Message queues decouple producers from consumers — enabling async processing, load leveling, and fault tolerance",
+          "BullMQ is the standard Node.js job queue — Redis-based, supports retries, delays, priorities, and lifecycle events",
+          "RabbitMQ supports flexible routing (direct, topic, fanout, headers) via exchanges and bindings",
+          "Kafka is a distributed event log for high-throughput streaming — pull-based, replayable, partitionable",
+          "Retries should use exponential backoff with jitter to prevent thundering herd on recovery",
+          "Dead-letter queues capture messages that fail after retry exhaustion — critical for operational debugging",
+          "Pub/sub enables event-driven architectures with loose coupling between services",
+          "Idempotent processing is essential for at-least-once delivery — deduplicate with processed message IDs",
+        ],
+        tips: [
+          "Compare BullMQ vs RabbitMQ vs Kafka explicitly — know each one's strengths and use cases",
+          "Explain the difference between job queues (discrete work items) and message queues (general communication)",
+          "Discuss consumer groups in Kafka — partition assignment, rebalancing, and parallel consumption",
+          "Mention the saga pattern for distributed transactions — shows understanding of async coordination",
+          "Always discuss idempotency when talking about message processing — it shows production experience",
+        ],
+        sampleQuestions: [
+          "What is a background job and why is it needed?",
+          "What is a message queue and how does it work?",
+          "What is Bull (BullMQ) and how is it used in Node.js?",
+          "What is RabbitMQ and what messaging patterns does it support?",
+          "What is Apache Kafka and how is it different from traditional message queues?",
+          "What is the difference between a job queue and a message queue?",
+          "What is pub/sub (publish-subscribe) pattern?",
+          "How do you implement retries in a job queue?",
+          "What is a dead-letter queue (DLQ)?",
+          "What is a consumer group in Kafka?",
+          "What is the difference between at-least-once and exactly-once delivery?",
+          "What is idempotency in the context of message processing?",
+          "What is the saga pattern in distributed transactions?",
+          "How does backpressure work in message processing?",
+          "What is the difference between synchronous and asynchronous communication in microservices?",
+        ],
+      },
     },
-  },
   ],
   "fullstack-engineer": [
     {
@@ -3299,7 +3301,10 @@ Access-Control-Allow-Methods: GET, POST
   ],
 };
 
-export const crossCategoryChapters: Record<string, { title: string; order_index: number }[]> = {
+export const crossCategoryChapters: Record<
+  string,
+  { title: string; order_index: number }[]
+> = {
   "software-engineer": [
     { title: "JavaScript Deep Dive", order_index: 9 },
     { title: "HTML & The DOM", order_index: 10 },
