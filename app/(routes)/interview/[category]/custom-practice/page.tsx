@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getCategoryBySlug, getDistinctTagsByCategorySlug } from "@/lib/interview-data";
+import {
+  getCategoryBySlug,
+  getDistinctTagsByCategorySlug,
+} from "@/lib/interview-data";
 import CustomPracticeClient from "./CustomPracticeClient";
 
 export default async function CustomPracticePage({

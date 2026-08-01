@@ -2,7 +2,8 @@ import type { CourseData } from "./types";
 
 export const jsCourse: CourseData = {
   title: "JavaScript for Absolute Beginners",
-  description: "Learn JavaScript from scratch — variables, functions, loops, objects, DOM, and events. The language that makes websites interactive.",
+  description:
+    "Learn JavaScript from scratch — variables, functions, loops, objects, DOM, and events. The language that makes websites interactive.",
   icon: "⚡",
   difficulty: "Beginner",
   category: "Frontend",

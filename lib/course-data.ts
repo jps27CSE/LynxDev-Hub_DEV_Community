@@ -40,33 +40,37 @@ export const getAllCourses = cache(async (): Promise<Course[]> => {
   }
 });
 
-export const getCourseById = cache(async (id: number): Promise<Course | null> => {
-  try {
-    const result = await db
-      .select()
-      .from(courses)
-      .where(eq(courses.id, id))
-      .limit(1);
-    return result[0] ?? null;
-  } catch (error) {
-    console.error("[course-data] getCourseById:", error);
-    return null;
-  }
-});
+export const getCourseById = cache(
+  async (id: number): Promise<Course | null> => {
+    try {
+      const result = await db
+        .select()
+        .from(courses)
+        .where(eq(courses.id, id))
+        .limit(1);
+      return result[0] ?? null;
+    } catch (error) {
+      console.error("[course-data] getCourseById:", error);
+      return null;
+    }
+  },
+);
 
-export const getChaptersByCourseId = cache(async (courseId: number): Promise<Chapter[]> => {
-  try {
-    const result = await db
-      .select()
-      .from(chapters)
-      .where(eq(chapters.course_id, courseId))
-      .orderBy(chapters.order_index);
-    return result.map((ch) => ({
-      ...ch,
-      content: ch.content as Chapter["content"],
-    }));
-  } catch (error) {
-    console.error("[course-data] getChaptersByCourseId:", error);
-    return [];
-  }
-});
+export const getChaptersByCourseId = cache(
+  async (courseId: number): Promise<Chapter[]> => {
+    try {
+      const result = await db
+        .select()
+        .from(chapters)
+        .where(eq(chapters.course_id, courseId))
+        .orderBy(chapters.order_index);
+      return result.map((ch) => ({
+        ...ch,
+        content: ch.content as Chapter["content"],
+      }));
+    } catch (error) {
+      console.error("[course-data] getChaptersByCourseId:", error);
+      return [];
+    }
+  },
+);

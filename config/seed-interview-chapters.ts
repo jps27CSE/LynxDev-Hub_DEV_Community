@@ -1,8 +1,17 @@
 import "dotenv/config";
 import { db } from "./db";
-import { interviewCategories, interviewCategoryChapters, interviewChapters, interviewQuestions, interviewQuestionChapters } from "./schema";
+import {
+  interviewCategories,
+  interviewCategoryChapters,
+  interviewChapters,
+  interviewQuestions,
+  interviewQuestionChapters,
+} from "./schema";
 import { eq, sql } from "drizzle-orm";
-import { chaptersData, crossCategoryChapters } from "./interview/chapters-seed-data";
+import {
+  chaptersData,
+  crossCategoryChapters,
+} from "./interview/chapters-seed-data";
 
 async function seedInterviewChapters() {
   console.log("Clearing existing chapters...");
@@ -65,7 +74,11 @@ async function seedInterviewChapters() {
       let linked = 0;
       for (const sq of sampleQuestions) {
         for (const [qText, qId] of questionMap.entries()) {
-          if (qText === sq || qText.toLowerCase().includes(sq.toLowerCase()) || sq.toLowerCase().includes(qText.toLowerCase())) {
+          if (
+            qText === sq ||
+            qText.toLowerCase().includes(sq.toLowerCase()) ||
+            sq.toLowerCase().includes(qText.toLowerCase())
+          ) {
             try {
               await db.insert(interviewQuestionChapters).values({
                 question_id: qId,
@@ -91,7 +104,9 @@ async function seedInterviewChapters() {
     for (const link of crossLinks) {
       const chapterId = createdChapters.get(link.title);
       if (!chapterId) {
-        console.log(`  ⚠ ${cat.name}: cross-referenced chapter "${link.title}" not found — skipping`);
+        console.log(
+          `  ⚠ ${cat.name}: cross-referenced chapter "${link.title}" not found — skipping`,
+        );
         continue;
       }
 

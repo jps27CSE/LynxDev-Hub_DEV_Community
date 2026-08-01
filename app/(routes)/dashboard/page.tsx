@@ -24,7 +24,10 @@ const Dashboard = async () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <WelcomeBanner enrolledCount={enrolledCount} completedCount={completedCount} />
+      <WelcomeBanner
+        enrolledCount={enrolledCount}
+        completedCount={completedCount}
+      />
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InterviewStats />
         <ProblemStats />

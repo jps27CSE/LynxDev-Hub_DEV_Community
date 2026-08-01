@@ -2,7 +2,8 @@ import type { CourseData } from "./types";
 
 export const cppCourse: CourseData = {
   title: "C++ for Absolute Beginners",
-  description: "Learn C++ from scratch — an extension of C with object-oriented programming. Build games, apps, and understand modern software.",
+  description:
+    "Learn C++ from scratch — an extension of C with object-oriented programming. Build games, apps, and understand modern software.",
   icon: "🔷",
   difficulty: "Beginner",
   category: "Programming",

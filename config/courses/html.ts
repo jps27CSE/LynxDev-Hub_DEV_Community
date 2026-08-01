@@ -2,7 +2,8 @@ import type { CourseData } from "./types";
 
 export const htmlCourse: CourseData = {
   title: "HTML for Absolute Beginners",
-  description: "Learn HTML from scratch — the language that structures every website. No prior experience needed. Live browser preview included.",
+  description:
+    "Learn HTML from scratch — the language that structures every website. No prior experience needed. Live browser preview included.",
   icon: "🌐",
   difficulty: "Beginner",
   category: "Frontend",

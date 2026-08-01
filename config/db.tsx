@@ -11,5 +11,5 @@ export const db = drizzle(
     idleTimeout: 30_000,
     enableKeepAlive: true,
     keepAliveInitialDelay: 10_000,
-  })
+  }),
 );

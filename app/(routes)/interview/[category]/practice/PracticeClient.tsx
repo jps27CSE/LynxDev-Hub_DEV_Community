@@ -56,24 +56,16 @@ function AnswerMarkdown({ content }: { content: string }) {
             </h3>
           ),
           p: ({ children }) => (
-            <p className="mb-4 leading-[1.75] text-[15px]">
-              {children}
-            </p>
+            <p className="mb-4 leading-[1.75] text-[15px]">{children}</p>
           ),
           ul: ({ children }) => (
-            <ul className="mb-4 space-y-1.5 pl-5 list-disc">
-              {children}
-            </ul>
+            <ul className="mb-4 space-y-1.5 pl-5 list-disc">{children}</ul>
           ),
           ol: ({ children }) => (
-            <ol className="mb-4 space-y-1.5 pl-5 list-decimal">
-              {children}
-            </ol>
+            <ol className="mb-4 space-y-1.5 pl-5 list-decimal">{children}</ol>
           ),
           li: ({ children }) => (
-            <li className="text-[15px] leading-relaxed pl-1">
-              {children}
-            </li>
+            <li className="text-[15px] leading-relaxed pl-1">{children}</li>
           ),
           code: ({ children, className }) => {
             const isInline = !className;
@@ -89,7 +81,9 @@ function AnswerMarkdown({ content }: { content: string }) {
                 <div className="absolute top-0 right-0 px-3 py-1 text-[11px] text-muted-foreground bg-muted/80 rounded-bl-lg rounded-tr-lg border-l border-b border-border/30 font-mono">
                   {className?.replace("language-", "") || "code"}
                 </div>
-                <code className={`block text-[13.5px] leading-relaxed ${className}`}>
+                <code
+                  className={`block text-[13.5px] leading-relaxed ${className}`}
+                >
                   {children}
                 </code>
               </div>
@@ -101,15 +95,11 @@ function AnswerMarkdown({ content }: { content: string }) {
             </pre>
           ),
           strong: ({ children }) => (
-            <strong className="font-bold text-foreground">
-              {children}
-            </strong>
+            <strong className="font-bold text-foreground">{children}</strong>
           ),
           table: ({ children }) => (
             <div className="overflow-x-auto my-6 rounded-xl border border-border/50">
-              <table className="w-full text-sm">
-                {children}
-              </table>
+              <table className="w-full text-sm">{children}</table>
             </div>
           ),
           th: ({ children }) => (
@@ -122,9 +112,7 @@ function AnswerMarkdown({ content }: { content: string }) {
               {children}
             </td>
           ),
-          hr: () => (
-            <hr className="my-8 border-border/30" />
-          ),
+          hr: () => <hr className="my-8 border-border/30" />,
         }}
       >
         {content}
@@ -153,12 +141,19 @@ export default function PracticeClient({
 
   useEffect(() => {
     const remaining = questions.length - currentIndex;
-    if (remaining <= PREFETCH_THRESHOLD && questions.length < totalCount && !loading) {
-      const nextOffset = questions.length - (questions.length % PER_PAGE) + PER_PAGE;
+    if (
+      remaining <= PREFETCH_THRESHOLD &&
+      questions.length < totalCount &&
+      !loading
+    ) {
+      const nextOffset =
+        questions.length - (questions.length % PER_PAGE) + PER_PAGE;
       if (!loadedOffsets.current.has(nextOffset)) {
         loadedOffsets.current.add(nextOffset);
         setLoading(true);
-        fetch(`/api/interview/questions?category=${categorySlug}&offset=${nextOffset}`)
+        fetch(
+          `/api/interview/questions?category=${categorySlug}&offset=${nextOffset}`,
+        )
           .then((res) => res.json())
           .then((data) => {
             setQuestions((prev) => [...prev, ...data.questions]);
@@ -195,7 +190,8 @@ export default function PracticeClient({
     });
   }, [current]);
 
-  const progress = totalCount > 0 ? Math.round((reviewed.size / totalCount) * 100) : 0;
+  const progress =
+    totalCount > 0 ? Math.round((reviewed.size / totalCount) * 100) : 0;
   const isLoadingNext = loading && currentIndex >= questions.length - 1;
 
   if (!current) return null;

@@ -1,17 +1,34 @@
-import { getAllCategories, getDistinctTagsByCategorySlug } from "@/lib/interview-data";
+import {
+  getAllCategories,
+  getDistinctTagsByCategorySlug,
+} from "@/lib/interview-data";
 import CustomizeClient from "./CustomizeClient";
 
 export default async function CustomizePage() {
   const categories = await getAllCategories();
-  const slugFilter = ["software-engineer", "frontend-engineer", "backend-engineer"];
+  const slugFilter = [
+    "software-engineer",
+    "frontend-engineer",
+    "backend-engineer",
+  ];
   const allowed = categories.filter((c) => slugFilter.includes(c.slug));
 
-  const stacksByCategory: { name: string; slug: string; icon: string | null; tags: string[] }[] = [];
+  const stacksByCategory: {
+    name: string;
+    slug: string;
+    icon: string | null;
+    tags: string[];
+  }[] = [];
 
   for (const cat of allowed) {
     const tags = await getDistinctTagsByCategorySlug(cat.slug);
     if (tags.length > 0) {
-      stacksByCategory.push({ name: cat.name, slug: cat.slug, icon: cat.icon, tags });
+      stacksByCategory.push({
+        name: cat.name,
+        slug: cat.slug,
+        icon: cat.icon,
+        tags,
+      });
     }
   }
 

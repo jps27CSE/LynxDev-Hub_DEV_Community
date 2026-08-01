@@ -1,9 +1,18 @@
 import { cache } from "react";
 import { db } from "@/config/db";
-import { usersTable, enrollments, courses, chapters, mentorConversations } from "@/config/schema";
+import {
+  usersTable,
+  enrollments,
+  courses,
+  chapters,
+  mentorConversations,
+} from "@/config/schema";
 import { eq, inArray } from "drizzle-orm";
 
-export type Message = { role: "user" | "assistant" | "system"; content: string };
+export type Message = {
+  role: "user" | "assistant" | "system";
+  content: string;
+};
 
 export const getUserContext = cache(async (clerkEmail: string) => {
   const users = await db
@@ -30,11 +39,17 @@ export const getUserContext = cache(async (clerkEmail: string) => {
       .where(inArray(chapters.course_id, courseIds));
 
     for (const ch of chapterRows) {
-      chapterCountByCourseId.set(ch.course_id, (chapterCountByCourseId.get(ch.course_id) || 0) + 1);
+      chapterCountByCourseId.set(
+        ch.course_id,
+        (chapterCountByCourseId.get(ch.course_id) || 0) + 1,
+      );
     }
   }
 
-  const courseInfoByCourseId = new Map<number, { title: string; total: number }>();
+  const courseInfoByCourseId = new Map<
+    number,
+    { title: string; total: number }
+  >();
   if (courseIds.length > 0) {
     const courseRows = await db
       .select({ id: courses.id, title: courses.title })
@@ -42,7 +57,10 @@ export const getUserContext = cache(async (clerkEmail: string) => {
       .where(inArray(courses.id, courseIds));
 
     for (const c of courseRows) {
-      courseInfoByCourseId.set(c.id, { title: c.title, total: chapterCountByCourseId.get(c.id) || 0 });
+      courseInfoByCourseId.set(c.id, {
+        title: c.title,
+        total: chapterCountByCourseId.get(c.id) || 0,
+      });
     }
   }
 
@@ -62,7 +80,11 @@ export const getUserContext = cache(async (clerkEmail: string) => {
     bio: user.bio,
     skills: (user.skills as string[]) || [],
     points: user.points || 0,
-    courses: courseList.filter(Boolean) as { title: string; progress: number; total: number }[],
+    courses: courseList.filter(Boolean) as {
+      title: string;
+      progress: number;
+      total: number;
+    }[],
   };
 });
 
@@ -96,9 +118,13 @@ export function buildSystemPrompt(user: {
   points: number;
   courses: { title: string; progress: number; total: number }[];
 }): string {
-  const skillList = user.skills.length ? user.skills.join(", ") : "No skills added yet";
+  const skillList = user.skills.length
+    ? user.skills.join(", ")
+    : "No skills added yet";
   const courseList = user.courses.length
-    ? user.courses.map((c) => `- ${c.title}: ${c.progress}/${c.total} chapters`).join("\n")
+    ? user.courses
+        .map((c) => `- ${c.title}: ${c.progress}/${c.total} chapters`)
+        .join("\n")
     : "No enrolled courses yet";
 
   return `You are Lynx — an encouraging, practical coding mentor on LynxDev Hub. Your tone is warm, direct, and developer-to-developer.
@@ -128,7 +154,8 @@ const MAX_RETRY_AFTER_MS = 5000;
 
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (signal?.aborted) return reject(new DOMException("Aborted", "AbortError"));
+    if (signal?.aborted)
+      return reject(new DOMException("Aborted", "AbortError"));
     const timer = setTimeout(() => {
       signal?.removeEventListener("abort", onAbort);
       resolve();

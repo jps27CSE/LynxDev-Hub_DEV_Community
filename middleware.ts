@@ -30,7 +30,12 @@ export default clerkMiddleware(async (auth, req) => {
 
     if (!result.success) {
       const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
-      return rateLimited(retryAfter, config.limit, result.remaining, result.reset);
+      return rateLimited(
+        retryAfter,
+        config.limit,
+        result.remaining,
+        result.reset,
+      );
     }
   }
 });

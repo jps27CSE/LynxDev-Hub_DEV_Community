@@ -4,7 +4,11 @@ import ProblemsClient from "./ProblemsClient";
 export default async function ProblemsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ difficulty?: string; category?: string; page?: string }>
+  searchParams: Promise<{
+    difficulty?: string;
+    category?: string;
+    page?: string;
+  }>;
 }) {
   const sp = await searchParams;
   const difficulty = sp.difficulty || "all";

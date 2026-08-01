@@ -50,7 +50,10 @@ export default function ProfilePage() {
       .then((r) => r.json())
       .then((data) => {
         setEnrolledCount(data.length);
-        setCompletedCount(data.filter((e: { completed_at: string | null }) => e.completed_at).length);
+        setCompletedCount(
+          data.filter((e: { completed_at: string | null }) => e.completed_at)
+            .length,
+        );
       })
       .catch(() => {});
   }, [clerkUser]);
@@ -96,9 +99,24 @@ export default function ProfilePage() {
 
   const stats = [
     { label: "Points", value: points, icon: Sparkles, color: "text-amber-500" },
-    { label: "Skills", value: skills.length, icon: Layers, color: "text-blue-500" },
-    { label: "Enrolled", value: enrolledCount, icon: BookOpen, color: "text-emerald-500" },
-    { label: "Completed", value: completedCount, icon: Trophy, color: "text-violet-500" },
+    {
+      label: "Skills",
+      value: skills.length,
+      icon: Layers,
+      color: "text-blue-500",
+    },
+    {
+      label: "Enrolled",
+      value: enrolledCount,
+      icon: BookOpen,
+      color: "text-emerald-500",
+    },
+    {
+      label: "Completed",
+      value: completedCount,
+      icon: Trophy,
+      color: "text-violet-500",
+    },
   ];
 
   return (
@@ -159,7 +177,9 @@ export default function ProfilePage() {
                 >
                   <Icon className={`w-5 h-5 ${s.color} mx-auto`} />
                   <p className="text-xl font-bold mt-1.5">{s.value}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{s.label}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    {s.label}
+                  </p>
                 </div>
               );
             })}
@@ -202,7 +222,9 @@ export default function ProfilePage() {
                   type="text"
                   value={skillInput}
                   onChange={(e) => setSkillInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && (e.preventDefault(), addSkill())
+                  }
                   className="flex-1 px-3 py-2 rounded-lg border border-border/50 bg-background text-sm text-foreground outline-none focus:border-primary/30 transition-colors"
                   placeholder="Type a skill and press Enter..."
                 />
@@ -244,7 +266,11 @@ export default function ProfilePage() {
 
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">
-              {saved && <span className="text-emerald-500 font-medium">Saved successfully</span>}
+              {saved && (
+                <span className="text-emerald-500 font-medium">
+                  Saved successfully
+                </span>
+              )}
             </p>
             <Button onClick={handleSave} disabled={saving} className="gap-2">
               {saving ? (

@@ -2,7 +2,8 @@ import type { CourseData } from "./types";
 
 export const cCourse: CourseData = {
   title: "C Programming for Absolute Beginners",
-  description: "Learn C from scratch — the language that powers operating systems. Understand memory, pointers, and how computers really work.",
+  description:
+    "Learn C from scratch — the language that powers operating systems. Understand memory, pointers, and how computers really work.",
   icon: "⚙️",
   difficulty: "Beginner",
   category: "Programming",

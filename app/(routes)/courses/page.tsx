@@ -5,7 +5,10 @@ import { courses, chapters } from "@/config/schema";
 import { eq, count, asc } from "drizzle-orm";
 import CourseIcon from "@/components/CourseIcon";
 
-const difficultyConfig: Record<string, { color: string; light: string; badge: string }> = {
+const difficultyConfig: Record<
+  string,
+  { color: string; light: string; badge: string }
+> = {
   Beginner: {
     color: "text-green-500",
     light: "bg-green-500/10",
@@ -40,7 +43,7 @@ export default async function CoursesPage() {
     .orderBy(asc(courses.order_index));
 
   const filteredCourses = allCourses.filter((c) =>
-    ALLOWED_COURSES.includes(c.title)
+    ALLOWED_COURSES.includes(c.title),
   );
 
   const chapterCounts = await db
@@ -56,8 +59,9 @@ export default async function CoursesPage() {
     countMap.set(row.course_id, Number(row.value));
   }
 
-  return (<>
-    <div className="relative overflow-hidden border-b border-border/40">
+  return (
+    <>
+      <div className="relative overflow-hidden border-b border-border/40">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]" />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-3xl" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -83,7 +87,9 @@ export default async function CoursesPage() {
                 </span>
               </h1>
               <p className="mt-4 text-lg text-muted-foreground max-w-xl leading-relaxed">
-                Hands-on courses with coding exercises, real projects, and a structured curriculum designed to take you from beginner to proficient.
+                Hands-on courses with coding exercises, real projects, and a
+                structured curriculum designed to take you from beginner to
+                proficient.
               </p>
             </div>
           </div>
@@ -100,11 +106,21 @@ export default async function CoursesPage() {
           </div>
           <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
             <span className="w-2 h-2 rounded-full bg-emerald-500/70" />
-            {filteredCourses.filter((c) => c.difficulty === "Beginner").length} Beginner
+            {
+              filteredCourses.filter((c) => c.difficulty === "Beginner").length
+            }{" "}
+            Beginner
             <span className="mx-1.5 text-muted-foreground/30">&middot;</span>
-            {filteredCourses.filter((c) => c.difficulty === "Intermediate").length} Intermediate
+            {
+              filteredCourses.filter((c) => c.difficulty === "Intermediate")
+                .length
+            }{" "}
+            Intermediate
             <span className="mx-1.5 text-muted-foreground/30">&middot;</span>
-            {filteredCourses.filter((c) => c.difficulty === "Advanced").length} Advanced
+            {
+              filteredCourses.filter((c) => c.difficulty === "Advanced").length
+            }{" "}
+            Advanced
           </div>
         </div>
 
@@ -117,7 +133,9 @@ export default async function CoursesPage() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredCourses.map((course) => {
-              const diff = difficultyConfig[course.difficulty] || difficultyConfig["Beginner"];
+              const diff =
+                difficultyConfig[course.difficulty] ||
+                difficultyConfig["Beginner"];
               const chapterCount = countMap.get(course.id) || 0;
 
               return (
@@ -134,8 +152,8 @@ export default async function CoursesPage() {
                         course.difficulty === "Beginner"
                           ? "linear-gradient(135deg, rgba(34,197,94,0.03), transparent)"
                           : course.difficulty === "Intermediate"
-                          ? "linear-gradient(135deg, rgba(234,179,8,0.03), transparent)"
-                          : "linear-gradient(135deg, rgba(239,68,68,0.03), transparent)",
+                            ? "linear-gradient(135deg, rgba(234,179,8,0.03), transparent)"
+                            : "linear-gradient(135deg, rgba(239,68,68,0.03), transparent)",
                     }}
                   />
 
@@ -163,12 +181,17 @@ export default async function CoursesPage() {
                     </span>
                     <span className="text-muted-foreground/30">&middot;</span>
                     <span className="text-xs text-muted-foreground">
-                      {chapterCount} {chapterCount === 1 ? "chapter" : "chapters"}
+                      {chapterCount}{" "}
+                      {chapterCount === 1 ? "chapter" : "chapters"}
                     </span>
                     {course.category && (
                       <>
-                        <span className="text-muted-foreground/30">&middot;</span>
-                        <span className="text-xs text-muted-foreground">{course.category}</span>
+                        <span className="text-muted-foreground/30">
+                          &middot;
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {course.category}
+                        </span>
                       </>
                     )}
                   </div>
@@ -177,6 +200,7 @@ export default async function CoursesPage() {
             })}
           </div>
         )}
-    </div>
-  </>);
+      </div>
+    </>
+  );
 }

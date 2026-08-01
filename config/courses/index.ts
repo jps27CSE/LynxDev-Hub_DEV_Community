@@ -11,7 +11,16 @@ import { javaCourse } from "./java";
 import { csharpCourse } from "./csharp";
 import { pythonCourse } from "./python";
 
-export { htmlCourse, cssCourse, jsCourse, cCourse, cppCourse, javaCourse, csharpCourse, pythonCourse };
+export {
+  htmlCourse,
+  cssCourse,
+  jsCourse,
+  cCourse,
+  cppCourse,
+  javaCourse,
+  csharpCourse,
+  pythonCourse,
+};
 
 export const allCourses: CourseData[] = [
   htmlCourse,

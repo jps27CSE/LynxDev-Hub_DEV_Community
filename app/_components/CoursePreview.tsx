@@ -34,7 +34,10 @@ const courses = [
   },
 ];
 
-const diffConfig: Record<string, { color: string; light: string; badge: string }> = {
+const diffConfig: Record<
+  string,
+  { color: string; light: string; badge: string }
+> = {
   Beginner: {
     color: "text-green-500",
     light: "bg-green-500/10",
@@ -94,7 +97,9 @@ function CoursePreview() {
                   }}
                 />
                 <div className="relative">
-                  <div className={`w-12 h-12 rounded-2xl ${diff.light} flex items-center justify-center mb-4 ring-1 ring-white/5`}>
+                  <div
+                    className={`w-12 h-12 rounded-2xl ${diff.light} flex items-center justify-center mb-4 ring-1 ring-white/5`}
+                  >
                     <CourseIcon title={course.title} className="w-7 h-7" />
                   </div>
                   <h3 className="font-bold text-base group-hover:text-primary transition-colors">
@@ -111,7 +116,8 @@ function CoursePreview() {
                     </span>
                     <span className="text-muted-foreground/30">&middot;</span>
                     <span className="text-xs text-muted-foreground">
-                      {course.chapters} {course.chapters === 1 ? "chapter" : "chapters"}
+                      {course.chapters}{" "}
+                      {course.chapters === 1 ? "chapter" : "chapters"}
                     </span>
                   </div>
                   <div className="mt-4">

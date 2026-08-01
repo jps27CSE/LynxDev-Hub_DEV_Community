@@ -2,7 +2,8 @@ import type { CourseData } from "./types";
 
 export const cssCourse: CourseData = {
   title: "CSS for Absolute Beginners",
-  description: "Learn CSS from scratch — make websites beautiful with colors, layouts, and animations. Live browser preview included.",
+  description:
+    "Learn CSS from scratch — make websites beautiful with colors, layouts, and animations. Live browser preview included.",
   icon: "🎨",
   difficulty: "Beginner",
   category: "Frontend",

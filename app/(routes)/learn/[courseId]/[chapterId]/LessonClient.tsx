@@ -86,7 +86,7 @@ export default function LessonClient({
       });
       setCompleted(true);
       setUserDetail?.((prev: any) =>
-        prev ? { ...prev, points: res.data.points } : prev
+        prev ? { ...prev, points: res.data.points } : prev,
       );
       toast(`+${res.data.pointsAwarded} points`, {
         icon: <Star className="w-4 h-4 text-yellow-500" />,
@@ -162,11 +162,7 @@ export default function LessonClient({
                 <RotateCcw className="w-4 h-4 mr-1" />
                 Reset
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleShowSolution}
-              >
+              <Button size="sm" variant="outline" onClick={handleShowSolution}>
                 <Eye className="w-4 h-4 mr-1" />
                 Show Solution
               </Button>

@@ -4,7 +4,12 @@ import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { validationError, badJson, unauthorized, notFound } from "@/lib/api-error";
+import {
+  validationError,
+  badJson,
+  unauthorized,
+  notFound,
+} from "@/lib/api-error";
 
 const UpdateProfileSchema = z.object({
   name: z.string().trim().min(1).max(255).optional(),
@@ -38,15 +43,21 @@ export async function PATCH(req: NextRequest) {
   if (!email) return notFound("Email");
 
   let body: unknown;
-  try { body = await req.json(); }
-  catch { return badJson(); }
+  try {
+    body = await req.json();
+  } catch {
+    return badJson();
+  }
 
   const parsed = UpdateProfileSchema.safeParse(body);
   if (!parsed.success) return validationError(parsed.error);
 
   const updates = parsed.data;
   if (Object.keys(updates).length === 0) {
-    return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+    return NextResponse.json(
+      { error: "No valid fields to update" },
+      { status: 400 },
+    );
   }
 
   await db.update(usersTable).set(updates).where(eq(usersTable.email, email));

@@ -45,7 +45,14 @@ type CourseIconProps = {
 
 export default function CourseIcon({ title, className = "" }: CourseIconProps) {
   const svg = title ? findIcon(title) : null;
-  if (!svg) return <span className={`w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-xs ${className}`}>📁</span>;
+  if (!svg)
+    return (
+      <span
+        className={`w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-xs ${className}`}
+      >
+        📁
+      </span>
+    );
 
   return (
     <span

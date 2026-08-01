@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, useCallback, Suspense } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+  Suspense,
+} from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +25,11 @@ import {
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
-import type { InterviewCategory, InterviewChapter, InterviewQuestion } from "@/lib/interview-data";
+import type {
+  InterviewCategory,
+  InterviewChapter,
+  InterviewQuestion,
+} from "@/lib/interview-data";
 
 const difficultyColor: Record<string, string> = {
   easy: "bg-green-500/10 text-green-500 border-green-500/20",
@@ -65,7 +76,10 @@ const tagLabels: Record<string, string> = {
 };
 
 function formatTagLabel(tag: string): string {
-  return tagLabels[tag] || tag.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return (
+    tagLabels[tag] ||
+    tag.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  );
 }
 
 function AnswerMarkdown({ content }: { content: string }) {
@@ -91,24 +105,16 @@ function AnswerMarkdown({ content }: { content: string }) {
             </h3>
           ),
           p: ({ children }) => (
-            <p className="mb-4 leading-[1.75] text-[15px]">
-              {children}
-            </p>
+            <p className="mb-4 leading-[1.75] text-[15px]">{children}</p>
           ),
           ul: ({ children }) => (
-            <ul className="mb-4 space-y-1.5 pl-5 list-disc">
-              {children}
-            </ul>
+            <ul className="mb-4 space-y-1.5 pl-5 list-disc">{children}</ul>
           ),
           ol: ({ children }) => (
-            <ol className="mb-4 space-y-1.5 pl-5 list-decimal">
-              {children}
-            </ol>
+            <ol className="mb-4 space-y-1.5 pl-5 list-decimal">{children}</ol>
           ),
           li: ({ children }) => (
-            <li className="text-[15px] leading-relaxed pl-1">
-              {children}
-            </li>
+            <li className="text-[15px] leading-relaxed pl-1">{children}</li>
           ),
           code: ({ children, className }) => {
             const isInline = !className;
@@ -124,7 +130,9 @@ function AnswerMarkdown({ content }: { content: string }) {
                 <div className="absolute top-0 right-0 px-3 py-1 text-[11px] text-muted-foreground bg-muted/80 rounded-bl-lg rounded-tr-lg border-l border-b border-border/30 font-mono">
                   {className?.replace("language-", "") || "code"}
                 </div>
-                <code className={`block text-[13.5px] leading-relaxed ${className}`}>
+                <code
+                  className={`block text-[13.5px] leading-relaxed ${className}`}
+                >
                   {children}
                 </code>
               </div>
@@ -136,15 +144,11 @@ function AnswerMarkdown({ content }: { content: string }) {
             </pre>
           ),
           strong: ({ children }) => (
-            <strong className="font-bold text-foreground">
-              {children}
-            </strong>
+            <strong className="font-bold text-foreground">{children}</strong>
           ),
           table: ({ children }) => (
             <div className="overflow-x-auto my-6 rounded-xl border border-border/50">
-              <table className="w-full text-sm">
-                {children}
-              </table>
+              <table className="w-full text-sm">{children}</table>
             </div>
           ),
           th: ({ children }) => (
@@ -157,9 +161,7 @@ function AnswerMarkdown({ content }: { content: string }) {
               {children}
             </td>
           ),
-          hr: () => (
-            <hr className="my-8 border-border/30" />
-          ),
+          hr: () => <hr className="my-8 border-border/30" />,
         }}
       >
         {content}
@@ -182,23 +184,32 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
     return chaptersWithQuestions.length > 0 ? chaptersWithQuestions[0].id : 0;
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [sortOrder, setSortOrder] = useState<"default" | "easy-hard" | "hard-easy">("default");
+  const [sortOrder, setSortOrder] = useState<
+    "default" | "easy-hard" | "hard-easy"
+  >("default");
 
   const mainRef = useRef<HTMLElement>(null);
 
-  const handleSetChapter = useCallback((id: number) => {
-    setActiveChapter(id);
-    const params = new URLSearchParams(searchParams?.toString() ?? "");
-    params.set("chapter", String(id));
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [router, pathname, searchParams]);
+  const handleSetChapter = useCallback(
+    (id: number) => {
+      setActiveChapter(id);
+      const params = new URLSearchParams(searchParams?.toString() ?? "");
+      params.set("chapter", String(id));
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [router, pathname, searchParams],
+  );
 
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeChapter]);
 
-  const currentChapter = chaptersWithQuestions.find((ch) => ch.id === activeChapter);
-  const currentIndex = chaptersWithQuestions.findIndex((ch) => ch.id === activeChapter);
+  const currentChapter = chaptersWithQuestions.find(
+    (ch) => ch.id === activeChapter,
+  );
+  const currentIndex = chaptersWithQuestions.findIndex(
+    (ch) => ch.id === activeChapter,
+  );
 
   const sortedQuestions = useMemo(() => {
     if (!currentChapter) return [];
@@ -215,7 +226,9 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
   if (chaptersWithQuestions.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">No chapters available for this category yet.</p>
+        <p className="text-muted-foreground">
+          No chapters available for this category yet.
+        </p>
       </div>
     );
   }
@@ -253,7 +266,11 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="hidden lg:flex"
             >
-              {sidebarOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              {sidebarOpen ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
             </Button>
           </div>
         </div>
@@ -293,7 +310,10 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
           </aside>
         )}
 
-        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main
+          ref={mainRef}
+          className="flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8"
+        >
           {currentChapter && (
             <div>
               <div className="mb-8">
@@ -323,7 +343,9 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
                         <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
                         <select
                           value={sortOrder}
-                          onChange={(e) => setSortOrder(e.target.value as typeof sortOrder)}
+                          onChange={(e) =>
+                            setSortOrder(e.target.value as typeof sortOrder)
+                          }
                           className="text-xs bg-background border border-border/40 rounded-md px-2 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 cursor-pointer"
                         >
                           <option value="default">Default</option>
@@ -393,7 +415,9 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
                           <div className="w-5 h-5 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
                           </div>
-                          <span className="text-[15px] text-foreground/80 leading-relaxed">{point}</span>
+                          <span className="text-[15px] text-foreground/80 leading-relaxed">
+                            {point}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -411,7 +435,9 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
                       {currentChapter.content.tips.map((tip, i) => (
                         <li key={i} className="flex items-start gap-3">
                           <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2.5 flex-shrink-0" />
-                          <span className="text-[15px] text-foreground/80 leading-relaxed">{tip}</span>
+                          <span className="text-[15px] text-foreground/80 leading-relaxed">
+                            {tip}
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -424,7 +450,11 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleSetChapter(chaptersWithQuestions[currentIndex - 1].id)}
+                    onClick={() =>
+                      handleSetChapter(
+                        chaptersWithQuestions[currentIndex - 1].id,
+                      )
+                    }
                   >
                     &larr; Previous
                   </Button>
@@ -434,7 +464,11 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
                 {currentIndex < chaptersWithQuestions.length - 1 ? (
                   <Button
                     size="sm"
-                    onClick={() => handleSetChapter(chaptersWithQuestions[currentIndex + 1].id)}
+                    onClick={() =>
+                      handleSetChapter(
+                        chaptersWithQuestions[currentIndex + 1].id,
+                      )
+                    }
                   >
                     Next &rarr;
                   </Button>

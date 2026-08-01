@@ -27,7 +27,9 @@ function WelcomeBanner({
           <div>
             <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight">
               Welcome back,{" "}
-              <span className="text-primary">{user?.fullName || "Developer"}</span>
+              <span className="text-primary">
+                {user?.fullName || "Developer"}
+              </span>
             </h1>
             <p className="mt-2 text-muted-foreground max-w-xl text-sm">
               {user?.primaryEmailAddress?.emailAddress}
@@ -61,11 +63,15 @@ function WelcomeBanner({
             <span className="text-sm text-muted-foreground">Points</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-primary">{enrolledCount}</span>
+            <span className="text-2xl font-bold text-primary">
+              {enrolledCount}
+            </span>
             <span className="text-sm text-muted-foreground">Enrolled</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-primary">{completedCount}</span>
+            <span className="text-2xl font-bold text-primary">
+              {completedCount}
+            </span>
             <span className="text-sm text-muted-foreground">Completed</span>
           </div>
           <div className="flex items-center gap-2">

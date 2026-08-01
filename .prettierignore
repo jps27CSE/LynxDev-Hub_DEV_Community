@@ -1,0 +1,9 @@
+# Agent working docs — not product code
+.agent
+docs
+
+# Generated — keep pristine for drizzle-kit diffing
+drizzle/meta
+
+# Generated lockfile
+package-lock.json

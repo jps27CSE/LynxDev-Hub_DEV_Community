@@ -9,7 +9,10 @@ export async function GET() {
     await Promise.race([
       db.execute("SELECT 1"),
       new Promise((_, reject) => {
-        timer = setTimeout(() => reject(new Error("DB health check timed out")), TIMEOUT_MS);
+        timer = setTimeout(
+          () => reject(new Error("DB health check timed out")),
+          TIMEOUT_MS,
+        );
       }),
     ]);
     return NextResponse.json({
@@ -25,7 +28,7 @@ export async function GET() {
         db: "error",
         timestamp: new Date().toISOString(),
       },
-      { status: 503 }
+      { status: 503 },
     );
   } finally {
     clearTimeout(timer);

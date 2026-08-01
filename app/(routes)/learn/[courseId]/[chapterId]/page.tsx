@@ -56,10 +56,7 @@ export default async function LessonPage({
         </div>
       </div>
 
-      <LessonClient
-        chapter={chapter}
-        courseId={course.id}
-      />
+      <LessonClient chapter={chapter} courseId={course.id} />
     </div>
   );
 }

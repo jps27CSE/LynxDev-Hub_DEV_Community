@@ -47,24 +47,16 @@ function AnswerMarkdown({ content }: { content: string }) {
             </h3>
           ),
           p: ({ children }) => (
-            <p className="mb-4 leading-[1.75] text-[15px]">
-              {children}
-            </p>
+            <p className="mb-4 leading-[1.75] text-[15px]">{children}</p>
           ),
           ul: ({ children }) => (
-            <ul className="mb-4 space-y-1.5 pl-5 list-disc">
-              {children}
-            </ul>
+            <ul className="mb-4 space-y-1.5 pl-5 list-disc">{children}</ul>
           ),
           ol: ({ children }) => (
-            <ol className="mb-4 space-y-1.5 pl-5 list-decimal">
-              {children}
-            </ol>
+            <ol className="mb-4 space-y-1.5 pl-5 list-decimal">{children}</ol>
           ),
           li: ({ children }) => (
-            <li className="text-[15px] leading-relaxed pl-1">
-              {children}
-            </li>
+            <li className="text-[15px] leading-relaxed pl-1">{children}</li>
           ),
           code: ({ children, className }) => {
             const isInline = !className;
@@ -80,7 +72,9 @@ function AnswerMarkdown({ content }: { content: string }) {
                 <div className="absolute top-0 right-0 px-3 py-1 text-[11px] text-muted-foreground bg-muted/80 rounded-bl-lg rounded-tr-lg border-l border-b border-border/30 font-mono">
                   {className?.replace("language-", "") || "code"}
                 </div>
-                <code className={`block text-[13.5px] leading-relaxed ${className}`}>
+                <code
+                  className={`block text-[13.5px] leading-relaxed ${className}`}
+                >
                   {children}
                 </code>
               </div>
@@ -92,15 +86,11 @@ function AnswerMarkdown({ content }: { content: string }) {
             </pre>
           ),
           strong: ({ children }) => (
-            <strong className="font-bold text-foreground">
-              {children}
-            </strong>
+            <strong className="font-bold text-foreground">{children}</strong>
           ),
           table: ({ children }) => (
             <div className="overflow-x-auto my-6 rounded-xl border border-border/50">
-              <table className="w-full text-sm">
-                {children}
-              </table>
+              <table className="w-full text-sm">{children}</table>
             </div>
           ),
           th: ({ children }) => (
@@ -113,9 +103,7 @@ function AnswerMarkdown({ content }: { content: string }) {
               {children}
             </td>
           ),
-          hr: () => (
-            <hr className="my-8 border-border/30" />
-          ),
+          hr: () => <hr className="my-8 border-border/30" />,
         }}
       >
         {content}
@@ -177,9 +165,12 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-display font-bold tracking-tight">Custom Practice</h1>
+        <h1 className="text-2xl font-display font-bold tracking-tight">
+          Custom Practice
+        </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Select stacks or topics you want to practice — get all matching questions at once.
+          Select stacks or topics you want to practice — get all matching
+          questions at once.
         </p>
       </div>
 
@@ -238,7 +229,8 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">
-              {questions.length} question{questions.length !== 1 ? "s" : ""} found
+              {questions.length} question{questions.length !== 1 ? "s" : ""}{" "}
+              found
             </h2>
           </div>
 

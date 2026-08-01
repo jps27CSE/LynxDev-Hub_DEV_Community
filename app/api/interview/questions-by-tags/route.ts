@@ -15,17 +15,26 @@ export async function POST(request: Request) {
 
   try {
     let body: unknown;
-    try { body = await request.json(); }
-    catch { return badJson(); }
+    try {
+      body = await request.json();
+    } catch {
+      return badJson();
+    }
 
     const parsed = QuestionsByTagsSchema.safeParse(body);
     if (!parsed.success) return validationError(parsed.error);
 
-    const questions = await getQuestionsByCategorySlugAndTags(parsed.data.categorySlug, parsed.data.tags);
+    const questions = await getQuestionsByCategorySlugAndTags(
+      parsed.data.categorySlug,
+      parsed.data.tags,
+    );
 
     return NextResponse.json({ questions });
   } catch (error) {
     console.error("[interview/questions-by-tags] POST:", error);
-    return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch questions" },
+      { status: 500 },
+    );
   }
 }

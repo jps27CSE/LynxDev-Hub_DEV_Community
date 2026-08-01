@@ -12,8 +12,7 @@ function Hero() {
             by Jack Pritom Soren
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight">
-            Learn. Build. Grow.{" "}
-            <span className="text-primary">For Free.</span>
+            Learn. Build. Grow. <span className="text-primary">For Free.</span>
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
             Interactive coding courses, AI mentorship, developer community, and

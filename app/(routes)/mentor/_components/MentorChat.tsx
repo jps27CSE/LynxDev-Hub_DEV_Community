@@ -22,8 +22,16 @@ import {
 } from "lucide-react";
 
 const quickActions = [
-  { label: "What should I learn next?", icon: TrendingUp, desc: "Personalized roadmap" },
-  { label: "Help me practice coding", icon: Code, desc: "Exercises & challenges" },
+  {
+    label: "What should I learn next?",
+    icon: TrendingUp,
+    desc: "Personalized roadmap",
+  },
+  {
+    label: "Help me practice coding",
+    icon: Code,
+    desc: "Exercises & challenges",
+  },
   { label: "Explain a concept", icon: Lightbulb, desc: "Simplify any topic" },
 ];
 
@@ -33,10 +41,17 @@ const followUps = [
   "What should I practice?",
 ];
 
-type Message = { role: "user" | "assistant"; content: string; timestamp?: number };
+type Message = {
+  role: "user" | "assistant";
+  content: string;
+  timestamp?: number;
+};
 
 function formatTime(ts: number) {
-  return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return new Date(ts).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default function MentorChat() {
@@ -64,10 +79,12 @@ export default function MentorChat() {
         if (data.context) setContext(data.context);
         if (data.history) {
           setMessages(
-            (data.history as { role: "user" | "assistant"; content: string }[]).map((m) => ({
+            (
+              data.history as { role: "user" | "assistant"; content: string }[]
+            ).map((m) => ({
               ...m,
               timestamp: Date.now(),
-            }))
+            })),
           );
         }
       })
@@ -113,7 +130,11 @@ export default function MentorChat() {
       if (!msg.trim() || streaming) return;
       setError("");
       setStreaming(true);
-      const userMessage: Message = { role: "user", content: msg.trim(), timestamp: Date.now() };
+      const userMessage: Message = {
+        role: "user",
+        content: msg.trim(),
+        timestamp: Date.now(),
+      };
       setMessages((prev) => [...prev, userMessage]);
       setInput("");
 
@@ -135,7 +156,10 @@ export default function MentorChat() {
           return;
         }
 
-        setMessages((prev) => [...prev, { role: "assistant", content: "", timestamp: Date.now() }]);
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "", timestamp: Date.now() },
+        ]);
 
         const reader = res.body?.getReader();
         const decoder = new TextDecoder();
@@ -154,7 +178,11 @@ export default function MentorChat() {
                   full += parsed.token;
                   setMessages((prev) => {
                     const copy = [...prev];
-                    copy[copy.length - 1] = { role: "assistant", content: full, timestamp: copy[copy.length - 1].timestamp };
+                    copy[copy.length - 1] = {
+                      role: "assistant",
+                      content: full,
+                      timestamp: copy[copy.length - 1].timestamp,
+                    };
                     return copy;
                   });
                 } else if (parsed.error) {
@@ -175,7 +203,7 @@ export default function MentorChat() {
         abortRef.current = null;
       }
     },
-    [streaming]
+    [streaming],
   );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -191,14 +219,13 @@ export default function MentorChat() {
     inputRef.current?.focus();
   };
 
-  const level =
-    !context
-      ? ""
-      : context.skills.length <= 2 && context.courses.every((c) => c.progress < 3)
-        ? "Beginner"
-        : context.skills.length <= 5
-          ? "Intermediate"
-          : "Advanced";
+  const level = !context
+    ? ""
+    : context.skills.length <= 2 && context.courses.every((c) => c.progress < 3)
+      ? "Beginner"
+      : context.skills.length <= 5
+        ? "Intermediate"
+        : "Advanced";
 
   const levelColor =
     level === "Beginner"
@@ -227,7 +254,9 @@ export default function MentorChat() {
           </div>
           <div>
             <h2 className="text-sm font-semibold">Chat with Lynx</h2>
-            <p className="text-[11px] text-muted-foreground">Powered by Mistral Large</p>
+            <p className="text-[11px] text-muted-foreground">
+              Powered by Mistral Large
+            </p>
           </div>
         </div>
         <button
@@ -249,9 +278,13 @@ export default function MentorChat() {
                 <User className="w-5 h-5 text-purple-500" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{context?.name || "User"}</p>
+                <p className="text-sm font-medium truncate">
+                  {context?.name || "User"}
+                </p>
                 {level && (
-                  <span className={`inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-medium ${levelColor}`}>
+                  <span
+                    className={`inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-medium ${levelColor}`}
+                  >
                     {level}
                   </span>
                 )}
@@ -259,12 +292,16 @@ export default function MentorChat() {
             </div>
 
             {context?.bio && (
-              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">{context.bio}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                {context.bio}
+              </p>
             )}
 
             {context && context.skills.length > 0 && (
               <div>
-                <p className="text-[11px] font-medium text-muted-foreground mb-2 uppercase tracking-wider">Skills</p>
+                <p className="text-[11px] font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                  Skills
+                </p>
                 <div className="flex flex-wrap gap-1.5">
                   {context.skills.map((s) => (
                     <button
@@ -295,7 +332,9 @@ export default function MentorChat() {
 
           {context && context.courses.length > 0 && (
             <div className="rounded-xl border border-border/50 bg-card p-5 space-y-3">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Course Progress</p>
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                Course Progress
+              </p>
               <div className="space-y-2.5">
                 {context.courses.map((c) => (
                   <div key={c.title} className="space-y-1">
@@ -322,7 +361,10 @@ export default function MentorChat() {
 
         {/* Chat area */}
         <div className="flex-1 flex flex-col min-w-0">
-          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto space-y-4 scroll-smooth">
+          <div
+            ref={messagesContainerRef}
+            className="flex-1 overflow-y-auto space-y-4 scroll-smooth"
+          >
             {messages.length === 0 && !streaming && (
               <div className="flex flex-col items-center justify-center h-full text-center px-4">
                 <div className="relative mb-6">
@@ -335,8 +377,9 @@ export default function MentorChat() {
                   Hey {context?.name?.split(" ")[0] || "there"}!
                 </h2>
                 <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-                  I&apos;m Lynx, your personal coding mentor. I know your skills and progress —
-                  ask me anything about learning, career advice, or what to study next.
+                  I&apos;m Lynx, your personal coding mentor. I know your skills
+                  and progress — ask me anything about learning, career advice,
+                  or what to study next.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8 w-full max-w-lg">
                   {quickActions.map((a) => {
@@ -350,8 +393,12 @@ export default function MentorChat() {
                         <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center">
                           <Icon className="w-4.5 h-4.5 text-primary" />
                         </div>
-                        <span className="text-xs font-medium leading-snug">{a.label}</span>
-                        <span className="text-[10px] text-muted-foreground">{a.desc}</span>
+                        <span className="text-xs font-medium leading-snug">
+                          {a.label}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {a.desc}
+                        </span>
                       </button>
                     );
                   })}
@@ -361,7 +408,9 @@ export default function MentorChat() {
 
             {messages.map((msg, i) => (
               <div key={i}>
-                <div className={`flex gap-3 ${msg.role === "user" ? "justify-end" : ""}`}>
+                <div
+                  className={`flex gap-3 ${msg.role === "user" ? "justify-end" : ""}`}
+                >
                   {msg.role === "assistant" && (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0 mt-1">
                       <Bot className="w-4 h-4 text-white" />
@@ -380,11 +429,14 @@ export default function MentorChat() {
                           remarkPlugins={[remarkGfm]}
                           rehypePlugins={[rehypeHighlight]}
                         >
-                          {msg.content || (streaming && i === messages.length - 1 ? "▊" : "")}
+                          {msg.content ||
+                            (streaming && i === messages.length - 1 ? "▊" : "")}
                         </ReactMarkdown>
-                        {streaming && i === messages.length - 1 && msg.content && (
-                          <span className="inline-block w-2 h-4 bg-primary/60 rounded-sm animate-pulse ml-0.5" />
-                        )}
+                        {streaming &&
+                          i === messages.length - 1 &&
+                          msg.content && (
+                            <span className="inline-block w-2 h-4 bg-primary/60 rounded-sm animate-pulse ml-0.5" />
+                          )}
                       </div>
                     ) : (
                       <p>{msg.content}</p>
@@ -403,22 +455,27 @@ export default function MentorChat() {
                     }`}
                   >
                     <Clock className="w-3 h-3 text-muted-foreground/50" />
-                    <span className="text-[10px] text-muted-foreground/50">{formatTime(msg.timestamp)}</span>
+                    <span className="text-[10px] text-muted-foreground/50">
+                      {formatTime(msg.timestamp)}
+                    </span>
                   </div>
                 )}
-                {msg.role === "assistant" && !streaming && msg.content && i === messages.length - 1 && (
-                  <div className="flex gap-2 mt-3 ml-11">
-                    {followUps.map((f) => (
-                      <button
-                        key={f}
-                        onClick={() => sendMessage(f)}
-                        className="px-3 py-1.5 rounded-lg border border-border/50 bg-card text-[11px] font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all"
-                      >
-                        {f}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                {msg.role === "assistant" &&
+                  !streaming &&
+                  msg.content &&
+                  i === messages.length - 1 && (
+                    <div className="flex gap-2 mt-3 ml-11">
+                      {followUps.map((f) => (
+                        <button
+                          key={f}
+                          onClick={() => sendMessage(f)}
+                          className="px-3 py-1.5 rounded-lg border border-border/50 bg-card text-[11px] font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all"
+                        >
+                          {f}
+                        </button>
+                      ))}
+                    </div>
+                  )}
               </div>
             ))}
             {error && (

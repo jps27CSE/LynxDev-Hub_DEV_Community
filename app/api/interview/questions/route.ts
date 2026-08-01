@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { validationError, unauthorized } from "@/lib/api-error";
-import { getQuestionsByCategorySlug, getQuestionCountByCategorySlug } from "@/lib/interview-data";
+import {
+  getQuestionsByCategorySlug,
+  getQuestionCountByCategorySlug,
+} from "@/lib/interview-data";
 
 const QuestionsQuerySchema = z.object({
   category: z.string().min(1),
@@ -39,7 +42,7 @@ export async function GET(request: NextRequest) {
     console.error("[interview/questions] GET:", error);
     return NextResponse.json(
       { error: "Failed to fetch questions" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
