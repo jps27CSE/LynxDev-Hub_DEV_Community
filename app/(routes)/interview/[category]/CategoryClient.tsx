@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/PageHeader";
 import {
   Sparkles,
   BookOpen,
@@ -235,29 +236,37 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
-      <div className="border-b border-border/40 bg-card px-4 sm:px-6 lg:px-8 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <PageHeader>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 min-w-0">
             <Link
               href="/interview"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
             >
               &larr; Interview
             </Link>
             <span className="text-muted-foreground">/</span>
-            <span className="text-sm font-medium">{category.name}</span>
+            <span className="text-sm font-medium truncate min-w-0">
+              {category.name}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <Link href={`/interview/${category.slug}/custom-practice`}>
-              <Button variant="outline" size="sm" className="gap-2">
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href={`/interview/${category.slug}/custom-practice`}
+              aria-label="Custom Practice"
+            >
+              <Button variant="outline" size="sm" className="px-2.5">
                 <Sparkles className="w-4 h-4" />
-                Custom Practice
+                <span className="hidden md:inline">Custom Practice</span>
               </Button>
             </Link>
-            <Link href={`/interview/${category.slug}/practice`}>
-              <Button size="sm" className="gap-2">
+            <Link
+              href={`/interview/${category.slug}/practice`}
+              aria-label="Practice Mode"
+            >
+              <Button size="sm" className="px-2.5">
                 <Sparkles className="w-4 h-4" />
-                Practice Mode
+                <span className="hidden md:inline">Practice Mode</span>
               </Button>
             </Link>
             <Button
@@ -274,7 +283,7 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
             </Button>
           </div>
         </div>
-      </div>
+      </PageHeader>
 
       <div className="flex-1 flex w-full min-h-0">
         {sidebarOpen && (
