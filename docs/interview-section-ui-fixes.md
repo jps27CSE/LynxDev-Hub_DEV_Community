@@ -7,7 +7,7 @@
 This doc records the findings of a full UI/UX + mobile-responsive audit of the Interview Preparation
 section, plus the ordered, task-sized fixes. Each task is independent and testable in isolation.
 
-Progress: **1 of 13 fixed** — see ✅ Done sections below.
+Progress: **3 of 13 fixed** — see ✅ Done sections below.
 
 ## Current file map
 
@@ -51,7 +51,7 @@ Progress: **1 of 13 fixed** — see ✅ Done sections below.
 - Test: 375px viewport, signed-in, every interview sub-page breadcrumb
   visible & tappable (also re-check 768px tablet width).
 
-### 2. Category reader is a fixed-height "mini-app"
+### 2. Category reader is a fixed-height "mini-app" — ✅ Done (2026-08-02)
 
 - **File**: `CategoryClient.tsx:237` — `h-screen overflow-hidden` + inner
   `overflow-y-auto` (`:315`).
@@ -60,24 +60,38 @@ Progress: **1 of 13 fixed** — see ✅ Done sections below.
     collapsed → content below the fold unreachable.
   - Nested scroll containers break scroll-chaining on touch devices; the
     page feels frozen at boundaries.
-- **Fix**:
-  - Swap `h-screen` → `h-dvh` (with `supports[-...]` fallback) OR drop the
-    fixed viewport entirely and let the document scroll (preferred — matches
-    `problems` and `practice` routes).
-  - If keeping the sticky reader layout: keep the top bar + chapter rail
-    `sticky`, and set the rail/main to `h-dvh` with `overflow-y-auto`.
+- **Implemented** (document-scroll approach — matches `problems`/`practice`):
+  - Outer wrapper: `h-screen overflow-hidden` → plain `flex flex-col`
+    (document scroll; fixes iOS 100vh clipping + scroll-chaining).
+  - `main`: dropped `overflow-y-auto` + ref; scroll-to-top on chapter change
+    is now `window.scrollTo({ top: 0, behavior: "smooth" })`.
+  - Desktop chapter rail: now `sticky top-0 h-dvh overflow-y-auto` so the
+    rail stays visible while the page scrolls (no UX regression vs. the old
+    fixed viewport), and only on `lg+` as before.
+  - Removed now-unused `useRef`.
+- **Verification**: `tsc --noEmit` + prettier clean. Manual test needed:
+  iOS Safari with collapsed URL bar (no clipped bottom), 375px + 1440px,
+  chapter switch scrolls to top.
 
-### 3. No chapter navigation on mobile
+### 3. No chapter navigation on mobile — ✅ Done (2026-08-02)
 
 - **File**: `CategoryClient.tsx:281` — `aside` is `hidden lg:block`; the
   sidebar toggle is `hidden lg:flex` (`:263`).
 - **Impact**: on `<lg` viewports the only way to move between chapters is
   the Prev/Next bar (`:448`), which is poor for multi-chapter categories
   (no overview, no jump).
-- **Fix**: add a mobile chapter picker above the chapter content:
-  - A `<Sheet>`/`Drawer` reusing the same rail content, OR
-  - A compact `<select>` "Chapter x of y" when `< lg`.
-- Wire it to the same `handleSetChapter` callback.
+- **Implemented**: collapsible, searchable chapter list on mobile (`lg:hidden`,
+  default open):
+  - Header toggle row: "Chapters" + current position `n/N` + chevron; `aria-expanded`.
+  - Panel: `Search` input filtering chapter titles (client-side, `useMemo`),
+    scrollable list (`max-h-72`) reusing the desktop rail's row styling
+    (`01. <title>` + active state), "No chapters match your search" empty
+    state. Selecting a chapter calls `handleSetChapter` (URL `?chapter=`
+    stays in sync) and collapses the panel.
+  - Desktop rail and toggle are unchanged.
+- **Verification**: `tsc --noEmit` + prettier clean. Manual: 375px — search
+  narrows list, select updates content + URL, panel collapses, would also
+  check search empty state.
 
 ### 4. Category header has no responsive overflow handling
 
@@ -194,6 +208,7 @@ Order of execution (each is isolated / testable):
 1. **P001** — shared `PageHeader` + mobile offset: fixes #1 and #4.
    → **#1 done** (PageHeader in place). #4 (header overflow at ~375px) still open.
 2. **P002** — responsive `h-dvh` + mobile chapter picker: fixes #2 and #3.
+   → **#2 and #3 done** (document scroll + sticky rail + mobile chapter select).
 3. **P003** — extract `AnswerMarkdown` `lib/` + `formatTagLabel` in lib: fixes #6, #7, #8.
 4. **P004** — Practice practice mode footer / wrap + tags wrap: fixes #9.
 5. **P005** — `CustomizeClient` empty/error states + persistent reviewed: fixes #10, #12, #13.

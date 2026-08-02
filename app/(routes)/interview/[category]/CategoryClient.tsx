@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useMemo,
-  useRef,
-  useCallback,
-  Suspense,
-} from "react";
+import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +15,7 @@ import {
   ChevronUp,
   CheckCircle2,
   ArrowUpDown,
+  Search,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -188,8 +182,8 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
   const [sortOrder, setSortOrder] = useState<
     "default" | "easy-hard" | "hard-easy"
   >("default");
-
-  const mainRef = useRef<HTMLElement>(null);
+  const [mobileChaptersOpen, setMobileChaptersOpen] = useState(true);
+  const [chapterSearch, setChapterSearch] = useState("");
 
   const handleSetChapter = useCallback(
     (id: number) => {
@@ -202,7 +196,7 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
   );
 
   useEffect(() => {
-    mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeChapter]);
 
   const currentChapter = chaptersWithQuestions.find(
@@ -224,6 +218,14 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
     return qs;
   }, [currentChapter, sortOrder]);
 
+  const filteredChapters = useMemo(() => {
+    const q = chapterSearch.trim().toLowerCase();
+    if (!q) return chaptersWithQuestions;
+    return chaptersWithQuestions.filter((ch) =>
+      ch.title.toLowerCase().includes(q),
+    );
+  }, [chaptersWithQuestions, chapterSearch]);
+
   if (chaptersWithQuestions.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -235,7 +237,7 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
   }
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="bg-background flex flex-col">
       <PageHeader>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-3 min-w-0">
@@ -285,9 +287,9 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
         </div>
       </PageHeader>
 
-      <div className="flex-1 flex w-full min-h-0">
+      <div className="flex w-full">
         {sidebarOpen && (
-          <aside className="w-72 flex-shrink-0 border-r border-border/40 bg-card/50 hidden lg:block overflow-y-auto">
+          <aside className="w-72 flex-shrink-0 border-r border-border/40 bg-card/50 hidden lg:block sticky top-0 h-dvh overflow-y-auto">
             <div className="p-4">
               <div className="flex items-center gap-2 mb-4">
                 <BookOpen className="w-4 h-4 text-muted-foreground" />
@@ -319,12 +321,81 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
           </aside>
         )}
 
-        <main
-          ref={mainRef}
-          className="flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8"
-        >
+        <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-8">
           {currentChapter && (
             <div>
+              <div className="lg:hidden mb-6">
+                <button
+                  onClick={() => setMobileChaptersOpen(!mobileChaptersOpen)}
+                  aria-expanded={mobileChaptersOpen}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-border/50 bg-card transition-colors hover:border-border"
+                >
+                  <span className="flex items-center gap-2 text-sm font-semibold">
+                    <BookOpen className="w-4 h-4 text-muted-foreground" />
+                    Chapters
+                  </span>
+                  <span className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
+                    {currentIndex + 1}/{chaptersWithQuestions.length}
+                    {mobileChaptersOpen ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </span>
+                </button>
+
+                {mobileChaptersOpen && (
+                  <div className="mt-2 rounded-xl border border-border/50 bg-card overflow-hidden">
+                    <div className="p-3 pb-2">
+                      <div className="relative">
+                        <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          value={chapterSearch}
+                          onChange={(e) => setChapterSearch(e.target.value)}
+                          placeholder="Search chapters..."
+                          className="w-full bg-background border border-border/50 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30"
+                        />
+                      </div>
+                    </div>
+
+                    <nav className="max-h-72 overflow-y-auto px-2 pb-2 space-y-0.5">
+                      {filteredChapters.map((ch, idx) => {
+                        const active = activeChapter === ch.id;
+                        const chapterNumber = chaptersWithQuestions.findIndex(
+                          (c) => c.id === ch.id,
+                        );
+                        return (
+                          <button
+                            key={ch.id}
+                            onClick={() => {
+                              handleSetChapter(ch.id);
+                              setMobileChaptersOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-3 ${
+                              active
+                                ? "bg-primary/10 text-primary font-medium"
+                                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                            }`}
+                          >
+                            <span className="text-xs text-muted-foreground font-mono w-5 flex-shrink-0">
+                              {String(chapterNumber + 1).padStart(2, "0")}
+                            </span>
+                            <span className="leading-snug truncate">
+                              {ch.title}
+                            </span>
+                          </button>
+                        );
+                      })}
+                      {filteredChapters.length === 0 && (
+                        <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                          No chapters match your search
+                        </p>
+                      )}
+                    </nav>
+                  </div>
+                )}
+              </div>
+
               <div className="mb-8">
                 <span className="text-xs text-muted-foreground font-mono">
                   Chapter {currentIndex + 1} of {chaptersWithQuestions.length}
