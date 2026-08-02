@@ -7,7 +7,7 @@
 This doc records the findings of a full UI/UX + mobile-responsive audit of the Interview Preparation
 section, plus the ordered, task-sized fixes. Each task is independent and testable in isolation.
 
-Progress: **3 of 13 fixed** — see ✅ Done sections below.
+Progress: **13 of 13 fixed** — see ✅ Done sections below.
 
 ## Current file map
 
@@ -93,100 +93,150 @@ Progress: **3 of 13 fixed** — see ✅ Done sections below.
   narrows list, select updates content + URL, panel collapses, would also
   check search empty state.
 
-### 4. Category header has no responsive overflow handling
+### 4. Category header has no responsive overflow handling — ✅ Done (2026-08-02)
 
 - **File**: `CategoryClient.tsx:239-276`. Single row: breadcrumb +
   "Custom Practice" + "Practice Mode" buttons. No truncation, no wrap,
   no breakpoints. Squeezes/overlaps at ~375px.
-- **Fix**: on `xs`/`sm`:
-  - Hide button labels → icon-only with `aria-label`, and
-  - `flex-wrap` on the right cluster, or move CTAs to a second row.
+- **Implemented**:
+  - CTA labels hidden below `md` (icon-only, `aria-label` preserved).
+  - **Distinct icons** per CTA: `SlidersHorizontal` for Custom Practice,
+    `Sparkles` for Practice Mode (icons are no longer ambiguous at
+    icon-only widths).
+  - Breadcrumb: `flex-1 min-w-0` on the left cluster + `truncate` on the
+    category name; outer row got `flex-wrap` as a safety net so the right
+    cluster drops to a second row instead of overlapping at ultra-narrow
+    widths. Dropped the redundant `px-2.5` (Button `sm` already applies
+    `has-[>svg]:px-2.5`).
+- **Verification**: `tsc --noEmit` + prettier clean. Manual: 320/375/767px —
+  single row, distinct CTA icons, labels return ≥768px, no overlap.
 
 ---
 
 ## 🟠 P1 — High (consistency / UX)
 
-### 5. "Customize Your Stack" is a dead-end promise
+### 5. "Customize Your Stack" is a dead-end promise — ✅ Done (2026-08-02, option A)
 
 - **Files**: `CustomizeClient.tsx:8` saves `lynxdev_interview_stacks`;
-  `CategoryClient.tsx:49` declares the same const but never reads it.
-- **Impact**: the landing hero (`interview/page.tsx:120-125`) promises a
-  "personalized interview plan" but a saved stack has zero effect anywhere.
-- **Fix (choose one)**:
-  - **A (wire it up)** — pass the saved tags into the category reader and
-    surface a "Tailored to: X, Y, Z" filter chip that filters the rendered
-    questions of each chapter (and/or orders questions to match).
-  - **B (relabel)** — copy it as "save your prefs" learning bookmarks and
-    load them into Customize only. Cheaper, honest.
-- If **A**: keep filtering client-side in `CategoryClient` (data set is
-  small); do not add a new API route.
+  `CategoryClient.tsx:44` declared the same `STORAGE_KEY` but never read it.
+- **Implemented (option A — wire it up, client-side only, no API)**:
+  - `CategoryClient.tsx` now loads saved tags from `lynxdev_interview_stacks`
+    guarded by try/catch after mount; `tailored` starts `true` when a stack
+    exists.
+  - `sortedQuestions` filters to questions whose tags intersect the saved
+    stack and orders by match count (most relevant first). Stacked on top of
+    the existing sort control.
+  - Chapter heading UI: "Tailored to: X, Y, Z…" primary chip with an ✕ to
+    revert; a "Personalize by saved stack" outline chip restores it.
+  - Questions count badge reflects the filtered length; empty state card
+    ("No questions in this chapter match your saved stack" + "Show all
+    questions") covers the zero-match case.
+- Per plan, filtering stays client-side in `CategoryClient` — no new API.
+- **Verification**: `tsc --noEmit` + prettier clean. Manual: save a stack in
+  Customize → open a category → questions filtered/ordered by stack; ✕ and
+  re-enable both restore full list.
 
-### 6. Duplicated `AnswerMarkdown` component (×3)
+### 6. Duplicated `AnswerMarkdown` component (×3) — ✅ Done (2026-08-02)
 
 - **Files**: `CategoryClient.tsx:85-171`, `PracticeClient.tsx:36-122`,
   `CustomPracticeClient.tsx:27-113`. ~100 identical lines each.
-- **Fix**: extract one shared component (e.g.
-  `components/markdown-answer.tsx`) exporting `AnswerMarkdown`, and import
-  from all three. Optionally unify with the mentor chat renderer later.
+- **Implemented**: extracted to **`components/markdown-answer.tsx`**
+  (named export `AnswerMarkdown`, no `"use client"`), imported by all three
+  pages. Removed the local copies and their `react-markdown` /
+  `remark-gfm` / `rehype-highlight` imports. Verified zero remaining
+  `ReactMarkdown` references under `app/(routes)/interview`.
+- **Bundled**: while consolidating, code blocks now live in a
+  `pre.overflow-x-auto` inside the relative code wrapper (see #7) — wide
+  highlighted code scrolls horizontally instead of bleeding off card on
+  mobile; the language chip stays pinned.
+- **Verification**: `tsc --noEmit` + prettier clean. Manual: render a
+  chapter/practice/custom-practice answer containing a long code line at
+  375px (horizontal scroll, no overflow) — otherwise identical rendering.
 
-### 7. Code blocks overflow horizontally on mobile
+### 7. Code blocks overflow horizontally on mobile — ✅ Done (2026-08-02)
 
 - **Files**: all three `AnswerMarkdown`.
-- **Fix**: wrap `<pre>` in an `overflow-x-auto` container (same pattern as
-  the markdown `table` renderer already uses). Verify tailwind `highlight.js`
-  theme does not introduce fixed widths.
+- **Implemented**: the shared `markdown-answer.tsx` wraps block code in
+  `pre.overflow-x-auto` (multi-line `highlight.js` samples scroll instead
+  of bleeding horizontally); tables already used the same pattern.
+- **Verification**: see #6 — visual check at 375px with a wide snippet.
 
-### 8. Custom Practice renders raw tag slugs
+### 8. Custom Practice renders raw tag slugs — ✅ Done (2026-08-02)
 
 - **File**: `CustomPracticeClient.tsx:160` (chip) and `:253` (badge) show
   `{tag}` e.g. `"data-structures"`.
-- **Fix**: reuse the shared `formatTagLabel()` (currently duplicated in
-  `CategoryClient.tsx:78` and `CustomizeClient.tsx:82`) in
-  CustomPracticeClient so all tag display is consistent. Extract helper to
-  `lib/` (e.g. `lib/tags.ts`).
+- **Implemented**: extracted one canonical **`lib/tags.ts`** exporting
+  `formatTagLabel` (merged `tagLabels` map, incl. the extended QA/stack
+  entries) and used it everywhere:
+  - `CustomPracticeClient` filter chips + result badges now show labels.
+  - `CategoryClient` topic badges + `PracticeClient` question badges now
+    show labels too (previously updated them with the same raw `{tag}`).
+  - Removed the two duplicated local copies (`CategoryClient`, `CustomizeClient`).
+  - Verified no `function formatTagLabel` / local `tagLabels` remain under
+    `app/(routes)/interview`.
+- **Verification**: `tsc --noEmit` + prettier clean.
 
-### 9. Practice footer + tag rows overflow on small screens
+### 9. Practice footer + tag rows overflow on small screens — ✅ Done (2026-08-02)
 
 - **File**: `PracticeClient.tsx:223` (tags row) and `:261` (Prev / Mark as
   Reviewed / Next) — both `flex` with no wrap. "Mark as Reviewed" is long.
-- **Fix**:
-  - Add `flex-wrap` or possibly `gap-2`; on `sm` and below let the tag row
-    wrap naturally.
-  - Practice footer: stack `Mark as Reviewed` onto its own row on mobile
-    (`flex-col sm:flex-row`), keep both: the primary action.
+- **Implemented**:
+  - Tags row: added `flex-wrap` so difficulty + tags + Top 50 wrap
+    naturally instead of overflowing.
+  - Footer: responsive 2-row layout on mobile — `Previous | Next` pair on
+    row 1 (`justify-between`), `Mark as Reviewed` full-width on row 2;
+    back to a single `justify-between` row ≥`sm`. Good tap targets on
+    phones, unchanged on desktop.
+  - Question badges also formatted via `formatTagLabel` (ties into #8).
+- **Verification**: `tsc --noEmit` + prettier clean. Manual: 320/375px —
+  tags wrap, footer stacks, "Mark as Reviewed" is full-width; ≥640px restores
+  single row.
 
 ---
 
 ## 🟡 P2 — Medium (polish)
 
-### 10. Custom Practice missing empty/error states
+### 10. Custom Practice missing empty/error states — ✅ Done (2026-08-02)
 
 - **File**: `CustomPracticeClient.tsx:135-147` — on API error `questions`
   silently reset to `[]`; zero-match has no status.
-- **Fix**: show error message, or empty state ("No questions match your
-  stacks — try fewer tags") and disable `Get Questions` button while
-  `loading` with a spinner (`<Loader2>`).
+- **Implemented**:
+  - `error` state → "Failed to load questions. Please try again." under the
+    controls on request failure.
+  - `hasSearched` state → dashed empty-state card "No questions found —
+    try fewer tags." when a search returns zero matches.
+  - `Get Questions` button shows a `<Loader2>` spinner while loading.
+  - `clearAll` resets error + searched flag.
+- **Verification**: `tsc --noEmit` + prettier clean.
 
-### 11. Landing page dead code & unused styles
+### 11. Landing page dead code & unused styles — ✅ Done (2026-08-02)
 
 - **File**: `interview/page.tsx:9-49` theme map rows for Fullstack/DevOps/QA
   are unreachable since `ALLOWED_SLUGS` (`:51`) filters to 3; and `:165`
   sets `animationDelay` with no animation system running.
-- **Fix**: trim map to allowed slugs or drop the filter, remove dead
-  `animationDelay`. Also note the allowed-slug list being hardcoded in JS
-  duplicates what DB returns — keep as is for now if intent is to gate.
+- **Implemented**: trimmed `categoryThemes` to the 3 allowed tracks and
+  dropped the unused `medium` field from the shape + fallback; removed the
+  dead `animationDelay` and the now-unused `idx` map arg.
+- **Verification**: `tsc --noEmit` + prettier clean.
 
-### 12. "Reviewed %" progress is session-only, not persisted
+### 12. "Reviewed %" progress is session-only, not persisted — ✅ Done (2026-08-02)
 
 - **File**: `PracticeClient.tsx:194` — `reviewed` Set is in-memory.
-- **Fix (later)**: persist `Set<number>` to `localStorage` keyed by
-  category, mirroring the stacks key. Keep `progress` denominator = reviewed
-  target (loaded length) unless we know total from the API.
+- **Implemented**: persisted to `localStorage["lynxdev_reviewed_<slug>"]`:
+  load once on mount (guarded try/catch, `hydratedReviews` ref so we never
+  overwrite stored data with the empty pre-hydration set), persist on
+  change. Progress/toggle now survives reloads.
+- **Verification**: `tsc --noEmit` + prettier clean. Manual: mark a few,
+  reload — still reviewed, bar restored.
 
-### 13. Tag chips: no select-all / per-group toggle
+### 13. Tag chips: no select-all / per-group toggle — ✅ Done (2026-08-02)
 
 - **File**: `CustomizeClient.tsx:145-180` group cards.
-- **Fix**: add "Select all in group" / "Clear groups" small actions per card.
+- **Implemented**: per-group header actions — `Select all` (adds the whole
+  group) and `Clear` (shown when ≥1 selected in the group), plus a
+  `· N selected` count appended to the subtitle. `saveSelection` flow and
+  footer bar unchanged.
+- **Verification**: `tsc --noEmit` + prettier clean.
 
 ---
 
@@ -206,11 +256,13 @@ Progress: **3 of 13 fixed** — see ✅ Done sections below.
 Order of execution (each is isolated / testable):
 
 1. **P001** — shared `PageHeader` + mobile offset: fixes #1 and #4.
-   → **#1 done** (PageHeader in place). #4 (header overflow at ~375px) still open.
+   → **#1 and #4 done** (PageHeader + responsive header row).
 2. **P002** — responsive `h-dvh` + mobile chapter picker: fixes #2 and #3.
-   → **#2 and #3 done** (document scroll + sticky rail + mobile chapter select).
+   → **#2 and #3 done** (document scroll + sticky rail + mobile chapter search list).
 3. **P003** — extract `AnswerMarkdown` `lib/` + `formatTagLabel` in lib: fixes #6, #7, #8.
+   → **#6, #7, #8 done** (shared `components/markdown-answer.tsx`, `lib/tags.ts`).
 4. **P004** — Practice practice mode footer / wrap + tags wrap: fixes #9.
+   → **#9 done** (responsive 2-row footer + tags wrap).
 5. **P005** — `CustomizeClient` empty/error states + persistent reviewed: fixes #10, #12, #13.
 6. **P006** — dead code cleanup on landing page (#11).
 7. **P007** — decide + implement "saved stack ™ workflow (#5).

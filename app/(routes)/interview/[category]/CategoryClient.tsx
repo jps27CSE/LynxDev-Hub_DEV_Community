@@ -6,6 +6,8 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
+import { AnswerMarkdown } from "@/components/markdown-answer";
+import { formatTagLabel } from "@/lib/tags";
 import {
   Sparkles,
   BookOpen,
@@ -16,10 +18,9 @@ import {
   CheckCircle2,
   ArrowUpDown,
   Search,
+  SlidersHorizontal,
+  X,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeHighlight from "rehype-highlight";
 import type {
   InterviewCategory,
   InterviewChapter,
@@ -43,128 +44,6 @@ type Props = {
 
 const STORAGE_KEY = "lynxdev_interview_stacks";
 
-const tagLabels: Record<string, string> = {
-  "data-structures": "Data Structures",
-  algorithms: "Algorithms",
-  networking: "Networking",
-  "operating-systems": "Operating Systems",
-  "distributed-systems": "Distributed Systems",
-  "api-design": "API Design",
-  "design-patterns": "Design Patterns",
-  "system-design": "System Design",
-  javascript: "JavaScript",
-  typescript: "TypeScript",
-  react: "React",
-  angular: "Angular",
-  css: "CSS",
-  dom: "DOM",
-  performance: "Performance",
-  testing: "Testing",
-  databases: "Databases",
-  security: "Security",
-  authentication: "Authentication",
-  caching: "Caching",
-  docker: "Docker",
-  kubernetes: "Kubernetes",
-  devops: "DevOps",
-  architecture: "Architecture",
-};
-
-function formatTagLabel(tag: string): string {
-  return (
-    tagLabels[tag] ||
-    tag.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-  );
-}
-
-function AnswerMarkdown({ content }: { content: string }) {
-  return (
-    <div className="text-base text-foreground/90 leading-relaxed">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
-        components={{
-          h1: ({ children }) => (
-            <h1 className="text-2xl font-bold text-foreground mt-10 mb-4 pb-2 border-b border-border/40">
-              {children}
-            </h1>
-          ),
-          h2: ({ children }) => (
-            <h2 className="text-xl font-bold text-foreground mt-8 mb-3">
-              {children}
-            </h2>
-          ),
-          h3: ({ children }) => (
-            <h3 className="text-lg font-semibold text-foreground mt-6 mb-2">
-              {children}
-            </h3>
-          ),
-          p: ({ children }) => (
-            <p className="mb-4 leading-[1.75] text-[15px]">{children}</p>
-          ),
-          ul: ({ children }) => (
-            <ul className="mb-4 space-y-1.5 pl-5 list-disc">{children}</ul>
-          ),
-          ol: ({ children }) => (
-            <ol className="mb-4 space-y-1.5 pl-5 list-decimal">{children}</ol>
-          ),
-          li: ({ children }) => (
-            <li className="text-[15px] leading-relaxed pl-1">{children}</li>
-          ),
-          code: ({ children, className }) => {
-            const isInline = !className;
-            if (isInline) {
-              return (
-                <code className="px-1.5 py-0.5 rounded-md bg-muted text-[13px] font-mono text-foreground">
-                  {children}
-                </code>
-              );
-            }
-            return (
-              <div className="relative group my-5">
-                <div className="absolute top-0 right-0 px-3 py-1 text-[11px] text-muted-foreground bg-muted/80 rounded-bl-lg rounded-tr-lg border-l border-b border-border/30 font-mono">
-                  {className?.replace("language-", "") || "code"}
-                </div>
-                <code
-                  className={`block text-[13.5px] leading-relaxed ${className}`}
-                >
-                  {children}
-                </code>
-              </div>
-            );
-          },
-          pre: ({ children }) => (
-            <pre className="!bg-transparent !p-0 !m-0 !border-0">
-              {children}
-            </pre>
-          ),
-          strong: ({ children }) => (
-            <strong className="font-bold text-foreground">{children}</strong>
-          ),
-          table: ({ children }) => (
-            <div className="overflow-x-auto my-6 rounded-xl border border-border/50">
-              <table className="w-full text-sm">{children}</table>
-            </div>
-          ),
-          th: ({ children }) => (
-            <th className="px-4 py-3 bg-muted/50 text-left font-semibold text-foreground border-b border-border/50">
-              {children}
-            </th>
-          ),
-          td: ({ children }) => (
-            <td className="px-4 py-2.5 border-b border-border/30 text-muted-foreground">
-              {children}
-            </td>
-          ),
-          hr: () => <hr className="my-8 border-border/30" />,
-        }}
-      >
-        {content}
-      </ReactMarkdown>
-    </div>
-  );
-}
-
 function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -184,6 +63,26 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
   >("default");
   const [mobileChaptersOpen, setMobileChaptersOpen] = useState(true);
   const [chapterSearch, setChapterSearch] = useState("");
+  const [savedTags, setSavedTags] = useState<string[]>([]);
+  const [tailored, setTailored] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as unknown;
+        if (Array.isArray(parsed)) {
+          const tags = (parsed as string[]).filter(
+            (t) => typeof t === "string" && t.trim(),
+          );
+          setSavedTags(tags);
+          setTailored(tags.length > 0);
+        }
+      }
+    } catch {
+      /* ignore storage errors */
+    }
+  }, []);
 
   const handleSetChapter = useCallback(
     (id: number) => {
@@ -215,8 +114,15 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
     } else if (sortOrder === "hard-easy") {
       qs.sort((a, b) => order[b.difficulty] - order[a.difficulty]);
     }
+    if (tailored && savedTags.length > 0) {
+      const matchCount = (q: InterviewQuestion) =>
+        (q.tags as string[]).filter((t) => savedTags.includes(t)).length;
+      return qs
+        .filter((q) => matchCount(q) > 0)
+        .sort((a, b) => matchCount(b) - matchCount(a));
+    }
     return qs;
-  }, [currentChapter, sortOrder]);
+  }, [currentChapter, sortOrder, tailored, savedTags]);
 
   const filteredChapters = useMemo(() => {
     const q = chapterSearch.trim().toLowerCase();
@@ -239,8 +145,8 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
   return (
     <div className="bg-background flex flex-col">
       <PageHeader>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             <Link
               href="/interview"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
@@ -257,8 +163,8 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
               href={`/interview/${category.slug}/custom-practice`}
               aria-label="Custom Practice"
             >
-              <Button variant="outline" size="sm" className="px-2.5">
-                <Sparkles className="w-4 h-4" />
+              <Button variant="outline" size="sm">
+                <SlidersHorizontal className="w-4 h-4" />
                 <span className="hidden md:inline">Custom Practice</span>
               </Button>
             </Link>
@@ -266,7 +172,7 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
               href={`/interview/${category.slug}/practice`}
               aria-label="Practice Mode"
             >
-              <Button size="sm" className="px-2.5">
+              <Button size="sm">
                 <Sparkles className="w-4 h-4" />
                 <span className="hidden md:inline">Practice Mode</span>
               </Button>
@@ -405,6 +311,36 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
                 </h1>
               </div>
 
+              {savedTags.length > 0 && (
+                <div className="mb-6 flex flex-wrap items-center gap-2">
+                  {tailored ? (
+                    <span className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Tailored to:{" "}
+                      {savedTags.slice(0, 3).map(formatTagLabel).join(", ")}
+                      {savedTags.length > 3
+                        ? ` +${savedTags.length - 3} more`
+                        : ""}
+                      <button
+                        onClick={() => setTailored(false)}
+                        aria-label="Show all questions"
+                        className="rounded-full hover:bg-primary/20 p-0.5 text-primary/70 hover:text-primary transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setTailored(true)}
+                      className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary transition-colors"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Personalize by saved stack
+                    </button>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-10">
                 {/* Questions Section - first */}
                 {currentChapter.questions.length > 0 && (
@@ -417,7 +353,7 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
                         Questions
                       </h2>
                       <Badge variant="outline" className="text-xs font-mono">
-                        {currentChapter.questions.length} questions
+                        {sortedQuestions.length} questions
                       </Badge>
                       <div className="ml-auto flex items-center gap-2">
                         <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
@@ -435,49 +371,64 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
                       </div>
                     </div>
                     <div className="space-y-6">
-                      {sortedQuestions.map((q, i) => (
-                        <div
-                          key={q.id}
-                          className="rounded-xl border border-border/50 bg-card overflow-hidden"
-                        >
-                          <div className="p-6 pb-4">
-                            <div className="flex items-start gap-3 mb-3">
-                              <span className="text-xs font-mono text-muted-foreground mt-1 flex-shrink-0">
-                                Q{i + 1}.
-                              </span>
-                              <h3 className="text-base sm:text-lg font-bold text-foreground leading-snug">
-                                {q.question}
-                              </h3>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2 ml-8 mb-4">
-                              <Badge
-                                className={`text-[11px] px-2 py-0.5 border ${difficultyColor[q.difficulty] || ""}`}
-                              >
-                                {q.difficulty}
-                              </Badge>
-                              {(q.tags as string[]).slice(0, 3).map((tag) => (
+                      {sortedQuestions.length === 0 ? (
+                        <div className="rounded-xl border border-dashed border-border/60 bg-card/40 px-6 py-10 text-center space-y-3">
+                          <p className="text-sm text-foreground/80">
+                            No questions in this chapter match your saved stack.
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setTailored(false)}
+                          >
+                            Show all questions
+                          </Button>
+                        </div>
+                      ) : (
+                        sortedQuestions.map((q, i) => (
+                          <div
+                            key={q.id}
+                            className="rounded-xl border border-border/50 bg-card overflow-hidden"
+                          >
+                            <div className="p-6 pb-4">
+                              <div className="flex items-start gap-3 mb-3">
+                                <span className="text-xs font-mono text-muted-foreground mt-1 flex-shrink-0">
+                                  Q{i + 1}.
+                                </span>
+                                <h3 className="text-base sm:text-lg font-bold text-foreground leading-snug">
+                                  {q.question}
+                                </h3>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2 ml-8 mb-4">
                                 <Badge
-                                  key={tag}
-                                  variant="secondary"
-                                  className="text-[11px] px-2 py-0.5 font-normal"
+                                  className={`text-[11px] px-2 py-0.5 border ${difficultyColor[q.difficulty] || ""}`}
                                 >
-                                  {formatTagLabel(tag)}
+                                  {q.difficulty}
                                 </Badge>
-                              ))}
+                                {(q.tags as string[]).slice(0, 3).map((tag) => (
+                                  <Badge
+                                    key={tag}
+                                    variant="secondary"
+                                    className="text-[11px] px-2 py-0.5 font-normal"
+                                  >
+                                    {formatTagLabel(tag)}
+                                  </Badge>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                          <div className="border-t border-border/40 bg-muted/30 px-6 py-5">
-                            <div className="flex items-start gap-3">
-                              <span className="text-xs font-semibold text-foreground/60 mt-1 flex-shrink-0">
-                                A.
-                              </span>
-                              <div className="min-w-0 flex-1">
-                                <AnswerMarkdown content={q.answer} />
+                            <div className="border-t border-border/40 bg-muted/30 px-6 py-5">
+                              <div className="flex items-start gap-3">
+                                <span className="text-xs font-semibold text-foreground/60 mt-1 flex-shrink-0">
+                                  A.
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <AnswerMarkdown content={q.answer} />
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </section>
                 )}

@@ -11,9 +11,8 @@ import {
   CheckCircle,
   Loader2,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeHighlight from "rehype-highlight";
+import { AnswerMarkdown } from "@/components/markdown-answer";
+import { formatTagLabel } from "@/lib/tags";
 
 type Question = {
   id: number;
@@ -32,94 +31,7 @@ const difficultyColor: Record<string, string> = {
 
 const PER_PAGE = 20;
 const PREFETCH_THRESHOLD = 5;
-
-function AnswerMarkdown({ content }: { content: string }) {
-  return (
-    <div className="text-base text-foreground/90 leading-relaxed">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
-        components={{
-          h1: ({ children }) => (
-            <h1 className="text-2xl font-bold text-foreground mt-10 mb-4 pb-2 border-b border-border/40">
-              {children}
-            </h1>
-          ),
-          h2: ({ children }) => (
-            <h2 className="text-xl font-bold text-foreground mt-8 mb-3">
-              {children}
-            </h2>
-          ),
-          h3: ({ children }) => (
-            <h3 className="text-lg font-semibold text-foreground mt-6 mb-2">
-              {children}
-            </h3>
-          ),
-          p: ({ children }) => (
-            <p className="mb-4 leading-[1.75] text-[15px]">{children}</p>
-          ),
-          ul: ({ children }) => (
-            <ul className="mb-4 space-y-1.5 pl-5 list-disc">{children}</ul>
-          ),
-          ol: ({ children }) => (
-            <ol className="mb-4 space-y-1.5 pl-5 list-decimal">{children}</ol>
-          ),
-          li: ({ children }) => (
-            <li className="text-[15px] leading-relaxed pl-1">{children}</li>
-          ),
-          code: ({ children, className }) => {
-            const isInline = !className;
-            if (isInline) {
-              return (
-                <code className="px-1.5 py-0.5 rounded-md bg-muted text-[13px] font-mono text-foreground">
-                  {children}
-                </code>
-              );
-            }
-            return (
-              <div className="relative group my-5">
-                <div className="absolute top-0 right-0 px-3 py-1 text-[11px] text-muted-foreground bg-muted/80 rounded-bl-lg rounded-tr-lg border-l border-b border-border/30 font-mono">
-                  {className?.replace("language-", "") || "code"}
-                </div>
-                <code
-                  className={`block text-[13.5px] leading-relaxed ${className}`}
-                >
-                  {children}
-                </code>
-              </div>
-            );
-          },
-          pre: ({ children }) => (
-            <pre className="!bg-transparent !p-0 !m-0 !border-0">
-              {children}
-            </pre>
-          ),
-          strong: ({ children }) => (
-            <strong className="font-bold text-foreground">{children}</strong>
-          ),
-          table: ({ children }) => (
-            <div className="overflow-x-auto my-6 rounded-xl border border-border/50">
-              <table className="w-full text-sm">{children}</table>
-            </div>
-          ),
-          th: ({ children }) => (
-            <th className="px-4 py-3 bg-muted/50 text-left font-semibold text-foreground border-b border-border/50">
-              {children}
-            </th>
-          ),
-          td: ({ children }) => (
-            <td className="px-4 py-2.5 border-b border-border/30 text-muted-foreground">
-              {children}
-            </td>
-          ),
-          hr: () => <hr className="my-8 border-border/30" />,
-        }}
-      >
-        {content}
-      </ReactMarkdown>
-    </div>
-  );
-}
+const REVIEWED_KEY_PREFIX = "lynxdev_reviewed_";
 
 export default function PracticeClient({
   initialQuestions,
@@ -136,8 +48,36 @@ export default function PracticeClient({
   const [reviewed, setReviewed] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
   const loadedOffsets = useRef<Set<number>>(new Set([0]));
+  const hydratedReviews = useRef(false);
 
   const current = questions[currentIndex];
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`${REVIEWED_KEY_PREFIX}${categorySlug}`);
+      if (raw) {
+        const parsed = JSON.parse(raw) as unknown;
+        if (Array.isArray(parsed)) {
+          setReviewed(new Set(parsed as number[]));
+        }
+      }
+    } catch {
+      /* ignore storage errors */
+    }
+    hydratedReviews.current = true;
+  }, [categorySlug]);
+
+  useEffect(() => {
+    if (!hydratedReviews.current) return;
+    try {
+      localStorage.setItem(
+        `${REVIEWED_KEY_PREFIX}${categorySlug}`,
+        JSON.stringify(Array.from(reviewed)),
+      );
+    } catch {
+      /* ignore storage errors */
+    }
+  }, [reviewed, categorySlug]);
 
   useEffect(() => {
     const remaining = questions.length - currentIndex;
@@ -220,7 +160,7 @@ export default function PracticeClient({
       </div>
 
       <div className="rounded-xl border border-border/50 bg-card p-6 sm:p-8">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 flex-wrap mb-4">
           <Badge
             variant="outline"
             className={
@@ -232,7 +172,7 @@ export default function PracticeClient({
           </Badge>
           {(current.tags as string[]).slice(0, 3).map((tag) => (
             <Badge key={tag} variant="secondary" className="text-xs">
-              {tag}
+              {formatTagLabel(tag)}
             </Badge>
           ))}
           {current.is_top50 && (
@@ -277,39 +217,40 @@ export default function PracticeClient({
         )}
       </div>
 
-      <div className="flex items-center justify-between">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handlePrev}
-          disabled={currentIndex === 0}
-        >
-          <ChevronLeft className="w-4 h-4 mr-1" />
-          Previous
-        </Button>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-between gap-2 sm:justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrev}
+            disabled={currentIndex === 0}
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNext}
+            disabled={currentIndex >= questions.length - 1}
+          >
+            {isLoadingNext ? (
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <ChevronRight className="w-4 h-4 ml-1" />
+            )}
+            Next
+          </Button>
+        </div>
 
         <Button
           variant={reviewed.has(current.id) ? "default" : "outline"}
           size="sm"
           onClick={toggleReview}
-          className="gap-2"
+          className="gap-2 w-full sm:w-auto"
         >
           <CheckCircle className="w-4 h-4" />
           {reviewed.has(current.id) ? "Reviewed" : "Mark as Reviewed"}
-        </Button>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleNext}
-          disabled={currentIndex >= questions.length - 1}
-        >
-          {isLoadingNext ? (
-            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-          ) : (
-            <ChevronRight className="w-4 h-4 ml-1" />
-          )}
-          Next
         </Button>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, ChevronRight, Save, RotateCcw } from "lucide-react";
 import Link from "next/link";
+import { formatTagLabel } from "@/lib/tags";
 
 const STORAGE_KEY = "lynxdev_interview_stacks";
 
@@ -13,78 +14,6 @@ type StackGroup = {
   icon: string | null;
   tags: string[];
 };
-
-const tagLabels: Record<string, string> = {
-  "data-structures": "Data Structures",
-  algorithms: "Algorithms",
-  networking: "Networking",
-  "operating-systems": "Operating Systems",
-  "distributed-systems": "Distributed Systems",
-  "api-design": "API Design",
-  "design-patterns": "Design Patterns",
-  "system-design": "System Design",
-  "object-oriented": "OOP",
-  javascript: "JavaScript",
-  typescript: "TypeScript",
-  react: "React",
-  angular: "Angular",
-  vue: "Vue.js",
-  css: "CSS",
-  html: "HTML",
-  dom: "DOM",
-  performance: "Performance",
-  accessibility: "Accessibility",
-  testing: "Testing",
-  "testing-basics": "Testing Basics",
-  "testing-strategy": "Testing Strategy",
-  "testing-tools": "Testing Tools",
-  "testing-types": "Testing Types",
-  "testing-methodology": "Testing Methodology",
-  automation: "Automation",
-  security: "Security",
-  authentication: "Authentication",
-  authorization: "Authorization",
-  databases: "Databases",
-  sql: "SQL",
-  nosql: "NoSQL",
-  mongodb: "MongoDB",
-  postgresql: "PostgreSQL",
-  mysql: "MySQL",
-  redis: "Redis",
-  caching: "Caching",
-  nodejs: "Node.js",
-  express: "Express.js",
-  spring: "Spring Boot",
-  django: "Django",
-  "ci-cd": "CI/CD",
-  docker: "Docker",
-  kubernetes: "Kubernetes",
-  cloud: "Cloud",
-  aws: "AWS",
-  gcp: "GCP",
-  azure: "Azure",
-  devops: "DevOps",
-  git: "Git",
-  "best-practices": "Best Practices",
-  "real-time": "Real-Time",
-  optimization: "Optimization",
-  monitoring: "Monitoring",
-  observability: "Observability",
-  architecture: "Architecture",
-  microservices: "Microservices",
-  "event-driven": "Event-Driven",
-  grpc: "gRPC",
-  rest: "REST",
-  graphql: "GraphQL",
-  websocket: "WebSocket",
-};
-
-function formatTagLabel(tag: string): string {
-  return (
-    tagLabels[tag] ||
-    tag.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-  );
-}
 
 type Props = {
   stacksByCategory: StackGroup[];
@@ -126,6 +55,24 @@ export default function CustomizeClient({ stacksByCategory }: Props) {
     setSaved(false);
   };
 
+  const selectAllInGroup = (tags: string[]) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const tag of tags) next.add(tag);
+      return next;
+    });
+    setSaved(false);
+  };
+
+  const clearGroup = (tags: string[]) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const tag of tags) next.delete(tag);
+      return next;
+    });
+    setSaved(false);
+  };
+
   const allTags = stacksByCategory.flatMap((g) => g.tags);
   const selectedCount = selected.size;
 
@@ -142,42 +89,70 @@ export default function CustomizeClient({ stacksByCategory }: Props) {
         </p>
       </div>
 
-      {stacksByCategory.map((group) => (
-        <div
-          key={group.slug}
-          className="rounded-xl border border-border/50 bg-card p-6 space-y-4"
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">{group.icon || "📁"}</span>
-            <div>
-              <h2 className="font-semibold text-base">{group.name}</h2>
-              <p className="text-xs text-muted-foreground">
-                {group.tags.length} topics available
-              </p>
+      {stacksByCategory.map((group) => {
+        const groupSelected = group.tags.filter((t) => selected.has(t)).length;
+        return (
+          <div
+            key={group.slug}
+            className="rounded-xl border border-border/50 bg-card p-6 space-y-4"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{group.icon || "📁"}</span>
+                <div>
+                  <h2 className="font-semibold text-base">{group.name}</h2>
+                  <p className="text-xs text-muted-foreground">
+                    {group.tags.length} topics available
+                    {groupSelected > 0 && (
+                      <span className="text-primary">
+                        {" "}
+                        · {groupSelected} selected
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  onClick={() => selectAllInGroup(group.tags)}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                >
+                  <Check className="w-3 h-3" />
+                  Select all
+                </button>
+                {groupSelected > 0 && (
+                  <button
+                    onClick={() => clearGroup(group.tags)}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {group.tags.map((tag) => {
+                const active = selected.has(tag);
+                return (
+                  <button
+                    key={tag}
+                    onClick={() => toggleTag(tag)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card text-muted-foreground border-border/50 hover:border-border hover:text-foreground"
+                    }`}
+                  >
+                    {active && <Check className="w-3 h-3" />}
+                    {formatTagLabel(tag)}
+                  </button>
+                );
+              })}
             </div>
           </div>
-
-          <div className="flex flex-wrap gap-2">
-            {group.tags.map((tag) => {
-              const active = selected.has(tag);
-              return (
-                <button
-                  key={tag}
-                  onClick={() => toggleTag(tag)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                    active
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-card text-muted-foreground border-border/50 hover:border-border hover:text-foreground"
-                  }`}
-                >
-                  {active && <Check className="w-3 h-3" />}
-                  {formatTagLabel(tag)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+        );
+      })}
 
       <div className="flex items-center justify-between rounded-xl border border-border/50 bg-card p-4">
         <div className="text-sm text-muted-foreground">

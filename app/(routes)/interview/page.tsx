@@ -8,43 +8,22 @@ import { Button } from "@/components/ui/button";
 
 const categoryThemes: Record<
   string,
-  { light: string; medium: string; border: string; glow: string }
+  { light: string; border: string; glow: string }
 > = {
   "Software Engineer": {
     light: "bg-blue-500/10",
-    medium: "bg-blue-500/20",
     border: "border-blue-500/30",
     glow: "group-hover:shadow-blue-500/10",
   },
   "Frontend Engineer": {
     light: "bg-sky-500/10",
-    medium: "bg-sky-500/20",
     border: "border-sky-500/30",
     glow: "group-hover:shadow-sky-500/10",
   },
   "Backend Engineer": {
     light: "bg-emerald-500/10",
-    medium: "bg-emerald-500/20",
     border: "border-emerald-500/30",
     glow: "group-hover:shadow-emerald-500/10",
-  },
-  "Fullstack Engineer": {
-    light: "bg-purple-500/10",
-    medium: "bg-purple-500/20",
-    border: "border-purple-500/30",
-    glow: "group-hover:shadow-purple-500/10",
-  },
-  "DevOps Engineer": {
-    light: "bg-orange-500/10",
-    medium: "bg-orange-500/20",
-    border: "border-orange-500/30",
-    glow: "group-hover:shadow-orange-500/10",
-  },
-  "QA Engineer": {
-    light: "bg-red-500/10",
-    medium: "bg-red-500/20",
-    border: "border-red-500/30",
-    glow: "group-hover:shadow-red-500/10",
   },
 };
 
@@ -149,10 +128,9 @@ export default async function InterviewPage() {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {categories.map((cat, idx) => {
+          {categories.map((cat) => {
             const theme = categoryThemes[cat.name] || {
               light: "bg-muted",
-              medium: "bg-muted/80",
               border: "border-border/50",
               glow: "group-hover:shadow-primary/5",
             };
@@ -162,7 +140,6 @@ export default async function InterviewPage() {
                 key={cat.id}
                 href={`/interview/${cat.slug}`}
                 className="group relative rounded-2xl border border-border/50 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg overflow-hidden"
-                style={{ animationDelay: `${idx * 80}ms` }}
               >
                 <div
                   className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${theme.glow}`}
