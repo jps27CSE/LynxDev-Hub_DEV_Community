@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import { AnswerMarkdown } from "@/components/markdown-answer";
 import { formatTagLabel } from "@/lib/tags";
+import { difficultyBadgeClass } from "@/lib/interview-ui";
+import { INTERVIEW_STACKS_STORAGE_KEY } from "@/lib/interview-constants";
 import {
   Sparkles,
   BookOpen,
@@ -27,12 +29,6 @@ import type {
   InterviewQuestion,
 } from "@/lib/interview-data";
 
-const difficultyColor: Record<string, string> = {
-  easy: "bg-green-500/10 text-green-500 border-green-500/20",
-  medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  hard: "bg-red-500/10 text-red-500 border-red-500/20",
-};
-
 type ChapterWithQuestions = InterviewChapter & {
   questions: InterviewQuestion[];
 };
@@ -41,8 +37,6 @@ type Props = {
   category: InterviewCategory;
   chaptersWithQuestions: ChapterWithQuestions[];
 };
-
-const STORAGE_KEY = "lynxdev_interview_stacks";
 
 function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
   const searchParams = useSearchParams();
@@ -68,7 +62,7 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(INTERVIEW_STACKS_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as unknown;
         if (Array.isArray(parsed)) {
@@ -401,7 +395,7 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
                               </div>
                               <div className="flex flex-wrap items-center gap-2 ml-8 mb-4">
                                 <Badge
-                                  className={`text-[11px] px-2 py-0.5 border ${difficultyColor[q.difficulty] || ""}`}
+                                  className={`text-[11px] px-2 py-0.5 border ${difficultyBadgeClass(q.difficulty)}`}
                                 >
                                   {q.difficulty}
                                 </Badge>

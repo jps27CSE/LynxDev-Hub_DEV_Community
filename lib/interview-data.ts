@@ -248,6 +248,122 @@ export const getDistinctTagsByCategorySlug = cache(
   },
 );
 
+export type TopTag = {
+  tag: string;
+  count: number;
+};
+
+export const getTopTags = cache(async (limit = 40): Promise<TopTag[]> => {
+  try {
+    const rows = await db
+      .select({ tags: interviewQuestions.tags })
+      .from(interviewQuestions);
+
+    const counts = new Map<string, number>();
+    for (const row of rows) {
+      const tags = row.tags as string[];
+      if (!Array.isArray(tags)) continue;
+      for (const tag of tags) {
+        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      }
+    }
+
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(([tag, count]) => ({ tag, count }));
+  } catch (error) {
+    console.error("[interview-data] getTopTags:", error);
+    return [];
+  }
+});
+
+export type QuestionTagRow = {
+  id: number;
+  tags: string[];
+};
+
+export const getQuestionTagRows = cache(async (): Promise<QuestionTagRow[]> => {
+  try {
+    const rows = await db
+      .select({ id: interviewQuestions.id, tags: interviewQuestions.tags })
+      .from(interviewQuestions);
+    return rows.map((r) => ({
+      id: r.id,
+      tags: (r.tags ?? []) as string[],
+    }));
+  } catch (error) {
+    console.error("[interview-data] getQuestionTagRows:", error);
+    return [];
+  }
+});
+
+export type QuestionsByStackResult = {
+  questions: InterviewQuestion[];
+  total: number;
+  hasMore: boolean;
+};
+
+const EMPTY_STACK_RESULT: QuestionsByStackResult = {
+  questions: [],
+  total: 0,
+  hasMore: false,
+};
+
+export const getQuestionsByStack = cache(
+  async (
+    tags: string[],
+    opts?: { limit?: number; offset?: number },
+  ): Promise<QuestionsByStackResult> => {
+    if (!tags || tags.length === 0) return EMPTY_STACK_RESULT;
+
+    const limit = opts?.limit ?? 20;
+    const offset = Math.max(opts?.offset ?? 0, 0);
+
+    try {
+      const rows = await getQuestionTagRows();
+      const matchingIds = rows
+        .filter((r) => r.tags.some((t) => tags.includes(t)))
+        .map((r) => r.id)
+        .sort((a, b) => a - b);
+
+      const total = matchingIds.length;
+      const pageIds = matchingIds.slice(offset, offset + limit);
+
+      if (pageIds.length === 0) {
+        return { questions: [], total, hasMore: false };
+      }
+
+      const pageRows = await db
+        .select({
+          id: interviewQuestions.id,
+          question: interviewQuestions.question,
+          answer: interviewQuestions.answer,
+          difficulty: interviewQuestions.difficulty,
+          tags: interviewQuestions.tags,
+          is_top50: interviewQuestions.is_top50,
+        })
+        .from(interviewQuestions)
+        .where(inArray(interviewQuestions.id, pageIds));
+
+      const byId = new Map(pageRows.map((r) => [r.id, r]));
+      const questions = pageIds
+        .map((id) => byId.get(id))
+        .filter((r): r is NonNullable<typeof r> => r !== undefined)
+        .map((r) => ({ ...r, tags: (r.tags ?? []) as string[] }));
+
+      return {
+        questions,
+        total,
+        hasMore: offset + pageIds.length < total,
+      };
+    } catch (error) {
+      console.error("[interview-data] getQuestionsByStack:", error);
+      return EMPTY_STACK_RESULT;
+    }
+  },
+);
+
 export const getChaptersByCategorySlug = cache(
   async (slug: string): Promise<InterviewChapter[]> => {
     try {

@@ -13,21 +13,8 @@ import {
 } from "lucide-react";
 import { AnswerMarkdown } from "@/components/markdown-answer";
 import { formatTagLabel } from "@/lib/tags";
-
-type Question = {
-  id: number;
-  question: string;
-  answer: string;
-  difficulty: string;
-  tags: string[];
-  is_top50: boolean | null;
-};
-
-const difficultyColor: Record<string, string> = {
-  easy: "bg-green-500/10 text-green-500 border-green-500/20",
-  medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  hard: "bg-red-500/10 text-red-500 border-red-500/20",
-};
+import { difficultyBadgeClass } from "@/lib/interview-ui";
+import type { InterviewQuestion } from "@/lib/interview-data";
 
 const PER_PAGE = 20;
 const PREFETCH_THRESHOLD = 5;
@@ -38,11 +25,12 @@ export default function PracticeClient({
   totalCount,
   categorySlug,
 }: {
-  initialQuestions: Question[];
+  initialQuestions: InterviewQuestion[];
   totalCount: number;
   categorySlug: string;
 }) {
-  const [questions, setQuestions] = useState<Question[]>(initialQuestions);
+  const [questions, setQuestions] =
+    useState<InterviewQuestion[]>(initialQuestions);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [reviewed, setReviewed] = useState<Set<number>>(new Set());
@@ -163,10 +151,7 @@ export default function PracticeClient({
         <div className="flex items-center gap-2 flex-wrap mb-4">
           <Badge
             variant="outline"
-            className={
-              difficultyColor[current.difficulty] ||
-              "bg-muted text-muted-foreground"
-            }
+            className={difficultyBadgeClass(current.difficulty)}
           >
             {current.difficulty}
           </Badge>

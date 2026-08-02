@@ -7,21 +7,8 @@ import { Eye, EyeOff, Loader2, Sparkles, X } from "lucide-react";
 import axios from "axios";
 import { AnswerMarkdown } from "@/components/markdown-answer";
 import { formatTagLabel } from "@/lib/tags";
-
-type Question = {
-  id: number;
-  question: string;
-  answer: string;
-  difficulty: string;
-  tags: string[];
-  is_top50: boolean | null;
-};
-
-const difficultyColor: Record<string, string> = {
-  easy: "bg-green-500/10 text-green-500 border-green-500/20",
-  medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  hard: "bg-red-500/10 text-red-500 border-red-500/20",
-};
+import { difficultyBadgeClass } from "@/lib/interview-ui";
+import type { InterviewQuestion } from "@/lib/interview-data";
 
 type Props = {
   categorySlug: string;
@@ -30,7 +17,7 @@ type Props = {
 
 export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
@@ -175,10 +162,7 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge
                   variant="outline"
-                  className={
-                    difficultyColor[q.difficulty] ||
-                    "bg-muted text-muted-foreground"
-                  }
+                  className={difficultyBadgeClass(q.difficulty)}
                 >
                   {q.difficulty}
                 </Badge>
