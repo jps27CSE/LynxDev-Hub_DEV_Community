@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+  Suspense,
+} from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +36,7 @@ import {
   Search,
   SlidersHorizontal,
   List,
+  Loader2,
 } from "lucide-react";
 import type {
   InterviewCategory,
@@ -36,13 +44,17 @@ import type {
   InterviewQuestion,
 } from "@/lib/interview-data";
 
-type ChapterWithQuestions = InterviewChapter & {
-  questions: InterviewQuestion[];
+type ChapterSummary = InterviewChapter & {
+  questionCount: number;
+  questionIds: number[];
 };
 
 type Props = {
   category: InterviewCategory;
-  chaptersWithQuestions: ChapterWithQuestions[];
+  chapters: InterviewChapter[];
+  questionIdsByChapter: Record<number, number[]>;
+  initialChapterId: number;
+  initialQuestions: InterviewQuestion[];
 };
 
 function SectionTitle({
@@ -69,7 +81,7 @@ function ChaptersRail({
   reviewed,
   onCollapse,
 }: {
-  chaptersWithQuestions: ChapterWithQuestions[];
+  chaptersWithQuestions: ChapterSummary[];
   activeId: number;
   search: string;
   onSearchChange: (v: string) => void;
@@ -120,8 +132,8 @@ function ChaptersRail({
       <nav className="flex-1 overflow-y-auto px-2 pb-4 space-y-0.5 scrollbar-thin">
         {filtered.map((ch) => {
           const active = ch.id === activeId;
-          const total = ch.questions.length;
-          const done = ch.questions.filter((x) => reviewed.has(x.id)).length;
+          const total = ch.questionCount;
+          const done = ch.questionIds.filter((id) => reviewed.has(id)).length;
           const chapterNumber = (indexById.get(ch.id) ?? 0) + 1;
           return (
             <button
@@ -251,16 +263,29 @@ function TocRail({
   );
 }
 
-function ChapterHubInner({ category, chaptersWithQuestions }: Props) {
+function ChapterHubInner({
+  category,
+  chapters,
+  questionIdsByChapter,
+  initialChapterId,
+  initialQuestions,
+}: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
+  const chaptersWithQuestions: ChapterSummary[] = useMemo(
+    () =>
+      chapters.map((ch) => {
+        const questionIds = questionIdsByChapter[ch.id] ?? [];
+        return { ...ch, questionCount: questionIds.length, questionIds };
+      }),
+    [chapters, questionIdsByChapter],
+  );
+
   const [activeChapter, setActiveChapter] = useState<number>(() => {
-    const chapterParam = searchParams?.get("chapter");
-    if (chapterParam) {
-      const id = parseInt(chapterParam, 10);
-      if (id && chaptersWithQuestions.some((ch) => ch.id === id)) return id;
+    if (chaptersWithQuestions.some((ch) => ch.id === initialChapterId)) {
+      return initialChapterId;
     }
     return chaptersWithQuestions.length > 0 ? chaptersWithQuestions[0].id : 0;
   });
@@ -278,6 +303,15 @@ function ChapterHubInner({ category, chaptersWithQuestions }: Props) {
   const [activeSection, setActiveSection] = useState("overview");
   const [keyPointsOpen, setKeyPointsOpen] = useState(true);
   const [hydratedReviews, setHydratedReviews] = useState(false);
+  const [currentQuestions, setCurrentQuestions] =
+    useState<InterviewQuestion[]>(initialQuestions);
+  const [questionsLoading, setQuestionsLoading] = useState(false);
+  const [questionsError, setQuestionsError] = useState(false);
+  const questionsCache = useRef<Map<number, InterviewQuestion[]>>(
+    new Map([[initialChapterId, initialQuestions]]),
+  );
+  const inFlightChapters = useRef<Set<number>>(new Set());
+  const lastRequestedChapter = useRef<number | null>(initialChapterId);
 
   useEffect(() => {
     try {
@@ -330,6 +364,63 @@ function ChapterHubInner({ category, chaptersWithQuestions }: Props) {
     }
   }, [reviewed, category.slug, hydratedReviews]);
 
+  const loadChapterQuestions = useCallback(
+    async (id: number, silent = false) => {
+      const cached = questionsCache.current.get(id);
+      if (cached) {
+        if (!silent) setCurrentQuestions(cached);
+        return;
+      }
+      if (inFlightChapters.current.has(id)) {
+        if (!silent) {
+          lastRequestedChapter.current = id;
+          setQuestionsLoading(true);
+          setQuestionsError(false);
+        }
+        return;
+      }
+      inFlightChapters.current.add(id);
+      if (!silent) {
+        lastRequestedChapter.current = id;
+        setQuestionsLoading(true);
+        setQuestionsError(false);
+      }
+      try {
+        const res = await fetch(
+          `/api/interview/questions?category=${category.slug}&chapter=${id}`,
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = (await res.json()) as { questions?: unknown };
+        if (!Array.isArray(data.questions))
+          throw new Error("malformed response");
+        const loaded = data.questions as InterviewQuestion[];
+        questionsCache.current.set(id, loaded);
+        if (lastRequestedChapter.current === id) {
+          setCurrentQuestions(loaded);
+          setQuestionsLoading(false);
+        }
+      } catch {
+        if (lastRequestedChapter.current === id) {
+          setQuestionsError(true);
+          setQuestionsLoading(false);
+        }
+      } finally {
+        inFlightChapters.current.delete(id);
+      }
+    },
+    [category.slug],
+  );
+
+  useEffect(() => {
+    const idx = chaptersWithQuestions.findIndex(
+      (ch) => ch.id === activeChapter,
+    );
+    const next = chaptersWithQuestions[idx + 1];
+    if (next && !questionsCache.current.has(next.id)) {
+      void loadChapterQuestions(next.id, true);
+    }
+  }, [activeChapter, chaptersWithQuestions, loadChapterQuestions]);
+
   const currentChapter = chaptersWithQuestions.find(
     (ch) => ch.id === activeChapter,
   );
@@ -341,15 +432,28 @@ function ChapterHubInner({ category, chaptersWithQuestions }: Props) {
     (id: number) => {
       setActiveChapter(id);
       const chapter = chaptersWithQuestions.find((ch) => ch.id === id);
-      setActiveQuestionId(chapter?.questions[0]?.id ?? null);
+      setActiveQuestionId(chapter?.questionIds[0] ?? null);
       setActiveSection("overview");
       setKeyPointsOpen(true);
       const params = new URLSearchParams(searchParams?.toString() ?? "");
       params.set("chapter", String(id));
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
       setMobileChaptersOpen(false);
+      const cached = questionsCache.current.get(id);
+      if (cached) {
+        setCurrentQuestions(cached);
+      } else {
+        setCurrentQuestions([]);
+        void loadChapterQuestions(id);
+      }
     },
-    [router, pathname, searchParams, chaptersWithQuestions],
+    [
+      router,
+      pathname,
+      searchParams,
+      chaptersWithQuestions,
+      loadChapterQuestions,
+    ],
   );
 
   useEffect(() => {
@@ -357,8 +461,8 @@ function ChapterHubInner({ category, chaptersWithQuestions }: Props) {
   }, [activeChapter]);
 
   const sortedQuestions = useMemo(() => {
-    if (!currentChapter) return [];
-    const qs = [...currentChapter.questions];
+    if (currentQuestions.length === 0) return [];
+    const qs = [...currentQuestions];
     if (sortOrder === "easy-hard") {
       qs.sort(
         (a, b) =>
@@ -371,15 +475,15 @@ function ChapterHubInner({ category, chaptersWithQuestions }: Props) {
       );
     }
     return qs;
-  }, [currentChapter, sortOrder]);
+  }, [currentQuestions, sortOrder]);
 
   const diffCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    for (const q of currentChapter?.questions ?? []) {
+    for (const q of currentQuestions) {
       counts[q.difficulty] = (counts[q.difficulty] || 0) + 1;
     }
     return counts;
-  }, [currentChapter]);
+  }, [currentQuestions]);
 
   const toggleReviewed = useCallback((id: number) => {
     setReviewed((prev) => {
@@ -490,9 +594,9 @@ function ChapterHubInner({ category, chaptersWithQuestions }: Props) {
         id: "key-points",
         label: "Key Points",
       },
-      currentChapter.questions.length > 0 && {
+      currentChapter.questionCount > 0 && {
         id: "questions",
-        label: `Questions (${currentChapter.questions.length})`,
+        label: `Questions (${currentChapter.questionCount})`,
       },
       currentChapter.content.tips.length > 0 && {
         id: "tips",
@@ -598,8 +702,8 @@ function ChapterHubInner({ category, chaptersWithQuestions }: Props) {
                   </h1>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3">
                     <span className="text-xs text-muted-foreground">
-                      {currentChapter.questions.length} question
-                      {currentChapter.questions.length !== 1 ? "s" : ""}
+                      {currentChapter.questionCount} question
+                      {currentChapter.questionCount !== 1 ? "s" : ""}
                     </span>
                     {Object.entries(diffCounts).map(([d, n]) => (
                       <span
@@ -683,12 +787,12 @@ function ChapterHubInner({ category, chaptersWithQuestions }: Props) {
                     </section>
                   )}
 
-                  {currentChapter.questions.length > 0 && (
+                  {currentChapter.questionCount > 0 && (
                     <section id="questions" className="scroll-mt-24 space-y-4">
                       <div className="flex flex-wrap items-center gap-3">
                         <SectionTitle icon={MessageSquare} title="Questions" />
                         <Badge variant="outline" className="text-xs font-mono">
-                          {sortedQuestions.length}
+                          {currentChapter.questionCount}
                         </Badge>
                         <div className="ml-auto flex items-center gap-2">
                           <Button
@@ -717,110 +821,130 @@ function ChapterHubInner({ category, chaptersWithQuestions }: Props) {
                         </div>
                       </div>
 
-                      <div className="space-y-5">
-                        {sortedQuestions.map((q, i) => {
-                          const isCollapsed = collapsedQuestions.has(q.id);
-                          const isActive = activeQuestionId === q.id;
-                          const isReviewed = reviewed.has(q.id);
-                          return (
-                            <div
-                              key={q.id}
-                              id={`q-${q.id}`}
-                              onClick={() => setActiveQuestionId(q.id)}
-                              className={`scroll-mt-24 rounded-xl border bg-card overflow-hidden transition-all duration-200 ${
-                                isActive
-                                  ? "border-primary/40 shadow-md ring-1 ring-primary/10"
-                                  : "border-border/50 hover:border-border"
-                              } ${isReviewed ? "border-l-2 border-l-green-500/70" : ""}`}
-                            >
-                              <div className="p-6 pb-4">
-                                <div className="flex items-start gap-3 mb-3">
-                                  <span className="text-xs font-mono text-muted-foreground mt-1 flex-shrink-0">
-                                    Q{i + 1}.
-                                  </span>
-                                  <h3 className="text-base sm:text-lg font-bold text-foreground leading-snug flex-1">
-                                    {q.question}
-                                  </h3>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleCollapsed(q.id);
-                                    }}
-                                    aria-label={
-                                      isCollapsed
-                                        ? "Show answer"
-                                        : "Hide answer"
-                                    }
-                                    className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors flex-shrink-0"
-                                  >
-                                    {isCollapsed ? (
-                                      <ChevronDown className="w-4 h-4" />
-                                    ) : (
-                                      <ChevronUp className="w-4 h-4" />
+                      {questionsLoading ? (
+                        <div className="flex items-center justify-center py-16">
+                          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : questionsError ? (
+                        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-8 text-center space-y-4">
+                          <p className="text-sm text-destructive">
+                            Couldn't load questions for this chapter.
+                          </p>
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              void loadChapterQuestions(activeChapter)
+                            }
+                          >
+                            Retry
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-5">
+                          {sortedQuestions.map((q, i) => {
+                            const isCollapsed = collapsedQuestions.has(q.id);
+                            const isActive = activeQuestionId === q.id;
+                            const isReviewed = reviewed.has(q.id);
+                            return (
+                              <div
+                                key={q.id}
+                                id={`q-${q.id}`}
+                                onClick={() => setActiveQuestionId(q.id)}
+                                className={`scroll-mt-24 rounded-xl border bg-card overflow-hidden transition-all duration-200 ${
+                                  isActive
+                                    ? "border-primary/40 shadow-md ring-1 ring-primary/10"
+                                    : "border-border/50 hover:border-border"
+                                } ${isReviewed ? "border-l-2 border-l-green-500/70" : ""}`}
+                              >
+                                <div className="p-6 pb-4">
+                                  <div className="flex items-start gap-3 mb-3">
+                                    <span className="text-xs font-mono text-muted-foreground mt-1 flex-shrink-0">
+                                      Q{i + 1}.
+                                    </span>
+                                    <h3 className="text-base sm:text-lg font-bold text-foreground leading-snug flex-1">
+                                      {q.question}
+                                    </h3>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleCollapsed(q.id);
+                                      }}
+                                      aria-label={
+                                        isCollapsed
+                                          ? "Show answer"
+                                          : "Hide answer"
+                                      }
+                                      className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors flex-shrink-0"
+                                    >
+                                      {isCollapsed ? (
+                                        <ChevronDown className="w-4 h-4" />
+                                      ) : (
+                                        <ChevronUp className="w-4 h-4" />
+                                      )}
+                                    </button>
+                                  </div>
+                                  <div className="flex flex-wrap items-center gap-2 ml-8">
+                                    <Badge
+                                      className={`text-[11px] px-2 py-0.5 border ${difficultyBadgeClass(q.difficulty)}`}
+                                    >
+                                      {q.difficulty}
+                                    </Badge>
+                                    {q.is_top50 && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-[11px] px-2 py-0.5 bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
+                                      >
+                                        Top 50
+                                      </Badge>
                                     )}
-                                  </button>
-                                </div>
-                                <div className="flex flex-wrap items-center gap-2 ml-8">
-                                  <Badge
-                                    className={`text-[11px] px-2 py-0.5 border ${difficultyBadgeClass(q.difficulty)}`}
-                                  >
-                                    {q.difficulty}
-                                  </Badge>
-                                  {q.is_top50 && (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-[11px] px-2 py-0.5 bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
+                                    {q.tags.slice(0, 3).map((tag) => (
+                                      <Badge
+                                        key={tag}
+                                        variant="secondary"
+                                        className="text-[11px] px-2 py-0.5 font-normal"
+                                      >
+                                        {formatTagLabel(tag)}
+                                      </Badge>
+                                    ))}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleReviewed(q.id);
+                                      }}
+                                      aria-pressed={isReviewed}
+                                      className={`ml-auto inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                                        isReviewed
+                                          ? "text-green-500"
+                                          : "text-muted-foreground hover:text-foreground"
+                                      }`}
                                     >
-                                      Top 50
-                                    </Badge>
-                                  )}
-                                  {q.tags.slice(0, 3).map((tag) => (
-                                    <Badge
-                                      key={tag}
-                                      variant="secondary"
-                                      className="text-[11px] px-2 py-0.5 font-normal"
-                                    >
-                                      {formatTagLabel(tag)}
-                                    </Badge>
-                                  ))}
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleReviewed(q.id);
-                                    }}
-                                    aria-pressed={isReviewed}
-                                    className={`ml-auto inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
-                                      isReviewed
-                                        ? "text-green-500"
-                                        : "text-muted-foreground hover:text-foreground"
-                                    }`}
-                                  >
-                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                    <span className="hidden sm:inline">
-                                      {isReviewed
-                                        ? "Reviewed"
-                                        : "Mark reviewed"}
-                                    </span>
-                                  </button>
-                                </div>
-                              </div>
-
-                              {!isCollapsed && (
-                                <div className="border-t border-border/40 bg-muted/30 px-6 py-5">
-                                  <div className="flex items-start gap-3">
-                                    <span className="text-xs font-semibold text-foreground/60 mt-1 flex-shrink-0">
-                                      A.
-                                    </span>
-                                    <div className="min-w-0 flex-1">
-                                      <AnswerMarkdown content={q.answer} />
-                                    </div>
+                                      <CheckCircle2 className="w-3.5 h-3.5" />
+                                      <span className="hidden sm:inline">
+                                        {isReviewed
+                                          ? "Reviewed"
+                                          : "Mark reviewed"}
+                                      </span>
+                                    </button>
                                   </div>
                                 </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+
+                                {!isCollapsed && (
+                                  <div className="border-t border-border/40 bg-muted/30 px-6 py-5">
+                                    <div className="flex items-start gap-3">
+                                      <span className="text-xs font-semibold text-foreground/60 mt-1 flex-shrink-0">
+                                        A.
+                                      </span>
+                                      <div className="min-w-0 flex-1">
+                                        <AnswerMarkdown content={q.answer} />
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </section>
                   )}
 

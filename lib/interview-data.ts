@@ -446,3 +446,30 @@ export const getQuestionsByChapterIds = cache(
     }
   },
 );
+
+export const getQuestionIdsByChapterIds = cache(
+  async (chapterIds: number[]): Promise<Record<number, number[]>> => {
+    if (chapterIds.length === 0) return {};
+
+    try {
+      const rows = await db
+        .select({
+          chapterId: interviewQuestionChapters.chapter_id,
+          questionId: interviewQuestionChapters.question_id,
+        })
+        .from(interviewQuestionChapters)
+        .where(inArray(interviewQuestionChapters.chapter_id, chapterIds))
+        .orderBy(interviewQuestionChapters.question_id);
+
+      const grouped: Record<number, number[]> = {};
+      for (const row of rows) {
+        if (!grouped[row.chapterId]) grouped[row.chapterId] = [];
+        grouped[row.chapterId].push(row.questionId);
+      }
+      return grouped;
+    } catch (error) {
+      console.error("[interview-data] getQuestionIdsByChapterIds:", error);
+      return {};
+    }
+  },
+);
