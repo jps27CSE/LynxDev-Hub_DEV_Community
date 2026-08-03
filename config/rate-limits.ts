@@ -54,7 +54,7 @@ const routes: { pattern: string; method: string; config: RateLimitConfig }[] = [
   {
     pattern: "/api/user",
     method: "POST",
-    config: { limit: 3, windowMs: WINDOW_1M },
+    config: { limit: 10, windowMs: WINDOW_1M },
   },
   {
     pattern: "/api/user/profile",
