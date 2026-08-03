@@ -4,7 +4,7 @@ import {
   getChaptersByCategorySlug,
   getQuestionsByChapterIds,
 } from "@/lib/interview-data";
-import CategoryClient from "./CategoryClient";
+import ChapterHubClient from "./ChapterHubClient";
 
 export default async function CategoryPage({
   params,
@@ -29,7 +29,7 @@ export default async function CategoryPage({
   }));
 
   return (
-    <CategoryClient
+    <ChapterHubClient
       category={cat}
       chaptersWithQuestions={chaptersWithQuestions}
     />

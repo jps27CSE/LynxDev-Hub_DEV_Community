@@ -88,6 +88,9 @@ async function main() {
         await db.insert(interviewChapters).values({
           title: ch.title,
           content: {
+            overview: ch.content.overview,
+            realLifeScenario: ch.content.realLifeScenario,
+            explanation: ch.content.explanation,
             keyPoints: ch.content.keyPoints,
             tips: ch.content.tips,
           },

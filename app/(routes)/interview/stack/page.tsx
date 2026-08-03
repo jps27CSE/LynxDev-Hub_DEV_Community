@@ -1,3 +1,4 @@
+import Link from "next/link";
 import StackClient from "./StackClient";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -11,12 +12,12 @@ export default function StackPage() {
       <PageHeader>
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4">
-            <a
+            <Link
               href="/interview"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               &larr; Interview
-            </a>
+            </Link>
             <span className="text-muted-foreground">/</span>
             <span className="text-sm font-medium">My Stack</span>
           </div>

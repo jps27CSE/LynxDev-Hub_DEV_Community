@@ -13,12 +13,15 @@ import {
 } from "lucide-react";
 import { AnswerMarkdown } from "@/components/markdown-answer";
 import { formatTagLabel } from "@/lib/tags";
-import { difficultyBadgeClass } from "@/lib/interview-ui";
+import {
+  difficultyAccentClass,
+  difficultyBadgeClass,
+} from "@/lib/interview-ui";
 import type { InterviewQuestion } from "@/lib/interview-data";
+import { INTERVIEW_REVIEWED_KEY_PREFIX } from "@/lib/interview-constants";
 
 const PER_PAGE = 20;
 const PREFETCH_THRESHOLD = 5;
-const REVIEWED_KEY_PREFIX = "lynxdev_reviewed_";
 
 export default function PracticeClient({
   initialQuestions,
@@ -35,14 +38,17 @@ export default function PracticeClient({
   const [showAnswer, setShowAnswer] = useState(false);
   const [reviewed, setReviewed] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [prefetchFailed, setPrefetchFailed] = useState(false);
+  const [hydratedReviews, setHydratedReviews] = useState(false);
   const loadedOffsets = useRef<Set<number>>(new Set([0]));
-  const hydratedReviews = useRef(false);
 
   const current = questions[currentIndex];
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(`${REVIEWED_KEY_PREFIX}${categorySlug}`);
+      const raw = localStorage.getItem(
+        `${INTERVIEW_REVIEWED_KEY_PREFIX}${categorySlug}`,
+      );
       if (raw) {
         const parsed = JSON.parse(raw) as unknown;
         if (Array.isArray(parsed)) {
@@ -52,27 +58,28 @@ export default function PracticeClient({
     } catch {
       /* ignore storage errors */
     }
-    hydratedReviews.current = true;
+    setHydratedReviews(true);
   }, [categorySlug]);
 
   useEffect(() => {
-    if (!hydratedReviews.current) return;
+    if (!hydratedReviews) return;
     try {
       localStorage.setItem(
-        `${REVIEWED_KEY_PREFIX}${categorySlug}`,
+        `${INTERVIEW_REVIEWED_KEY_PREFIX}${categorySlug}`,
         JSON.stringify(Array.from(reviewed)),
       );
     } catch {
       /* ignore storage errors */
     }
-  }, [reviewed, categorySlug]);
+  }, [reviewed, categorySlug, hydratedReviews]);
 
   useEffect(() => {
     const remaining = questions.length - currentIndex;
     if (
       remaining <= PREFETCH_THRESHOLD &&
       questions.length < totalCount &&
-      !loading
+      !loading &&
+      !prefetchFailed
     ) {
       const nextOffset =
         questions.length - (questions.length % PER_PAGE) + PER_PAGE;
@@ -82,15 +89,34 @@ export default function PracticeClient({
         fetch(
           `/api/interview/questions?category=${categorySlug}&offset=${nextOffset}`,
         )
-          .then((res) => res.json())
-          .then((data) => {
-            setQuestions((prev) => [...prev, ...data.questions]);
-            setLoading(false);
+          .then(async (res) => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return (await res.json()) as { questions?: unknown };
           })
-          .catch(() => setLoading(false));
+          .then((data) => {
+            if (!Array.isArray(data.questions)) {
+              throw new Error("malformed response");
+            }
+            setQuestions((prev) => [
+              ...prev,
+              ...(data.questions as InterviewQuestion[]),
+            ]);
+          })
+          .catch(() => {
+            loadedOffsets.current.delete(nextOffset);
+            setPrefetchFailed(true);
+          })
+          .finally(() => setLoading(false));
       }
     }
-  }, [currentIndex, questions.length, totalCount, loading, categorySlug]);
+  }, [
+    currentIndex,
+    questions.length,
+    totalCount,
+    loading,
+    categorySlug,
+    prefetchFailed,
+  ]);
 
   const handleNext = useCallback(() => {
     if (currentIndex < questions.length - 1) {
@@ -117,6 +143,41 @@ export default function PracticeClient({
       return next;
     });
   }, [current]);
+
+  const toggleAnswer = useCallback(() => {
+    setShowAnswer((prev) => !prev);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const tag = target.tagName;
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handlePrev();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key.toLowerCase() === "a") {
+        e.preventDefault();
+        toggleAnswer();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [handlePrev, handleNext, toggleAnswer]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentIndex]);
 
   const progress =
     totalCount > 0 ? Math.round((reviewed.size / totalCount) * 100) : 0;
@@ -147,7 +208,9 @@ export default function PracticeClient({
         />
       </div>
 
-      <div className="rounded-xl border border-border/50 bg-card p-6 sm:p-8">
+      <div
+        className={`rounded-xl border border-border/50 border-l-4 bg-card p-6 sm:p-8 ${difficultyAccentClass(current.difficulty)}`}
+      >
         <div className="flex items-center gap-2 flex-wrap mb-4">
           <Badge
             variant="outline"
@@ -155,7 +218,7 @@ export default function PracticeClient({
           >
             {current.difficulty}
           </Badge>
-          {(current.tags as string[]).slice(0, 3).map((tag) => (
+          {current.tags.slice(0, 3).map((tag) => (
             <Badge key={tag} variant="secondary" className="text-xs">
               {formatTagLabel(tag)}
             </Badge>
@@ -238,6 +301,33 @@ export default function PracticeClient({
           {reviewed.has(current.id) ? "Reviewed" : "Mark as Reviewed"}
         </Button>
       </div>
+      <div className="text-xs text-muted-foreground text-center">
+        Shortcuts:{" "}
+        <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono">
+          ←
+        </kbd>{" "}
+        <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono">
+          →
+        </kbd>{" "}
+        previous / next question ·{" "}
+        <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono">
+          A
+        </kbd>{" "}
+        show / hide answer
+      </div>
+      {prefetchFailed && (
+        <div className="flex items-center justify-center gap-2 text-xs text-destructive">
+          <span>Couldn't load more questions.</span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs"
+            onClick={() => setPrefetchFailed(false)}
+          >
+            Retry
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

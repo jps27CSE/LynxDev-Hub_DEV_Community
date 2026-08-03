@@ -24,6 +24,9 @@ export type InterviewChapter = {
   id: number;
   title: string;
   content: {
+    overview?: string;
+    realLifeScenario?: string;
+    explanation?: string;
     keyPoints: string[];
     tips: string[];
     [key: string]: unknown;
