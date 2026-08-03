@@ -6,8 +6,6 @@ import QuickLinks from "./_components/QuickLinks";
 import DailyTip from "./_components/DailyTip";
 import ProblemStats from "./_components/ProblemStats";
 import InterviewStats from "./_components/InterviewStats";
-import CoursePreview from "@/app/_components/CoursePreview";
-
 const Dashboard = async () => {
   const clerkUser = await currentUser();
   const email = clerkUser?.primaryEmailAddress?.emailAddress;
@@ -35,9 +33,6 @@ const Dashboard = async () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
         <div className="lg:col-span-2 space-y-8">
           <EnrolledCourses enrollments={enrollments} />
-          <div className="border-t border-border/40 pt-8">
-            <CoursePreview />
-          </div>
         </div>
         <div className="space-y-6">
           <DailyTip />
