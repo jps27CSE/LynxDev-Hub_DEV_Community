@@ -9,7 +9,6 @@ import { PageHeader } from "@/components/PageHeader";
 import { AnswerMarkdown } from "@/components/markdown-answer";
 import { formatTagLabel } from "@/lib/tags";
 import { difficultyBadgeClass } from "@/lib/interview-ui";
-import { INTERVIEW_STACKS_STORAGE_KEY } from "@/lib/interview-constants";
 import {
   Sparkles,
   BookOpen,
@@ -21,7 +20,6 @@ import {
   ArrowUpDown,
   Search,
   SlidersHorizontal,
-  X,
 } from "lucide-react";
 import type {
   InterviewCategory,
@@ -57,26 +55,6 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
   >("default");
   const [mobileChaptersOpen, setMobileChaptersOpen] = useState(true);
   const [chapterSearch, setChapterSearch] = useState("");
-  const [savedTags, setSavedTags] = useState<string[]>([]);
-  const [tailored, setTailored] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(INTERVIEW_STACKS_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as unknown;
-        if (Array.isArray(parsed)) {
-          const tags = (parsed as string[]).filter(
-            (t) => typeof t === "string" && t.trim(),
-          );
-          setSavedTags(tags);
-          setTailored(tags.length > 0);
-        }
-      }
-    } catch {
-      /* ignore storage errors */
-    }
-  }, []);
 
   const handleSetChapter = useCallback(
     (id: number) => {
@@ -108,15 +86,8 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
     } else if (sortOrder === "hard-easy") {
       qs.sort((a, b) => order[b.difficulty] - order[a.difficulty]);
     }
-    if (tailored && savedTags.length > 0) {
-      const matchCount = (q: InterviewQuestion) =>
-        (q.tags as string[]).filter((t) => savedTags.includes(t)).length;
-      return qs
-        .filter((q) => matchCount(q) > 0)
-        .sort((a, b) => matchCount(b) - matchCount(a));
-    }
     return qs;
-  }, [currentChapter, sortOrder, tailored, savedTags]);
+  }, [currentChapter, sortOrder]);
 
   const filteredChapters = useMemo(() => {
     const q = chapterSearch.trim().toLowerCase();
@@ -305,36 +276,6 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
                 </h1>
               </div>
 
-              {savedTags.length > 0 && (
-                <div className="mb-6 flex flex-wrap items-center gap-2">
-                  {tailored ? (
-                    <span className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Tailored to:{" "}
-                      {savedTags.slice(0, 3).map(formatTagLabel).join(", ")}
-                      {savedTags.length > 3
-                        ? ` +${savedTags.length - 3} more`
-                        : ""}
-                      <button
-                        onClick={() => setTailored(false)}
-                        aria-label="Show all questions"
-                        className="rounded-full hover:bg-primary/20 p-0.5 text-primary/70 hover:text-primary transition-colors"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => setTailored(true)}
-                      className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary transition-colors"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Personalize by saved stack
-                    </button>
-                  )}
-                </div>
-              )}
-
               <div className="space-y-10">
                 {/* Questions Section - first */}
                 {currentChapter.questions.length > 0 && (
@@ -365,64 +306,49 @@ function CategoryClientInner({ category, chaptersWithQuestions }: Props) {
                       </div>
                     </div>
                     <div className="space-y-6">
-                      {sortedQuestions.length === 0 ? (
-                        <div className="rounded-xl border border-dashed border-border/60 bg-card/40 px-6 py-10 text-center space-y-3">
-                          <p className="text-sm text-foreground/80">
-                            No questions in this chapter match your saved stack.
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setTailored(false)}
-                          >
-                            Show all questions
-                          </Button>
-                        </div>
-                      ) : (
-                        sortedQuestions.map((q, i) => (
-                          <div
-                            key={q.id}
-                            className="rounded-xl border border-border/50 bg-card overflow-hidden"
-                          >
-                            <div className="p-6 pb-4">
-                              <div className="flex items-start gap-3 mb-3">
-                                <span className="text-xs font-mono text-muted-foreground mt-1 flex-shrink-0">
-                                  Q{i + 1}.
-                                </span>
-                                <h3 className="text-base sm:text-lg font-bold text-foreground leading-snug">
-                                  {q.question}
-                                </h3>
-                              </div>
-                              <div className="flex flex-wrap items-center gap-2 ml-8 mb-4">
-                                <Badge
-                                  className={`text-[11px] px-2 py-0.5 border ${difficultyBadgeClass(q.difficulty)}`}
-                                >
-                                  {q.difficulty}
-                                </Badge>
-                                {(q.tags as string[]).slice(0, 3).map((tag) => (
-                                  <Badge
-                                    key={tag}
-                                    variant="secondary"
-                                    className="text-[11px] px-2 py-0.5 font-normal"
-                                  >
-                                    {formatTagLabel(tag)}
-                                  </Badge>
-                                ))}
-                              </div>
+                      {sortedQuestions.map((q, i) => (
+                        <div
+                          key={q.id}
+                          className="rounded-xl border border-border/50 bg-card overflow-hidden"
+                        >
+                          <div className="p-6 pb-4">
+                            <div className="flex items-start gap-3 mb-3">
+                              <span className="text-xs font-mono text-muted-foreground mt-1 flex-shrink-0">
+                                Q{i + 1}.
+                              </span>
+                              <h3 className="text-base sm:text-lg font-bold text-foreground leading-snug">
+                                {q.question}
+                              </h3>
                             </div>
-                            <div className="border-t border-border/40 bg-muted/30 px-6 py-5">
-                              <div className="flex items-start gap-3">
-                                <span className="text-xs font-semibold text-foreground/60 mt-1 flex-shrink-0">
-                                  A.
-                                </span>
-                                <div className="min-w-0 flex-1">
-                                  <AnswerMarkdown content={q.answer} />
-                                </div>
+                            <div className="flex flex-wrap items-center gap-2 ml-8 mb-4">
+                              <Badge
+                                className={`text-[11px] px-2 py-0.5 border ${difficultyBadgeClass(q.difficulty)}`}
+                              >
+                                {q.difficulty}
+                              </Badge>
+                              {(q.tags as string[]).slice(0, 3).map((tag) => (
+                                <Badge
+                                  key={tag}
+                                  variant="secondary"
+                                  className="text-[11px] px-2 py-0.5 font-normal"
+                                >
+                                  {formatTagLabel(tag)}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="border-t border-border/40 bg-muted/30 px-6 py-5">
+                            <div className="flex items-start gap-3">
+                              <span className="text-xs font-semibold text-foreground/60 mt-1 flex-shrink-0">
+                                A.
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <AnswerMarkdown content={q.answer} />
                               </div>
                             </div>
                           </div>
-                        ))
-                      )}
+                        </div>
+                      ))}
                     </div>
                   </section>
                 )}
