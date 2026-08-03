@@ -17905,6 +17905,473 @@ npx vitest --ui
       tags: ["testing", "vitest", "vite", "setup"],
       is_top50: false,
     },
+    // ──────── Browser APIs & Web Platform (Junior Level) ────────
+    {
+      question:
+        "Explain the difference between localStorage and sessionStorage.",
+      answer: `Both are part of the Web Storage API and store string key-value pairs in the browser, but they differ in **lifetime and scope**:
+
+- \`localStorage\` — data **persists** across browser restarts, tabs, and sessions until explicitly cleared with \`localStorage.removeItem()\` or \`localStorage.clear()\`.
+- \`sessionStorage\` — data is cleared **when the tab is closed**; a page reload or navigation within the tab keeps it alive. Two tabs of the same site do **not** share \`sessionStorage\`.
+
+Both:
+- Are **synchronous** and block the main thread, so avoid storing large data.
+- Store only **strings** — objects must be serialized with \`JSON.stringify()\` / \`JSON.parse()\`.
+- Are scoped to a single **origin** (protocol + domain + port).
+
+\`\`\`js
+localStorage.setItem("theme", "dark");
+console.log(localStorage.getItem("theme")); // "dark"
+
+sessionStorage.setItem("draft", JSON.stringify({ id: 1, text: "Hi" }));
+console.log(JSON.parse(sessionStorage.getItem("draft")).text); // "Hi"
+\`\`\`
+
+**Key Takeaway:** Use \`localStorage\` for preferences/theme/options that should survive restarts; use \`sessionStorage\` for short-lived data like in-progress form drafts. Never store auth tokens in either — they are readable by any JS on the origin (XSS risk); prefer HttpOnly cookies for credentials.`,
+      difficulty: "easy",
+      tags: ["browser-apis", "web-storage", "javascript"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How does the Fetch API work and how is it different from XMLHttpRequest?",
+      answer: `The Fetch API is a **Promise-based** replacement for \`XMLHttpRequest\` (XHR) that provides a cleaner way to make network requests.
+
+\`\`\`js
+fetch("https://api.example.com/users", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ name: "Ani" }),
+})
+  .then((res) => {
+    if (!res.ok) throw new Error(\`HTTP \${res.status}\`);
+    return res.json();
+  })
+  .then((data) => console.log(data))
+  .catch((err) => console.error(err));
+\`\`\`
+
+Key differences vs XHR:
+- **Promises** instead of callback/event patterns — easier chaining and \`async/await\`.
+- **Streaming** — the response \`body\` is a \`ReadableStream\`, so large payloads can be consumed incrementally (\`response.body.getReader()\`).
+- **Control with \`AbortController\`** — cancel in-flight requests via a \`signal\`.
+- **Request/Response objects** — reusable, composable \`Request\` and \`Response\` interfaces (also used by Service Workers).
+
+**Critical pitfall:** \`fetch()\` only **rejects** on network failure. HTTP 4xx/5xx responses still resolve the promise, so you **must check \`res.ok\`** (or \`res.status\`) — failing to do so is the #1 most-missed bug with Fetch.`,
+      difficulty: "easy",
+      tags: ["browser-apis", "fetch", "javascript"],
+      is_top50: false,
+    },
+    {
+      question: "What are WebSockets and when would you use them?",
+      answer: `WebSockets provide a **full-duplex, bidirectional** communication channel between the browser and a server over a single persistent TCP connection. After the initial HTTP handshake (\`ws://\` or \`wss://\`), both sides can send and receive messages at any time without re-requesting.
+
+\`\`\`js
+const socket = new WebSocket("wss://chat.example.com");
+socket.onopen = () => socket.send("Hello server");
+socket.onmessage = (event) => console.log("Received:", event.data);
+socket.onclose = () => console.log("Socket closed");
+\`\`\`
+
+**Use WebSockets when:**
+- Real-time data pushed from server → client: live chat, notifications, online gaming, collaborative editing, live sports scores, dashboards.
+- Low-latency bidirectional communication where regular HTTP polling would waste bandwidth.
+
+**Don't use WebSockets** for occasional updates — plain HTTP/\`fetch()\` or Server-Sent Events (one-way server push) is simpler. WebSockets also require:
+- A server that supports the protocol (not purely REST).
+- **Reconnection logic** with exponential backoff and cleanup of stale connections.
+
+**Key:** WebSockets = persistent, bidirectional, low latency; perfect for real-time apps but heavier than request-response where it isn't needed.`,
+      difficulty: "easy",
+      tags: ["browser-apis", "websocket", "real-time"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is a Service Worker and how does it enable offline support?",
+      answer: `A Service Worker is a **script (JavaScript file) that runs in the background**, separate from the page, and acts as a **network proxy** between the browser and the server. It intercepts network requests via the \`fetch\` event and can serve responses from a **cache**, making an app work **offline** — the backbone of PWAs.
+
+**Lifecycle:** \`install\` → \`activate\` → \`fetch\` (idle). Assets are cached during \`install\`, stale caches cleaned in \`activate\`, and every request is intercepted in \`fetch\`.
+
+\`\`\`js
+// main thread
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js");
+}
+
+// sw.js - cache-first strategy
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open("v1").then((cache) =>
+      cache.addAll(["/index.html", "/app.js", "/styles.css"])
+    )
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      // serve from cache, fall back to network
+      return cached || fetch(event.request);
+    })
+  );
+});
+\`\`\`
+
+**Key points:**
+- Requires HTTPS (except localhost).
+- Limited to one scope (usually the directory where it's registered).
+- Cannot use sync DOM APIs, but can use the **Cache API** and **IndexedDB** for data.
+- Supports **push notifications and background sync** in addition to offline.
+- Common strategies: cache-first (fast, good for static assets), network-first (fresh, good for dynamic pages), stale-while-revalidate.
+
+**Key:** "Workers handle background, Service Workers handle network+offline; the site must still work when the Service Worker isn't ready."`,
+      difficulty: "easy",
+      tags: ["browser-apis", "service-worker", "offline"],
+      is_top50: false,
+    },
+    {
+      question: "Explain the Canvas API and how it differs from SVG.",
+      answer: `The **Canvas API** provides a pixel-based 2D (or WebGL 3D) drawing surface. You get a \`<canvas>\` element and a drawing context, then paint with imperative JavaScript calls.
+
+\`\`\`html
+<canvas id="c" width="400" height="300"></canvas>
+\`\`\`
+
+\`\`\`js
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+ctx.fillStyle = "tomato";
+ctx.fillRect(20, 20, 150, 100);   // filled rectangle
+ctx.beginPath();
+ctx.arc(300, 150, 50, 0, Math.PI * 2);
+ctx.fillStyle = "steelblue";
+ctx.fill();                        // filled circle
+\`\`\`
+
+**Key differences vs SVG:**
+
+| | Canvas | SVG |
+|---|---|---|
+| Rendering | Pixel/bitmap (raster) | Vector (scalable shapes) |
+| DOM | No nodes — not scriptable per shape | Shapes ARE DOM elements |
+| Performance | Great for many drawing ops | Good for many DOM nodes |
+| Resizing / accessibility | Hard, single bitmap | Always crisp, searchable |
+| Use case | Games, charts, animations, pixel data | Icons, logos, maps, UI graphics |
+
+**Key:** Use Canvas for performance-heavy drawing (games, data viz, image manipulation); use SVG for accessible, scalable, semantics-rich graphics. Once Canvas is drawn, it's a bitmap — individual shapes can't be styled or event-handled afterward unless you track them manually.`,
+      difficulty: "easy",
+      tags: ["browser-apis", "canvas", "svg"],
+      is_top50: false,
+    },
+    {
+      question: "What is the History API and how does it enable SPAs?",
+      answer: `The **History API** lets your page manipulate the browser's session history — changing the URL in the address bar **without triggering a full page reload**. It's essential for Single-Page Applications (SPAs) where navigation happens in JavaScript and views swap on the fly.
+
+**Key methods:**
+- \`history.pushState(state, "", url)\` — adds a new entry to history and updates the URL (no reload).
+- \`history.replaceState(state, "", url)\` — updates the current URL/entry (no new history entry).
+- \`window.popstate\` event — fires when the user clicks Back/Forward (or \`history.back()\`).
+- \`location.hash\`-based routing and the \`hashchange\` event are an older alternative.
+
+\`\`\`js
+// Move from /users → /users/42 without reloading
+history.pushState({ userId: 42 }, "", "/users/42");
+
+window.addEventListener("popstate", (event) => {
+  console.log("Navigated to", location.pathname, event.state);
+});
+\`\`\`
+
+**Why SPAs rely on it:** By changing the URL with \`pushState\`, the back/forward buttons keep working and URLs are shareable/bookmarkable, while the router in the app renders the right view — no round-trip to the server for each page.
+
+**Consideration:** On a real server you must fall back to a catch-all route (e.g. \`index.html\`) so deep links work when a user directly visits \`/users/2\`.`,
+      difficulty: "easy",
+      tags: ["browser-apis", "history", "spa"],
+      is_top50: false,
+    },
+    {
+      question: "How does IndexedDB work and when should you use it?",
+      answer: `IndexedDB is a **low-level, asynchronous, client-side database** built into browsers. Unlike \`localStorage\` it is **not limited to ~5MB of strings** — it can store large amounts of **structured data** (objects, files, blobs, binary), supports **indexes and queries**, and works off the main thread.
+
+**Core ideas:**
+- **Object stores** (like tables) hold records keyed by a \`keyPath\` or an optional key.
+- **Indexes** allow efficient lookups on any property, not just the key.
+- Everything is **async** (request based or promise-based with the \`idb\` wrapper).
+
+\`\`\`js
+const request = indexedDB.open("myDB", 1);
+request.onupgradeneeded = (e) => {
+  const db = e.target.result;
+  const store = db.createObjectStore("notes", { keyPath: "id" });
+  store.createIndex("by_title", "title");
+};
+request.onsuccess = (e) => {
+  const db = e.target.result;
+  const tx = db.transaction("notes", "readwrite");
+  tx.objectStore("notes").add({ id: 1, title: "Hello" });
+};
+\`\`\`
+
+**Use IndexedDB when:**
+- Offline-first apps (offline note apps, calendars, caches that keep data available without a connection).
+- Large structured datasets that need search, filtering, or indexes.
+- Files/blobs or data beyond localStorage's ~5MB limit.
+
+**When you prefer \`localStorage\` instead:** tiny preference data that's fast to write — \`localStorage\` is synchronous and simpler, but its 5MB/string-only/blocking limits make it unfit for meaningful volumes of structured data.
+
+**Key:** localStorage = small sync strings; IndexedDB = large async structured data. IndexedDB is what you reach for when building real offline functionality.`,
+      difficulty: "medium",
+      tags: ["browser-apis", "indexeddb", "storage"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What are the Navigation Timing and Resource Timing APIs used for?",
+      answer: `They are browser **performance measurement APIs** that let you inspect the timing of loading pages and resources — real-world metrics from actual users, not just lab tests.
+
+- **Navigation Timing** — tracks the whole page: \`navigationStart\`, \`responseStart\` (TTFB), \`domInteractive\`, \`domContentLoadedEventEnd\`, \`loadEventEnd\`.
+- **Resource Timing** — tracks every resource (scripts, images, styles): \`initiatorType\`, \`requestStart\`, \`responseEnd\`. Useful for finding slow assets.
+- **PerformanceObserver** — efficiently subscribes to new timing entries without polling.
+
+\`\`\`js
+// TTFB (time to first byte) from real users
+const nav = performance.getEntriesByType("navigation")[0];
+const ttfb = nav.responseStart - nav.requestStart;
+
+// Slowest scripts via Resource Timing
+performance.getEntriesByType("resource")
+  .sort((a, b) => (b.responseEnd - b.requestStart) - (a.responseEnd - a.requestStart))
+  .slice(0, 5);
+
+const observer = new PerformanceObserver((list) => {
+  for (const entry of list.getEntries()) console.log(entry);
+});
+observer.observe({ entryTypes: ["resource", "navigation"] });
+\`\`\`
+
+**Key:** These APIs let you measure real-user TTFB, page load, and slow resources — the data that feeds Core Web Vitals (LCP, CLS, TTI) budgets and performance optimization decisions.`,
+      difficulty: "medium",
+      tags: ["browser-apis", "performance", "observer"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is the difference between DOMContentLoaded and the load event?",
+      answer: `Both fire on \`document\`, at different points of the loading process:
+
+- **\`DOMContentLoaded\`** — fires when the **HTML is fully parsed** and the DOM tree is built; it **does NOT wait** for external resources such as images, stylesheets, or subframes. This is often where you attach JS behavior, because the structure is ready.
+- **\`load\`** — fires after the page (DOM **plus all dependent resources**: images, scripts, stylesheets, iframes) has fully loaded.
+
+\`\`\`js
+document.addEventListener("DOMContentLoaded", () => {
+  // DOM ready - safe to query/attach handlers
+  console.log("DOM ready");
+});
+
+window.addEventListener("load", () => {
+  // Everything (images etc.) loaded
+  console.log("All resources loaded");
+});
+\`\`\`
+
+**Practical takeaway:** Put event handling and feature init in \`DOMContentLoaded\` for speed; use \`load\` only when you truly need the dimensions or rendering of images/fonts (e.g. measuring layout after media loads). This lets your app become interactive noticeably earlier.`,
+      difficulty: "easy",
+      tags: ["browser-apis", "dom", "events"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is requestAnimationFrame and why is it used for animations?",
+      answer: `\`requestAnimationFrame(callback)\` tells the browser: "run this callback before the **next repaint**", ensuring animations are **synchronized with the screen's refresh rate** (usually 60fps, or more on high-refresh displays).
+
+\`\`\`js
+let pos = 0;
+function step() {
+  pos += 2;
+  box.style.transform = \`translateX(\${pos}px)\`;
+  if (pos < 400) requestAnimationFrame(step); // continue
+}
+requestAnimationFrame(step);
+// later: cancelAnimationFrame(id)
+\`\`\`
+
+**Why it beats \`setInterval\`/repeated \`setTimeout\`:**
+- **Browser-synced** — callbacks run at the correct timing for the display, each frame once per new paint.
+- **Energy efficient** — pauses automatically when the tab is **hidden/background**, saving battery and CPU.
+- **Frame-skipping is smooth** — the browser drops stale frames if the tab's busy, avoiding janky overlap.
+
+**Key:** Use \`requestAnimationFrame\` for animations that move/redraw (canvas, transform, scroll-linked UI). For non-animation scheduling (polling, debounced saves) prefer the timers instead. Always call it once per frame; the callback must re-request to continue an animation.`,
+      difficulty: "easy",
+      tags: ["browser-apis", "animation", "performance"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is an AbortController and how do you cancel a fetch request?",
+      answer: `\`AbortController\` provides a way to **cancel** in-flight operations like \`fetch\` — e.g. when a user navigates away, types in a search box faster than responses return, or a component unmounts.
+
+\`\`\`js
+const controller = new AbortController();
+
+fetch("/api/search", { signal: controller.signal })
+  .then((res) => res.json())
+  .catch((err) => {
+    if (err.name === "AbortError") {
+      console.log("Request was cancelled"); // expected, not an error
+    } else {
+      console.error("Real error:", err);
+    }
+  });
+
+// Trigger cancellation
+controller.abort();
+\`\`\`
+
+**Key points:**
+- Just pass \`signal: controller.signal\` in the fetch options; calling \`controller.abort()\` rejects the promise with an \`AbortError\`.
+- **Always check \`err.name === "AbortError"\`** — an aborted request is intentional, not a genuine failure; in React you'd often abort in the effect's cleanup: \`return () => controller.abort()\`.
+- The same signal can cancel multiple fetches.
+- It also works with other async APIs that accept a signal (e.g. \`Request\`, some readers).
+
+**Key:** AbortController prevents wasted network and avoids stale-state/race bugs (out-of-order responses overwriting newer UI). This is a core junior-level ask - it shows you understand request lifecycle.`,
+      difficulty: "medium",
+      tags: ["browser-apis", "fetch", "async"],
+      is_top50: false,
+    },
+    {
+      question: "What is the Geolocation API and how do you use it?",
+      answer: `The Geolocation API gives your script access (with the user's permission) to the device's **location** — latitude/longitude, accuracy, and in some cases altitude/speed/heading.
+
+\`\`\`js
+navigator.geolocation.getCurrentPosition(
+  (position) => {
+    const { latitude, longitude, accuracy } = position.coords;
+    console.log(\`Lat: \${latitude}, Lng: \${longitude} (±\${accuracy}m)\`);
+  },
+  (error) => {
+    console.log("Permission/position error:", error.code, error.message);
+  },
+  { enableHighAccuracy: true, timeout: 5000, maximumAge: 1000 }
+);
+
+// Watch position changes
+const id = navigator.geolocation.watchPosition(success, error);
+navigator.geolocation.clearWatch(id);
+\`\`\`
+
+**Key points:**
+- Requires **user permission** (the browser requests it); handle the \`denied\` case with a fallback.
+- Needs a **secure context** (HTTPS or localhost).
+- Works on desktops that support GPS/Wi-Fi; accuracy varies.
+- \`getCurrentPosition\` returns a single position, \`watchPosition\` tracks movement over time (e.g. GPS-navigation apps).
+- Coordinates are approximate — show accuracy, don't over-react.
+
+**Key:** Respect users: request permission lazily, explain why, provide a fallback (e.g. manual location or IP-based) when denied, and clear watchers when no longer needed.`,
+      difficulty: "easy",
+      tags: ["browser-apis", "geolocation", "privacy"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is the Clipboard API and how do you copy text to the clipboard?",
+      answer: `The Clipboard API lets a page **read from and write to** the system clipboard. The modern approach uses the \`navigator.clipboard\` interface, which returns Promises and works only in **secure contexts**.
+
+\`\`\`js
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    console.log("Copied!");
+  } catch (err) {
+    // permission denied / not focused
+    console.error("Copy failed:", err);
+    fallbackCopy(text);
+  }
+}
+
+async function pasteText() {
+  try {
+    return await navigator.clipboard.readText();
+  } catch {
+    return null;
+  }
+}
+\`\`\`
+
+**Key points:**
+- Write/read require **focus on the page** and **user permission**; writing from an explicit user click is more reliable — document must be focused and the frame has permission.
+- Works on **HTTPS/localhost**.
+- Also supports copying structured/data via \`ClipboardItem\` (images, HTML).
+- **Fallback** for older browsers: hidden \`textarea\` + \`document.execCommand("copy")\`.
+
+**Key:** Prefer \`navigator.clipboard.writeText()\` (async + secure) over deprecated \`execCommand\`; always catch and offer a fallback. Never paste blindly from the clipboard into \`innerHTML\` — treat it as untrusted input.`,
+      difficulty: "easy",
+      tags: ["browser-apis", "clipboard", "dom"],
+      is_top50: false,
+    },
+    {
+      question: "What is the IntersectionObserver API and what is it used for?",
+      answer: `The IntersectionObserver API **fires a callback when an element enters or exits the viewport** (or intersects with another element). It replaces clunky scroll listeners + \`getBoundingClientRect()\` polling with an efficient, browser-managed observer.
+
+\`\`\`js
+const observer = new IntersectionObserver(
+  (entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        console.log("Element clearly visible");
+        maybeLazyLoad(entry.target); // start loading, etc.
+      }
+    }
+  },
+  { root: null, threshold: 0.1 } // 10% visible to fire
+);
+
+document.querySelectorAll("img.lazy").forEach((img) => observer.observe(img));
+\`\`\`
+
+**Common use cases:**
+- **Lazy-loading** images/content as they scroll into view.
+- **Infinite scroll** — trigger fetching more items near the bottom.
+- **Visibility analytics** — count how long ads/sections are on-screen.
+- **Content state** — track "seen"/"played" states (e.g. a video that reached 50% visibility).
+
+**Why it's better than scroll listeners:** The API is entirely **async and passive** — no main-thread layout thrashing on every scroll step; the browser reports intersection changes on its own schedule. Call \`unobserve(target)\` when done, or \`disconnect()\` to stop all. \`rootMargin\` lets you fire early (pre-load content just before it's on screen).`,
+      difficulty: "medium",
+      tags: ["browser-apis", "intersection", "performance"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What are Server-Sent Events (SSE) and how do they differ from WebSockets?",
+      answer: `**Server-Sent Events (SSE)** is a one-way, server-to-client push protocol built on plain HTTP. The client opens a single \`EventSource\` connection; the server streams updates over time. It's simple, automatic reconnection out of the box, and text-based.
+
+\`\`\`js
+const source = new EventSource("/api/updates");
+source.onmessage = (event) => {
+  console.log("New event:", event.data);
+};
+source.addEventListener("custom", (event) => console.log(event.data));
+
+// Server (Node.js/HTTP): send chunks like
+// data: {"type":"tick","value":1}\n\n
+\`\`\`
+
+| | SSE | WebSockets |
+|---|---|---|
+| Direction | One-way (server → client) | Full-duplex (both ways) |
+| Protocol | Plain HTTP | WebSocket (ws://) after handshake |
+| Reconnection | Automatic | Manual |
+| Data | Text only | Text + binary |
+| Typical use | Notifications, feeds, live prices, LLM tokens | Chat, gaming, collaborative editing |
+
+**Key points:**
+- SSE reuses HTTP (works with proxies/CSP, easy to auth via headers/cookies), uses automatic reconnect with the optional \`Last-Event-ID\` heartbeat.
+- Use SSE when updates flow **only from server to client**; use WebSocket when the client also needs to send a lot of messages back in real-time.
+- Common junior gap: "Which do I pick?" — if it's one-directional streaming (live score, token stream, notifications) SSE is often simpler and cheaper than WebSockets.`,
+      difficulty: "medium",
+      tags: ["browser-apis", "sse", "real-time"],
+      is_top50: false,
+    },
   ],
   "backend-engineer": [
     {
