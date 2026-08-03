@@ -67,7 +67,11 @@ export function CodeBlock({
           )}
         </button>
       </div>
-      <pre className="overflow-x-auto">
+      <pre
+        className={
+          language ? "overflow-x-auto" : "whitespace-pre-wrap break-words"
+        }
+      >
         <code
           className={`block text-[13.5px] leading-relaxed font-mono ${className ?? ""}`}
         >

@@ -53,9 +53,12 @@ export function AnswerMarkdown({ content }: { content: string }) {
               {children}
             </li>
           ),
-          code: ({ children, className }) => {
-            const isInline = !className;
-            if (isInline) {
+          code: ({ children, className, node }) => {
+            const position = node?.position;
+            const isBlock =
+              Boolean(className) ||
+              (position != null && position.start.line !== position.end.line);
+            if (!isBlock) {
               return (
                 <code className="px-1.5 py-0.5 rounded-md bg-muted text-[13px] font-mono text-foreground border border-border/40">
                   {children}
