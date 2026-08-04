@@ -42,7 +42,7 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
         tags: Array.from(selectedTags),
       });
       setQuestions(res.data.questions);
-      setTotal(res.data.total);
+      setTotal(res.data.total ?? res.data.questions.length);
       setShowAnswers(new Set());
       setHasSearched(true);
     } catch {

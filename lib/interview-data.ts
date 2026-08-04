@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { db } from "@/config/db";
 import {
   interviewCategories,
@@ -8,6 +9,28 @@ import {
   interviewQuestionChapters,
 } from "@/config/schema";
 import { eq, asc, count, inArray } from "drizzle-orm";
+
+/**
+ * Cross-request cache for static seed content (RU saver).
+ * Invalidation: bump INTERVIEW_DATA_CACHE_VERSION after re-running a seed
+ * script — seeds run outside the Next runtime, so revalidateTag() is unusable
+ * there (the tag below is reserved for a future admin revalidate endpoint).
+ * NOTE: cached values are shared references across requests — callers must
+ * treat results as read-only (or copy at the boundary).
+ */
+const INTERVIEW_DATA_CACHE_VERSION = 1;
+const INTERVIEW_DATA_CACHE_TTL = 3600;
+const INTERVIEW_DATA_CACHE_TAG = "interview-data";
+
+async function withInterviewCache<T>(
+  key: string,
+  fn: () => Promise<T>,
+): Promise<T> {
+  return unstable_cache(fn, [key, String(INTERVIEW_DATA_CACHE_VERSION)], {
+    tags: [INTERVIEW_DATA_CACHE_TAG],
+    revalidate: INTERVIEW_DATA_CACHE_TTL,
+  })();
+}
 
 export type InterviewCategory = {
   id: number;
@@ -45,41 +68,43 @@ export type InterviewQuestion = {
 export const getAllCategories = cache(
   async (): Promise<InterviewCategory[]> => {
     try {
-      const result = await db
-        .select({
-          id: interviewCategories.id,
-          name: interviewCategories.name,
-          slug: interviewCategories.slug,
-          description: interviewCategories.description,
-          icon: interviewCategories.icon,
-          color: interviewCategories.color,
-          order_index: interviewCategories.order_index,
-          questionCount: count(interviewQuestions.id),
-        })
-        .from(interviewCategories)
-        .leftJoin(
-          interviewCategoryChapters,
-          eq(interviewCategories.id, interviewCategoryChapters.category_id),
-        )
-        .leftJoin(
-          interviewChapters,
-          eq(interviewCategoryChapters.chapter_id, interviewChapters.id),
-        )
-        .leftJoin(
-          interviewQuestionChapters,
-          eq(interviewChapters.id, interviewQuestionChapters.chapter_id),
-        )
-        .leftJoin(
-          interviewQuestions,
-          eq(interviewQuestionChapters.question_id, interviewQuestions.id),
-        )
-        .groupBy(interviewCategories.id)
-        .orderBy(interviewCategories.order_index);
+      return withInterviewCache("all-categories", async () => {
+        const result = await db
+          .select({
+            id: interviewCategories.id,
+            name: interviewCategories.name,
+            slug: interviewCategories.slug,
+            description: interviewCategories.description,
+            icon: interviewCategories.icon,
+            color: interviewCategories.color,
+            order_index: interviewCategories.order_index,
+            questionCount: count(interviewQuestions.id),
+          })
+          .from(interviewCategories)
+          .leftJoin(
+            interviewCategoryChapters,
+            eq(interviewCategories.id, interviewCategoryChapters.category_id),
+          )
+          .leftJoin(
+            interviewChapters,
+            eq(interviewCategoryChapters.chapter_id, interviewChapters.id),
+          )
+          .leftJoin(
+            interviewQuestionChapters,
+            eq(interviewChapters.id, interviewQuestionChapters.chapter_id),
+          )
+          .leftJoin(
+            interviewQuestions,
+            eq(interviewQuestionChapters.question_id, interviewQuestions.id),
+          )
+          .groupBy(interviewCategories.id)
+          .orderBy(interviewCategories.order_index);
 
-      return result.map((r) => ({
-        ...r,
-        questionCount: Number(r.questionCount),
-      }));
+        return result.map((r) => ({
+          ...r,
+          questionCount: Number(r.questionCount),
+        }));
+      });
     } catch (error) {
       console.error("[interview-data] getAllCategories:", error);
       return [];
@@ -203,7 +228,8 @@ export const getQuestionsByCategorySlugAndTags = cache(
           ? all
           : all.filter((q) => q.tags.some((t) => tags.includes(t)));
       return {
-        questions: opts?.limit ? filtered.slice(0, opts.limit) : filtered,
+        questions:
+          opts?.limit !== undefined ? filtered.slice(0, opts.limit) : filtered,
         total: filtered.length,
       };
     } catch (error) {
@@ -219,41 +245,43 @@ export const getQuestionsByCategorySlugAndTags = cache(
 export const getDistinctTagsByCategorySlug = cache(
   async (slug: string): Promise<string[]> => {
     try {
-      const catResult = await db
-        .select({ id: interviewCategories.id })
-        .from(interviewCategories)
-        .where(eq(interviewCategories.slug, slug))
-        .limit(1);
+      return withInterviewCache(`distinct-tags-${slug}`, async () => {
+        const catResult = await db
+          .select({ id: interviewCategories.id })
+          .from(interviewCategories)
+          .where(eq(interviewCategories.slug, slug))
+          .limit(1);
 
-      if (catResult.length === 0) return [];
+        if (catResult.length === 0) return [];
 
-      const rows = await db
-        .select({ tags: interviewQuestions.tags })
-        .from(interviewQuestions)
-        .innerJoin(
-          interviewQuestionChapters,
-          eq(interviewQuestions.id, interviewQuestionChapters.question_id),
-        )
-        .innerJoin(
-          interviewChapters,
-          eq(interviewQuestionChapters.chapter_id, interviewChapters.id),
-        )
-        .innerJoin(
-          interviewCategoryChapters,
-          eq(interviewChapters.id, interviewCategoryChapters.chapter_id),
-        )
-        .where(eq(interviewCategoryChapters.category_id, catResult[0].id));
+        const rows = await db
+          .select({ tags: interviewQuestions.tags })
+          .from(interviewQuestions)
+          .innerJoin(
+            interviewQuestionChapters,
+            eq(interviewQuestions.id, interviewQuestionChapters.question_id),
+          )
+          .innerJoin(
+            interviewChapters,
+            eq(interviewQuestionChapters.chapter_id, interviewChapters.id),
+          )
+          .innerJoin(
+            interviewCategoryChapters,
+            eq(interviewChapters.id, interviewCategoryChapters.chapter_id),
+          )
+          .where(eq(interviewCategoryChapters.category_id, catResult[0].id));
 
-      const tagSet = new Set<string>();
-      for (const row of rows) {
-        const tags = row.tags as string[];
-        if (Array.isArray(tags)) {
-          for (const tag of tags) {
-            tagSet.add(tag);
+        const tagSet = new Set<string>();
+        for (const row of rows) {
+          const tags = row.tags as string[];
+          if (Array.isArray(tags)) {
+            for (const tag of tags) {
+              tagSet.add(tag);
+            }
           }
         }
-      }
-      return Array.from(tagSet).sort();
+        return Array.from(tagSet).sort();
+      });
     } catch (error) {
       console.error("[interview-data] getDistinctTagsByCategorySlug:", error);
       return [];
@@ -268,23 +296,25 @@ export type TopTag = {
 
 export const getTopTags = cache(async (limit = 40): Promise<TopTag[]> => {
   try {
-    const rows = await db
-      .select({ tags: interviewQuestions.tags })
-      .from(interviewQuestions);
+    return withInterviewCache(`top-tags-${limit}`, async () => {
+      const rows = await db
+        .select({ tags: interviewQuestions.tags })
+        .from(interviewQuestions);
 
-    const counts = new Map<string, number>();
-    for (const row of rows) {
-      const tags = row.tags as string[];
-      if (!Array.isArray(tags)) continue;
-      for (const tag of tags) {
-        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      const counts = new Map<string, number>();
+      for (const row of rows) {
+        const tags = row.tags as string[];
+        if (!Array.isArray(tags)) continue;
+        for (const tag of tags) {
+          counts.set(tag, (counts.get(tag) ?? 0) + 1);
+        }
       }
-    }
 
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, limit)
-      .map(([tag, count]) => ({ tag, count }));
+      return Array.from(counts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit)
+        .map(([tag, count]) => ({ tag, count }));
+    });
   } catch (error) {
     console.error("[interview-data] getTopTags:", error);
     return [];
@@ -298,13 +328,15 @@ export type QuestionTagRow = {
 
 export const getQuestionTagRows = cache(async (): Promise<QuestionTagRow[]> => {
   try {
-    const rows = await db
-      .select({ id: interviewQuestions.id, tags: interviewQuestions.tags })
-      .from(interviewQuestions);
-    return rows.map((r) => ({
-      id: r.id,
-      tags: (r.tags ?? []) as string[],
-    }));
+    return withInterviewCache("question-tag-rows", async () => {
+      const rows = await db
+        .select({ id: interviewQuestions.id, tags: interviewQuestions.tags })
+        .from(interviewQuestions);
+      return rows.map((r) => ({
+        id: r.id,
+        tags: (r.tags ?? []) as string[],
+      }));
+    });
   } catch (error) {
     console.error("[interview-data] getQuestionTagRows:", error);
     return [];
@@ -380,34 +412,36 @@ export const getQuestionsByStack = cache(
 export const getChaptersByCategorySlug = cache(
   async (slug: string): Promise<InterviewChapter[]> => {
     try {
-      const catResult = await db
-        .select()
-        .from(interviewCategories)
-        .where(eq(interviewCategories.slug, slug))
-        .limit(1);
+      return withInterviewCache(`chapters-${slug}`, async () => {
+        const catResult = await db
+          .select()
+          .from(interviewCategories)
+          .where(eq(interviewCategories.slug, slug))
+          .limit(1);
 
-      if (catResult.length === 0) return [];
+        if (catResult.length === 0) return [];
 
-      const result = await db
-        .select({
-          id: interviewChapters.id,
-          title: interviewChapters.title,
-          content: interviewChapters.content,
-          order_index: interviewCategoryChapters.order_index,
-        })
-        .from(interviewCategoryChapters)
-        .innerJoin(
-          interviewChapters,
-          eq(interviewCategoryChapters.chapter_id, interviewChapters.id),
-        )
-        .where(eq(interviewCategoryChapters.category_id, catResult[0].id))
-        .orderBy(asc(interviewCategoryChapters.order_index));
+        const result = await db
+          .select({
+            id: interviewChapters.id,
+            title: interviewChapters.title,
+            content: interviewChapters.content,
+            order_index: interviewCategoryChapters.order_index,
+          })
+          .from(interviewCategoryChapters)
+          .innerJoin(
+            interviewChapters,
+            eq(interviewCategoryChapters.chapter_id, interviewChapters.id),
+          )
+          .where(eq(interviewCategoryChapters.category_id, catResult[0].id))
+          .orderBy(asc(interviewCategoryChapters.order_index));
 
-      return result.map((ch) => ({
-        id: ch.id,
-        title: ch.title,
-        content: ch.content as InterviewChapter["content"],
-      }));
+        return result.map((ch) => ({
+          id: ch.id,
+          title: ch.title,
+          content: ch.content as InterviewChapter["content"],
+        }));
+      });
     } catch (error) {
       console.error("[interview-data] getChaptersByCategorySlug:", error);
       return [];
@@ -422,34 +456,40 @@ export const getQuestionsByChapterIds = cache(
     if (chapterIds.length === 0) return {};
 
     try {
-      const rows = await db
-        .select({
-          id: interviewQuestions.id,
-          question: interviewQuestions.question,
-          answer: interviewQuestions.answer,
-          difficulty: interviewQuestions.difficulty,
-          tags: interviewQuestions.tags,
-          is_top50: interviewQuestions.is_top50,
-          chapterId: interviewQuestionChapters.chapter_id,
-        })
-        .from(interviewQuestions)
-        .innerJoin(
-          interviewQuestionChapters,
-          eq(interviewQuestions.id, interviewQuestionChapters.question_id),
-        )
-        .where(inArray(interviewQuestionChapters.chapter_id, chapterIds))
-        .orderBy(interviewQuestions.id);
+      const sortedIds = chapterIds.slice().sort((a, b) => a - b);
+      return withInterviewCache(
+        `questions-chapters-${sortedIds.join("-")}`,
+        async () => {
+          const rows = await db
+            .select({
+              id: interviewQuestions.id,
+              question: interviewQuestions.question,
+              answer: interviewQuestions.answer,
+              difficulty: interviewQuestions.difficulty,
+              tags: interviewQuestions.tags,
+              is_top50: interviewQuestions.is_top50,
+              chapterId: interviewQuestionChapters.chapter_id,
+            })
+            .from(interviewQuestions)
+            .innerJoin(
+              interviewQuestionChapters,
+              eq(interviewQuestions.id, interviewQuestionChapters.question_id),
+            )
+            .where(inArray(interviewQuestionChapters.chapter_id, sortedIds))
+            .orderBy(interviewQuestions.id);
 
-      const grouped: Record<number, InterviewQuestion[]> = {};
-      for (const row of rows) {
-        const { chapterId, ...question } = row;
-        if (!grouped[chapterId]) grouped[chapterId] = [];
-        grouped[chapterId].push({
-          ...question,
-          tags: question.tags as string[],
-        });
-      }
-      return grouped;
+          const grouped: Record<number, InterviewQuestion[]> = {};
+          for (const row of rows) {
+            const { chapterId, ...question } = row;
+            if (!grouped[chapterId]) grouped[chapterId] = [];
+            grouped[chapterId].push({
+              ...question,
+              tags: question.tags as string[],
+            });
+          }
+          return grouped;
+        },
+      );
     } catch (error) {
       console.error("[interview-data] getQuestionsByChapterIds:", error);
       return {};
@@ -462,21 +502,27 @@ export const getQuestionIdsByChapterIds = cache(
     if (chapterIds.length === 0) return {};
 
     try {
-      const rows = await db
-        .select({
-          chapterId: interviewQuestionChapters.chapter_id,
-          questionId: interviewQuestionChapters.question_id,
-        })
-        .from(interviewQuestionChapters)
-        .where(inArray(interviewQuestionChapters.chapter_id, chapterIds))
-        .orderBy(interviewQuestionChapters.question_id);
+      const sortedIds = chapterIds.slice().sort((a, b) => a - b);
+      return withInterviewCache(
+        `question-ids-chapters-${sortedIds.join("-")}`,
+        async () => {
+          const rows = await db
+            .select({
+              chapterId: interviewQuestionChapters.chapter_id,
+              questionId: interviewQuestionChapters.question_id,
+            })
+            .from(interviewQuestionChapters)
+            .where(inArray(interviewQuestionChapters.chapter_id, sortedIds))
+            .orderBy(interviewQuestionChapters.question_id);
 
-      const grouped: Record<number, number[]> = {};
-      for (const row of rows) {
-        if (!grouped[row.chapterId]) grouped[row.chapterId] = [];
-        grouped[row.chapterId].push(row.questionId);
-      }
-      return grouped;
+          const grouped: Record<number, number[]> = {};
+          for (const row of rows) {
+            if (!grouped[row.chapterId]) grouped[row.chapterId] = [];
+            grouped[row.chapterId].push(row.questionId);
+          }
+          return grouped;
+        },
+      );
     } catch (error) {
       console.error("[interview-data] getQuestionIdsByChapterIds:", error);
       return {};

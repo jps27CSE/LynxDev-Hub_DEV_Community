@@ -164,6 +164,10 @@ async function main() {
   }
 
   console.log("\n✅ Interview seeding complete!");
+
+  console.log(
+    "\n⚠️  Interview data is cached cross-request. Bump INTERVIEW_DATA_CACHE_VERSION in lib/interview-data.ts to invalidate.",
+  );
 }
 
 main().catch(console.error);

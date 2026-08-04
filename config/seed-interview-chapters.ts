@@ -124,6 +124,10 @@ async function seedInterviewChapters() {
   }
 
   console.log("\n✅ Done! Interview chapters seeded.");
+
+  console.log(
+    "\n⚠️  Interview data is cached cross-request. Bump INTERVIEW_DATA_CACHE_VERSION in lib/interview-data.ts to invalidate.",
+  );
   process.exit(0);
 }
 

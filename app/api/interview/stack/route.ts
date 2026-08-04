@@ -5,7 +5,7 @@ import { validationError, badJson, unauthorized } from "@/lib/api-error";
 import { getQuestionsByStack } from "@/lib/interview-data";
 
 const StackSchema = z.object({
-  tags: z.array(z.string()).min(1).max(50),
+  tags: z.array(z.string().trim().max(64)).min(1).max(50),
   offset: z.coerce.number().int().min(0).default(0),
 });
 
@@ -26,11 +26,18 @@ export async function POST(request: Request) {
 
     const { tags, offset } = parsed.data;
     const limit = 20;
+    const started = performance.now();
 
     const { questions, total, hasMore } = await getQuestionsByStack(tags, {
       limit,
       offset,
     });
+
+    console.info(
+      `[interview/stack] POST: ${questions.length} rows (${total} total, offset ${offset}) in ${Math.round(
+        performance.now() - started,
+      )}ms`,
+    );
 
     return NextResponse.json({ questions, total, hasMore });
   } catch (error) {
