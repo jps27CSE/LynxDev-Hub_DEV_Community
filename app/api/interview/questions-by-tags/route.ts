@@ -6,7 +6,7 @@ import { getQuestionsByCategorySlugAndTags } from "@/lib/interview-data";
 
 const QuestionsByTagsSchema = z.object({
   categorySlug: z.string().min(1),
-  tags: z.array(z.string()).default([]),
+  tags: z.array(z.string()).max(50).default([]),
 });
 
 export async function POST(request: Request) {
@@ -24,12 +24,19 @@ export async function POST(request: Request) {
     const parsed = QuestionsByTagsSchema.safeParse(body);
     if (!parsed.success) return validationError(parsed.error);
 
-    const questions = await getQuestionsByCategorySlugAndTags(
+    const limit = 100;
+
+    const { questions, total } = await getQuestionsByCategorySlugAndTags(
       parsed.data.categorySlug,
       parsed.data.tags,
+      { limit },
     );
 
-    return NextResponse.json({ questions });
+    return NextResponse.json({
+      questions,
+      total,
+      truncated: questions.length < total,
+    });
   } catch (error) {
     console.error("[interview/questions-by-tags] POST:", error);
     return NextResponse.json(

@@ -18,6 +18,7 @@ type Props = {
 export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
@@ -41,10 +42,12 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
         tags: Array.from(selectedTags),
       });
       setQuestions(res.data.questions);
+      setTotal(res.data.total);
       setShowAnswers(new Set());
       setHasSearched(true);
     } catch {
       setQuestions([]);
+      setTotal(0);
       setHasSearched(true);
       setError("Failed to load questions. Please try again.");
     }
@@ -63,6 +66,7 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
   const clearAll = () => {
     setSelectedTags(new Set());
     setQuestions([]);
+    setTotal(0);
     setShowAnswers(new Set());
     setError(null);
     setHasSearched(false);
@@ -149,10 +153,17 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">
-              {questions.length} question{questions.length !== 1 ? "s" : ""}{" "}
-              found
+              {questions.length} of {total} question
+              {total !== 1 ? "s" : ""} found
             </h2>
           </div>
+
+          {questions.length < total && (
+            <p className="text-xs text-muted-foreground">
+              Showing the first {questions.length} — refine your stacks to see
+              more specific results.
+            </p>
+          )}
 
           {questions.map((q) => (
             <div

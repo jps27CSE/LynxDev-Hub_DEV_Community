@@ -6,7 +6,7 @@ import {
   getQuestionIdsByChapterIds,
 } from "@/lib/interview-data";
 import type { InterviewQuestion } from "@/lib/interview-data";
-import ChapterHubClient from "./ChapterHubClient";
+import ChapterHubLoader from "./ChapterHubLoader";
 
 export default async function CategoryPage({
   params,
@@ -39,7 +39,7 @@ export default async function CategoryPage({
   ]);
 
   return (
-    <ChapterHubClient
+    <ChapterHubLoader
       category={cat}
       chapters={chapters}
       questionIdsByChapter={questionIdsByChapter}

@@ -191,17 +191,27 @@ export const getQuestionCountByCategorySlug = cache(
 );
 
 export const getQuestionsByCategorySlugAndTags = cache(
-  async (slug: string, tags: string[]): Promise<InterviewQuestion[]> => {
+  async (
+    slug: string,
+    tags: string[],
+    opts?: { limit?: number },
+  ): Promise<{ questions: InterviewQuestion[]; total: number }> => {
     try {
       const all = await getQuestionsByCategorySlug(slug);
-      if (tags.length === 0) return all;
-      return all.filter((q) => q.tags.some((t) => tags.includes(t)));
+      const filtered =
+        tags.length === 0
+          ? all
+          : all.filter((q) => q.tags.some((t) => tags.includes(t)));
+      return {
+        questions: opts?.limit ? filtered.slice(0, opts.limit) : filtered,
+        total: filtered.length,
+      };
     } catch (error) {
       console.error(
         "[interview-data] getQuestionsByCategorySlugAndTags:",
         error,
       );
-      return [];
+      return { questions: [], total: 0 };
     }
   },
 );
