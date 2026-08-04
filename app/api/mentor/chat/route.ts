@@ -7,6 +7,7 @@ import {
   notFound,
 } from "@/lib/api-error";
 import { currentUser } from "@clerk/nextjs/server";
+import { MENTOR_ENABLED } from "@/config/mentor";
 import {
   getUserContext,
   buildSystemPrompt,
@@ -19,6 +20,13 @@ const MessageSchema = z.object({
 });
 
 export async function GET() {
+  if (!MENTOR_ENABLED) {
+    return NextResponse.json(
+      { error: "Mentor is currently unavailable" },
+      { status: 503 },
+    );
+  }
+
   const clerkUser = await currentUser();
   if (!clerkUser) return unauthorized();
 
@@ -32,6 +40,13 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (!MENTOR_ENABLED) {
+    return NextResponse.json(
+      { error: "Mentor is currently unavailable" },
+      { status: 503 },
+    );
+  }
+
   const clerkUser = await currentUser();
   if (!clerkUser) return unauthorized();
 
