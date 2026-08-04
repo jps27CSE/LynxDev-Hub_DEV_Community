@@ -73,6 +73,14 @@ export async function GET() {
   const email = clerkUser.primaryEmailAddress?.emailAddress;
   if (!email) return NextResponse.json([], { status: 200 });
 
-  const data = await getEnrollmentsByEmail(email);
-  return NextResponse.json(data);
+  try {
+    const data = await getEnrollmentsByEmail(email);
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("[api/enroll] GET failed:", error);
+    return NextResponse.json(
+      { error: "Failed to load enrollments" },
+      { status: 500 },
+    );
+  }
 }

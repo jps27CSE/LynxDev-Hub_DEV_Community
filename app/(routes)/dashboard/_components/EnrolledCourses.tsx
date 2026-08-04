@@ -1,4 +1,3 @@
-"use client";
 import { BookOpen, ChevronRight, Clock, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";

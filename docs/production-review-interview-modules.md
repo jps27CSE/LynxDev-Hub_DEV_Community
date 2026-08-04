@@ -1,7 +1,7 @@
 # Production Review — Interview Modules for 500 Concurrent Users
 
 > **Date:** 2026-08-03
-> **Status:** T0-1 (`a9a447a`), T0-2/T0-3, T1-1/T1-2, T2-1, and the stack tag-scan cache shipped 2026-08-04. Remaining: T2-2 (deferred — YAGNI until ~10K questions).
+> **Status:** T0-1 (`a9a447a`), T0-2/T0-3, T1-1/T1-2, T2-1, and the stack tag-scan cache shipped 2026-08-04. Review-fix pass 2026-08-04 (tag caps + `getDistinctTagsByCategorySlug` caching + `withInterviewCache` refactor). Remaining: T2-2 (deferred — YAGNI until ~10K questions) and doc-wide gaps (pool retry, hub empty-vs-error) deferred per main-doc stance.
 > **Stack:** Next.js 16 on Vercel Hobby | TiDB Cloud Starter (Free) | Clerk Hobby | Mistral AI (Free/Experiment)
 > **Scope:** All interview modules — chapter hub, practice, custom practice, stack, customize, home, and their 4 API routes
 > **Baseline:** Live DB audit 2026-08-03 — 899 questions, 35 chapters, avg answer 1,074 chars (max 4,229). Per category: software-engineer 382, frontend-engineer 336, backend-engineer 306.
@@ -99,23 +99,16 @@
 - ✅ All 4 interview routes log via `console.error("[interview/<route>] METHOD:", error)`
 - ✅ All 8 interview data-fn catches log `console.error("[interview-data] fn:", error)`
 - ⏸️ No structured logging (pino) — deferred per doc Tier 2.3 — consistent
-- 🟡 Recommend: `console.info` row-count + duration on `questions-by-tags` and `stack` responses so payload regressions surface in Vercel logs
+- ✅ `console.info` row-count + duration on `questions-by-tags` and `stack` responses (T1-2) — payload regressions surface in Vercel logs
 
 ---
 
 ## 5. Security
 
-### 🟡 Medium
-
-| Issue | Detail | Fix |
-|-------|--------|-----|
-| **Unbounded `tags` array on `questions-by-tags`** | Zod schema has no `.max()` (unlike `stack`'s `max(50)`). 5,000 tags × 382 questions ≈ 2M `includes()` ops per request — CPU amplification vector behind a 20/min limit | Add `z.array(z.string()).max(50)` |
-| `generate` templates hardcoded in route | `questionTemplates` lives in `app/api/interview/generate/route.ts` — content drift risk vs seeded DB | Move to `config/` |
-
 ### ✅ Verified
 
 - `auth()` + 401 guard on all 4 routes (handler-level, defense-in-depth)
-- Zod validation on all 4 routes
+- Zod validation on all 4 routes; `questions-by-tags` tags capped at `.max(50)` with per-tag `.trim().max(64)`; `stack` tags `.min(1).max(50)` with per-tag `.trim().max(64)` (review-fix pass 2026-08-04)
 - No XSS — React escapes output; react-markdown renders no raw HTML; links use `rel="noreferrer noopener"`
 - No secrets client-side; localStorage only for reviewed/collapsed state
 - Rate limits cover all interview API routes
@@ -150,7 +143,7 @@
 
 | # | Action | Benefit | Effort | Status |
 |---|--------|---------|--------|--------|
-| T1-1 | `unstable_cache` + `revalidate` on `getAllCategories`, `getChaptersByCategorySlug`, `getQuestionsByChapterIds`, `getTopTags` (invalidate on re-seed) | RU ~90% reduction on static content | 1h | ✅ shipped — 1h TTL + version-bump invalidation (seed scripts run outside Next runtime, so `revalidateTag` unusable there); also cached `getQuestionIdsByChapterIds` |
+| T1-1 | `unstable_cache` + `revalidate` on `getAllCategories`, `getChaptersByCategorySlug`, `getQuestionsByChapterIds`, `getTopTags` (invalidate on re-seed) | RU ~90% reduction on static content | 1h | ✅ shipped — 1h TTL + version-bump invalidation (seed scripts run outside Next runtime, so `revalidateTag` unusable there); also cached `getQuestionIdsByChapterIds` and `getDistinctTagsByCategorySlug` (review-fix pass) |
 | T1-2 | Row-count + duration logging on `questions-by-tags` and `stack` | Observability | 20min | ✅ shipped — `console.info` row count, total, ms on both routes |
 
 ### Tier 2 — Nice to have
@@ -166,7 +159,7 @@
 
 ## Interview RU Budget Snapshot (at 500 users, post T1-1 caching)
 
-Cross-request caching now absorbs ~90% of static reads: `getAllCategories`, `getChaptersByCategorySlug`, `getQuestionsByChapterIds`, `getQuestionIdsByChapterIds`, `getTopTags` hit the Data Cache after the first request per key (1h TTL). TiDB RU is now dominated by uncached paths.
+Cross-request caching now absorbs ~90% of static reads: `getAllCategories`, `getChaptersByCategorySlug`, `getQuestionsByChapterIds`, `getQuestionIdsByChapterIds`, `getTopTags`, `getDistinctTagsByCategorySlug`, `getQuestionTagRows` hit the Data Cache after the first request per key (1h TTL). TiDB RU is dominated by the uncached custom-practice POST path.
 
 | Page/Route | RU/request (est., cached vs miss) | Requests/day | RU/day (steady state) |
 |------------|-----------------------------------|--------------|--------|
@@ -174,9 +167,10 @@ Cross-request caching now absorbs ~90% of static reads: `getAllCategories`, `get
 | Chapter hub (SSR chapter ids + on-demand chapter fetches) | ~1 / ~0 | 3,000 | ~3 (per key per hour) |
 | Practice (paginated 20/page + prefetch) | ~2 / ~0 | 1,500 | ~15 |
 | Stack practice (tag scan cached via `getQuestionTagRows`) | ~4 (miss) / ~0 (hit) | 500 | ~4 |
+| Custom practice page (tags list cached via `getDistinctTagsByCategorySlug`) | ~2 (miss) / ~0 (hit) | 300 | ~2 |
 | Custom practice (questions-by-tags, capped 100, uncached) | ~3 | 300 | 900 |
 | Customize (top tags, cached) | ~1 / ~0 | 200 | ~1 |
-| **Total** | | | **~1,100/day ≈ 33K/month** (custom practice dominates) |
+| **Total** | | | **~1,075/day ≈ 32K/month** (custom practice dominates) |
 
 Mistral RUs are not applicable — `generate` is template-based and mentor chat is out of interview scope (1 RPM, per original doc).
 
@@ -187,7 +181,7 @@ The interview modules are **query-efficient and secure** — the 500-user risk i
 1. **Hub payload (#1 risk) — resolved** (`a9a447a`): ~550KB → ~40KB first paint; chapter fetches are lazy, guarded, prefetched, and retryable.
 2. **`questions-by-tags` unbounded path — resolved** (T0-2): tags `.max(50)`, response capped at 100 with `total`/`truncated` surfaced in the UI.
 3. **Question-card re-parse on toggle — resolved** (T0-3): memoized `QuestionCard` + `ssr: false` hub → server never parses hub markdown, cards only re-render when their own state changes.
-4. **No cross-request caching — resolved** (T1-1): `unstable_cache` on 5 static fns → interview RU/day drops from ~39K to ~3K steady state; the remaining TiDB load is the two uncached POST paths (stack scan, custom practice), tracked via T1-2 logging.
+4. **No cross-request caching — resolved** (T1-1): `unstable_cache` on 7 static fns → interview RU/day drops from ~39K to ~1.1K steady state; the remaining TiDB load is the two uncached POST paths (stack scan, custom practice), tracked via T1-2 logging.
 5. Everything else (auth, rate limits, logging, retry states) already meets the production-review standard from `docs/production-review-500-users.md`.
 
 **After Tier 0 + 1 + T2-1:** interview modules contribute ~1.1K RU/day steady state (uncached custom-practice POSTs dominate) vs the doc's global budget — the section stops being a bottleneck and stays free-tier viable at 500 users. Only T2-2 (SQL-side tag filtering) remains, deferred as YAGNI until ~10K questions.

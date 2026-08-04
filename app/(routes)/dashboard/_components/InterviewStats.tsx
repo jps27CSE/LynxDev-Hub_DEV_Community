@@ -1,21 +1,9 @@
-import { db } from "@/config/db";
-import { interviewCategories, interviewQuestions } from "@/config/schema";
-import { count } from "drizzle-orm";
-import { eq } from "drizzle-orm";
+import { getInterviewStats } from "@/lib/dashboard-stats";
 import { Sparkles } from "lucide-react";
 import Link from "next/link";
 
 export default async function InterviewStats() {
-  const [catCount] = await db
-    .select({ value: count() })
-    .from(interviewCategories);
-
-  const [qCount] = await db.select({ value: count() }).from(interviewQuestions);
-
-  const [top50Count] = await db
-    .select({ value: count() })
-    .from(interviewQuestions)
-    .where(eq(interviewQuestions.is_top50, true));
+  const stats = await getInterviewStats();
 
   return (
     <Link href="/interview">
@@ -36,7 +24,7 @@ export default async function InterviewStats() {
         <div className="flex gap-4">
           <div>
             <span className="text-2xl font-bold text-purple-500">
-              {Number(catCount.value)}
+              {stats ? stats.categoryCount : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">
               Categories
@@ -44,7 +32,7 @@ export default async function InterviewStats() {
           </div>
           <div>
             <span className="text-2xl font-bold text-purple-500">
-              {Number(qCount.value)}
+              {stats ? stats.questionCount : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">
               Questions
@@ -52,7 +40,7 @@ export default async function InterviewStats() {
           </div>
           <div>
             <span className="text-2xl font-bold text-yellow-500">
-              {Number(top50Count.value)}
+              {stats ? stats.top50Count : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">Top 50</span>
           </div>

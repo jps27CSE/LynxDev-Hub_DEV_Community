@@ -1,26 +1,9 @@
-import { db } from "@/config/db";
-import { problems } from "@/config/schema";
-import { count, eq } from "drizzle-orm";
+import { getProblemStats } from "@/lib/dashboard-stats";
 import { Code2 } from "lucide-react";
 import Link from "next/link";
 
 export default async function ProblemStats() {
-  const [total] = await db.select({ value: count() }).from(problems);
-
-  const [easy] = await db
-    .select({ value: count() })
-    .from(problems)
-    .where(eq(problems.difficulty, "easy"));
-
-  const [medium] = await db
-    .select({ value: count() })
-    .from(problems)
-    .where(eq(problems.difficulty, "medium"));
-
-  const [hard] = await db
-    .select({ value: count() })
-    .from(problems)
-    .where(eq(problems.difficulty, "hard"));
+  const stats = await getProblemStats();
 
   return (
     <Link href="/problems">
@@ -41,25 +24,25 @@ export default async function ProblemStats() {
         <div className="flex gap-4">
           <div>
             <span className="text-2xl font-bold text-emerald-500">
-              {Number(total.value)}
+              {stats ? stats.total : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">Total</span>
           </div>
           <div>
             <span className="text-2xl font-bold text-green-500">
-              {Number(easy.value)}
+              {stats ? stats.easy : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">Easy</span>
           </div>
           <div>
             <span className="text-2xl font-bold text-yellow-500">
-              {Number(medium.value)}
+              {stats ? stats.medium : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">Medium</span>
           </div>
           <div>
             <span className="text-2xl font-bold text-red-500">
-              {Number(hard.value)}
+              {stats ? stats.hard : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">Hard</span>
           </div>

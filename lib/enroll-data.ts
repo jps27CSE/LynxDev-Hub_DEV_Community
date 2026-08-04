@@ -3,6 +3,32 @@ import { db } from "@/config/db";
 import { usersTable, enrollments, courses, chapters } from "@/config/schema";
 import { eq, count, inArray } from "drizzle-orm";
 
+export type UserDetail = {
+  id: number;
+  name: string;
+  email: string;
+  bio: string | null;
+  skills: unknown;
+  points: number | null;
+  subscription: string | null;
+};
+
+export const getUserByEmail = cache(
+  async (email: string): Promise<UserDetail | null> => {
+    try {
+      const users = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.email, email))
+        .limit(1);
+      return users[0] ?? null;
+    } catch (error) {
+      console.error("[enroll-data] getUserByEmail failed", { email, error });
+      throw error;
+    }
+  },
+);
+
 export type EnrolledCourse = {
   id: number;
   user_id: number;
@@ -24,15 +50,11 @@ export type EnrolledCourse = {
 export const getEnrollmentsByEmail = cache(
   async (email: string): Promise<EnrolledCourse[]> => {
     try {
-      const users = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.email, email))
-        .limit(1);
+      const user = await getUserByEmail(email);
 
-      if (users.length === 0) return [];
+      if (!user) return [];
 
-      const userId = users[0].id;
+      const userId = user.id;
 
       const result = await db
         .select({
@@ -45,7 +67,7 @@ export const getEnrollmentsByEmail = cache(
 
       const enrolledCourseIds = result.map((r) => r.course.id);
 
-      let countMap = new Map<number, number>();
+      const countMap = new Map<number, number>();
       if (enrolledCourseIds.length > 0) {
         const chapterCounts = await db
           .select({
@@ -78,8 +100,12 @@ export const getEnrollmentsByEmail = cache(
           category: r.course.category,
         },
       }));
-    } catch {
-      return [];
+    } catch (error) {
+      console.error("[enroll-data] getEnrollmentsByEmail failed", {
+        email,
+        error,
+      });
+      throw error;
     }
   },
 );
