@@ -85,7 +85,7 @@ export default function LessonClient({
         chapterId: chapter.id,
       });
       setCompleted(true);
-      setUserDetail?.((prev: any) =>
+      setUserDetail?.((prev) =>
         prev ? { ...prev, points: res.data.points } : prev,
       );
       toast(`+${res.data.pointsAwarded} points`, {

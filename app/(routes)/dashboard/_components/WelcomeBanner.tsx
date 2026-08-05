@@ -23,7 +23,7 @@ function WelcomeBanner({
 }) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-primary/10 p-8">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px]" />
+      <div className="absolute inset-0 bg-grid-paper" />
       <div className="relative">
         <div className="flex items-start justify-between">
           <div>

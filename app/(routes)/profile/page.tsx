@@ -122,7 +122,7 @@ export default function ProfilePage() {
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="relative overflow-hidden border-b border-border/40">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />
+        <div className="absolute inset-0 bg-grid-paper" />
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-3xl" />
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
           <Link

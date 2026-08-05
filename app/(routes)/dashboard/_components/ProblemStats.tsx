@@ -7,7 +7,7 @@ export default async function ProblemStats() {
 
   return (
     <Link href="/problems">
-      <div className="rounded-xl border border-border/50 bg-card p-5 hover:border-border transition-all group">
+      <div className="rounded-xl border border-border/50 bg-card p-5 hover:border-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 outline-none transition-all group">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
             <Code2 className="w-5 h-5 text-emerald-500" />

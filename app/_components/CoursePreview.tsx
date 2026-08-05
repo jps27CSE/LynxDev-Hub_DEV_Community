@@ -38,7 +38,7 @@ const courses = [
 function CoursePreview() {
   return (
     <section className="py-20 sm:py-28 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />
+      <div className="absolute inset-0 bg-grid-paper" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs text-muted-foreground mb-4">
@@ -61,7 +61,7 @@ function CoursePreview() {
             return (
               <div
                 key={course.title}
-                className="group relative rounded-2xl border border-border/50 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg overflow-hidden"
+                className="group relative rounded-2xl border border-border/50 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 outline-none overflow-hidden"
               >
                 <div
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -77,7 +77,7 @@ function CoursePreview() {
                 />
                 <div className="relative">
                   <div
-                    className={`w-12 h-12 rounded-2xl ${difficultyIconClass(course.difficulty)} flex items-center justify-center mb-4 ring-1 ring-white/5`}
+                    className={`w-12 h-12 rounded-2xl ${difficultyIconClass(course.difficulty)} flex items-center justify-center mb-4 ring-1 ring-border`}
                   >
                     <CourseIcon title={course.title} className="w-7 h-7" />
                   </div>

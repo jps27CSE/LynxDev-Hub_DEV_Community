@@ -4,27 +4,7 @@ import { db } from "@/config/db";
 import { courses } from "@/config/schema";
 import { eq, asc } from "drizzle-orm";
 import CourseIcon from "@/components/CourseIcon";
-
-const difficultyConfig: Record<
-  string,
-  { color: string; light: string; badge: string }
-> = {
-  Beginner: {
-    color: "text-green-500",
-    light: "bg-green-500/10",
-    badge: "bg-green-500/10 text-green-500 border-green-500/20",
-  },
-  Intermediate: {
-    color: "text-yellow-500",
-    light: "bg-yellow-500/10",
-    badge: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  },
-  Advanced: {
-    color: "text-red-500",
-    light: "bg-red-500/10",
-    badge: "bg-red-500/10 text-red-500 border-red-500/20",
-  },
-};
+import { difficultyBadgeClass, difficultyIconClass } from "@/lib/interview-ui";
 
 const ALLOWED_COURSES = [
   "HTML & CSS Fundamentals",
@@ -49,7 +29,7 @@ export default async function CoursesPage() {
   return (
     <>
       <div className="relative overflow-hidden border-b border-border/40">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]" />
+        <div className="absolute inset-0 bg-grid-paper" />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-3xl" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="pt-6">
@@ -120,16 +100,13 @@ export default async function CoursesPage() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredCourses.map((course) => {
-              const diff =
-                difficultyConfig[course.difficulty] ||
-                difficultyConfig["Beginner"];
               const chapterCount = course.chapter_count || 0;
 
               return (
                 <Link
                   key={course.id}
                   href={`/courses/${course.id}`}
-                  className="group relative rounded-2xl border border-border/50 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg overflow-hidden"
+                  className="group relative rounded-2xl border border-border/50 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 outline-none overflow-hidden"
                 >
                   <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -146,7 +123,7 @@ export default async function CoursesPage() {
 
                   <div className="flex items-start gap-4 relative">
                     <div
-                      className={`w-14 h-14 rounded-2xl ${diff.light} flex items-center justify-center flex-shrink-0 ring-1 ring-white/5`}
+                      className={`w-14 h-14 rounded-2xl ${difficultyIconClass(course.difficulty)} flex items-center justify-center flex-shrink-0 ring-1 ring-border`}
                     >
                       <CourseIcon title={course.title} className="w-8 h-8" />
                     </div>
@@ -162,7 +139,7 @@ export default async function CoursesPage() {
 
                   <div className="flex items-center gap-3 mt-5 pt-4 border-t border-border/30 relative">
                     <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border ${diff.badge}`}
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border ${difficultyBadgeClass(course.difficulty)}`}
                     >
                       {course.difficulty}
                     </span>

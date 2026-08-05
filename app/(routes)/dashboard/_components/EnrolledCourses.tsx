@@ -66,7 +66,7 @@ const EnrolledCourses = ({
                   ? `/courses/${enrollment.course_id}`
                   : `/learn/${enrollment.course_id}/${enrollment.progress.currentChapter}`
               }
-              className="group relative rounded-xl border border-border/50 bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-sm overflow-hidden"
+              className="group relative rounded-2xl border border-border/50 bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 outline-none overflow-hidden"
             >
               <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -82,7 +82,7 @@ const EnrolledCourses = ({
               />
               <div className="flex items-start gap-4 relative">
                 <div
-                  className={`w-12 h-12 rounded-xl ${difficultyIconClass(enrollment.course.difficulty)} flex items-center justify-center flex-shrink-0 ring-1 ring-white/5`}
+                  className={`w-12 h-12 rounded-xl ${difficultyIconClass(enrollment.course.difficulty)} flex items-center justify-center flex-shrink-0 ring-1 ring-border`}
                 >
                   <CourseIcon
                     title={enrollment.course.title}
@@ -91,7 +91,10 @@ const EnrolledCourses = ({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-sm group-hover:text-primary transition-colors truncate">
+                    <h3
+                      className="font-semibold text-sm group-hover:text-primary transition-colors truncate"
+                      title={enrollment.course.title}
+                    >
                       {enrollment.course.title}
                     </h3>
                     {enrollment.completed_at && (

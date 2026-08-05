@@ -52,18 +52,10 @@ const Dashboard = async () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {email ? (
+      {email && (
         <Suspense fallback={<WelcomeBannerSkeleton />}>
           <WelcomeSection email={email} />
         </Suspense>
-      ) : (
-        <WelcomeBanner
-          name={null}
-          points={0}
-          skills={null}
-          enrolledCount={0}
-          completedCount={0}
-        />
       )}
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Suspense fallback={<StatCardSkeleton />}>
@@ -75,12 +67,10 @@ const Dashboard = async () => {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
         <div className="lg:col-span-2 space-y-8">
-          {email ? (
+          {email && (
             <Suspense fallback={<EnrolledCoursesSkeleton />}>
               <EnrolledCoursesSection email={email} />
             </Suspense>
-          ) : (
-            <EnrolledCourses enrollments={[]} />
           )}
         </div>
         <div className="space-y-6">

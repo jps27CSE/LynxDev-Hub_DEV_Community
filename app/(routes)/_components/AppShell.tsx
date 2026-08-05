@@ -9,14 +9,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("sidebarCollapsed");
-    if (saved === "true") setSidebarCollapsed(true);
+    try {
+      const saved = localStorage.getItem("sidebarCollapsed");
+      if (saved === "true") setSidebarCollapsed(true);
+    } catch {
+      // localStorage unavailable (private mode / storage disabled) — keep default
+    }
   }, []);
 
   const toggleCollapse = () => {
     setSidebarCollapsed((prev) => {
       const next = !prev;
-      localStorage.setItem("sidebarCollapsed", String(next));
+      try {
+        localStorage.setItem("sidebarCollapsed", String(next));
+      } catch {
+        // Non-persisting sidebar is acceptable when storage is blocked
+      }
       return next;
     });
   };

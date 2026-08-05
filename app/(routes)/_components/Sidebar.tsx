@@ -7,7 +7,6 @@ import {
   BookOpen,
   Sparkles,
   Terminal,
-  Brain,
   User,
   LogOut,
   ChevronLeft,
@@ -87,6 +86,7 @@ export default function Sidebar({
                 key={link.href}
                 href={link.href}
                 onClick={onClose}
+                aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                   active
                     ? "bg-primary/10 text-primary"
@@ -105,6 +105,7 @@ export default function Sidebar({
           <Link
             href="/profile"
             onClick={onClose}
+            aria-current={pathname === "/profile" ? "page" : undefined}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
               pathname === "/profile"
                 ? "bg-primary/10 text-primary"

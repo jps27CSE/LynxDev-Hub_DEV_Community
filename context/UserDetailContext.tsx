@@ -1,6 +1,12 @@
-import { createContext } from "react";
+import { createContext, type Dispatch, type SetStateAction } from "react";
+import type { UserDetail } from "@/lib/enroll-data";
 
-export const UserDetailContext = createContext<any>({
+export type UserDetailContextValue = {
+  userDetail: UserDetail | undefined;
+  setUserDetail: Dispatch<SetStateAction<UserDetail | undefined>>;
+};
+
+export const UserDetailContext = createContext<UserDetailContextValue>({
   userDetail: undefined,
   setUserDetail: () => {},
 });

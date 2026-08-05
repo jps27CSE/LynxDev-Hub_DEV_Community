@@ -256,7 +256,7 @@ export default async function InterviewPage() {
 
                 <div className="flex items-start gap-4 relative">
                   <div
-                    className={`w-14 h-14 rounded-2xl ${theme.light} flex items-center justify-center text-3xl flex-shrink-0 ring-1 ring-white/5`}
+                    className={`w-14 h-14 rounded-2xl ${theme.light} flex items-center justify-center text-3xl flex-shrink-0 ring-1 ring-border`}
                   >
                     {cat.icon || "📁"}
                   </div>
