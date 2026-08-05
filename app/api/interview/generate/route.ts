@@ -5,6 +5,7 @@ import { validationError, badJson, unauthorized } from "@/lib/api-error";
 import { db } from "@/config/db";
 import { interviewCategories } from "@/config/schema";
 import { eq } from "drizzle-orm";
+import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 import {
   questionTemplates,
   type InterviewTemplate,
@@ -72,6 +73,14 @@ const GenerateSchema = z.object({
 export async function POST(request: Request) {
   const { userId } = await auth();
   if (!userId) return unauthorized();
+
+  const limited = await enforceDbRateLimit(
+    userId,
+    "interview-generate",
+    "/api/interview/generate",
+    "POST",
+  );
+  if (limited) return limited;
 
   try {
     let body: unknown;

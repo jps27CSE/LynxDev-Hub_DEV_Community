@@ -36,6 +36,13 @@
       "when": 1785910402317,
       "tag": "0004_add-enrollments-user-course-index",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1785911929458,
+      "tag": "0005_add-rate-limits-table",
+      "breakpoints": true
     }
   ]
 }

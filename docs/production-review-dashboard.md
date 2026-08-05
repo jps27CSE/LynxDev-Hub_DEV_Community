@@ -5,7 +5,7 @@
 
 **Verdict:** functionally solid and auth-safe, but not yet production-hardened. The two biggest risks are (1) a single TiDB hiccup takes down the dashboard for **all** users, and (2) zero observability means you'll never know why. 500 users is small — every issue below is about **bursts and incident response**, not raw throughput.
 
-> **Update (2026-08-04):** Batch 1 (resilience + query reduction) implemented — see [Implementation Status](#batch-1-implementation-status) and the updated fix lists below. Remaining items: Upstash rate limiting, Sentry/Analytics. `chapter_count` denormalization shipped 2026-08-05.
+> **Update (2026-08-04):** Batch 1 (resilience + query reduction) implemented — see [Implementation Status](#batch-1-implementation-status) and the updated fix lists below. Remaining items: Upstash rate limiting, Sentry/Analytics. `chapter_count` denormalization shipped 2026-08-05. DB-backed rate limiting shipped 2026-08-05 (see fix #3).
 
 ---
 
@@ -30,12 +30,12 @@
 - Types renamed `InterviewStats` → `InterviewStatsData`, `ProblemStats` → `ProblemStatsData` (collided with component names)
 
 **Deferred (needs external accounts / separate sessions):**
-- Upstash rate limiting — the AI-endpoint cost-abuse vector remains open
+- Upstash rate limiting — replaced by DB-backed limiter on AI-burner routes (2026-08-05); Upstash remains the upgrade path to remove those two DB round-trips
 - Sentry + Vercel Analytics — zero observability remains
 - `chapter_count` column on `courses` — ✅ done (2026-08-05): migration `drizzle/0003`, seed writes it, `config/backfill-chapter-count.ts` for existing rows, `enroll-data.ts`/`courses/page.tsx`/`mentor.ts` read the column
 - Provider `POST /api/user` scoping — intentionally kept (`LessonClient` depends on `setUserDetail`)
 - `currentUser()` → `auth()` + session claims — deferred to the webhook/email-join work (claim-staleness trade-off)
-- Page `metadata` + middleware matcher trim
+- Page `metadata` + middleware matcher trim — ✅ done (2026-08-05): metadata on dashboard + title template in root layout, matcher trimmed, `connectTimeout` on pool, UNIQUE `enrollments(user_id, course_id)` index (`drizzle/0004`), `lib/logger.ts` + `lib/content-cache.ts`
 
 **Status:** `npm run typecheck` and Prettier clean. Manual `npm run dev` verification pending (no `.env.local` in the working environment).
 
@@ -67,7 +67,7 @@
 | Medium | Nothing about the dashboard is cached across users — every nav to `/dashboard` pays full DB cost. With 500 users × ~3 visits/day ≈ 15k queries/day, fine on TiDB free — but bursts are the risk, not averages. | — |
 
 ### Suggestions
-- Replace in-memory rate limiting with **Upstash Ratelimit** (free tier) or DB-backed throttling. Protect `/api/mentor/chat` and `/api/interview/generate` first — they burn Mistral tokens per request.
+- Replace in-memory rate limiting with **Upstash Ratelimit** (free tier) or DB-backed throttling. Protect `/api/mentor/chat` first — it burns Mistral tokens per request. `/api/interview/generate` doesn't call Mistral (local templates) but is rate-limited too as cheap CPU/DB protection.
 - Keep `connectionLimit: 5` (TiDB free constraint) but reduce per-request queries (see Performance) and set an explicit `acquireTimeout` (~5s) so slow pools **fail fast** instead of queueing the site into a timeout spiral.
 - Add `Index: enrollments(user_id, course_id)` — the join + filter in `enroll-data.ts:37-44` benefits at 500+ users (currently implicit FK index only).
 
@@ -129,7 +129,7 @@
 |---|-----|--------|--------|
 | 1 | `error.tsx` + `loading.tsx` for the dashboard route | ~30 min | DONE — Batch 1 |
 | 2 | Cache/eliminate the 7 static stat queries — `unstable_cache` or seed-time config | 1–2 hrs | DONE — `lib/dashboard-stats.ts` (`unstable_cache`, tag `dashboard-stats`, 1h TTL) |
-| 3 | Move rate limiting to Upstash — protects AI spend | 2–3 hrs | DEFERRED — needs Upstash account/env vars |
+| 3 | Move rate limiting to Upstash — protects AI spend | 2–3 hrs | DONE (DB-backed) — `lib/db-rate-limit.ts` + `rate_limits` table (`drizzle/0005`); enforced in `/api/mentor/chat` POST and `/api/interview/generate` POST; atomic upsert via `LAST_INSERT_ID` in a transaction (TiDB has no `INSERT ... RETURNING`), fail-closed, table bounded per user. Upstash later removes the DB round-trips |
 | 4 | Stop swallowing DB errors — log + only return `[]` for true empty cases | ~30 min | DONE — logged + rethrown; `{ error }` 500 on `/api/enroll` GET |
 | 5 | Add Sentry + Vercel Analytics | config only | DEFERRED — needs accounts |
 | 6 | Reduce per-load queries via `Promise.all` + `chapter_count` denormalization | 2–3 hrs | DONE — `Promise.all` + Suspense; `chapter_count` column added (fix in `drizzle/0003`), seed/backfill scripts, `enroll-data.ts` + `courses/page.tsx` + `mentor.ts` all read the column |
@@ -208,6 +208,6 @@ Note react `cache()` (`enroll-data.ts:24`) only dedupes in-flight within one req
 | 2 | Convert `WelcomeBanner`/`EnrolledCourses`/`DailyTip` to Server Components | 1 hr | DONE |
 | 3 | Server-fetch points/skills once in `page.tsx`; scope `Provider` sync to user creation only | 30 min | PARTIAL — server-fetch done (deduped via react `cache()`); Provider scoping intentionally kept (`LessonClient` needs `setUserDetail`) |
 | 4 | `unstable_cache` the stat counts (mirror `lib/interview-data.ts`) | 30 min | DONE — `lib/dashboard-stats.ts` |
-| 5 | Upstash rate limiting; move hard auth to handlers | 2–3 hrs | DEFERRED |
-| 6 | Add `metadata` to `dashboard/page.tsx`; trim middleware matcher | 30 min | NOT DONE |
+| 5 | Upstash rate limiting; move hard auth to handlers | 2–3 hrs | DONE (DB-backed) — see fix #3; hard auth still in middleware (`auth.protect()`) + handlers |
+| 6 | Add `metadata` to `dashboard/page.tsx`; trim middleware matcher | 30 min | DONE — 2026-08-05 (metadata + root-layout title template, matcher trimmed) |
 | 7 | (Optional) enable PPR in `next.config.ts` | 30 min | NOT DONE |

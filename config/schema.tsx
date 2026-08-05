@@ -1,4 +1,5 @@
 import {
+  bigint,
   boolean,
   int,
   json,
@@ -124,6 +125,12 @@ export const mentorConversations = mysqlTable("mentor_conversations", {
   messages: json().notNull(),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const rateLimits = mysqlTable("rate_limits", {
+  bucket: varchar({ length: 255 }).primaryKey(),
+  window_start: bigint("window_start", { mode: "number" }).notNull(),
+  count: int().notNull().default(0),
 });
 
 export const problems = mysqlTable("problems", {

@@ -8,6 +8,7 @@ import {
 } from "@/lib/api-error";
 import { currentUser } from "@clerk/nextjs/server";
 import { MENTOR_ENABLED } from "@/config/mentor";
+import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 import {
   getUserContext,
   buildSystemPrompt,
@@ -52,6 +53,14 @@ export async function POST(req: Request) {
 
   const email = clerkUser.primaryEmailAddress?.emailAddress;
   if (!email) return notFound("Email");
+
+  const limited = await enforceDbRateLimit(
+    clerkUser.id,
+    "mentor-chat",
+    "/api/mentor/chat",
+    "POST",
+  );
+  if (limited) return limited;
 
   let body: unknown;
   try {
