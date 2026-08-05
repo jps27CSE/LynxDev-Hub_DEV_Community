@@ -23,25 +23,25 @@ export default async function ProblemStats() {
         </div>
         <div className="flex gap-4">
           <div>
-            <span className="text-2xl font-bold text-emerald-500">
+            <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">
               {stats ? stats.total : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">Total</span>
           </div>
           <div>
-            <span className="text-2xl font-bold text-green-500">
+            <span className="text-2xl font-bold text-green-600 dark:text-green-500">
               {stats ? stats.easy : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">Easy</span>
           </div>
           <div>
-            <span className="text-2xl font-bold text-yellow-500">
+            <span className="text-2xl font-bold text-yellow-600 dark:text-yellow-500">
               {stats ? stats.medium : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">Medium</span>
           </div>
           <div>
-            <span className="text-2xl font-bold text-red-500">
+            <span className="text-2xl font-bold text-red-600 dark:text-red-500">
               {stats ? stats.hard : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">Hard</span>

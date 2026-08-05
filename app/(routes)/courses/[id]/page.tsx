@@ -6,12 +6,7 @@ import { getCourseById, getChaptersByCourseId } from "@/lib/course-data";
 import { ChevronRight } from "lucide-react";
 import EnrollButton from "./EnrollButton";
 import CourseIcon from "@/components/CourseIcon";
-
-const difficultyColor: Record<string, string> = {
-  Beginner: "bg-green-500/10 text-green-500 border-green-500/20",
-  Intermediate: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  Advanced: "bg-red-500/10 text-red-500 border-red-500/20",
-};
+import { difficultyBadgeClass } from "@/lib/interview-ui";
 
 export default async function CourseDetailPage({
   params,
@@ -48,7 +43,7 @@ export default async function CourseDetailPage({
               </h1>
               <Badge
                 variant="outline"
-                className={difficultyColor[course.difficulty]}
+                className={difficultyBadgeClass(course.difficulty)}
               >
                 {course.difficulty}
               </Badge>

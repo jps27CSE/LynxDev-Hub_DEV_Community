@@ -23,7 +23,7 @@ export default async function InterviewStats() {
         </div>
         <div className="flex gap-4">
           <div>
-            <span className="text-2xl font-bold text-purple-500">
+            <span className="text-2xl font-bold text-purple-600 dark:text-purple-500">
               {stats ? stats.categoryCount : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">
@@ -31,7 +31,7 @@ export default async function InterviewStats() {
             </span>
           </div>
           <div>
-            <span className="text-2xl font-bold text-purple-500">
+            <span className="text-2xl font-bold text-purple-600 dark:text-purple-500">
               {stats ? stats.questionCount : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">
@@ -39,7 +39,7 @@ export default async function InterviewStats() {
             </span>
           </div>
           <div>
-            <span className="text-2xl font-bold text-yellow-500">
+            <span className="text-2xl font-bold text-yellow-600 dark:text-yellow-500">
               {stats ? stats.top50Count : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">Top 50</span>

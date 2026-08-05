@@ -12,13 +12,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import { difficultyBadgeClass } from "@/lib/interview-ui";
 import type { Problem } from "@/lib/problem-data";
-
-const difficultyColor: Record<string, string> = {
-  easy: "bg-green-500/10 text-green-500 border-green-500/20",
-  medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  hard: "bg-red-500/10 text-red-500 border-red-500/20",
-};
 
 const difficulties = ["all", "easy", "medium", "hard"] as const;
 const PER_PAGE = 20;
@@ -148,10 +143,7 @@ function ProblemsClientInner({
                       <div className="flex items-center gap-2 mt-3 flex-wrap">
                         <Badge
                           variant="outline"
-                          className={
-                            difficultyColor[p.difficulty] ||
-                            "bg-muted text-muted-foreground"
-                          }
+                          className={difficultyBadgeClass(p.difficulty)}
                         >
                           {p.difficulty}
                         </Badge>

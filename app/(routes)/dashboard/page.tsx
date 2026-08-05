@@ -32,7 +32,6 @@ async function WelcomeSection({ email }: { email: string }) {
   return (
     <WelcomeBanner
       name={user?.name ?? null}
-      email={email}
       points={user?.points ?? 0}
       skills={isStringArray(user?.skills) ? user.skills : null}
       enrolledCount={enrollments.length}
@@ -59,7 +58,6 @@ const Dashboard = async () => {
       ) : (
         <WelcomeBanner
           name={null}
-          email={null}
           points={0}
           skills={null}
           enrolledCount={0}

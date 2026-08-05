@@ -1,23 +1,26 @@
 import { Settings } from "lucide-react";
 import Link from "next/link";
 
+const timeGreeting = (name: string | null) => {
+  const hour = new Date().getHours();
+  const period =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  return `${period}, ${name?.trim() || "Developer"}!`;
+};
+
 function WelcomeBanner({
   name,
-  email,
   points,
   skills,
   enrolledCount,
   completedCount,
 }: {
   name: string | null;
-  email: string | null;
   points: number;
   skills: string[] | null;
   enrolledCount: number;
   completedCount: number;
 }) {
-  const badges = completedCount;
-
   return (
     <div className="relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-primary/10 p-8">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px]" />
@@ -31,7 +34,7 @@ function WelcomeBanner({
               </span>
             </h1>
             <p className="mt-2 text-muted-foreground max-w-xl text-sm">
-              {email}
+              {timeGreeting(name)}
             </p>
           </div>
           <Link
@@ -72,10 +75,6 @@ function WelcomeBanner({
               {completedCount}
             </span>
             <span className="text-sm text-muted-foreground">Completed</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-primary">{badges}</span>
-            <span className="text-sm text-muted-foreground">Badges</span>
           </div>
         </div>
       </div>

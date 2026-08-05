@@ -5,13 +5,8 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Play, RotateCcw, CheckCircle2, XCircle } from "lucide-react";
+import { difficultyBadgeClass } from "@/lib/interview-ui";
 import type { Problem } from "@/lib/problem-data";
-
-const difficultyColor: Record<string, string> = {
-  easy: "bg-green-500/10 text-green-500 border-green-500/20",
-  medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  hard: "bg-red-500/10 text-red-500 border-red-500/20",
-};
 
 export default function ProblemDetailClient({ problem }: { problem: Problem }) {
   const [code, setCode] = useState(problem.starter_code || "");
@@ -103,10 +98,7 @@ export default function ProblemDetailClient({ problem }: { problem: Problem }) {
               </h1>
               <Badge
                 variant="outline"
-                className={
-                  difficultyColor[problem.difficulty] ||
-                  "bg-muted text-muted-foreground"
-                }
+                className={difficultyBadgeClass(problem.difficulty)}
               >
                 {problem.difficulty}
               </Badge>

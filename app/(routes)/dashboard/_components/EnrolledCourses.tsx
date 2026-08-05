@@ -2,28 +2,8 @@ import { BookOpen, ChevronRight, Clock, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import CourseIcon from "@/components/CourseIcon";
+import { difficultyBadgeClass, difficultyIconClass } from "@/lib/interview-ui";
 import type { EnrolledCourse } from "@/lib/enroll-data";
-
-const diffConfig: Record<
-  string,
-  { color: string; light: string; badge: string }
-> = {
-  Beginner: {
-    color: "text-green-500",
-    light: "bg-green-500/10",
-    badge: "bg-green-500/10 text-green-500 border-green-500/20",
-  },
-  Intermediate: {
-    color: "text-yellow-500",
-    light: "bg-yellow-500/10",
-    badge: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  },
-  Advanced: {
-    color: "text-red-500",
-    light: "bg-red-500/10",
-    badge: "bg-red-500/10 text-red-500 border-red-500/20",
-  },
-};
 
 const EnrolledCourses = ({
   enrollments,
@@ -89,8 +69,6 @@ const EnrolledCourses = ({
           const done = enrollment.progress.completedChapters.length;
           const total = enrollment.totalChapters;
           const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-          const diff =
-            diffConfig[enrollment.course.difficulty] || diffConfig["Beginner"];
 
           return (
             <Link
@@ -116,7 +94,7 @@ const EnrolledCourses = ({
               />
               <div className="flex items-start gap-4 relative">
                 <div
-                  className={`w-12 h-12 rounded-xl ${diff.light} flex items-center justify-center flex-shrink-0 ring-1 ring-white/5`}
+                  className={`w-12 h-12 rounded-xl ${difficultyIconClass(enrollment.course.difficulty)} flex items-center justify-center flex-shrink-0 ring-1 ring-white/5`}
                 >
                   <CourseIcon
                     title={enrollment.course.title}
@@ -129,12 +107,12 @@ const EnrolledCourses = ({
                       {enrollment.course.title}
                     </h3>
                     {enrollment.completed_at && (
-                      <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-500 shrink-0" />
                     )}
                   </div>
                   <div className="flex items-center gap-3 mt-2">
                     <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border ${diff.badge}`}
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border ${difficultyBadgeClass(enrollment.course.difficulty)}`}
                     >
                       {enrollment.course.difficulty}
                     </span>
@@ -145,7 +123,7 @@ const EnrolledCourses = ({
                         {done}/{total} chapters
                       </span>
                     ) : (
-                      <span className="text-xs text-green-500 font-medium">
+                      <span className="text-xs text-green-600 dark:text-green-500 font-medium">
                         Completed
                       </span>
                     )}
