@@ -1,23 +1,22 @@
-"use client";
-import { useUser } from "@clerk/nextjs";
-import { useContext } from "react";
-import { UserDetailContext } from "@/context/UserDetailContext";
 import { Settings } from "lucide-react";
 import Link from "next/link";
 
 function WelcomeBanner({
+  name,
+  email,
+  points,
+  skills,
   enrolledCount,
   completedCount,
 }: {
+  name: string | null;
+  email: string | null;
+  points: number;
+  skills: string[] | null;
   enrolledCount: number;
   completedCount: number;
 }) {
-  const { user } = useUser();
-  const { userDetail } = useContext(UserDetailContext);
-
-  const points = (userDetail as { points?: number })?.points ?? 0;
   const badges = completedCount;
-  const skills = (userDetail as { skills?: string[] })?.skills;
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-primary/10 p-8">
@@ -28,11 +27,11 @@ function WelcomeBanner({
             <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight">
               Welcome back,{" "}
               <span className="text-primary">
-                {user?.fullName || "Developer"}
+                {name?.trim() || "Developer"}
               </span>
             </h1>
             <p className="mt-2 text-muted-foreground max-w-xl text-sm">
-              {user?.primaryEmailAddress?.emailAddress}
+              {email}
             </p>
           </div>
           <Link

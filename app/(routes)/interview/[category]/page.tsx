@@ -3,15 +3,20 @@ import {
   getCategoryBySlug,
   getChaptersByCategorySlug,
   getQuestionsByChapterIds,
+  getQuestionIdsByChapterIds,
 } from "@/lib/interview-data";
-import CategoryClient from "./CategoryClient";
+import type { InterviewQuestion } from "@/lib/interview-data";
+import ChapterHubLoader from "./ChapterHubLoader";
 
 export default async function CategoryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ category: string }>;
+  searchParams: Promise<{ chapter?: string }>;
 }) {
   const { category: slug } = await params;
+  const { chapter: chapterParam } = await searchParams;
   const cat = await getCategoryBySlug(slug);
 
   if (!cat) {
@@ -20,18 +25,26 @@ export default async function CategoryPage({
 
   const chapters = await getChaptersByCategorySlug(slug);
   const chapterIds = chapters.map((ch) => ch.id);
-  const questionsByChapter =
-    chapterIds.length > 0 ? await getQuestionsByChapterIds(chapterIds) : {};
 
-  const chaptersWithQuestions = chapters.map((ch) => ({
-    ...ch,
-    questions: questionsByChapter[ch.id] ?? [],
-  }));
+  const requestedId = chapterParam ? parseInt(chapterParam, 10) : NaN;
+  const activeId = chapterIds.includes(requestedId)
+    ? requestedId
+    : chapterIds[0];
+
+  const [questionIdsByChapter, activeQuestions] = await Promise.all([
+    getQuestionIdsByChapterIds(chapterIds),
+    activeId
+      ? getQuestionsByChapterIds([activeId])
+      : Promise.resolve<Record<number, InterviewQuestion[]>>({}),
+  ]);
 
   return (
-    <CategoryClient
+    <ChapterHubLoader
       category={cat}
-      chaptersWithQuestions={chaptersWithQuestions}
+      chapters={chapters}
+      questionIdsByChapter={questionIdsByChapter}
+      initialChapterId={activeId ?? 0}
+      initialQuestions={activeQuestions[activeId] ?? []}
     />
   );
 }

@@ -4,7 +4,6 @@ import {
   usersTable,
   enrollments,
   courses,
-  chapters,
   mentorConversations,
 } from "@/config/schema";
 import { eq, inArray } from "drizzle-orm";
@@ -31,35 +30,24 @@ export const getUserContext = cache(async (clerkEmail: string) => {
 
   const courseIds = enrolled.map((e) => e.course_id);
 
-  const chapterCountByCourseId = new Map<number, number>();
-  if (courseIds.length > 0) {
-    const chapterRows = await db
-      .select({ course_id: chapters.course_id })
-      .from(chapters)
-      .where(inArray(chapters.course_id, courseIds));
-
-    for (const ch of chapterRows) {
-      chapterCountByCourseId.set(
-        ch.course_id,
-        (chapterCountByCourseId.get(ch.course_id) || 0) + 1,
-      );
-    }
-  }
-
   const courseInfoByCourseId = new Map<
     number,
     { title: string; total: number }
   >();
   if (courseIds.length > 0) {
     const courseRows = await db
-      .select({ id: courses.id, title: courses.title })
+      .select({
+        id: courses.id,
+        title: courses.title,
+        total: courses.chapter_count,
+      })
       .from(courses)
       .where(inArray(courses.id, courseIds));
 
     for (const c of courseRows) {
       courseInfoByCourseId.set(c.id, {
         title: c.title,
-        total: chapterCountByCourseId.get(c.id) || 0,
+        total: c.total,
       });
     }
   }

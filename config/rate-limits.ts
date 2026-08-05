@@ -22,6 +22,11 @@ const routes: { pattern: string; method: string; config: RateLimitConfig }[] = [
     config: { limit: 20, windowMs: WINDOW_1M },
   },
   {
+    pattern: "/api/interview/stack",
+    method: "POST",
+    config: { limit: 20, windowMs: WINDOW_1M },
+  },
+  {
     pattern: "/api/mentor/chat",
     method: "POST",
     config: { limit: 5, windowMs: WINDOW_1M },
@@ -49,7 +54,7 @@ const routes: { pattern: string; method: string; config: RateLimitConfig }[] = [
   {
     pattern: "/api/user",
     method: "POST",
-    config: { limit: 3, windowMs: WINDOW_1M },
+    config: { limit: 10, windowMs: WINDOW_1M },
   },
   {
     pattern: "/api/user/profile",

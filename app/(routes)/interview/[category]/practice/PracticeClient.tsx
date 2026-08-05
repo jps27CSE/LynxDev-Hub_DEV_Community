@@ -11,140 +11,75 @@ import {
   CheckCircle,
   Loader2,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeHighlight from "rehype-highlight";
-
-type Question = {
-  id: number;
-  question: string;
-  answer: string;
-  difficulty: string;
-  tags: string[];
-  is_top50: boolean | null;
-};
-
-const difficultyColor: Record<string, string> = {
-  easy: "bg-green-500/10 text-green-500 border-green-500/20",
-  medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  hard: "bg-red-500/10 text-red-500 border-red-500/20",
-};
+import { AnswerMarkdown } from "@/components/markdown-answer";
+import { formatTagLabel } from "@/lib/tags";
+import {
+  difficultyAccentClass,
+  difficultyBadgeClass,
+} from "@/lib/interview-ui";
+import type { InterviewQuestion } from "@/lib/interview-data";
+import { INTERVIEW_REVIEWED_KEY_PREFIX } from "@/lib/interview-constants";
 
 const PER_PAGE = 20;
 const PREFETCH_THRESHOLD = 5;
-
-function AnswerMarkdown({ content }: { content: string }) {
-  return (
-    <div className="text-base text-foreground/90 leading-relaxed">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
-        components={{
-          h1: ({ children }) => (
-            <h1 className="text-2xl font-bold text-foreground mt-10 mb-4 pb-2 border-b border-border/40">
-              {children}
-            </h1>
-          ),
-          h2: ({ children }) => (
-            <h2 className="text-xl font-bold text-foreground mt-8 mb-3">
-              {children}
-            </h2>
-          ),
-          h3: ({ children }) => (
-            <h3 className="text-lg font-semibold text-foreground mt-6 mb-2">
-              {children}
-            </h3>
-          ),
-          p: ({ children }) => (
-            <p className="mb-4 leading-[1.75] text-[15px]">{children}</p>
-          ),
-          ul: ({ children }) => (
-            <ul className="mb-4 space-y-1.5 pl-5 list-disc">{children}</ul>
-          ),
-          ol: ({ children }) => (
-            <ol className="mb-4 space-y-1.5 pl-5 list-decimal">{children}</ol>
-          ),
-          li: ({ children }) => (
-            <li className="text-[15px] leading-relaxed pl-1">{children}</li>
-          ),
-          code: ({ children, className }) => {
-            const isInline = !className;
-            if (isInline) {
-              return (
-                <code className="px-1.5 py-0.5 rounded-md bg-muted text-[13px] font-mono text-foreground">
-                  {children}
-                </code>
-              );
-            }
-            return (
-              <div className="relative group my-5">
-                <div className="absolute top-0 right-0 px-3 py-1 text-[11px] text-muted-foreground bg-muted/80 rounded-bl-lg rounded-tr-lg border-l border-b border-border/30 font-mono">
-                  {className?.replace("language-", "") || "code"}
-                </div>
-                <code
-                  className={`block text-[13.5px] leading-relaxed ${className}`}
-                >
-                  {children}
-                </code>
-              </div>
-            );
-          },
-          pre: ({ children }) => (
-            <pre className="!bg-transparent !p-0 !m-0 !border-0">
-              {children}
-            </pre>
-          ),
-          strong: ({ children }) => (
-            <strong className="font-bold text-foreground">{children}</strong>
-          ),
-          table: ({ children }) => (
-            <div className="overflow-x-auto my-6 rounded-xl border border-border/50">
-              <table className="w-full text-sm">{children}</table>
-            </div>
-          ),
-          th: ({ children }) => (
-            <th className="px-4 py-3 bg-muted/50 text-left font-semibold text-foreground border-b border-border/50">
-              {children}
-            </th>
-          ),
-          td: ({ children }) => (
-            <td className="px-4 py-2.5 border-b border-border/30 text-muted-foreground">
-              {children}
-            </td>
-          ),
-          hr: () => <hr className="my-8 border-border/30" />,
-        }}
-      >
-        {content}
-      </ReactMarkdown>
-    </div>
-  );
-}
 
 export default function PracticeClient({
   initialQuestions,
   totalCount,
   categorySlug,
 }: {
-  initialQuestions: Question[];
+  initialQuestions: InterviewQuestion[];
   totalCount: number;
   categorySlug: string;
 }) {
-  const [questions, setQuestions] = useState<Question[]>(initialQuestions);
+  const [questions, setQuestions] =
+    useState<InterviewQuestion[]>(initialQuestions);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [reviewed, setReviewed] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [prefetchFailed, setPrefetchFailed] = useState(false);
+  const [hydratedReviews, setHydratedReviews] = useState(false);
   const loadedOffsets = useRef<Set<number>>(new Set([0]));
 
   const current = questions[currentIndex];
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(
+        `${INTERVIEW_REVIEWED_KEY_PREFIX}${categorySlug}`,
+      );
+      if (raw) {
+        const parsed = JSON.parse(raw) as unknown;
+        if (Array.isArray(parsed)) {
+          setReviewed(new Set(parsed as number[]));
+        }
+      }
+    } catch {
+      /* ignore storage errors */
+    }
+    setHydratedReviews(true);
+  }, [categorySlug]);
+
+  useEffect(() => {
+    if (!hydratedReviews) return;
+    try {
+      localStorage.setItem(
+        `${INTERVIEW_REVIEWED_KEY_PREFIX}${categorySlug}`,
+        JSON.stringify(Array.from(reviewed)),
+      );
+    } catch {
+      /* ignore storage errors */
+    }
+  }, [reviewed, categorySlug, hydratedReviews]);
 
   useEffect(() => {
     const remaining = questions.length - currentIndex;
     if (
       remaining <= PREFETCH_THRESHOLD &&
       questions.length < totalCount &&
-      !loading
+      !loading &&
+      !prefetchFailed
     ) {
       const nextOffset =
         questions.length - (questions.length % PER_PAGE) + PER_PAGE;
@@ -154,15 +89,34 @@ export default function PracticeClient({
         fetch(
           `/api/interview/questions?category=${categorySlug}&offset=${nextOffset}`,
         )
-          .then((res) => res.json())
-          .then((data) => {
-            setQuestions((prev) => [...prev, ...data.questions]);
-            setLoading(false);
+          .then(async (res) => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return (await res.json()) as { questions?: unknown };
           })
-          .catch(() => setLoading(false));
+          .then((data) => {
+            if (!Array.isArray(data.questions)) {
+              throw new Error("malformed response");
+            }
+            setQuestions((prev) => [
+              ...prev,
+              ...(data.questions as InterviewQuestion[]),
+            ]);
+          })
+          .catch(() => {
+            loadedOffsets.current.delete(nextOffset);
+            setPrefetchFailed(true);
+          })
+          .finally(() => setLoading(false));
       }
     }
-  }, [currentIndex, questions.length, totalCount, loading, categorySlug]);
+  }, [
+    currentIndex,
+    questions.length,
+    totalCount,
+    loading,
+    categorySlug,
+    prefetchFailed,
+  ]);
 
   const handleNext = useCallback(() => {
     if (currentIndex < questions.length - 1) {
@@ -189,6 +143,41 @@ export default function PracticeClient({
       return next;
     });
   }, [current]);
+
+  const toggleAnswer = useCallback(() => {
+    setShowAnswer((prev) => !prev);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const tag = target.tagName;
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handlePrev();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key.toLowerCase() === "a") {
+        e.preventDefault();
+        toggleAnswer();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [handlePrev, handleNext, toggleAnswer]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentIndex]);
 
   const progress =
     totalCount > 0 ? Math.round((reviewed.size / totalCount) * 100) : 0;
@@ -219,20 +208,19 @@ export default function PracticeClient({
         />
       </div>
 
-      <div className="rounded-xl border border-border/50 bg-card p-6 sm:p-8">
-        <div className="flex items-center gap-2 mb-4">
+      <div
+        className={`rounded-xl border border-border/50 border-l-4 bg-card p-6 sm:p-8 ${difficultyAccentClass(current.difficulty)}`}
+      >
+        <div className="flex items-center gap-2 flex-wrap mb-4">
           <Badge
             variant="outline"
-            className={
-              difficultyColor[current.difficulty] ||
-              "bg-muted text-muted-foreground"
-            }
+            className={difficultyBadgeClass(current.difficulty)}
           >
             {current.difficulty}
           </Badge>
-          {(current.tags as string[]).slice(0, 3).map((tag) => (
+          {current.tags.slice(0, 3).map((tag) => (
             <Badge key={tag} variant="secondary" className="text-xs">
-              {tag}
+              {formatTagLabel(tag)}
             </Badge>
           ))}
           {current.is_top50 && (
@@ -277,41 +265,69 @@ export default function PracticeClient({
         )}
       </div>
 
-      <div className="flex items-center justify-between">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handlePrev}
-          disabled={currentIndex === 0}
-        >
-          <ChevronLeft className="w-4 h-4 mr-1" />
-          Previous
-        </Button>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-between gap-2 sm:justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrev}
+            disabled={currentIndex === 0}
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNext}
+            disabled={currentIndex >= questions.length - 1}
+          >
+            {isLoadingNext ? (
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <ChevronRight className="w-4 h-4 ml-1" />
+            )}
+            Next
+          </Button>
+        </div>
 
         <Button
           variant={reviewed.has(current.id) ? "default" : "outline"}
           size="sm"
           onClick={toggleReview}
-          className="gap-2"
+          className="gap-2 w-full sm:w-auto"
         >
           <CheckCircle className="w-4 h-4" />
           {reviewed.has(current.id) ? "Reviewed" : "Mark as Reviewed"}
         </Button>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleNext}
-          disabled={currentIndex >= questions.length - 1}
-        >
-          {isLoadingNext ? (
-            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-          ) : (
-            <ChevronRight className="w-4 h-4 ml-1" />
-          )}
-          Next
-        </Button>
       </div>
+      <div className="text-xs text-muted-foreground text-center">
+        Shortcuts:{" "}
+        <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono">
+          ←
+        </kbd>{" "}
+        <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono">
+          →
+        </kbd>{" "}
+        previous / next question ·{" "}
+        <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono">
+          A
+        </kbd>{" "}
+        show / hide answer
+      </div>
+      {prefetchFailed && (
+        <div className="flex items-center justify-center gap-2 text-xs text-destructive">
+          <span>Couldn't load more questions.</span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs"
+            onClick={() => setPrefetchFailed(false)}
+          >
+            Retry
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,76 +1,145 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { getAllCategories } from "@/lib/interview-data";
-import { db } from "@/config/db";
-import { interviewCategoryChapters, interviewQuestions } from "@/config/schema";
-import { count } from "drizzle-orm";
-import { ArrowLeft, SlidersHorizontal } from "lucide-react";
+import { count, eq } from "drizzle-orm";
+import {
+  ArrowLeft,
+  BookOpen,
+  CheckCircle2,
+  Dumbbell,
+  SlidersHorizontal,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  getAllCategories,
+  getReachableQuestionStats,
+} from "@/lib/interview-data";
+import { INTERVIEW_PUBLISHED_SLUGS } from "@/lib/interview-constants";
+import { difficultyDotClass, difficultyTextClass } from "@/lib/interview-ui";
+import { db } from "@/config/db";
+import {
+  interviewCategories,
+  interviewCategoryChapters,
+  interviewChapters,
+  interviewQuestionChapters,
+  interviewQuestions,
+} from "@/config/schema";
+
+export const metadata: Metadata = {
+  title: "Interview Preparation",
+  description:
+    "Master your next technical interview with curated chapters, real-world scenarios, and hands-on practice across every engineering discipline.",
+};
 
 const categoryThemes: Record<
   string,
-  { light: string; medium: string; border: string; glow: string }
+  { light: string; border: string; glow: string }
 > = {
   "Software Engineer": {
     light: "bg-blue-500/10",
-    medium: "bg-blue-500/20",
     border: "border-blue-500/30",
     glow: "group-hover:shadow-blue-500/10",
   },
   "Frontend Engineer": {
     light: "bg-sky-500/10",
-    medium: "bg-sky-500/20",
     border: "border-sky-500/30",
     glow: "group-hover:shadow-sky-500/10",
   },
   "Backend Engineer": {
     light: "bg-emerald-500/10",
-    medium: "bg-emerald-500/20",
     border: "border-emerald-500/30",
     glow: "group-hover:shadow-emerald-500/10",
   },
-  "Fullstack Engineer": {
-    light: "bg-purple-500/10",
-    medium: "bg-purple-500/20",
-    border: "border-purple-500/30",
-    glow: "group-hover:shadow-purple-500/10",
-  },
-  "DevOps Engineer": {
-    light: "bg-orange-500/10",
-    medium: "bg-orange-500/20",
-    border: "border-orange-500/30",
-    glow: "group-hover:shadow-orange-500/10",
-  },
-  "QA Engineer": {
-    light: "bg-red-500/10",
-    medium: "bg-red-500/20",
-    border: "border-red-500/30",
-    glow: "group-hover:shadow-red-500/10",
-  },
 };
 
-const ALLOWED_SLUGS = [
-  "software-engineer",
-  "frontend-engineer",
-  "backend-engineer",
+const PUBLISHED_SLUGS = INTERVIEW_PUBLISHED_SLUGS as readonly string[];
+
+const howItWorks = [
+  {
+    icon: BookOpen,
+    title: "Study chapters",
+    description:
+      "Each track is broken into chapters with overviews, real-world scenarios, and deep dives written for junior-level engineers.",
+    accent: "bg-blue-500/10 text-blue-500",
+  },
+  {
+    icon: Dumbbell,
+    title: "Practice questions",
+    description:
+      "Work through curated questions with sample answers, difficulty levels, and Top 50 must-knows for interviews.",
+    accent: "bg-green-500/10 text-green-500",
+  },
+  {
+    icon: CheckCircle2,
+    title: "Review your progress",
+    description:
+      "Mark questions as reviewed, track your completion, and revisit weak spots before the real interview.",
+    accent: "bg-yellow-500/10 text-yellow-500",
+  },
 ];
 
 export default async function InterviewPage() {
-  const categories = (await getAllCategories()).filter((c) =>
-    ALLOWED_SLUGS.includes(c.slug),
+  const [categories, reachableStats, allChapters, diffRows] = await Promise.all(
+    [
+      getAllCategories().then((cs) =>
+        cs.filter((c) => PUBLISHED_SLUGS.includes(c.slug)),
+      ),
+      getReachableQuestionStats(),
+      db
+        .select({ category_id: interviewCategoryChapters.category_id })
+        .from(interviewCategoryChapters),
+      db
+        .select({
+          category_id: interviewCategories.id,
+          difficulty: interviewQuestions.difficulty,
+          value: count(interviewQuestions.id),
+        })
+        .from(interviewCategories)
+        .leftJoin(
+          interviewCategoryChapters,
+          eq(interviewCategories.id, interviewCategoryChapters.category_id),
+        )
+        .leftJoin(
+          interviewChapters,
+          eq(interviewCategoryChapters.chapter_id, interviewChapters.id),
+        )
+        .leftJoin(
+          interviewQuestionChapters,
+          eq(interviewChapters.id, interviewQuestionChapters.chapter_id),
+        )
+        .leftJoin(
+          interviewQuestions,
+          eq(interviewQuestionChapters.question_id, interviewQuestions.id),
+        )
+        .groupBy(interviewCategories.id, interviewQuestions.difficulty),
+    ],
   );
-  const [qTotal] = await db.select({ value: count() }).from(interviewQuestions);
-  const [chTotal] = await db
-    .select({ value: count() })
-    .from(interviewCategoryChapters);
-  const allChapters = await db
-    .select({ category_id: interviewCategoryChapters.category_id })
-    .from(interviewCategoryChapters);
   const chapterCountByCategory = new Map<number, number>();
   for (const ch of allChapters) {
     chapterCountByCategory.set(
       ch.category_id,
       (chapterCountByCategory.get(ch.category_id) || 0) + 1,
     );
+  }
+  const chTotal = allChapters.length;
+
+  const difficultyByCategory = new Map<
+    number,
+    { easy: number; medium: number; hard: number }
+  >();
+  for (const row of diffRows) {
+    const entry = difficultyByCategory.get(row.category_id) || {
+      easy: 0,
+      medium: 0,
+      hard: 0,
+    };
+    if (
+      row.difficulty === "easy" ||
+      row.difficulty === "medium" ||
+      row.difficulty === "hard"
+    ) {
+      entry[row.difficulty] = Number(row.value);
+    }
+    difficultyByCategory.set(row.category_id, entry);
   }
 
   return (
@@ -82,8 +151,9 @@ export default async function InterviewPage() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs text-muted-foreground mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              {categories.length} tracks &middot; {Number(qTotal.value)}{" "}
-              questions &middot; {Number(chTotal.value)} chapters
+              {categories.length} tracks &middot;{" "}
+              {reachableStats?.questionCount ?? 0} questions &middot; {chTotal}{" "}
+              chapters
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight leading-[1.1]">
               Interview{" "}
@@ -96,6 +166,17 @@ export default async function InterviewPage() {
               real-world scenarios, and hands-on practice across every
               engineering discipline.
             </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild>
+                <Link href="#tracks">Browse Tracks</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/interview/customize">
+                  <SlidersHorizontal className="w-4 h-4" />
+                  Customize My Stack
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -134,7 +215,7 @@ export default async function InterviewPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
+      <div id="tracks" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <div className="flex items-center justify-between mb-10">
           <div>
             <h2 className="text-xl font-semibold">Choose your track</h2>
@@ -149,20 +230,22 @@ export default async function InterviewPage() {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {categories.map((cat, idx) => {
+          {categories.map((cat) => {
             const theme = categoryThemes[cat.name] || {
               light: "bg-muted",
-              medium: "bg-muted/80",
               border: "border-border/50",
               glow: "group-hover:shadow-primary/5",
             };
+            const diffs = difficultyByCategory.get(cat.id);
+            const diffTotal = diffs
+              ? diffs.easy + diffs.medium + diffs.hard
+              : 0;
 
             return (
               <Link
                 key={cat.id}
                 href={`/interview/${cat.slug}`}
                 className="group relative rounded-2xl border border-border/50 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg overflow-hidden"
-                style={{ animationDelay: `${idx * 80}ms` }}
               >
                 <div
                   className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${theme.glow}`}
@@ -187,30 +270,41 @@ export default async function InterviewPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 mt-5 pt-4 border-t border-border/30 relative">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground">
-                      {cat.questionCount}
-                    </span>
-                    questions
+                <div className="flex items-center justify-between mt-5 pt-4 border-t border-border/30 relative">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-foreground">
+                        {cat.questionCount}
+                      </span>
+                      questions
+                    </div>
+                    <span className="text-muted-foreground/30">&middot;</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-foreground">
+                        {chapterCountByCategory.get(cat.id) || 0}
+                      </span>
+                      chapters
+                    </div>
                   </div>
-                  <span className="text-muted-foreground/30">&middot;</span>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground">
-                      {chapterCountByCategory.get(cat.id) || 0}
-                    </span>
-                    chapters
-                  </div>
-                  <div className="ml-auto">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium ${theme.light} ${theme.border} border`}
+
+                  {diffTotal > 0 && diffs && (
+                    <div
+                      className="flex items-center gap-2.5"
+                      title={`${diffs.easy} easy · ${diffs.medium} medium · ${diffs.hard} hard`}
                     >
-                      {cat.questionCount > 0
-                        ? `${Math.min(cat.questionCount, 50)}+`
-                        : "0"}{" "}
-                      topics
-                    </span>
-                  </div>
+                      {(["easy", "medium", "hard"] as const).map((d) => (
+                        <span
+                          key={d}
+                          className={`inline-flex items-center gap-1 text-[11px] ${difficultyTextClass(d)}`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${difficultyDotClass(d)}`}
+                          />
+                          {diffs[d]}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </Link>
             );
@@ -224,6 +318,33 @@ export default async function InterviewPage() {
             </p>
           </div>
         )}
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <h2 className="text-xl font-semibold">How it works</h2>
+        <div className="grid sm:grid-cols-3 gap-4 mt-6">
+          {howItWorks.map((step, i) => (
+            <div
+              key={step.title}
+              className="rounded-xl border border-border/50 bg-card p-6"
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-10 h-10 rounded-lg ${step.accent} flex items-center justify-center flex-shrink-0`}
+                >
+                  <step.icon className="w-5 h-5" />
+                </div>
+                <span className="text-3xl font-display font-bold text-muted-foreground/20">
+                  {i + 1}
+                </span>
+              </div>
+              <h3 className="font-semibold mt-4">{step.title}</h3>
+              <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+                {step.description}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );

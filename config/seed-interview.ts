@@ -88,6 +88,9 @@ async function main() {
         await db.insert(interviewChapters).values({
           title: ch.title,
           content: {
+            overview: ch.content.overview,
+            realLifeScenario: ch.content.realLifeScenario,
+            explanation: ch.content.explanation,
             keyPoints: ch.content.keyPoints,
             tips: ch.content.tips,
           },
@@ -161,6 +164,10 @@ async function main() {
   }
 
   console.log("\n✅ Interview seeding complete!");
+
+  console.log(
+    "\n⚠️  Interview data is cached cross-request. Bump INTERVIEW_DATA_CACHE_VERSION in lib/interview-data.ts to invalidate.",
+  );
 }
 
 main().catch(console.error);

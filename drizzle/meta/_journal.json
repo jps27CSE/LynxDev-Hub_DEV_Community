@@ -22,6 +22,27 @@
       "when": 1785413412849,
       "tag": "0002_conscious_titanium_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1785907073045,
+      "tag": "0003_add-chapter-count-to-courses",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1785910402317,
+      "tag": "0004_add-enrollments-user-course-index",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1785911929458,
+      "tag": "0005_add-rate-limits-table",
+      "breakpoints": true
     }
   ]
 }

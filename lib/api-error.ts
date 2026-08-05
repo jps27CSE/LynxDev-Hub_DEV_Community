@@ -27,17 +27,17 @@ export function rateLimited(
   retryAfterSeconds: number,
   limit: number,
   remaining: number,
-  reset: number,
+  resetMs: number,
 ) {
   return NextResponse.json(
     { error: "Too many requests. Please slow down." },
     {
       status: 429,
       headers: {
-        "Retry-After": String(retryAfterSeconds),
+        "Retry-After": String(Math.max(1, Math.ceil(retryAfterSeconds))),
         "X-RateLimit-Limit": String(limit),
         "X-RateLimit-Remaining": String(remaining),
-        "X-RateLimit-Reset": String(reset),
+        "X-RateLimit-Reset": String(Math.ceil(resetMs / 1000)),
       },
     },
   );

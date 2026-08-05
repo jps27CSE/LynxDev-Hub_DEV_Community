@@ -20,7 +20,10 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "LynxDev HUB",
+  title: {
+    default: "LynxDev HUB",
+    template: "%s | LynxDev HUB",
+  },
   description: "Developer Community",
 };
 

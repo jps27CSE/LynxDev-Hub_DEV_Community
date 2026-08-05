@@ -1,10 +1,12 @@
 import {
+  bigint,
   boolean,
   int,
   json,
   mysqlTable,
   text,
   timestamp,
+  uniqueIndex,
   varchar,
 } from "drizzle-orm/mysql-core";
 
@@ -27,6 +29,7 @@ export const courses = mysqlTable("courses", {
   category: varchar({ length: 100 }),
   order_index: int("order_index").default(0),
   is_published: boolean("is_published").default(true),
+  chapter_count: int("chapter_count").default(0).notNull(),
 });
 
 export const chapters = mysqlTable("chapters", {
@@ -40,18 +43,27 @@ export const chapters = mysqlTable("chapters", {
   points_reward: int("points_reward").default(10),
 });
 
-export const enrollments = mysqlTable("enrollments", {
-  id: int().primaryKey().autoincrement(),
-  user_id: int("user_id")
-    .references(() => usersTable.id)
-    .notNull(),
-  course_id: int("course_id")
-    .references(() => courses.id)
-    .notNull(),
-  progress: json(),
-  started_at: timestamp("started_at").defaultNow(),
-  completed_at: timestamp("completed_at"),
-});
+export const enrollments = mysqlTable(
+  "enrollments",
+  {
+    id: int().primaryKey().autoincrement(),
+    user_id: int("user_id")
+      .references(() => usersTable.id)
+      .notNull(),
+    course_id: int("course_id")
+      .references(() => courses.id)
+      .notNull(),
+    progress: json(),
+    started_at: timestamp("started_at").defaultNow(),
+    completed_at: timestamp("completed_at"),
+  },
+  (table) => [
+    uniqueIndex("enrollments_user_id_course_id_idx").on(
+      table.user_id,
+      table.course_id,
+    ),
+  ],
+);
 
 export const interviewCategories = mysqlTable("interview_categories", {
   id: int().primaryKey().autoincrement(),
@@ -113,6 +125,12 @@ export const mentorConversations = mysqlTable("mentor_conversations", {
   messages: json().notNull(),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const rateLimits = mysqlTable("rate_limits", {
+  bucket: varchar({ length: 255 }).primaryKey(),
+  window_start: bigint("window_start", { mode: "number" }).notNull(),
+  count: int().notNull().default(0),
 });
 
 export const problems = mysqlTable("problems", {

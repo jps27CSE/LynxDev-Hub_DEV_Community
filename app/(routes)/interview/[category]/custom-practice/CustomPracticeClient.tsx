@@ -3,114 +3,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, Sparkles, X } from "lucide-react";
+import { Eye, EyeOff, Loader2, Sparkles, X } from "lucide-react";
 import axios from "axios";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeHighlight from "rehype-highlight";
-
-type Question = {
-  id: number;
-  question: string;
-  answer: string;
-  difficulty: string;
-  tags: string[];
-  is_top50: boolean | null;
-};
-
-const difficultyColor: Record<string, string> = {
-  easy: "bg-green-500/10 text-green-500 border-green-500/20",
-  medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  hard: "bg-red-500/10 text-red-500 border-red-500/20",
-};
-
-function AnswerMarkdown({ content }: { content: string }) {
-  return (
-    <div className="text-base text-foreground/90 leading-relaxed">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
-        components={{
-          h1: ({ children }) => (
-            <h1 className="text-2xl font-bold text-foreground mt-10 mb-4 pb-2 border-b border-border/40">
-              {children}
-            </h1>
-          ),
-          h2: ({ children }) => (
-            <h2 className="text-xl font-bold text-foreground mt-8 mb-3">
-              {children}
-            </h2>
-          ),
-          h3: ({ children }) => (
-            <h3 className="text-lg font-semibold text-foreground mt-6 mb-2">
-              {children}
-            </h3>
-          ),
-          p: ({ children }) => (
-            <p className="mb-4 leading-[1.75] text-[15px]">{children}</p>
-          ),
-          ul: ({ children }) => (
-            <ul className="mb-4 space-y-1.5 pl-5 list-disc">{children}</ul>
-          ),
-          ol: ({ children }) => (
-            <ol className="mb-4 space-y-1.5 pl-5 list-decimal">{children}</ol>
-          ),
-          li: ({ children }) => (
-            <li className="text-[15px] leading-relaxed pl-1">{children}</li>
-          ),
-          code: ({ children, className }) => {
-            const isInline = !className;
-            if (isInline) {
-              return (
-                <code className="px-1.5 py-0.5 rounded-md bg-muted text-[13px] font-mono text-foreground">
-                  {children}
-                </code>
-              );
-            }
-            return (
-              <div className="relative group my-5">
-                <div className="absolute top-0 right-0 px-3 py-1 text-[11px] text-muted-foreground bg-muted/80 rounded-bl-lg rounded-tr-lg border-l border-b border-border/30 font-mono">
-                  {className?.replace("language-", "") || "code"}
-                </div>
-                <code
-                  className={`block text-[13.5px] leading-relaxed ${className}`}
-                >
-                  {children}
-                </code>
-              </div>
-            );
-          },
-          pre: ({ children }) => (
-            <pre className="!bg-transparent !p-0 !m-0 !border-0">
-              {children}
-            </pre>
-          ),
-          strong: ({ children }) => (
-            <strong className="font-bold text-foreground">{children}</strong>
-          ),
-          table: ({ children }) => (
-            <div className="overflow-x-auto my-6 rounded-xl border border-border/50">
-              <table className="w-full text-sm">{children}</table>
-            </div>
-          ),
-          th: ({ children }) => (
-            <th className="px-4 py-3 bg-muted/50 text-left font-semibold text-foreground border-b border-border/50">
-              {children}
-            </th>
-          ),
-          td: ({ children }) => (
-            <td className="px-4 py-2.5 border-b border-border/30 text-muted-foreground">
-              {children}
-            </td>
-          ),
-          hr: () => <hr className="my-8 border-border/30" />,
-        }}
-      >
-        {content}
-      </ReactMarkdown>
-    </div>
-  );
-}
+import { AnswerMarkdown } from "@/components/markdown-answer";
+import { formatTagLabel } from "@/lib/tags";
+import { difficultyBadgeClass } from "@/lib/interview-ui";
+import type { InterviewQuestion } from "@/lib/interview-data";
 
 type Props = {
   categorySlug: string;
@@ -119,8 +17,11 @@ type Props = {
 
 export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
   const [showAnswers, setShowAnswers] = useState<Set<number>>(new Set());
 
   const toggleTag = (tag: string) => {
@@ -134,15 +35,21 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
 
   const fetchQuestions = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await axios.post("/api/interview/questions-by-tags", {
         categorySlug,
         tags: Array.from(selectedTags),
       });
       setQuestions(res.data.questions);
+      setTotal(res.data.total ?? res.data.questions.length);
       setShowAnswers(new Set());
+      setHasSearched(true);
     } catch {
       setQuestions([]);
+      setTotal(0);
+      setHasSearched(true);
+      setError("Failed to load questions. Please try again.");
     }
     setLoading(false);
   };
@@ -159,7 +66,10 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
   const clearAll = () => {
     setSelectedTags(new Set());
     setQuestions([]);
+    setTotal(0);
     setShowAnswers(new Set());
+    setError(null);
+    setHasSearched(false);
   };
 
   return (
@@ -201,7 +111,7 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
                     : "bg-card text-muted-foreground border-border/50 hover:border-border hover:text-foreground"
                 }`}
               >
-                {tag}
+                {formatTagLabel(tag)}
               </button>
             );
           })}
@@ -214,7 +124,11 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
             className="gap-2"
             size="sm"
           >
-            <Sparkles className="w-4 h-4" />
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
             {loading ? "Loading..." : "Get Questions"}
           </Button>
           {selectedTags.size === 0 && (
@@ -223,16 +137,33 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
             </span>
           )}
         </div>
+        {error && <p className="text-sm text-destructive pt-2">{error}</p>}
       </div>
+
+      {hasSearched && !loading && questions.length === 0 && !error && (
+        <div className="rounded-xl border border-dashed border-border/60 bg-card/50 p-8 text-center">
+          <p className="text-sm text-foreground">No questions found.</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            No questions match your stacks — try fewer tags.
+          </p>
+        </div>
+      )}
 
       {questions.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">
-              {questions.length} question{questions.length !== 1 ? "s" : ""}{" "}
-              found
+              {questions.length} of {total} question
+              {total !== 1 ? "s" : ""} found
             </h2>
           </div>
+
+          {questions.length < total && (
+            <p className="text-xs text-muted-foreground">
+              Showing the first {questions.length} — refine your stacks to see
+              more specific results.
+            </p>
+          )}
 
           {questions.map((q) => (
             <div
@@ -242,16 +173,13 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge
                   variant="outline"
-                  className={
-                    difficultyColor[q.difficulty] ||
-                    "bg-muted text-muted-foreground"
-                  }
+                  className={difficultyBadgeClass(q.difficulty)}
                 >
                   {q.difficulty}
                 </Badge>
                 {q.tags.map((tag) => (
                   <Badge key={tag} variant="secondary" className="text-xs">
-                    {tag}
+                    {formatTagLabel(tag)}
                   </Badge>
                 ))}
                 {q.is_top50 && (

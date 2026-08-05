@@ -1,6 +1,4 @@
-"use client";
 import { Lightbulb } from "lucide-react";
-import { useEffect, useState } from "react";
 
 const tips = [
   "Consistency beats intensity. Code for 30 minutes daily rather than 5 hours on weekends.",
@@ -13,11 +11,12 @@ const tips = [
 ];
 
 function DailyTip() {
-  const [tip, setTip] = useState(tips[0]);
-
-  useEffect(() => {
-    setTip(tips[Math.floor(Math.random() * tips.length)]);
-  }, []);
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor(
+    (now.getTime() - startOfYear.getTime()) / 86_400_000,
+  );
+  const tip = tips[dayOfYear % tips.length];
 
   return (
     <div className="rounded-xl border border-border/50 bg-card p-5">

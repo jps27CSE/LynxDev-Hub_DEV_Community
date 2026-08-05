@@ -49,11 +49,11 @@ export default function ProfilePage() {
     fetch("/api/enroll")
       .then((r) => r.json())
       .then((data) => {
-        setEnrolledCount(data.length);
-        setCompletedCount(
-          data.filter((e: { completed_at: string | null }) => e.completed_at)
-            .length,
-        );
+        const list: Array<{ completed_at: string | null }> = Array.isArray(data)
+          ? data
+          : [];
+        setEnrolledCount(list.length);
+        setCompletedCount(list.filter((e) => e.completed_at).length);
       })
       .catch(() => {});
   }, [clerkUser]);

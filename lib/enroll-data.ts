@@ -1,7 +1,36 @@
 import { cache } from "react";
 import { db } from "@/config/db";
-import { usersTable, enrollments, courses, chapters } from "@/config/schema";
-import { eq, count, inArray } from "drizzle-orm";
+import { usersTable, enrollments, courses } from "@/config/schema";
+import { eq } from "drizzle-orm";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("enroll-data");
+
+export type UserDetail = {
+  id: number;
+  name: string;
+  email: string;
+  bio: string | null;
+  skills: unknown;
+  points: number | null;
+  subscription: string | null;
+};
+
+export const getUserByEmail = cache(
+  async (email: string): Promise<UserDetail | null> => {
+    try {
+      const users = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.email, email))
+        .limit(1);
+      return users[0] ?? null;
+    } catch (error) {
+      log.error("getUserByEmail failed", error, { email });
+      throw error;
+    }
+  },
+);
 
 export type EnrolledCourse = {
   id: number;
@@ -24,15 +53,11 @@ export type EnrolledCourse = {
 export const getEnrollmentsByEmail = cache(
   async (email: string): Promise<EnrolledCourse[]> => {
     try {
-      const users = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.email, email))
-        .limit(1);
+      const user = await getUserByEmail(email);
 
-      if (users.length === 0) return [];
+      if (!user) return [];
 
-      const userId = users[0].id;
+      const userId = user.id;
 
       const result = await db
         .select({
@@ -43,24 +68,6 @@ export const getEnrollmentsByEmail = cache(
         .where(eq(enrollments.user_id, userId))
         .innerJoin(courses, eq(enrollments.course_id, courses.id));
 
-      const enrolledCourseIds = result.map((r) => r.course.id);
-
-      let countMap = new Map<number, number>();
-      if (enrolledCourseIds.length > 0) {
-        const chapterCounts = await db
-          .select({
-            course_id: chapters.course_id,
-            value: count(),
-          })
-          .from(chapters)
-          .where(inArray(chapters.course_id, enrolledCourseIds))
-          .groupBy(chapters.course_id);
-
-        for (const row of chapterCounts) {
-          countMap.set(row.course_id, Number(row.value));
-        }
-      }
-
       return result.map((r) => ({
         id: r.enrollment.id,
         user_id: r.enrollment.user_id,
@@ -68,7 +75,7 @@ export const getEnrollmentsByEmail = cache(
         progress: r.enrollment.progress as EnrolledCourse["progress"],
         started_at: r.enrollment.started_at?.toISOString() ?? "",
         completed_at: r.enrollment.completed_at?.toISOString() ?? null,
-        totalChapters: countMap.get(r.course.id) || 0,
+        totalChapters: r.course.chapter_count,
         course: {
           id: r.course.id,
           title: r.course.title,
@@ -78,8 +85,9 @@ export const getEnrollmentsByEmail = cache(
           category: r.course.category,
         },
       }));
-    } catch {
-      return [];
+    } catch (error) {
+      log.error("getEnrollmentsByEmail failed", error, { email });
+      throw error;
     }
   },
 );

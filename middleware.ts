@@ -13,15 +13,9 @@ const isPublicRoute = createRouteMatcher([
 export default clerkMiddleware(async (auth, req) => {
   const { pathname } = req.nextUrl;
 
-  let userId: string | null = null;
-
-  if (!isPublicRoute(req)) {
-    const session = await auth.protect();
-    userId = session.userId;
-  } else {
-    const session = await auth();
-    userId = session.userId ?? null;
-  }
+  const isPublic = isPublicRoute(req);
+  const session = isPublic ? await auth() : await auth.protect();
+  const userId = session.userId ?? null;
 
   if (pathname.startsWith("/api/")) {
     const config = getRateLimitConfig(pathname, req.method);
@@ -43,6 +37,5 @@ export default clerkMiddleware(async (auth, req) => {
 export const config = {
   matcher: [
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
   ],
 };
