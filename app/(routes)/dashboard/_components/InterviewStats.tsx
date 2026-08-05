@@ -17,11 +17,13 @@ export default async function InterviewStats() {
               Interview Prep
             </h3>
             <p className="text-xs text-muted-foreground">
-              Curated questions & AI-powered practice
+              {stats
+                ? `${stats.questionCount} curated questions to practice`
+                : "Curated questions & AI-powered practice"}
             </p>
           </div>
         </div>
-        <div className="flex gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
           <div>
             <span className="text-2xl font-bold text-purple-600 dark:text-purple-500">
               {stats ? stats.categoryCount : "—"}

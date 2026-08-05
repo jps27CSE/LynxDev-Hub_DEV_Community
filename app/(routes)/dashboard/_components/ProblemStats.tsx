@@ -17,11 +17,13 @@ export default async function ProblemStats() {
               Problem Solving
             </h3>
             <p className="text-xs text-muted-foreground">
-              DSA challenges to sharpen your skills
+              {stats
+                ? `${stats.total} challenges to solve — pick one to get started`
+                : "DSA challenges to sharpen your skills"}
             </p>
           </div>
         </div>
-        <div className="flex gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3">
           <div>
             <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">
               {stats ? stats.total : "—"}

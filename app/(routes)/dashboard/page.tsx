@@ -4,11 +4,12 @@ import { currentUser } from "@clerk/nextjs/server";
 import { getEnrollmentsByEmail, getUserByEmail } from "@/lib/enroll-data";
 import WelcomeBanner from "./_components/WelcomeBanner";
 import EnrolledCourses from "./_components/EnrolledCourses";
-import QuickLinks from "./_components/QuickLinks";
+import ContinueLearning from "./_components/ContinueLearning";
 import DailyTip from "./_components/DailyTip";
 import ProblemStats from "./_components/ProblemStats";
 import InterviewStats from "./_components/InterviewStats";
 import {
+  ContinueLearningSkeleton,
   EnrolledCoursesSkeleton,
   StatCardSkeleton,
   WelcomeBannerSkeleton,
@@ -83,8 +84,12 @@ const Dashboard = async () => {
           )}
         </div>
         <div className="space-y-6">
+          {email ? (
+            <Suspense fallback={<ContinueLearningSkeleton />}>
+              <ContinueLearning email={email} />
+            </Suspense>
+          ) : null}
           <DailyTip />
-          <QuickLinks />
         </div>
       </div>
     </div>

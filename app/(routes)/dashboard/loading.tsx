@@ -1,7 +1,6 @@
 import {
-  DailyTipSkeleton,
+  ContinueLearningSkeleton,
   EnrolledCoursesSkeleton,
-  QuickLinksSkeleton,
   StatCardSkeleton,
   WelcomeBannerSkeleton,
 } from "./_components/skeletons";
@@ -19,8 +18,7 @@ export default function DashboardLoading() {
           <EnrolledCoursesSkeleton />
         </div>
         <div className="space-y-6">
-          <DailyTipSkeleton />
-          <QuickLinksSkeleton />
+          <ContinueLearningSkeleton />
         </div>
       </div>
     </div>

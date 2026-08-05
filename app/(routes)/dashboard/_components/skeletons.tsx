@@ -11,7 +11,7 @@ export function WelcomeBannerSkeleton() {
         <Skeleton className="h-4 w-20 mt-1" />
       </div>
       <div className="flex flex-wrap gap-6 mt-6">
-        {Array.from({ length: 4 }, (_, i) => (
+        {Array.from({ length: 3 }, (_, i) => (
           <div key={i} className="space-y-1.5">
             <Skeleton className="h-6 w-10" />
             <Skeleton className="h-3 w-14" />
@@ -33,7 +33,7 @@ export function StatCardSkeleton() {
         </div>
       </div>
       <div className="flex gap-4">
-        {Array.from({ length: 3 }, (_, i) => (
+        {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="space-y-1">
             <Skeleton className="h-6 w-8" />
             <Skeleton className="h-3 w-12" />
@@ -78,36 +78,22 @@ export function EnrolledCoursesSkeleton() {
   );
 }
 
-export function DailyTipSkeleton() {
-  return (
-    <div className="rounded-xl border border-border/50 bg-card p-5">
-      <div className="flex items-start gap-3">
-        <Skeleton className="w-9 h-9 rounded-lg" />
-        <div className="flex-1 space-y-1.5">
-          <Skeleton className="h-3.5 w-20" />
-          <Skeleton className="h-3 w-full" />
-          <Skeleton className="h-3 w-3/4" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function QuickLinksSkeleton() {
+export function ContinueLearningSkeleton() {
   return (
     <div className="rounded-xl border border-border/50 bg-card p-5">
       <Skeleton className="h-3.5 w-24 mb-4" />
-      <div className="space-y-2">
-        {Array.from({ length: 3 }, (_, i) => (
-          <div key={i} className="flex items-center gap-3 p-2.5">
-            <Skeleton className="w-9 h-9 rounded-lg" />
-            <div className="flex-1 space-y-1">
-              <Skeleton className="h-3.5 w-20" />
-              <Skeleton className="h-3 w-32" />
-            </div>
-          </div>
-        ))}
+      <div className="flex items-start gap-3">
+        <Skeleton className="w-11 h-11 rounded-xl" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-3 w-24" />
+        </div>
       </div>
+      <div className="mt-4 space-y-1.5">
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-2 w-full rounded-full" />
+      </div>
+      <Skeleton className="h-9 w-full rounded-md mt-4" />
     </div>
   );
 }

@@ -13,21 +13,9 @@ const EnrolledCourses = ({
   if (enrollments.length === 0) {
     return (
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold tracking-tight">
-              Your Enrolled Courses
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Pick up where you left off
-            </p>
-          </div>
-          <Link href="/courses">
-            <Button variant="outline" size="sm">
-              Browse All
-            </Button>
-          </Link>
-        </div>
+        <h2 className="text-xl font-bold tracking-tight mb-6">
+          Your Enrolled Courses
+        </h2>
         <div className="flex flex-col items-center gap-4 py-16 px-4 rounded-xl border border-border/50 bg-card">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
             <BookOpen className="w-8 h-8 text-muted-foreground" />
