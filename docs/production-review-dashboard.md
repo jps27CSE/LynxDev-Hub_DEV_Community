@@ -5,7 +5,7 @@
 
 **Verdict:** functionally solid and auth-safe, but not yet production-hardened. The two biggest risks are (1) a single TiDB hiccup takes down the dashboard for **all** users, and (2) zero observability means you'll never know why. 500 users is small — every issue below is about **bursts and incident response**, not raw throughput.
 
-> **Update (2026-08-04):** Batch 1 (resilience + query reduction) implemented — see [Implementation Status](#batch-1-implementation-status) and the updated fix lists below. Remaining items: Upstash rate limiting, Sentry/Analytics, `chapter_count` denormalization.
+> **Update (2026-08-04):** Batch 1 (resilience + query reduction) implemented — see [Implementation Status](#batch-1-implementation-status) and the updated fix lists below. Remaining items: Upstash rate limiting, Sentry/Analytics. `chapter_count` denormalization shipped 2026-08-05.
 
 ---
 
@@ -32,7 +32,7 @@
 **Deferred (needs external accounts / separate sessions):**
 - Upstash rate limiting — the AI-endpoint cost-abuse vector remains open
 - Sentry + Vercel Analytics — zero observability remains
-- `chapter_count` column on `courses` — the `chapters` groupBy query (`enroll-data.ts`) still runs per user
+- `chapter_count` column on `courses` — ✅ done (2026-08-05): migration `drizzle/0003`, seed writes it, `config/backfill-chapter-count.ts` for existing rows, `enroll-data.ts`/`courses/page.tsx`/`mentor.ts` read the column
 - Provider `POST /api/user` scoping — intentionally kept (`LessonClient` depends on `setUserDetail`)
 - `currentUser()` → `auth()` + session claims — deferred to the webhook/email-join work (claim-staleness trade-off)
 - Page `metadata` + middleware matcher trim
@@ -132,7 +132,7 @@
 | 3 | Move rate limiting to Upstash — protects AI spend | 2–3 hrs | DEFERRED — needs Upstash account/env vars |
 | 4 | Stop swallowing DB errors — log + only return `[]` for true empty cases | ~30 min | DONE — logged + rethrown; `{ error }` 500 on `/api/enroll` GET |
 | 5 | Add Sentry + Vercel Analytics | config only | DEFERRED — needs accounts |
-| 6 | Reduce per-load queries via `Promise.all` + `chapter_count` denormalization | 2–3 hrs | PARTIAL — `Promise.all` + Suspense done; `chapter_count` column not yet |
+| 6 | Reduce per-load queries via `Promise.all` + `chapter_count` denormalization | 2–3 hrs | DONE — `Promise.all` + Suspense; `chapter_count` column added (fix in `drizzle/0003`), seed/backfill scripts, `enroll-data.ts` + `courses/page.tsx` + `mentor.ts` all read the column |
 | 7 | Fix `DailyTip` hydration and server-ify `EnrolledCourses` | ~30 min | DONE — `WelcomeBanner` also server-ified |
 
 ---

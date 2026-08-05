@@ -212,7 +212,8 @@ Progress: **13 of 13 fixed** — see ✅ Done sections below.
 ### 11. Landing page dead code & unused styles — ✅ Done (2026-08-02)
 
 - **File**: `interview/page.tsx:9-49` theme map rows for Fullstack/DevOps/QA
-  are unreachable since `ALLOWED_SLUGS` (`:51`) filters to 3; and `:165`
+  are unreachable since `PUBLISHED_SLUGS` (now `INTERVIEW_PUBLISHED_SLUGS` in
+  `lib/interview-constants.ts`) filters to 3; and `:165`
   sets `animationDelay` with no animation system running.
 - **Implemented**: trimmed `categoryThemes` to the 3 allowed tracks and
   dropped the unused `medium` field from the shape + fallback; removed the

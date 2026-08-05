@@ -22,6 +22,13 @@
       "when": 1785413412849,
       "tag": "0002_conscious_titanium_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1785907073045,
+      "tag": "0003_add-chapter-count-to-courses",
+      "breakpoints": true
     }
   ]
 }

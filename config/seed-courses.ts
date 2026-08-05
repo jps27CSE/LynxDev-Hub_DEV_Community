@@ -10,7 +10,10 @@ async function main() {
   for (const courseData of coursesData) {
     const { chapters: chapterData, ...courseFields } = courseData;
 
-    await db.insert(courses).values(courseFields);
+    await db.insert(courses).values({
+      ...courseFields,
+      chapter_count: chapterData.length,
+    });
 
     const [course] = await db
       .select()

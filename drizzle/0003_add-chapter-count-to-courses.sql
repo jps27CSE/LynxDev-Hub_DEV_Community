@@ -1,0 +1,1 @@
+ALTER TABLE `courses` ADD `chapter_count` int DEFAULT 0 NOT NULL;

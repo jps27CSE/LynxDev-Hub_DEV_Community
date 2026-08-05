@@ -27,6 +27,7 @@ export const courses = mysqlTable("courses", {
   category: varchar({ length: 100 }),
   order_index: int("order_index").default(0),
   is_published: boolean("is_published").default(true),
+  chapter_count: int("chapter_count").default(0).notNull(),
 });
 
 export const chapters = mysqlTable("chapters", {

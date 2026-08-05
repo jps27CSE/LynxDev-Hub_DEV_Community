@@ -1,12 +1,10 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { db } from "@/config/db";
-import {
-  interviewCategories,
-  interviewQuestions,
-  problems,
-} from "@/config/schema";
-import { count, sql } from "drizzle-orm";
+import { interviewCategories, problems } from "@/config/schema";
+import { INTERVIEW_PUBLISHED_SLUGS } from "@/lib/interview-constants";
+import { getReachableQuestionStats } from "@/lib/interview-data";
+import { count, inArray } from "drizzle-orm";
 
 /**
  * Cross-request cache for static seed-content counts shown on the dashboard.
@@ -14,7 +12,7 @@ import { count, sql } from "drizzle-orm";
  * seeds run outside the Next runtime, so revalidateTag() is unusable there.
  * Cached values are shared references across requests — treat as read-only.
  */
-const DASHBOARD_STATS_CACHE_VERSION = 1;
+const DASHBOARD_STATS_CACHE_VERSION = 2;
 const DASHBOARD_STATS_CACHE_TTL = 3600;
 const DASHBOARD_STATS_CACHE_TAG = "dashboard-stats";
 
@@ -38,20 +36,20 @@ export const getInterviewStats = cache(
   async (): Promise<InterviewStatsData | null> => {
     try {
       return withDashboardStatsCache("interview-stats", async () => {
-        const [[catCount], [qCount]] = await Promise.all([
-          db.select({ value: count() }).from(interviewCategories),
+        const [catCount, reachable] = await Promise.all([
           db
-            .select({
-              value: count(),
-              top50: sql<number>`COALESCE(SUM(CASE WHEN ${interviewQuestions.is_top50} THEN 1 ELSE 0 END), 0)`,
-            })
-            .from(interviewQuestions),
+            .select({ value: count() })
+            .from(interviewCategories)
+            .where(
+              inArray(interviewCategories.slug, INTERVIEW_PUBLISHED_SLUGS),
+            ),
+          getReachableQuestionStats(),
         ]);
 
         return {
-          categoryCount: Number(catCount.value),
-          questionCount: Number(qCount.value),
-          top50Count: Number(qCount.top50),
+          categoryCount: Number(catCount[0].value),
+          questionCount: reachable?.questionCount ?? 0,
+          top50Count: reachable?.top50Count ?? 0,
         };
       });
     } catch (error) {

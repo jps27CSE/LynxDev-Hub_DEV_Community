@@ -8,7 +8,8 @@ import {
   interviewQuestions,
   interviewQuestionChapters,
 } from "@/config/schema";
-import { eq, asc, count, inArray } from "drizzle-orm";
+import { eq, asc, count, countDistinct, inArray, sql } from "drizzle-orm";
+import { INTERVIEW_PUBLISHED_SLUGS } from "@/lib/interview-constants";
 
 /**
  * Cross-request cache for static seed content (RU saver).
@@ -119,6 +120,58 @@ export const getCategoryBySlug = cache(
       return categories.find((c) => c.slug === slug) ?? null;
     } catch (error) {
       console.error("[interview-data] getCategoryBySlug:", error);
+      return null;
+    }
+  },
+);
+
+export type ReachableQuestionStats = {
+  questionCount: number;
+  top50Count: number;
+};
+
+/**
+ * Counts questions reachable through published track chapters, deduplicated
+ * across shared chapters. Used by the dashboard card and the interview home
+ * hero — kept here (not in dashboard-stats) so both share one cached query.
+ */
+export const getReachableQuestionStats = cache(
+  async (): Promise<ReachableQuestionStats | null> => {
+    try {
+      return withInterviewCache("reachable-question-stats", async () => {
+        const [qCount] = await db
+          .select({
+            questionCount: countDistinct(interviewQuestions.id),
+            top50Count: countDistinct(
+              sql<number>`CASE WHEN ${interviewQuestions.is_top50} THEN ${interviewQuestions.id} ELSE NULL END`,
+            ),
+          })
+          .from(interviewQuestions)
+          .innerJoin(
+            interviewQuestionChapters,
+            eq(interviewQuestionChapters.question_id, interviewQuestions.id),
+          )
+          .innerJoin(
+            interviewChapters,
+            eq(interviewChapters.id, interviewQuestionChapters.chapter_id),
+          )
+          .innerJoin(
+            interviewCategoryChapters,
+            eq(interviewCategoryChapters.chapter_id, interviewChapters.id),
+          )
+          .innerJoin(
+            interviewCategories,
+            eq(interviewCategories.id, interviewCategoryChapters.category_id),
+          )
+          .where(inArray(interviewCategories.slug, INTERVIEW_PUBLISHED_SLUGS));
+
+        return {
+          questionCount: Number(qCount.questionCount),
+          top50Count: Number(qCount.top50Count),
+        };
+      });
+    } catch (error) {
+      console.error("[interview-data] getReachableQuestionStats:", error);
       return null;
     }
   },

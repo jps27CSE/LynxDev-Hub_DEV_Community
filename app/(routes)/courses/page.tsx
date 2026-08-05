@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { db } from "@/config/db";
-import { courses, chapters } from "@/config/schema";
-import { eq, count, asc } from "drizzle-orm";
+import { courses } from "@/config/schema";
+import { eq, asc } from "drizzle-orm";
 import CourseIcon from "@/components/CourseIcon";
 
 const difficultyConfig: Record<
@@ -45,19 +45,6 @@ export default async function CoursesPage() {
   const filteredCourses = allCourses.filter((c) =>
     ALLOWED_COURSES.includes(c.title),
   );
-
-  const chapterCounts = await db
-    .select({
-      course_id: chapters.course_id,
-      value: count(),
-    })
-    .from(chapters)
-    .groupBy(chapters.course_id);
-
-  const countMap = new Map<number, number>();
-  for (const row of chapterCounts) {
-    countMap.set(row.course_id, Number(row.value));
-  }
 
   return (
     <>
@@ -136,7 +123,7 @@ export default async function CoursesPage() {
               const diff =
                 difficultyConfig[course.difficulty] ||
                 difficultyConfig["Beginner"];
-              const chapterCount = countMap.get(course.id) || 0;
+              const chapterCount = course.chapter_count || 0;
 
               return (
                 <Link

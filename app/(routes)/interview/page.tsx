@@ -9,7 +9,11 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getAllCategories } from "@/lib/interview-data";
+import {
+  getAllCategories,
+  getReachableQuestionStats,
+} from "@/lib/interview-data";
+import { INTERVIEW_PUBLISHED_SLUGS } from "@/lib/interview-constants";
 import { difficultyDotClass, difficultyTextClass } from "@/lib/interview-ui";
 import { db } from "@/config/db";
 import {
@@ -47,11 +51,7 @@ const categoryThemes: Record<
   },
 };
 
-const ALLOWED_SLUGS = [
-  "software-engineer",
-  "frontend-engineer",
-  "backend-engineer",
-];
+const PUBLISHED_SLUGS = INTERVIEW_PUBLISHED_SLUGS as readonly string[];
 
 const howItWorks = [
   {
@@ -78,40 +78,41 @@ const howItWorks = [
 ];
 
 export default async function InterviewPage() {
-  const [categories, qTotal, allChapters, diffRows] = await Promise.all([
-    getAllCategories().then((cs) =>
-      cs.filter((c) => ALLOWED_SLUGS.includes(c.slug)),
-    ),
-    db.select({ value: count() }).from(interviewQuestions),
-    db
-      .select({ category_id: interviewCategoryChapters.category_id })
-      .from(interviewCategoryChapters),
-    db
-      .select({
-        category_id: interviewCategories.id,
-        difficulty: interviewQuestions.difficulty,
-        value: count(interviewQuestions.id),
-      })
-      .from(interviewCategories)
-      .leftJoin(
-        interviewCategoryChapters,
-        eq(interviewCategories.id, interviewCategoryChapters.category_id),
-      )
-      .leftJoin(
-        interviewChapters,
-        eq(interviewCategoryChapters.chapter_id, interviewChapters.id),
-      )
-      .leftJoin(
-        interviewQuestionChapters,
-        eq(interviewChapters.id, interviewQuestionChapters.chapter_id),
-      )
-      .leftJoin(
-        interviewQuestions,
-        eq(interviewQuestionChapters.question_id, interviewQuestions.id),
-      )
-      .groupBy(interviewCategories.id, interviewQuestions.difficulty),
-  ]);
-  const [qTotalRow] = qTotal;
+  const [categories, reachableStats, allChapters, diffRows] = await Promise.all(
+    [
+      getAllCategories().then((cs) =>
+        cs.filter((c) => PUBLISHED_SLUGS.includes(c.slug)),
+      ),
+      getReachableQuestionStats(),
+      db
+        .select({ category_id: interviewCategoryChapters.category_id })
+        .from(interviewCategoryChapters),
+      db
+        .select({
+          category_id: interviewCategories.id,
+          difficulty: interviewQuestions.difficulty,
+          value: count(interviewQuestions.id),
+        })
+        .from(interviewCategories)
+        .leftJoin(
+          interviewCategoryChapters,
+          eq(interviewCategories.id, interviewCategoryChapters.category_id),
+        )
+        .leftJoin(
+          interviewChapters,
+          eq(interviewCategoryChapters.chapter_id, interviewChapters.id),
+        )
+        .leftJoin(
+          interviewQuestionChapters,
+          eq(interviewChapters.id, interviewQuestionChapters.chapter_id),
+        )
+        .leftJoin(
+          interviewQuestions,
+          eq(interviewQuestionChapters.question_id, interviewQuestions.id),
+        )
+        .groupBy(interviewCategories.id, interviewQuestions.difficulty),
+    ],
+  );
   const chapterCountByCategory = new Map<number, number>();
   for (const ch of allChapters) {
     chapterCountByCategory.set(
@@ -151,7 +152,7 @@ export default async function InterviewPage() {
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs text-muted-foreground mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
               {categories.length} tracks &middot;{" "}
-              {Number(qTotalRow?.value ?? 0)} questions &middot; {chTotal}{" "}
+              {reachableStats?.questionCount ?? 0} questions &middot; {chTotal}{" "}
               chapters
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight leading-[1.1]">
