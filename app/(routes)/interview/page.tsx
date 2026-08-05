@@ -25,7 +25,7 @@ import {
 } from "@/config/schema";
 
 export const metadata: Metadata = {
-  title: "Interview Preparation | LynxDev HUB",
+  title: "Interview Preparation",
   description:
     "Master your next technical interview with curated chapters, real-world scenarios, and hands-on practice across every engineering discipline.",
 };

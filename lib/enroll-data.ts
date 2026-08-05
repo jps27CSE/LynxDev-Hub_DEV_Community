@@ -2,6 +2,9 @@ import { cache } from "react";
 import { db } from "@/config/db";
 import { usersTable, enrollments, courses } from "@/config/schema";
 import { eq } from "drizzle-orm";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("enroll-data");
 
 export type UserDetail = {
   id: number;
@@ -23,7 +26,7 @@ export const getUserByEmail = cache(
         .limit(1);
       return users[0] ?? null;
     } catch (error) {
-      console.error("[enroll-data] getUserByEmail failed", { email, error });
+      log.error("getUserByEmail failed", error, { email });
       throw error;
     }
   },
@@ -83,10 +86,7 @@ export const getEnrollmentsByEmail = cache(
         },
       }));
     } catch (error) {
-      console.error("[enroll-data] getEnrollmentsByEmail failed", {
-        email,
-        error,
-      });
+      log.error("getEnrollmentsByEmail failed", error, { email });
       throw error;
     }
   },

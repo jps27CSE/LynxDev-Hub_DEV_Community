@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { currentUser } from "@clerk/nextjs/server";
 import { getEnrollmentsByEmail, getUserByEmail } from "@/lib/enroll-data";
 import WelcomeBanner from "./_components/WelcomeBanner";
@@ -12,6 +13,12 @@ import {
   StatCardSkeleton,
   WelcomeBannerSkeleton,
 } from "./_components/skeletons";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description:
+    "Track your courses, interview prep, and DSA progress in one place.",
+};
 
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((item) => typeof item === "string");

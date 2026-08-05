@@ -2,6 +2,9 @@ import { cache } from "react";
 import { db } from "@/config/db";
 import { courses, chapters } from "@/config/schema";
 import { eq } from "drizzle-orm";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("course-data");
 
 export type Course = {
   id: number;
@@ -35,7 +38,7 @@ export const getAllCourses = cache(async (): Promise<Course[]> => {
       .where(eq(courses.is_published!, true))
       .orderBy(courses.order_index);
   } catch (error) {
-    console.error("[course-data] getAllCourses:", error);
+    log.error("getAllCourses failed", error);
     return [];
   }
 });
@@ -50,7 +53,7 @@ export const getCourseById = cache(
         .limit(1);
       return result[0] ?? null;
     } catch (error) {
-      console.error("[course-data] getCourseById:", error);
+      log.error("getCourseById failed", error);
       return null;
     }
   },
@@ -69,7 +72,7 @@ export const getChaptersByCourseId = cache(
         content: ch.content as Chapter["content"],
       }));
     } catch (error) {
-      console.error("[course-data] getChaptersByCourseId:", error);
+      log.error("getChaptersByCourseId failed", error);
       return [];
     }
   },

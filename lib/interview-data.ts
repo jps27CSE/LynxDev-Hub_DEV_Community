@@ -1,5 +1,4 @@
 import { cache } from "react";
-import { unstable_cache } from "next/cache";
 import { db } from "@/config/db";
 import {
   interviewCategories,
@@ -10,28 +9,24 @@ import {
 } from "@/config/schema";
 import { eq, asc, count, countDistinct, inArray, sql } from "drizzle-orm";
 import { INTERVIEW_PUBLISHED_SLUGS } from "@/lib/interview-constants";
+import { createLogger } from "@/lib/logger";
+import { createContentCache } from "@/lib/content-cache";
+
+const log = createLogger("interview-data");
 
 /**
- * Cross-request cache for static seed content (RU saver).
  * Invalidation: bump INTERVIEW_DATA_CACHE_VERSION after re-running a seed
  * script — seeds run outside the Next runtime, so revalidateTag() is unusable
- * there (the tag below is reserved for a future admin revalidate endpoint).
- * NOTE: cached values are shared references across requests — callers must
- * treat results as read-only (or copy at the boundary).
+ * there.
  */
 const INTERVIEW_DATA_CACHE_VERSION = 1;
 const INTERVIEW_DATA_CACHE_TTL = 3600;
-const INTERVIEW_DATA_CACHE_TAG = "interview-data";
 
-async function withInterviewCache<T>(
-  key: string,
-  fn: () => Promise<T>,
-): Promise<T> {
-  return unstable_cache(fn, [key, String(INTERVIEW_DATA_CACHE_VERSION)], {
-    tags: [INTERVIEW_DATA_CACHE_TAG],
-    revalidate: INTERVIEW_DATA_CACHE_TTL,
-  })();
-}
+const withInterviewCache = createContentCache({
+  tag: "interview-data",
+  version: INTERVIEW_DATA_CACHE_VERSION,
+  ttl: INTERVIEW_DATA_CACHE_TTL,
+});
 
 export type InterviewCategory = {
   id: number;
@@ -107,7 +102,7 @@ export const getAllCategories = cache(
         }));
       });
     } catch (error) {
-      console.error("[interview-data] getAllCategories:", error);
+      log.error("getAllCategories failed", error);
       return [];
     }
   },
@@ -119,7 +114,7 @@ export const getCategoryBySlug = cache(
       const categories = await getAllCategories();
       return categories.find((c) => c.slug === slug) ?? null;
     } catch (error) {
-      console.error("[interview-data] getCategoryBySlug:", error);
+      log.error("getCategoryBySlug failed", error);
       return null;
     }
   },
@@ -171,7 +166,7 @@ export const getReachableQuestionStats = cache(
         };
       });
     } catch (error) {
-      console.error("[interview-data] getReachableQuestionStats:", error);
+      log.error("getReachableQuestionStats failed", error);
       return null;
     }
   },
@@ -226,7 +221,7 @@ export const getQuestionsByCategorySlug = cache(
         tags: q.tags as string[],
       }));
     } catch (error) {
-      console.error("[interview-data] getQuestionsByCategorySlug:", error);
+      log.error("getQuestionsByCategorySlug failed", error);
       return [];
     }
   },
@@ -262,7 +257,7 @@ export const getQuestionCountByCategorySlug = cache(
 
       return Number(result.value);
     } catch (error) {
-      console.error("[interview-data] getQuestionCountByCategorySlug:", error);
+      log.error("getQuestionCountByCategorySlug failed", error);
       return 0;
     }
   },
@@ -286,10 +281,7 @@ export const getQuestionsByCategorySlugAndTags = cache(
         total: filtered.length,
       };
     } catch (error) {
-      console.error(
-        "[interview-data] getQuestionsByCategorySlugAndTags:",
-        error,
-      );
+      log.error("getQuestionsByCategorySlugAndTags failed", error);
       return { questions: [], total: 0 };
     }
   },
@@ -336,7 +328,7 @@ export const getDistinctTagsByCategorySlug = cache(
         return Array.from(tagSet).sort();
       });
     } catch (error) {
-      console.error("[interview-data] getDistinctTagsByCategorySlug:", error);
+      log.error("getDistinctTagsByCategorySlug failed", error);
       return [];
     }
   },
@@ -369,7 +361,7 @@ export const getTopTags = cache(async (limit = 40): Promise<TopTag[]> => {
         .map(([tag, count]) => ({ tag, count }));
     });
   } catch (error) {
-    console.error("[interview-data] getTopTags:", error);
+    log.error("getTopTags failed", error);
     return [];
   }
 });
@@ -391,7 +383,7 @@ export const getQuestionTagRows = cache(async (): Promise<QuestionTagRow[]> => {
       }));
     });
   } catch (error) {
-    console.error("[interview-data] getQuestionTagRows:", error);
+    log.error("getQuestionTagRows failed", error);
     return [];
   }
 });
@@ -456,7 +448,7 @@ export const getQuestionsByStack = cache(
         hasMore: offset + pageIds.length < total,
       };
     } catch (error) {
-      console.error("[interview-data] getQuestionsByStack:", error);
+      log.error("getQuestionsByStack failed", error);
       return EMPTY_STACK_RESULT;
     }
   },
@@ -496,7 +488,7 @@ export const getChaptersByCategorySlug = cache(
         }));
       });
     } catch (error) {
-      console.error("[interview-data] getChaptersByCategorySlug:", error);
+      log.error("getChaptersByCategorySlug failed", error);
       return [];
     }
   },
@@ -544,7 +536,7 @@ export const getQuestionsByChapterIds = cache(
         },
       );
     } catch (error) {
-      console.error("[interview-data] getQuestionsByChapterIds:", error);
+      log.error("getQuestionsByChapterIds failed", error);
       return {};
     }
   },
@@ -577,7 +569,7 @@ export const getQuestionIdsByChapterIds = cache(
         },
       );
     } catch (error) {
-      console.error("[interview-data] getQuestionIdsByChapterIds:", error);
+      log.error("getQuestionIdsByChapterIds failed", error);
       return {};
     }
   },

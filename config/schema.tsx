@@ -5,6 +5,7 @@ import {
   mysqlTable,
   text,
   timestamp,
+  uniqueIndex,
   varchar,
 } from "drizzle-orm/mysql-core";
 
@@ -41,18 +42,27 @@ export const chapters = mysqlTable("chapters", {
   points_reward: int("points_reward").default(10),
 });
 
-export const enrollments = mysqlTable("enrollments", {
-  id: int().primaryKey().autoincrement(),
-  user_id: int("user_id")
-    .references(() => usersTable.id)
-    .notNull(),
-  course_id: int("course_id")
-    .references(() => courses.id)
-    .notNull(),
-  progress: json(),
-  started_at: timestamp("started_at").defaultNow(),
-  completed_at: timestamp("completed_at"),
-});
+export const enrollments = mysqlTable(
+  "enrollments",
+  {
+    id: int().primaryKey().autoincrement(),
+    user_id: int("user_id")
+      .references(() => usersTable.id)
+      .notNull(),
+    course_id: int("course_id")
+      .references(() => courses.id)
+      .notNull(),
+    progress: json(),
+    started_at: timestamp("started_at").defaultNow(),
+    completed_at: timestamp("completed_at"),
+  },
+  (table) => [
+    uniqueIndex("enrollments_user_id_course_id_idx").on(
+      table.user_id,
+      table.course_id,
+    ),
+  ],
+);
 
 export const interviewCategories = mysqlTable("interview_categories", {
   id: int().primaryKey().autoincrement(),

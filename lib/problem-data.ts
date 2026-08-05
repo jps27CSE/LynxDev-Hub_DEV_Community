@@ -2,6 +2,9 @@ import { cache } from "react";
 import { db } from "@/config/db";
 import { problems } from "@/config/schema";
 import { eq, asc, count, and } from "drizzle-orm";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("problem-data");
 
 export type Problem = {
   id: number;
@@ -62,7 +65,7 @@ export const getAllProblems = cache(
         total,
       };
     } catch (error) {
-      console.error("[problem-data] getAllProblems:", error);
+      log.error("getAllProblems failed", error);
       return { problems: [], total: 0 };
     }
   },
@@ -78,7 +81,7 @@ export const getProblemCategories = cache(async (): Promise<string[]> => {
       .filter((c): c is string => c !== null)
       .sort();
   } catch (error) {
-    console.error("[problem-data] getProblemCategories:", error);
+    log.error("getProblemCategories failed", error);
     return [];
   }
 });
@@ -99,7 +102,7 @@ export const getProblemById = cache(
         test_cases: p.test_cases as TestCase[] | null,
       };
     } catch (error) {
-      console.error("[problem-data] getProblemById:", error);
+      log.error("getProblemById failed", error);
       return null;
     }
   },

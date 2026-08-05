@@ -1,10 +1,13 @@
 import { cache } from "react";
-import { unstable_cache } from "next/cache";
 import { db } from "@/config/db";
 import { interviewCategories, problems } from "@/config/schema";
 import { INTERVIEW_PUBLISHED_SLUGS } from "@/lib/interview-constants";
 import { getReachableQuestionStats } from "@/lib/interview-data";
+import { createLogger } from "@/lib/logger";
+import { createContentCache } from "@/lib/content-cache";
 import { count, inArray } from "drizzle-orm";
+
+const log = createLogger("dashboard-stats");
 
 /**
  * Cross-request cache for static seed-content counts shown on the dashboard.
@@ -14,17 +17,12 @@ import { count, inArray } from "drizzle-orm";
  */
 const DASHBOARD_STATS_CACHE_VERSION = 2;
 const DASHBOARD_STATS_CACHE_TTL = 3600;
-const DASHBOARD_STATS_CACHE_TAG = "dashboard-stats";
 
-async function withDashboardStatsCache<T>(
-  key: string,
-  fn: () => Promise<T>,
-): Promise<T> {
-  return unstable_cache(fn, [key, String(DASHBOARD_STATS_CACHE_VERSION)], {
-    tags: [DASHBOARD_STATS_CACHE_TAG],
-    revalidate: DASHBOARD_STATS_CACHE_TTL,
-  })();
-}
+const withDashboardStatsCache = createContentCache({
+  tag: "dashboard-stats",
+  version: DASHBOARD_STATS_CACHE_VERSION,
+  ttl: DASHBOARD_STATS_CACHE_TTL,
+});
 
 export type InterviewStatsData = {
   categoryCount: number;
@@ -53,7 +51,7 @@ export const getInterviewStats = cache(
         };
       });
     } catch (error) {
-      console.error("[dashboard-stats] getInterviewStats failed:", error);
+      log.error("getInterviewStats failed", error);
       return null;
     }
   },
@@ -91,7 +89,7 @@ export const getProblemStats = cache(
         };
       });
     } catch (error) {
-      console.error("[dashboard-stats] getProblemStats failed:", error);
+      log.error("getProblemStats failed", error);
       return null;
     }
   },
