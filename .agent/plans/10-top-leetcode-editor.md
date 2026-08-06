@@ -1,7 +1,7 @@
 # Top 200 LeetCode Problems + Browser Code Editor
 
 > **Phase:** 2 (DSA Problems) / 4 (Resource Hub adjacent)
-> **Status:** Planned — approved scope, not yet implemented
+> **Status:** Implemented — Parts A and B shipped (tasks 1–5 done); only manual browser verify of task 6 remains
 > **Date:** 2026-08-06
 
 ---
@@ -126,12 +126,12 @@ The problem tab inline editor, the `/editor` full view, the popup dialog, and th
 
 ## Tasks
 
-1. Curate + generate `config/problems/top-problems.ts` (~200 entries from public lists)
-2. Build `/problems/top` page (search, filters, LeetCode links) + entry link on `/problems`
-3. Strip the judge from `ProblemDetailClient` (remove `runTests`, `passed` state, **Test** button, pass/fail banner; error output in red)
-4. Add `@monaco-editor/react`, build `/editor` page + `EditorClient` (run / save-file / import / localStorage — Run-only)
-5. Add "Open in Editor" to problem detail page
-6. Verify: `npm run typecheck`, Prettier, manual dev test of run/save/import flows + mobile + dark mode
+1. ✅ Curate + generate `config/problems/top-problems.ts` — **183 problems** (150 + 100 deduped). Source: LeetCode GraphQL `studyPlanV2Detail` for `top-interview-150` + `top-100-liked` (the legacy `/api/problems/all/` no longer returns tags and problem-list pages are Cloudflare-walled). Every slug validated against the authoritative 4013-problem API — 0 dead links, 0 difficulty mismatches
+2. ✅ Build `/problems/top` page (search, difficulty chips, topic/group dropdown, LeetCode links, empty state — static, zero DB queries) + "Top LeetCode" entry button on `/problems`
+3. ✅ Strip the judge from `ProblemDetailClient`
+4. ✅ Build shared editor (`/editor` page, inline problem editor, popup dialog, code-block Run)
+5. ✅ Add "Open in Editor" to problem detail page
+6. ☐ Verify: `npm run typecheck` ✅, Prettier ✅, build ✅ — pending **manual browser test** (signed-in): top-page search/filters/links + editor run/save/import on mobile + dark mode
 
 ## Risks
 
