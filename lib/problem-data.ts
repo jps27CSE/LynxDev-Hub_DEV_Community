@@ -155,7 +155,7 @@ function toSummary(
 
 export const getInHouseSummaries = cache(
   async (): Promise<WorkspaceSummary[]> => {
-    const { problems: list } = await getAllProblems({ limit: 100, offset: 0 });
+    const { problems: list } = await getAllProblems();
     return list.map((p) =>
       toSummary(
         `db:${p.id}`,

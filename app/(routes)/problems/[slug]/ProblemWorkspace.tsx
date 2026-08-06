@@ -8,7 +8,7 @@ import { ProblemPane } from "./_components/ProblemPane";
 
 const SOLVED_PREFIX = "ws-solved:";
 
-function toUrl(key: string): string {
+function keyToUrl(key: string): string {
   return key.startsWith("db:")
     ? `/problems/${key.slice(3)}`
     : `/problems/${key}`;
@@ -58,26 +58,28 @@ export default function ProblemWorkspace({
   }, [summaries]);
 
   const toggleSolved = useCallback(() => {
-    setSolvedKeys((prev) => {
-      const next = new Set(prev);
+    const next = new Set(solvedKeys);
+    if (next.has(problem.key)) {
+      next.delete(problem.key);
       try {
-        if (next.has(problem.key)) {
-          next.delete(problem.key);
-          localStorage.removeItem(SOLVED_PREFIX + problem.key);
-        } else {
-          next.add(problem.key);
-          localStorage.setItem(SOLVED_PREFIX + problem.key, "1");
-        }
+        localStorage.removeItem(SOLVED_PREFIX + problem.key);
       } catch {
         // storage unavailable
       }
-      return next;
-    });
-  }, [problem.key]);
+    } else {
+      next.add(problem.key);
+      try {
+        localStorage.setItem(SOLVED_PREFIX + problem.key, "1");
+      } catch {
+        // storage unavailable
+      }
+    }
+    setSolvedKeys(next);
+  }, [solvedKeys, problem.key]);
 
   const navigate = useCallback(
     (key: string) => {
-      if (key !== problem.key) router.push(toUrl(key));
+      if (key !== problem.key) router.push(keyToUrl(key));
     },
     [router, problem.key],
   );

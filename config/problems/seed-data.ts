@@ -1,5 +1,3 @@
-import type { TestCase } from "@/lib/problem-data";
-
 type ProblemSeed = {
   title: string;
   description: string;
@@ -8,7 +6,6 @@ type ProblemSeed = {
   tags: string[];
   starter_code: string;
   solution_code: string;
-  test_cases: TestCase[];
 };
 
 /**
@@ -43,7 +40,6 @@ Hello, World!
     starter_code: `// Your first program! Print the message below.
 console.log(); // ← put the text between the quotes`,
     solution_code: `console.log("Hello, World!");`,
-    test_cases: [],
   },
   {
     title: "My First Variables",
@@ -79,7 +75,6 @@ console.log(myText);`,
 let myText = "I am learning JavaScript";
 console.log(myNumber);
 console.log(myText);`,
-    test_cases: [],
   },
   {
     title: "Print a Sum",
@@ -108,7 +103,6 @@ let b = 5;
     solution_code: `let a = 8;
 let b = 5;
 console.log(a + b);`,
-    test_cases: [],
   },
   {
     title: "Count to Five",
@@ -140,7 +134,6 @@ for (let i = 1; i <= 5; i++) {
     solution_code: `for (let i = 1; i <= 5; i++) {
   console.log(i);
 }`,
-    test_cases: [],
   },
   {
     title: "Multiply",
@@ -172,7 +165,6 @@ console.log(multiply(3, 4));`,
 }
 
 console.log(multiply(3, 4));`,
-    test_cases: [],
   },
   {
     title: "Return Negative",
@@ -214,7 +206,6 @@ console.log(makeNegative(0));`,
 console.log(makeNegative(1));
 console.log(makeNegative(-5));
 console.log(makeNegative(0));`,
-    test_cases: [],
   },
   {
     title: "Opposite Number",
@@ -252,7 +243,6 @@ console.log(opposite(-34));`,
 console.log(opposite(1));
 console.log(opposite(14));
 console.log(opposite(-34));`,
-    test_cases: [],
   },
   {
     title: "Double Char",
@@ -289,7 +279,6 @@ console.log(doubleChar("Hello World"));`,
 
 console.log(doubleChar("String"));
 console.log(doubleChar("Hello World"));`,
-    test_cases: [],
   },
   {
     title: "Grasshopper — Summation",
@@ -327,7 +316,6 @@ console.log(summation(8));`,
 
 console.log(summation(2));
 console.log(summation(8));`,
-    test_cases: [],
   },
   {
     title: "Add a New Item (Arrays & References)",
@@ -361,7 +349,6 @@ console.log(addExtra([1, 2, 3]));`,
 }
 
 console.log(addExtra([1, 2, 3]));`,
-    test_cases: [],
   },
   {
     title: "String Repeat",
@@ -395,7 +382,6 @@ console.log(repeatStr(5, "Hello"));`,
 
 console.log(repeatStr(6, "I"));
 console.log(repeatStr(5, "Hello"));`,
-    test_cases: [],
   },
   {
     title: "Make Uppercase",
@@ -429,7 +415,6 @@ console.log(makeUpperCase("JavaScript"));`,
 
 console.log(makeUpperCase("hello"));
 console.log(makeUpperCase("JavaScript"));`,
-    test_cases: [],
   },
   {
     title: "Remove First and Last Character",
@@ -467,7 +452,6 @@ console.log(removeChar("person"));`,
 console.log(removeChar("eloquent"));
 console.log(removeChar("country"));
 console.log(removeChar("person"));`,
-    test_cases: [],
   },
   {
     title: "Remove String Spaces",
@@ -501,7 +485,6 @@ console.log(noSpace("8 j 8   mBliB8g"));`,
 
 console.log(noSpace("hello world !"));
 console.log(noSpace("8 j 8   mBliB8g"));`,
-    test_cases: [],
   },
   {
     title: "Abbreviate a Two Word Name",
@@ -538,17 +521,16 @@ console.log(abbrevName("patrick feeney"));`,
 
 console.log(abbrevName("Sam Harris"));
 console.log(abbrevName("patrick feeney"));`,
-    test_cases: [],
   },
   {
     title: "Vowel Remover",
-    description: `**Task:** Write a function \`shortcut(str)\` that removes the lowercase vowels \`a\`, \`e\`, \`i\`, \`o\`, \`u\` from a string. Uppercase vowels are kept as they are, and \`y\` is not a vowel here.
+    description: `**Task:** Write a function \`removeVowels(str)\` that removes the lowercase vowels \`a\`, \`e\`, \`i\`, \`o\`, \`u\` from a string. Uppercase vowels are kept as they are, and \`y\` is not a vowel here.
 
 **Example:**
 \`\`\`js
-shortcut("hello");   // → "hll"
-shortcut("HELLO");   // → "HELLO"
-shortcut("goodbye"); // → "gdby"
+removeVowels("hello");   // → "hll"
+removeVowels("HELLO");   // → "HELLO"
+removeVowels("goodbye"); // → "gdby"
 \`\`\`
 
 **How to check:** run the starter code and compare with the expected output.
@@ -562,21 +544,20 @@ gdby
     difficulty: "basic",
     category: "Strings",
     tags: ["strings", "methods", "replace"],
-    starter_code: `function shortcut(str) {
+    starter_code: `function removeVowels(str) {
   // Your code here
 }
 
-console.log(shortcut("hello"));
-console.log(shortcut("HELLO"));
-console.log(shortcut("goodbye"));`,
-    solution_code: `function shortcut(str) {
+console.log(removeVowels("hello"));
+console.log(removeVowels("HELLO"));
+console.log(removeVowels("goodbye"));`,
+    solution_code: `function removeVowels(str) {
   return str.replace(/[aeiou]/g, "");
 }
 
-console.log(shortcut("hello"));
-console.log(shortcut("HELLO"));
-console.log(shortcut("goodbye"));`,
-    test_cases: [],
+console.log(removeVowels("hello"));
+console.log(removeVowels("HELLO"));
+console.log(removeVowels("goodbye"));`,
   },
   {
     title: "Find the Smallest Integer",
@@ -610,7 +591,6 @@ console.log(findSmallestInt([34, -345, -1, 100]));`,
 
 console.log(findSmallestInt([34, 15, 88, 2]));
 console.log(findSmallestInt([34, -345, -1, 100]));`,
-    test_cases: [],
   },
   {
     title: "Sum of Positive",
@@ -652,7 +632,6 @@ console.log(positiveSum([]));`,
 console.log(positiveSum([1, -4, 7, 12]));
 console.log(positiveSum([-1, -2, -3]));
 console.log(positiveSum([]));`,
-    test_cases: [],
   },
   {
     title: "Array Plus Array",
@@ -686,7 +665,6 @@ console.log(arrayPlusArray([10, 20], [5]));`,
 
 console.log(arrayPlusArray([1, 2], [3, 4]));
 console.log(arrayPlusArray([10, 20], [5]));`,
-    test_cases: [],
   },
   {
     title: "Count by X",
@@ -724,7 +702,6 @@ console.log(countBy(1, 3));`,
 
 console.log(countBy(2, 5));
 console.log(countBy(1, 3));`,
-    test_cases: [],
   },
   {
     title: "Reversed Digits",
@@ -760,7 +737,6 @@ console.log(digitize(0));`,
 
 console.log(digitize(35231));
 console.log(digitize(0));`,
-    test_cases: [],
   },
   {
     title: "What Is Between?",
@@ -798,7 +774,6 @@ console.log(between(-2, 2));`,
 
 console.log(between(1, 4));
 console.log(between(-2, 2));`,
-    test_cases: [],
   },
   {
     title: "First Non-Consecutive Number",
@@ -835,7 +810,6 @@ console.log(firstNonConsecutive([1, 2, 3]));`,
 
 console.log(firstNonConsecutive([1, 2, 3, 4, 6, 7, 8]));
 console.log(firstNonConsecutive([1, 2, 3]));`,
-    test_cases: [],
   },
   {
     title: "Even or Odd",
@@ -871,7 +845,6 @@ console.log(evenOrOdd(7));`,
 
 console.log(evenOrOdd(4));
 console.log(evenOrOdd(7));`,
-    test_cases: [],
   },
   {
     title: "Is n Divisible by x and y?",
@@ -905,7 +878,6 @@ console.log(isDivisible(100, 5, 3));`,
 
 console.log(isDivisible(12, 2, 6));
 console.log(isDivisible(100, 5, 3));`,
-    test_cases: [],
   },
   {
     title: "Simple Multiplication",
@@ -939,7 +911,6 @@ console.log(simpleMultiplication(3));`,
 
 console.log(simpleMultiplication(2));
 console.log(simpleMultiplication(3));`,
-    test_cases: [],
   },
   {
     title: "Do I Get a Bonus?",
@@ -976,7 +947,6 @@ console.log(bonusTime(10000, false));`,
 
 console.log(bonusTime(10000, true));
 console.log(bonusTime(10000, false));`,
-    test_cases: [],
   },
   {
     title: "Rock Paper Scissors!",
@@ -1023,7 +993,6 @@ console.log(rps("paper", "paper"));`,
 console.log(rps("scissors", "paper"));
 console.log(rps("scissors", "rock"));
 console.log(rps("paper", "paper"));`,
-    test_cases: [],
   },
   {
     title: "Convert a Boolean to a String",
@@ -1057,7 +1026,6 @@ console.log(booleanToString(false));`,
 
 console.log(booleanToString(true));
 console.log(booleanToString(false));`,
-    test_cases: [],
   },
   {
     title: "Century From Year",
@@ -1101,7 +1069,6 @@ console.log(century(1705));
 console.log(century(1900));
 console.log(century(2000));
 console.log(century(2742));`,
-    test_cases: [],
   },
   {
     title: "Basic Mathematical Operations",
@@ -1150,7 +1117,6 @@ console.log(basicOp("+", 4, 7));
 console.log(basicOp("-", 15, 18));
 console.log(basicOp("*", 5, 5));
 console.log(basicOp("/", 49, 7));`,
-    test_cases: [],
   },
   {
     title: "Calculate Average",
@@ -1185,7 +1151,6 @@ console.log(findAverage([]));`,
 
 console.log(findAverage([1, 2, 3]));
 console.log(findAverage([]));`,
-    test_cases: [],
   },
   {
     title: "Expressions Matter",
@@ -1230,7 +1195,6 @@ console.log(expressionsMatter(9, 1, 1));`,
 console.log(expressionsMatter(1, 2, 3));
 console.log(expressionsMatter(1, 1, 1));
 console.log(expressionsMatter(9, 1, 1));`,
-    test_cases: [],
   },
   {
     title: "Count the Monkeys!",
@@ -1268,7 +1232,6 @@ console.log(monkeyCount(1));`,
 
 console.log(monkeyCount(10));
 console.log(monkeyCount(1));`,
-    test_cases: [],
   },
   {
     title: "Count Sheep",
@@ -1302,7 +1265,6 @@ console.log(countSheep(3));`,
 }
 
 console.log(countSheep(3));`,
-    test_cases: [],
   },
   {
     title: "Total Amount of Points",
@@ -1349,6 +1311,5 @@ console.log(points(["1:0", "2:0", "3:0"]));`,
 
 console.log(points(["3:1", "2:2", "0:1"]));
 console.log(points(["1:0", "2:0", "3:0"]));`,
-    test_cases: [],
   },
 ];

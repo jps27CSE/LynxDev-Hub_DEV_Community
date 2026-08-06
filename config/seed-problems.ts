@@ -21,7 +21,6 @@ async function seedProblems() {
       tags: data.tags,
       starter_code: data.starter_code,
       solution_code: data.solution_code,
-      test_cases: data.test_cases,
       order_index: i,
     });
     console.log(`  ✓ ${data.title}`);
