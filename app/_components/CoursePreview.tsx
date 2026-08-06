@@ -37,19 +37,18 @@ const courses = [
 
 function CoursePreview() {
   return (
-    <section className="py-20 sm:py-28 relative overflow-hidden">
+    <section className="py-20 sm:py-28 relative overflow-hidden bg-[#05060a]">
       <div className="absolute inset-0 bg-grid-paper" />
+      <div className="absolute -bottom-32 left-1/2 -translate-x-1/2 h-64 w-[50rem] rounded-full bg-cyan-500/[0.07] blur-[120px]" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs text-muted-foreground mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            {courses.length} paths to start
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.03] font-mono text-xs text-muted-foreground mb-5">
+            <span className="neon-pulse w-1.5 h-1.5 rounded-full bg-lime-400" />
+            <span className="text-lime-400">$</span> {courses.length} paths to
+            start
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold tracking-tight leading-[1.1]">
-            Start{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
-              Learning Today
-            </span>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold tracking-tight leading-[1.1] text-balance">
+            Start <span className="neon-text-gradient">learning today</span>
           </h2>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Hands-on courses designed to take you from beginner to confident
@@ -61,7 +60,7 @@ function CoursePreview() {
             return (
               <div
                 key={course.title}
-                className="group relative rounded-2xl border border-border/50 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 outline-none overflow-hidden"
+                className="group relative rounded-2xl border border-white/10 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/40 hover:shadow-[0_0_28px_rgba(34,211,238,0.14)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 outline-none overflow-hidden"
               >
                 <div
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -69,19 +68,19 @@ function CoursePreview() {
                     boxShadow: "inset 0 1px 0 0 rgb(255 255 255 / 0.05)",
                     background:
                       course.difficulty === "Beginner"
-                        ? "linear-gradient(135deg, rgba(34,197,94,0.03), transparent)"
+                        ? "linear-gradient(135deg, rgba(34,211,238,0.06), transparent)"
                         : course.difficulty === "Intermediate"
-                          ? "linear-gradient(135deg, rgba(234,179,8,0.03), transparent)"
-                          : "linear-gradient(135deg, rgba(239,68,68,0.03), transparent)",
+                          ? "linear-gradient(135deg, rgba(232,121,249,0.06), transparent)"
+                          : "linear-gradient(135deg, rgba(239,68,68,0.06), transparent)",
                   }}
                 />
                 <div className="relative">
                   <div
-                    className={`w-12 h-12 rounded-2xl ${difficultyIconClass(course.difficulty)} flex items-center justify-center mb-4 ring-1 ring-border`}
+                    className={`w-12 h-12 rounded-2xl ${difficultyIconClass(course.difficulty)} flex items-center justify-center mb-4 ring-1 ring-white/10`}
                   >
                     <CourseIcon title={course.title} className="w-7 h-7" />
                   </div>
-                  <h3 className="font-bold text-base group-hover:text-primary transition-colors">
+                  <h3 className="font-bold text-base group-hover:text-cyan-200 transition-colors">
                     {course.title}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-2 leading-relaxed line-clamp-2">
