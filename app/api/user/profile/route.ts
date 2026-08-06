@@ -10,6 +10,7 @@ import {
   unauthorized,
   notFound,
 } from "@/lib/api-error";
+import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 
 const UpdateProfileSchema = z.object({
   name: z.string().trim().min(1).max(255).optional(),
@@ -41,6 +42,14 @@ export async function PATCH(req: NextRequest) {
 
   const email = clerkUser.primaryEmailAddress?.emailAddress;
   if (!email) return notFound("Email");
+
+  const limited = await enforceDbRateLimit(
+    clerkUser.id,
+    "profile-update",
+    "/api/user/profile",
+    "PATCH",
+  );
+  if (limited) return limited;
 
   let body: unknown;
   try {

@@ -6,7 +6,15 @@ import { rateLimited } from "@/lib/api-error";
 
 const log = createLogger("db-rate-limit");
 
-export type RateLimitScope = "mentor-chat" | "interview-generate" | "user-sync";
+export type RateLimitScope =
+  | "mentor-chat"
+  | "interview-generate"
+  | "user-sync"
+  | "enroll"
+  | "progress"
+  | "profile-update"
+  | "interview-stack"
+  | "interview-questions-by-tags";
 
 export type DbRateLimitResult = {
   success: boolean;

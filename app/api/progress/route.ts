@@ -12,6 +12,7 @@ import {
 } from "@/lib/api-error";
 import { createLogger } from "@/lib/logger";
 import { getChaptersByCourseId } from "@/lib/course-data";
+import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 
 const log = createLogger("api/progress");
 
@@ -26,6 +27,14 @@ export async function POST(req: NextRequest) {
 
   const email = clerkUser.primaryEmailAddress?.emailAddress;
   if (!email) return notFound("Email");
+
+  const limited = await enforceDbRateLimit(
+    clerkUser.id,
+    "progress",
+    "/api/progress",
+    "POST",
+  );
+  if (limited) return limited;
 
   let body: unknown;
   try {
