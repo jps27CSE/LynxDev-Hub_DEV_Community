@@ -22,7 +22,7 @@ function WelcomeBanner({
   completedCount: number;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-primary/10 p-8">
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/5 via-background to-primary/10 p-8">
       <div className="absolute inset-0 bg-grid-paper" />
       <div className="relative">
         <div className="flex items-start justify-between">

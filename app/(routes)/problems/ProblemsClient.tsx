@@ -117,7 +117,7 @@ function ProblemsClientInner({
         </div>
 
         {problems.length === 0 ? (
-          <div className="text-center py-16 rounded-xl border border-border/50">
+          <div className="text-center py-16 rounded-2xl border border-border">
             <p className="text-muted-foreground">
               No problems match your filters.
             </p>
@@ -128,7 +128,7 @@ function ProblemsClientInner({
               {problems.map((p) => (
                 <div
                   key={p.id}
-                  className="rounded-xl border border-border/50 bg-card p-5 hover:border-border transition-all"
+                  className="rounded-2xl border border-border bg-card p-5 hover:border-border transition-all"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">

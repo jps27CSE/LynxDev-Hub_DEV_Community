@@ -125,7 +125,7 @@ export default function CustomizeClient({ tags }: Props) {
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-border/50 bg-card p-6 space-y-4">
+        <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-sm font-semibold">
               {tags.length} common stacks &amp; topics
@@ -182,7 +182,7 @@ export default function CustomizeClient({ tags }: Props) {
       )}
 
       {tags.length > 0 && (
-        <div className="rounded-xl border border-border/50 bg-card p-5 sm:p-6">
+        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="min-w-0">
               <div className="text-sm">

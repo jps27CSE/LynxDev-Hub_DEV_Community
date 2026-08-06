@@ -123,7 +123,7 @@ export default function ProblemDetailClient({ problem }: { problem: Problem }) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="rounded-xl border border-border/50 bg-card p-6">
+          <div className="rounded-2xl border border-border bg-card p-6">
             <div className="prose prose-sm prose-invert max-w-none">
               {problem.description.split("\n").map((line, i) => (
                 <p key={i}>{line}</p>
@@ -132,7 +132,7 @@ export default function ProblemDetailClient({ problem }: { problem: Problem }) {
           </div>
 
           <div className="space-y-4">
-            <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
+            <div className="rounded-2xl border border-border bg-card overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-muted/30">
                 <span className="text-xs font-medium text-muted-foreground">
                   JavaScript
@@ -181,7 +181,7 @@ export default function ProblemDetailClient({ problem }: { problem: Problem }) {
             </div>
 
             {output !== null && (
-              <div className="rounded-xl border border-border/50 bg-card p-4">
+              <div className="rounded-2xl border border-border bg-card p-4">
                 <div className="flex items-center gap-2 mb-2">
                   {passed === true && (
                     <>

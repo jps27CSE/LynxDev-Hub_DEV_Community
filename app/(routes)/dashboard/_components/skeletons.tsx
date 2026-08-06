@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function WelcomeBannerSkeleton() {
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-8">
+    <div className="rounded-2xl border border-border bg-card p-8">
       <div className="flex items-start justify-between">
         <div className="space-y-2">
           <Skeleton className="h-8 w-56 sm:w-72" />
@@ -24,7 +24,7 @@ export function WelcomeBannerSkeleton() {
 
 export function StatCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-5">
+    <div className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center gap-3 mb-4">
         <Skeleton className="w-9 h-9 rounded-lg" />
         <div className="space-y-1.5">
@@ -56,10 +56,7 @@ export function EnrolledCoursesSkeleton() {
       </div>
       <div className="grid sm:grid-cols-2 gap-4">
         {Array.from({ length: 2 }, (_, i) => (
-          <div
-            key={i}
-            className="rounded-xl border border-border/50 bg-card p-5"
-          >
+          <div key={i} className="rounded-2xl border border-border bg-card p-5">
             <div className="flex items-start gap-4">
               <Skeleton className="w-12 h-12 rounded-xl" />
               <div className="flex-1 space-y-2">
@@ -80,7 +77,7 @@ export function EnrolledCoursesSkeleton() {
 
 export function ContinueLearningSkeleton() {
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-5">
+    <div className="rounded-2xl border border-border bg-card p-5">
       <Skeleton className="h-3.5 w-24 mb-4" />
       <div className="flex items-start gap-3">
         <Skeleton className="w-11 h-11 rounded-xl" />

@@ -12,7 +12,7 @@ async function ContinueLearning({ email }: { email: string }) {
   if (!current) {
     const allDone = enrollments.length > 0;
     return (
-      <div className="rounded-xl border border-border/50 bg-card p-5">
+      <div className="rounded-2xl border border-border bg-card p-5">
         <h3 className="font-semibold text-sm mb-1">Continue Learning</h3>
         <p className="text-sm text-muted-foreground mt-1">
           {allDone
@@ -35,7 +35,7 @@ async function ContinueLearning({ email }: { email: string }) {
   const href = `/learn/${current.course_id}/${current.progress.currentChapter}`;
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-5">
+    <div className="rounded-2xl border border-border bg-card p-5">
       <h3 className="font-semibold text-sm mb-4">Continue Learning</h3>
       <div className="flex items-start gap-3">
         <div

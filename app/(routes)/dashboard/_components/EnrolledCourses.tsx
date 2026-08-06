@@ -16,7 +16,7 @@ const EnrolledCourses = ({
         <h2 className="text-xl font-bold tracking-tight mb-6">
           Your Enrolled Courses
         </h2>
-        <div className="flex flex-col items-center gap-4 py-16 px-4 rounded-xl border border-border/50 bg-card">
+        <div className="flex flex-col items-center gap-4 py-16 px-4 rounded-2xl border border-border bg-card">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
             <BookOpen className="w-8 h-8 text-muted-foreground" />
           </div>

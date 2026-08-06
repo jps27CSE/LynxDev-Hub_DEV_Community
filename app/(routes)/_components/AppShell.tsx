@@ -30,7 +30,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#05060a]">
       <Sidebar
         open={sidebarOpen}
         collapsed={sidebarCollapsed}

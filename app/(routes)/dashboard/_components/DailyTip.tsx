@@ -19,7 +19,7 @@ function DailyTip() {
   const tip = tips[dayOfYear % tips.length];
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-5">
+    <div className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-start gap-3">
         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
           <Lightbulb className="w-5 h-5 text-primary" />

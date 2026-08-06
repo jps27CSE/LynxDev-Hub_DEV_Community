@@ -101,7 +101,7 @@ function ChapterHubSkeleton() {
                   {[0, 1].map((i) => (
                     <div
                       key={i}
-                      className="rounded-xl border border-border/50 bg-card p-6 pb-4 space-y-3"
+                      className="rounded-2xl border border-border bg-card p-6 pb-4 space-y-3"
                     >
                       <div className="flex items-start gap-3">
                         <Skeleton className="h-3 w-6 mt-1" />

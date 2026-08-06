@@ -31,7 +31,7 @@ export default async function CourseDetailPage({
         &larr; Back to Courses
       </Link>
 
-      <div className="rounded-xl border border-border/50 bg-card p-8 mb-8">
+      <div className="rounded-2xl border border-border bg-card p-8 mb-8">
         <div className="flex items-start gap-4">
           <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
             <CourseIcon title={course.title} className="w-9 h-9" />
@@ -60,7 +60,7 @@ export default async function CourseDetailPage({
       <h2 className="text-xl font-bold tracking-tight mb-6">Course Content</h2>
 
       {chapterList.length === 0 ? (
-        <div className="text-center py-12 rounded-xl border border-border/50">
+        <div className="text-center py-12 rounded-2xl border border-border">
           <p className="text-muted-foreground">No chapters available yet.</p>
         </div>
       ) : (
@@ -69,7 +69,7 @@ export default async function CourseDetailPage({
             <Link
               key={chapter.id}
               href={`/learn/${course.id}/${chapter.id}`}
-              className="flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card hover:border-border transition-all hover:shadow-sm group"
+              className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-card hover:border-border transition-all hover:shadow-sm group"
             >
               <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-sm font-medium text-muted-foreground">
                 {index + 1}
