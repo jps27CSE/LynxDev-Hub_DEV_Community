@@ -1,15 +1,17 @@
 import type { WorkspaceSummary } from "@/lib/problem-data";
 
-const DIFFICULTIES = ["all", "easy", "medium", "hard"] as const;
+const DIFFICULTIES = ["all", "basic", "easy", "medium", "hard"] as const;
 const SOURCES = ["all", "in-house", "top"] as const;
 
 const DOT: Record<string, string> = {
+  basic: "bg-cyan-400",
   easy: "bg-emerald-400",
   medium: "bg-amber-400",
   hard: "bg-rose-500",
 };
 
 const LABEL: Record<string, string> = {
+  basic: "text-cyan-400",
   easy: "text-emerald-400",
   medium: "text-amber-400",
   hard: "text-rose-500",

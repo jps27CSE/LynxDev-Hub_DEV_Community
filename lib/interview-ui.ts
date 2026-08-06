@@ -1,4 +1,5 @@
 const difficultyColors: Record<string, string> = {
+  basic: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20 dark:text-cyan-400",
   easy: "bg-green-500/10 text-green-700 border-green-500/20 dark:text-green-500",
   medium:
     "bg-yellow-500/10 text-yellow-700 border-yellow-500/20 dark:text-yellow-500",
@@ -11,24 +12,28 @@ const difficultyColors: Record<string, string> = {
 };
 
 const difficultyAccents: Record<string, string> = {
+  basic: "border-l-cyan-500",
   easy: "border-l-green-500",
   medium: "border-l-yellow-500",
   hard: "border-l-red-500",
 };
 
 const difficultyDots: Record<string, string> = {
+  basic: "bg-cyan-500",
   easy: "bg-green-500",
   medium: "bg-yellow-500",
   hard: "bg-red-500",
 };
 
 const difficultyText: Record<string, string> = {
+  basic: "text-cyan-700 dark:text-cyan-400",
   easy: "text-green-700 dark:text-green-500",
   medium: "text-yellow-700 dark:text-yellow-500",
   hard: "text-red-600 dark:text-red-500",
 };
 
 const difficultyIconBg: Record<string, string> = {
+  basic: "bg-cyan-500/10",
   easy: "bg-green-500/10",
   medium: "bg-yellow-500/10",
   hard: "bg-red-500/10",
@@ -38,6 +43,7 @@ const difficultyIconBg: Record<string, string> = {
 };
 
 export const DIFFICULTY_ORDER: Record<string, number> = {
+  basic: -1,
   easy: 0,
   medium: 1,
   hard: 2,

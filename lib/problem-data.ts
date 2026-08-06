@@ -117,7 +117,7 @@ export type WorkspaceSource = "in-house" | "top";
 export type WorkspaceProblem = {
   key: string;
   title: string;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: "basic" | "easy" | "medium" | "hard";
   topics: string[];
   group: string | null;
   source: WorkspaceSource;
@@ -143,7 +143,7 @@ function toSummary(
   return {
     key,
     title,
-    difficulty: (["easy", "medium", "hard"].includes(difficulty)
+    difficulty: (["basic", "easy", "medium", "hard"].includes(difficulty)
       ? difficulty
       : "easy") as WorkspaceSummary["difficulty"],
     topics,
@@ -155,7 +155,7 @@ function toSummary(
 
 export const getInHouseSummaries = cache(
   async (): Promise<WorkspaceSummary[]> => {
-    const { problems: list } = await getAllProblems({ limit: 20, offset: 0 });
+    const { problems: list } = await getAllProblems({ limit: 100, offset: 0 });
     return list.map((p) =>
       toSummary(
         `db:${p.id}`,
@@ -202,7 +202,7 @@ export const resolveWorkspaceProblem = cache(
       return {
         key: `db:${p.id}`,
         title: p.title,
-        difficulty: (["easy", "medium", "hard"].includes(p.difficulty)
+        difficulty: (["basic", "easy", "medium", "hard"].includes(p.difficulty)
           ? p.difficulty
           : "easy") as WorkspaceProblem["difficulty"],
         topics: p.tags,

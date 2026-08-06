@@ -6,6 +6,11 @@ import { problemsData } from "./problems/seed-data";
 async function seedProblems() {
   console.log("Seeding problems...");
 
+  // Reset first — removes the previous in-house set (was 10 DSA clones).
+  // Run only when you intend to replace the whole table.
+  const before = await db.delete(problems);
+  console.log(`Cleared ${before[0].affectedRows} existing problems`);
+
   for (let i = 0; i < problemsData.length; i++) {
     const data = problemsData[i];
     await db.insert(problems).values({
