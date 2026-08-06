@@ -1,7 +1,7 @@
 # Top 200 LeetCode Problems + Browser Code Editor
 
 > **Phase:** 2 (DSA Problems) / 4 (Resource Hub adjacent)
-> **Status:** Implemented — Parts A and B shipped (tasks 1–5 done); only manual browser verify of task 6 remains
+> **Status:** Implemented — unified Problems workspace shipped; remaining: manual browser verify
 > **Date:** 2026-08-06
 
 ---
@@ -60,18 +60,33 @@ type TopProblem = {
 };
 ```
 
+### Files (shipped — superseded by the unified workspace below)
+
+| File | Purpose |
+|---|---|
+| `config/problems/top-problems.ts` | Curated dataset: **183 problems** (Top Interview 150 + Top 100 Liked, deduped — 46 easy / 114 medium / 23 hard) with title/slug/difficulty/topics/group |
+| `config/problems/top-statements.ts` | **Full LeetCode statements (markdown) + real JS starter code** for all 183 — generated once via `question(titleSlug){content, codeSnippets}` (anonymous GraphQL), HTML→markdown with turndown at generation time |
+
+### ⭐ Unified Problems Workspace (replaces Part A design + inline editor page)
+
+One **split-pane workspace** at `/problems/[slug]` — the editor has a real job on every problem:
+
+- **`/problems/two-sum`** (slug) = top LeetCode problem; **`/problems/3`** (numeric) = in-house DB problem. One resolver in `lib/problem-data.ts` normalizes both into `WorkspaceProblem`
+- **Left browser**: search (`/` shortcut), source segmented (All / In-House / LeetCode), difficulty chips, grouped rows (In-House · Top LeetCode) with ✓ solved markers + colored difficulty dots, solved counter — persisted in localStorage (`ws-solved:${key}`)
+- **Right pane**: sticky problem header (title, difficulty, tags, prev/next, **Mark solved**, **Solve on LeetCode ↗**), statement rendered with the existing `AnswerMarkdown` stack (markdown = inert, no sanitizer needed), shared editor (Monaco + Run/Reset/Save/Import + output) preloaded with **LeetCode's real starter template**, `Ctrl+Enter` runs, localStorage autosave keyed `problem:${key}` (unified with `/editor` via `problem:db:${id}`)
+- `/problems` → redirects to first problem (`/problems/merge-sorted-array`); `/problems/top` route + badge button **deleted**; old paginated `ProblemsClient` deleted
+- Mobile: sidebar collapses to a problem `<select>` + search bar
+- **No judge, no test cases** (unchanged): Run-only + console.log self-testing; real validation happens on LeetCode
+
 ### Files
 
 | File | Purpose |
 |---|---|
-| `config/problems/top-problems.ts` | The curated ~200-entry dataset (config data lives in `config/` — existing convention) |
-| `app/(routes)/problems/top/page.tsx` | Server Component: search + difficulty/topic filter, list rows with difficulty badge and **"Solve on LeetCode ↗"** |
-
-### Design notes
-
-- Separate route `/problems/top` instead of a tab inside `ProblemsClient` — the existing page is a paginated DB-backed client; two data sources in one page adds needless complexity
-- Add a small "Top LeetCode" entry/link on `/problems` pointing to it
-- Static render, zero queries, zero cache concerns
+| `app/(routes)/problems/[slug]/page.tsx` | Server: resolves slug (top) or numeric id (DB) → `WorkspaceProblem`; `notFound()` on miss |
+| `app/(routes)/problems/[slug]/ProblemWorkspace.tsx` | Workspace shell: filter state, solved tracking, keyboard (`/` focus search, `Ctrl+Enter` run), mobile bar |
+| `app/(routes)/problems/[slug]/_components/ProblemBrowser.tsx` | Sidebar list: search, source/difficulty filters, grouped rows with ✓/dot status |
+| `app/(routes)/problems/[slug]/_components/ProblemPane.tsx` | Statement (`AnswerMarkdown`) + shared editor + sticky header (keyed by problem) |
+| `app/(routes)/problems/page.tsx` | Redirect → first top problem |
 
 ---
 
@@ -94,7 +109,7 @@ type TopProblem = {
 | `components/code-block.tsx` | **Every code block in all content** (interview, stack, custom practice, mentor answers) gets `▶ Run` (inline output below snippet) + `Open in Editor` (popup) for JS blocks |
 | `app/(routes)/editor/page.tsx` | Server shell — reads `?problemId=` search param, resolves problem via existing `getProblemById`, passes starter code + title down |
 | `app/(routes)/editor/EditorClient.tsx` | Full-view Monaco editor (60vh) — same shared components as everywhere else |
-| Edit: `app/(routes)/problems/[id]/ProblemDetailClient.tsx` | Strip the judge (delete `runTests`, `passed` state, **Test** button, pass/fail banner); **keep inline editor** (shared components) + add **"Open in Editor"** button → `/editor?problemId=N` |
+| ~~Edit: `ProblemDetailClient.tsx`~~ | **Superseded** — replaced by the unified workspace (`/problems/[slug]`); judge stripped, shared editor used everywhere |
 | Edit: `app/(routes)/_components/Sidebar.tsx` | Add **Editor** nav link |
 
 ### Shared editor — one implementation, four surfaces
@@ -126,15 +141,16 @@ The problem tab inline editor, the `/editor` full view, the popup dialog, and th
 
 ## Tasks
 
-1. ✅ Curate + generate `config/problems/top-problems.ts` — **183 problems** (150 + 100 deduped). Source: LeetCode GraphQL `studyPlanV2Detail` for `top-interview-150` + `top-100-liked` (the legacy `/api/problems/all/` no longer returns tags and problem-list pages are Cloudflare-walled). Every slug validated against the authoritative 4013-problem API — 0 dead links, 0 difficulty mismatches
-2. ✅ Build `/problems/top` page (search, difficulty chips, topic/group dropdown, LeetCode links, empty state — static, zero DB queries) + "Top LeetCode" entry button on `/problems`
-3. ✅ Strip the judge from `ProblemDetailClient`
-4. ✅ Build shared editor (`/editor` page, inline problem editor, popup dialog, code-block Run)
-5. ✅ Add "Open in Editor" to problem detail page
-6. ☐ Verify: `npm run typecheck` ✅, Prettier ✅, build ✅ — pending **manual browser test** (signed-in): top-page search/filters/links + editor run/save/import on mobile + dark mode
+1. ✅ Curate + generate `config/problems/top-problems.ts` — **183 problems** (150 + 100 deduped). Source: LeetCode GraphQL `studyPlanV2Detail`. Every slug validated against the authoritative 4013-problem API — 0 dead links, 0 difficulty mismatches
+2. ✅ Generate `config/problems/top-statements.ts` — full statements (markdown) + JS starter code for all 183 via anonymous `question{content, codeSnippets}`, HTML→markdown (turndown, dev-time)
+3. ✅ Strip the judge; build the **unified workspace** (`/problems/[slug]` split-pane: browser + statement + editor); `/problems` → redirect; delete `/problems/top`, badge button, old `ProblemsClient`/`ProblemDetailClient`
+4. ✅ Shared editor (`/editor` page, workspace editor, popup dialog, code-block Run) — worker-based execution (5s timeout, no tab freeze)
+5. ✅ Solved tracking (localStorage `ws-solved:*`) + keyboard shortcuts (`/` search, `Ctrl+Enter` run)
+6. ☐ Verify: `npm run typecheck` ✅, Prettier ✅, build ✅ — pending **manual browser test** (signed-in): browsing/filters, statement render, Run (incl. infinite loop → timeout), mark-solved persistence, mobile
 
 ## Risks
 
-- Curated list source accuracy — verify URLs resolve (slug ↔ URL consistency) during generation
+- ✅ Curated list source accuracy — validated against authoritative 4013-problem API during generation
 - Monaco first-load weight (~5 MB) — lazy-loaded + cached; acceptable on Hobby bandwidth
-- `new Function` execution is sandbox-light — fine for a single-user learning tool, never feed it untrusted server data
+- ✅ `new Function` execution — moved into a Web Worker: infinite loops terminated after 5s, no tab freeze, no DOM access
+- Mirroring LeetCode statements/templates into static config — their content, but standard practice for OSS learning platforms (single-user, educational)

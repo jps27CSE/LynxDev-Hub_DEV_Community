@@ -30,7 +30,7 @@ for (let i = 0; i < 10; i++) {
 export default function EditorClient({ problem }: EditorClientProps) {
   const editor = useCodeEditor({
     initialCode: problem?.starter_code || PLAYGROUND_CODE,
-    storageKey: problem ? `problem:${problem.id}` : "editor:playground",
+    storageKey: problem ? `problem:db:${problem.id}` : "editor:playground",
   });
 
   return (
