@@ -1,7 +1,16 @@
 "use client";
 
 import { isValidElement, useState } from "react";
-import { Check, Copy } from "lucide-react";
+import {
+  Check,
+  Copy,
+  ExternalLink,
+  Play,
+  Terminal,
+  XCircle,
+} from "lucide-react";
+import { runJavaScript, type RunResult } from "@/lib/editor";
+import { EditorDialog } from "@/components/editor/EditorDialog";
 
 function extractText(node: React.ReactNode): string {
   if (node == null || typeof node === "boolean") return "";
@@ -14,6 +23,8 @@ function extractText(node: React.ReactNode): string {
   return "";
 }
 
+const RUNNABLE_LANGUAGES = new Set(["javascript", "js"]);
+
 export function CodeBlock({
   children,
   className,
@@ -24,7 +35,10 @@ export function CodeBlock({
   language: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const [runResult, setRunResult] = useState<RunResult | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
   const raw = extractText(children).replace(/\n$/, "");
+  const isRunnable = RUNNABLE_LANGUAGES.has(language);
 
   const copy = async () => {
     try {
@@ -35,6 +49,8 @@ export function CodeBlock({
       /* clipboard unavailable */
     }
   };
+
+  const run = () => setRunResult(runJavaScript(raw));
 
   return (
     <div className="code-window group relative my-5 overflow-hidden rounded-xl border border-border/50 bg-[#1e1e1e]">
@@ -49,23 +65,45 @@ export function CodeBlock({
             </span>
           )}
         </div>
-        <button
-          onClick={() => void copy()}
-          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors"
-          aria-label={copied ? "Copied" : "Copy code"}
-        >
-          {copied ? (
+        <div className="flex items-center gap-1">
+          {isRunnable && (
             <>
-              <Check className="w-3.5 h-3.5 text-green-400" />
-              <span className="text-green-400">Copied</span>
-            </>
-          ) : (
-            <>
-              <Copy className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Copy</span>
+              <button
+                onClick={run}
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors"
+                aria-label="Run code"
+              >
+                <Play className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Run</span>
+              </button>
+              <button
+                onClick={() => setEditorOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors"
+                aria-label="Open in editor"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Open in Editor</span>
+              </button>
             </>
           )}
-        </button>
+          <button
+            onClick={() => void copy()}
+            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors"
+            aria-label={copied ? "Copied" : "Copy code"}
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-green-400" />
+                <span className="text-green-400">Copied</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Copy</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
       <pre
         className={
@@ -78,6 +116,35 @@ export function CodeBlock({
           {children}
         </code>
       </pre>
+
+      {runResult && (
+        <div className="border-t border-white/[0.06] bg-black/40 px-4 py-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            {runResult.error ? (
+              <XCircle className="w-3.5 h-3.5 text-red-500" />
+            ) : (
+              <Terminal className="w-3.5 h-3.5 text-cyan-400" />
+            )}
+            <span className="text-[11px] font-medium uppercase tracking-wider text-white/40">
+              {runResult.error ? "Error" : "Output"}
+            </span>
+          </div>
+          <pre
+            className={`text-[13px] font-mono whitespace-pre-wrap ${
+              runResult.error ? "text-red-400" : "text-white/70"
+            }`}
+          >
+            {runResult.output}
+          </pre>
+        </div>
+      )}
+
+      <EditorDialog
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        initialCode={raw}
+        title={`${language || "js"} — editor`}
+      />
     </div>
   );
 }

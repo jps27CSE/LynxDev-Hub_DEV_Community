@@ -7,6 +7,7 @@ import {
   BookOpen,
   Sparkles,
   Terminal,
+  FileCode2,
   User,
   LogOut,
   ChevronLeft,
@@ -20,6 +21,7 @@ const links = [
   { label: "Courses", href: "/courses", icon: BookOpen },
   { label: "Interview", href: "/interview", icon: Sparkles },
   { label: "Problems", href: "/problems", icon: Terminal },
+  { label: "Editor", href: "/editor", icon: FileCode2 },
 ];
 
 type SidebarProps = {

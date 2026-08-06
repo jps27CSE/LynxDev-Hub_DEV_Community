@@ -1,87 +1,24 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Play, RotateCcw, CheckCircle2, XCircle } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { difficultyBadgeClass } from "@/lib/interview-ui";
+import { MonacoEditor } from "@/components/editor/MonacoEditor";
+import { EditorToolbar } from "@/components/editor/EditorToolbar";
+import { OutputPane } from "@/components/editor/OutputPane";
+import { useCodeEditor } from "@/hooks/useCodeEditor";
 import type { Problem } from "@/lib/problem-data";
 
 export default function ProblemDetailClient({ problem }: { problem: Problem }) {
-  const [code, setCode] = useState(problem.starter_code || "");
-  const [output, setOutput] = useState<string | null>(null);
-  const [passed, setPassed] = useState<boolean | null>(null);
-  const [running, setRunning] = useState(false);
-
-  const runCode = async () => {
-    setRunning(true);
-    setOutput(null);
-    setPassed(null);
-
-    try {
-      const logs: string[] = [];
-      const mockConsole = {
-        log: (...args: unknown[]) => logs.push(args.map(String).join(" ")),
-      };
-
-      const fn = new Function("console", code);
-      fn(mockConsole);
-
-      setOutput(logs.join("\n") || "No output");
-      setPassed(null);
-    } catch (err: unknown) {
-      setOutput(err instanceof Error ? err.message : "Error executing code");
-      setPassed(false);
-    } finally {
-      setRunning(false);
-    }
-  };
-
-  const runTests = async () => {
-    if (!problem.test_cases) return;
-    setRunning(true);
-    setOutput(null);
-    setPassed(null);
-
-    try {
-      let allPassed = true;
-      const results: string[] = [];
-
-      for (const tc of problem.test_cases) {
-        try {
-          const fn = new Function(code);
-          const result = fn();
-          results.push(
-            `Test: ${tc.input} → ${result === tc.expected ? "PASS" : `FAIL (got ${result})`}`,
-          );
-          if (result !== tc.expected) allPassed = false;
-        } catch (err: unknown) {
-          results.push(
-            `Test: ${tc.input} → ERROR: ${err instanceof Error ? err.message : "Unknown error"}`,
-          );
-          allPassed = false;
-        }
-      }
-
-      setOutput(results.join("\n"));
-      setPassed(allPassed);
-    } catch (err: unknown) {
-      setOutput(err instanceof Error ? err.message : "Error running tests");
-      setPassed(false);
-    } finally {
-      setRunning(false);
-    }
-  };
-
-  const resetCode = () => {
-    setCode(problem.starter_code || "");
-    setOutput(null);
-    setPassed(null);
-  };
+  const editor = useCodeEditor({
+    initialCode: problem.starter_code || "",
+    storageKey: `problem:${problem.id}`,
+  });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#05060a]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link
           href="/problems"
@@ -90,7 +27,7 @@ export default function ProblemDetailClient({ problem }: { problem: Problem }) {
           &larr; Back to Problems
         </Link>
 
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-display font-bold tracking-tight">
@@ -120,6 +57,17 @@ export default function ProblemDetailClient({ problem }: { problem: Problem }) {
               ))}
             </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs gap-1.5"
+            asChild
+          >
+            <Link href={`/editor?problemId=${problem.id}`}>
+              <ExternalLink className="w-3.5 h-3.5" />
+              Open in Editor
+            </Link>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -133,83 +81,22 @@ export default function ProblemDetailClient({ problem }: { problem: Problem }) {
 
           <div className="space-y-4">
             <div className="rounded-2xl border border-border bg-card overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-muted/30">
-                <span className="text-xs font-medium text-muted-foreground">
-                  JavaScript
-                </span>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={resetCode}
-                    className="h-7 text-xs gap-1"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    Reset
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={runCode}
-                    disabled={running}
-                    className="h-7 text-xs gap-1"
-                  >
-                    <Play className="w-3 h-3" />
-                    Run
-                  </Button>
-                  {problem.test_cases && (
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={runTests}
-                      disabled={running}
-                      className="h-7 text-xs gap-1"
-                    >
-                      <Sparkles className="w-3 h-3" />
-                      Test
-                    </Button>
-                  )}
-                </div>
-              </div>
-              <textarea
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className="w-full bg-card text-sm font-mono p-4 outline-none resize-none"
-                style={{ minHeight: "300px" }}
-                spellCheck={false}
+              <EditorToolbar
+                running={editor.running}
+                onRun={editor.run}
+                onReset={editor.reset}
+                onSave={editor.saveFile}
+                onImport={editor.importFile}
+                importInputRef={editor.importInputRef}
+              />
+              <MonacoEditor
+                value={editor.code}
+                onChange={editor.setCode}
+                height="420px"
               />
             </div>
 
-            {output !== null && (
-              <div className="rounded-2xl border border-border bg-card p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  {passed === true && (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      <span className="text-xs font-medium text-green-500">
-                        All tests passed!
-                      </span>
-                    </>
-                  )}
-                  {passed === false && (
-                    <>
-                      <XCircle className="w-4 h-4 text-red-500" />
-                      <span className="text-xs font-medium text-red-500">
-                        Tests failed
-                      </span>
-                    </>
-                  )}
-                  {passed === null && (
-                    <span className="text-xs font-medium text-muted-foreground">
-                      Output
-                    </span>
-                  )}
-                </div>
-                <pre className="text-sm font-mono text-muted-foreground whitespace-pre-wrap">
-                  {output}
-                </pre>
-              </div>
-            )}
+            <OutputPane output={editor.output} error={editor.error} />
           </div>
         </div>
       </div>
