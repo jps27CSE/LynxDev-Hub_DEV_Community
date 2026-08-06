@@ -20,7 +20,7 @@
 | 2.2 | Tag system | Done | High | Angular, Spring Boot, React, etc. |
 | 2.3 | Question generation | Done | High | POST /api/interview/generate with template-based AI; Generate button on category page |
 | 2.4 | Top 50 questions | Done | Medium | Tab-based toggle (All / Top 50) on category page |
-| 2.5 | Problem solving list | Done | High | /problems page, /problems/[id] editor, 10 DSA problems seeded |
+| 2.5 | Problem solving list | Done | High | Unified workspace `/problems/[slug]` — 10 in-house + 183 top LeetCode problems, split-pane statement/editor, Run-only |
 | 2.6 | Interview docs layout | Done | High | Left sidebar chapter nav + right side content with real-life scenarios, deep dives, code examples |
 | 2.7 | Interview chapter notes | Done | High | 15 chapters across 6 categories with markdown rendering (react-markdown + highlight.js) |
 | 2.8 | Dashboard stats cards | Done | Medium | Interview Prep + Problem Solving stat cards with live DB counts |

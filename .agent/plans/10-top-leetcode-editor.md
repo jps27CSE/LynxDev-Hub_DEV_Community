@@ -19,7 +19,7 @@ The editor is 100% client-side. **No database, no API routes, no TiDB writes.**
 | Cost item | Free-tier impact |
 |---|---|
 | Monaco editor (lazy-loaded via `next/dynamic`, `ssr: false`) | $0. ~2–5 MB chunk, downloaded once per browser then cached. Vercel Hobby 100 GB/mo ≈ 30k+ first-time editor loads — trivially fine at 500 users |
-| JS execution | $0 — runs in-browser via `new Function` (pattern in `ProblemDetailClient.tsx`) |
+| JS execution | $0 — runs in-browser in a **Web Worker** (5s timeout, terminate on hang — see `lib/editor.ts`) |
 | Top problems list | $0 — static config data in `config/`, no DB, no server work |
 | TiDB | untouched — no migration, no new tables |
 
