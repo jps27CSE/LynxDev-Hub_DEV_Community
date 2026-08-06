@@ -162,7 +162,7 @@ export default function ProblemWorkspace({
           />
         </aside>
 
-        <main className="flex-1 min-w-0 lg:overflow-y-auto">
+        <main className="flex-1 min-w-0 lg:overflow-hidden">
           <ProblemPane
             key={problem.key}
             problem={problem}

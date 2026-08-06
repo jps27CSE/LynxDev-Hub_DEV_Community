@@ -59,8 +59,8 @@ export function ProblemPane({
   }, [editor.run, runRef]);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <header className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-[#05060a]/90 backdrop-blur border-b border-border/40 mb-6">
+    <div className="flex flex-col h-full">
+      <header className="shrink-0 border-b border-border/40 bg-[#05060a]/90 px-4 sm:px-6 py-3">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
@@ -150,41 +150,47 @@ export function ProblemPane({
         </div>
       </header>
 
-      <div className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-4">
-          Problem
-        </h2>
-        <AnswerMarkdown content={problem.statement} />
-      </div>
+      <div className="flex-1 min-h-0 lg:grid lg:grid-cols-2">
+        <section className="min-h-0 lg:overflow-y-auto p-4 sm:p-6">
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-4">
+              Problem
+            </h2>
+            <AnswerMarkdown content={problem.statement} />
+          </div>
 
-      <div className="mt-5 rounded-2xl border border-border bg-background overflow-hidden">
-        <EditorToolbar
-          running={editor.running}
-          onRun={editor.run}
-          onReset={editor.reset}
-          onSave={editor.downloadCode}
-          onImport={editor.importFile}
-          importInputRef={editor.importInputRef}
-        />
-        <div className="bg-[#1e1e1e]">
-          <MonacoEditor
-            value={editor.code}
-            onChange={editor.setCode}
-            height="420px"
-          />
-        </div>
-        <div className="p-4 bg-[#05060a] border-t border-border/40">
-          <OutputPane output={editor.output} error={editor.error} />
-        </div>
-      </div>
+          <div className="mt-4 flex items-center gap-4 font-mono text-[11px] text-muted-foreground/60">
+            <span className="flex items-center gap-1.5">
+              <Kbd>Ctrl+Enter</Kbd> run
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Kbd>/</Kbd> search
+            </span>
+          </div>
+        </section>
 
-      <div className="mt-4 flex items-center justify-end gap-4 font-mono text-[11px] text-muted-foreground/60">
-        <span className="flex items-center gap-1.5">
-          <Kbd>Ctrl+Enter</Kbd> run
-        </span>
-        <span className="flex items-center gap-1.5">
-          <Kbd>/</Kbd> search
-        </span>
+        <section className="flex flex-col min-h-0 lg:border-l lg:border-border/40 bg-background p-3 lg:p-0">
+          <div className="flex flex-col min-h-0 flex-1 overflow-hidden rounded-2xl border border-border lg:rounded-none lg:border-0">
+            <EditorToolbar
+              running={editor.running}
+              onRun={editor.run}
+              onReset={editor.reset}
+              onSave={editor.downloadCode}
+              onImport={editor.importFile}
+              importInputRef={editor.importInputRef}
+            />
+            <div className="flex-1 min-h-[420px] bg-[#1e1e1e]">
+              <MonacoEditor
+                value={editor.code}
+                onChange={editor.setCode}
+                height="100%"
+              />
+            </div>
+            <div className="shrink-0 p-4 bg-[#05060a] border-t border-border/40 max-h-[220px] overflow-y-auto">
+              <OutputPane output={editor.output} error={editor.error} />
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );
