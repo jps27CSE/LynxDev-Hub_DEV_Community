@@ -15,7 +15,7 @@ type EditorClientProps = {
 };
 
 const PLAYGROUND_CODE = `// LynxDev playground — write any JavaScript and hit Run.
-// Hint: there's no console here, use console.log() like normal.
+// Output from console.log() appears in the pane below.
 
 function fibonacci(n) {
   if (n < 2) return n;
@@ -66,7 +66,7 @@ export default function EditorClient({ problem }: EditorClientProps) {
             running={editor.running}
             onRun={editor.run}
             onReset={editor.reset}
-            onSave={editor.saveFile}
+            onSave={editor.downloadCode}
             onImport={editor.importFile}
             importInputRef={editor.importInputRef}
           />

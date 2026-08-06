@@ -36,6 +36,7 @@ export function CodeBlock({
 }) {
   const [copied, setCopied] = useState(false);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
+  const [running, setRunning] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const raw = extractText(children).replace(/\n$/, "");
   const isRunnable = RUNNABLE_LANGUAGES.has(language);
@@ -50,7 +51,14 @@ export function CodeBlock({
     }
   };
 
-  const run = () => setRunResult(runJavaScript(raw));
+  const run = async () => {
+    if (running) return;
+    setRunning(true);
+    setRunResult(null);
+    const result = await runJavaScript(raw);
+    setRunResult(result);
+    setRunning(false);
+  };
 
   return (
     <div className="code-window group relative my-5 overflow-hidden rounded-xl border border-border/50 bg-[#1e1e1e]">
@@ -69,12 +77,15 @@ export function CodeBlock({
           {isRunnable && (
             <>
               <button
-                onClick={run}
-                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors"
+                onClick={() => void run()}
+                disabled={running}
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 aria-label="Run code"
               >
                 <Play className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Run</span>
+                <span className="hidden sm:inline">
+                  {running ? "Running…" : "Run"}
+                </span>
               </button>
               <button
                 onClick={() => setEditorOpen(true)}
@@ -143,7 +154,6 @@ export function CodeBlock({
         open={editorOpen}
         onOpenChange={setEditorOpen}
         initialCode={raw}
-        title={`${language || "js"} — editor`}
       />
     </div>
   );

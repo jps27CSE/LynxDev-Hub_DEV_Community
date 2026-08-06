@@ -13,9 +13,9 @@ type UseCodeEditorOptions = {
 };
 
 /**
- * Shared editor state used by both the problem page and the /editor page.
- * One implementation: run, reset, save-as-file, import-file, localStorage
- * autosave (debounced, client-side only).
+ * Shared editor state used by the problem page, the /editor page, and the
+ * popup dialog. One implementation: run, reset, download-as-file, import-file,
+ * localStorage autosave (debounced, client-side only).
  */
 export function useCodeEditor({
   initialCode,
@@ -23,6 +23,8 @@ export function useCodeEditor({
 }: UseCodeEditorOptions) {
   const [code, setCode] = useState<string>(() => {
     if (!storageKey) return initialCode;
+    // loadSavedCode is SSR-safe: it returns null without localStorage, so the
+    // server and client first render both use `initialCode` (no hydration mismatch)
     return loadSavedCode(storageKey) ?? initialCode;
   });
   const [output, setOutput] = useState<string | null>(null);
@@ -40,11 +42,12 @@ export function useCodeEditor({
     setRunning(true);
     setOutput(null);
     setError(null);
-
-    const result = runJavaScript(code);
-    setOutput(result.output);
-    setError(result.error);
-    setRunning(false);
+    // Runs in a worker with a timeout — always settles, never freezes the tab
+    void runJavaScript(code).then((result) => {
+      setOutput(result.output);
+      setError(result.error);
+      setRunning(false);
+    });
   }, [code]);
 
   const reset = useCallback(() => {
@@ -53,16 +56,20 @@ export function useCodeEditor({
     setError(null);
   }, [initialCode]);
 
-  const saveFile = useCallback(() => {
+  const downloadCode = useCallback(() => {
     saveCodeAsFile(code, "solution.js");
   }, [code]);
 
   const importFile = useCallback(async (file: File | undefined) => {
     if (!file) return;
-    const text = await readCodeFile(file);
-    setCode(text);
-    setOutput(null);
-    setError(null);
+    try {
+      const text = await readCodeFile(file);
+      setCode(text);
+      setOutput(null);
+      setError(null);
+    } catch {
+      setError("Failed to read file");
+    }
   }, []);
 
   return {
@@ -73,7 +80,7 @@ export function useCodeEditor({
     running,
     run,
     reset,
-    saveFile,
+    downloadCode,
     importFile,
     importInputRef,
   };

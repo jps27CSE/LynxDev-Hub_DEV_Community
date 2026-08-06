@@ -3,31 +3,68 @@ export type RunResult = {
   error: string | null;
 };
 
-export type EditorOptions = {
-  initialCode: string;
-  storageKey: string | null;
-};
+export const RUN_TIMEOUT_MS = 5000;
 
 /**
- * Executes user JavaScript in the browser. Compile/runtime errors are caught
- * and returned as `error` — no test cases, no judge, just the result.
+ * Executes user JavaScript inside a Web Worker:
+ * - infinite loops can't freeze the tab (worker is terminated on timeout)
+ * - no access to window/document (lighter sandbox than main-thread `new Function`)
+ * - console.log/warn/error/info output is captured and returned
  */
-export function runJavaScript(code: string): RunResult {
-  const logs: string[] = [];
-  const mockConsole = {
-    log: (...args: unknown[]) => logs.push(args.map(String).join(" ")),
-  };
+export function runJavaScript(
+  code: string,
+  timeoutMs = RUN_TIMEOUT_MS,
+): Promise<RunResult> {
+  return new Promise((resolve) => {
+    let workerUrl: string;
+    let worker: Worker;
+    try {
+      const source = `
+        self.onmessage = (e) => {
+          const logs = [];
+          const mockConsole = {
+            log: (...args) => logs.push(args.map(String).join(" ")),
+            info: (...args) => logs.push(args.map(String).join(" ")),
+            warn: (...args) => logs.push(args.map(String).join(" ")),
+            error: (...args) => logs.push(args.map(String).join(" ")),
+          };
+          try {
+            new Function("console", e.data.code)(mockConsole);
+            self.postMessage({ output: logs.join("\\n") || "No output", error: null });
+          } catch (err) {
+            self.postMessage({
+              output: logs.join("\\n"),
+              error: err instanceof Error ? err.message : "Error executing code",
+            });
+          }
+        };
+      `;
+      const blob = new Blob([source], { type: "text/javascript" });
+      workerUrl = URL.createObjectURL(blob);
+      worker = new Worker(workerUrl);
+    } catch {
+      resolve({
+        output: "",
+        error: "Code execution is not available in this browser",
+      });
+      return;
+    }
 
-  try {
-    const fn = new Function("console", code);
-    fn(mockConsole);
-    return { output: logs.join("\n") || "No output", error: null };
-  } catch (err: unknown) {
-    return {
-      output: logs.join("\n"),
-      error: err instanceof Error ? err.message : "Error executing code",
+    const done = (result: RunResult) => {
+      clearTimeout(timer);
+      worker.terminate();
+      URL.revokeObjectURL(workerUrl);
+      resolve(result);
     };
-  }
+
+    const timer = setTimeout(
+      () => done({ output: "", error: "Execution timed out — infinite loop?" }),
+      timeoutMs,
+    );
+    worker.onmessage = (e) => done(e.data as RunResult);
+    worker.onerror = () => done({ output: "", error: "Failed to run code" });
+    worker.postMessage({ code });
+  });
 }
 
 export function saveCodeAsFile(code: string, filename: string) {
@@ -37,10 +74,10 @@ export function saveCodeAsFile(code: string, filename: string) {
   a.href = url;
   a.download = filename;
   a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-export async function readCodeFile(file: File): Promise<string> {
+export function readCodeFile(file: File): Promise<string> {
   return file.text();
 }
 
@@ -48,6 +85,7 @@ export function loadSavedCode(storageKey: string): string | null {
   try {
     return localStorage.getItem(storageKey);
   } catch {
+    // SSR (no localStorage) and private-mode/quota failures fall back to initial code
     return null;
   }
 }

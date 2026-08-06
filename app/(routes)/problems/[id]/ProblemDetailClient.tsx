@@ -85,7 +85,7 @@ export default function ProblemDetailClient({ problem }: { problem: Problem }) {
                 running={editor.running}
                 onRun={editor.run}
                 onReset={editor.reset}
-                onSave={editor.saveFile}
+                onSave={editor.downloadCode}
                 onImport={editor.importFile}
                 importInputRef={editor.importInputRef}
               />

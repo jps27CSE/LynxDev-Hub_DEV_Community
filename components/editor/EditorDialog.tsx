@@ -15,14 +15,12 @@ type EditorDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialCode: string;
-  title?: string;
 };
 
 export function EditorDialog({
   open,
   onOpenChange,
   initialCode,
-  title = "Editor",
 }: EditorDialogProps) {
   const editor = useCodeEditor({
     initialCode,
@@ -37,7 +35,7 @@ export function EditorDialog({
       >
         <DialogHeader className="px-4 py-3 border-b border-border/50 bg-muted/30">
           <DialogTitle className="text-sm font-medium text-foreground">
-            {title}
+            JavaScript Editor
           </DialogTitle>
         </DialogHeader>
 
@@ -45,7 +43,7 @@ export function EditorDialog({
           running={editor.running}
           onRun={editor.run}
           onReset={editor.reset}
-          onSave={editor.saveFile}
+          onSave={editor.downloadCode}
           onImport={editor.importFile}
           importInputRef={editor.importInputRef}
         />

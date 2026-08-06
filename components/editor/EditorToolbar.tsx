@@ -42,6 +42,7 @@ export function EditorToolbar({
           size="sm"
           onClick={onReset}
           className="h-7 text-xs gap-1"
+          title="Restore starter code"
         >
           <RotateCcw className="w-3 h-3" />
           Reset

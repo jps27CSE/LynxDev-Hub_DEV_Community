@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   ChevronRight,
   Code2,
-  Sparkles,
+  Trophy,
   ChevronLeft,
   ChevronsLeft,
   ChevronsRight,
@@ -77,7 +77,7 @@ function ProblemsClientInner({
           </div>
           <Link href="/problems/top" className="ml-auto flex-shrink-0">
             <Button variant="outline" size="sm" className="h-8 text-xs gap-1">
-              <Sparkles className="w-3.5 h-3.5" />
+              <Trophy className="w-3.5 h-3.5" />
               Top LeetCode
             </Button>
           </Link>

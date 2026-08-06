@@ -18,7 +18,6 @@ export function MonacoEditor({
   return (
     <Monaco
       height={height}
-      defaultLanguage="javascript"
       language="javascript"
       value={value}
       onChange={(next) => onChange(next ?? "")}

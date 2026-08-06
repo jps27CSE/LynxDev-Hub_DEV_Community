@@ -9,5 +9,6 @@ export default async function EditorPage({ searchParams }: EditorPageProps) {
   const { problemId } = await searchParams;
   const problem = problemId ? await getProblemById(Number(problemId)) : null;
 
-  return <EditorClient problem={problem} />;
+  // keyed by problem so client-side ?problemId changes remount with fresh state
+  return <EditorClient key={problem?.id ?? "playground"} problem={problem} />;
 }
