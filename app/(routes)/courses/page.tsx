@@ -6,25 +6,12 @@ import { eq, asc } from "drizzle-orm";
 import CourseIcon from "@/components/CourseIcon";
 import { difficultyBadgeClass, difficultyIconClass } from "@/lib/interview-ui";
 
-const ALLOWED_COURSES = [
-  "HTML & CSS Fundamentals",
-  "JavaScript Essentials",
-  "React Development",
-  "Angular Development",
-  "Node.js Backend",
-  "Express.js API Development",
-];
-
 export default async function CoursesPage() {
-  const allCourses = await db
+  const filteredCourses = await db
     .select()
     .from(courses)
     .where(eq(courses.is_published!, true))
     .orderBy(asc(courses.order_index));
-
-  const filteredCourses = allCourses.filter((c) =>
-    ALLOWED_COURSES.includes(c.title),
-  );
 
   return (
     <>
