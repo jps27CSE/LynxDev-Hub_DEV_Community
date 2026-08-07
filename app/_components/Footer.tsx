@@ -22,7 +22,7 @@ function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="text-center md:text-left">
             <h3 className="text-lg font-bold font-display">
-              <span className="neon-text-gradient">LynxDev HUB</span>
+              <span className="neon-text-gradient">LynxDEV</span>
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
               Learn. Build. Grow. For Free.
@@ -65,7 +65,7 @@ function Footer() {
         </div>
         <div className="mt-10 pt-6 border-t border-border/40 text-center">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} LynxDev HUB. All rights reserved.
+            &copy; {new Date().getFullYear()} LynxDEV. All rights reserved.
           </p>
           <p className="text-[11px] text-muted-foreground/60 mt-2">
             <VersionBadge />

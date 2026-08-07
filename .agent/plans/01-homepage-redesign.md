@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Redesign the landing page (app/page.tsx) to be a modern dev platform homepage that showcases what LynxDev HUB delivers.
+Redesign the landing page (app/page.tsx) to be a modern dev platform homepage that showcases what LynxDEV delivers.
 
 ## Sections
 

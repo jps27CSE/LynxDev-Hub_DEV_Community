@@ -48,7 +48,7 @@ export default function SignInPage() {
         <div className="relative">
           <div className="inline-flex items-center gap-2.5 rounded-full border border-cyan-400/20 bg-cyan-400/[0.06] px-4 py-1.5 font-mono text-xs text-cyan-200/90 mb-9">
             <span className="neon-pulse w-1.5 h-1.5 rounded-full bg-cyan-400" />
-            <span className="text-cyan-400">$</span> lynxdevhub --welcome
+            <span className="text-cyan-400">$</span> lynxdev --welcome
           </div>
 
           <h1 className="font-display font-bold tracking-tight leading-[1.05] text-5xl xl:text-6xl text-balance [filter:drop-shadow(0_0_28px_rgba(34,211,238,0.18))]">
@@ -95,10 +95,10 @@ export default function SignInPage() {
         <div className="w-full max-w-[400px]">
           <SignIn.Root>
             <SignIn.Step name="start" className="w-full">
-              <AuthShell title="lynxdevhub — auth">
+              <AuthShell title="lynxdev — auth">
                 <div className="text-center mb-7">
                   <p className="font-mono text-[11px] text-cyan-400/80 mb-2.5">
-                    <span className="text-cyan-400">$</span> lynxdevhub --login
+                    <span className="text-cyan-400">$</span> lynxdev --login
                   </p>
                   <h1 className="text-2xl font-bold font-display tracking-tight">
                     Welcome <span className="neon-text-gradient">back</span>

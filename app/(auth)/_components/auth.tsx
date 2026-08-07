@@ -26,7 +26,7 @@ export function AuthShell({
         </div>
       </div>
       <p className="mt-6 text-center font-mono text-[11px] text-slate-600">
-        &copy; {new Date().getFullYear()} lynxdevhub ·{" "}
+        &copy; {new Date().getFullYear()} lynxdev ·{" "}
         <span className="text-cyan-400/70">exit 0</span>
       </p>
     </div>

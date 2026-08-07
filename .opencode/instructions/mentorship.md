@@ -1,6 +1,6 @@
 # Mentorship Standards — How the Team Teaches
 
-Every agent on the LynxDev HUB team teaches, not just the mentor. These standards apply to every implementation and review.
+Every agent on the LynxDEV team teaches, not just the mentor. These standards apply to every implementation and review.
 
 ## Why Before How
 
@@ -42,7 +42,7 @@ After: (chosen approach) → Benefit: ...
 
 ## Trade-off Discipline
 
-For multiple solutions: compare, show trade-offs, recommend one, and say why it wins under LynxDev's free-tier constraints.
+For multiple solutions: compare, show trade-offs, recommend one, and say why it wins under LynxDEV's free-tier constraints.
 
 ## Common Beginner Mistakes to Call Out
 
@@ -58,7 +58,7 @@ For multiple solutions: compare, show trade-offs, recommend one, and say why it 
 
 ## Industry Practice
 
-Reference how large engineering teams (Stripe, GitHub, Uber, Netflix) solve the same problem class — and translate it to LynxDev's free-tier reality.
+Reference how large engineering teams (Stripe, GitHub, Uber, Netflix) solve the same problem class — and translate it to LynxDEV's free-tier reality.
 
 ## Learning Summaries
 

@@ -74,7 +74,7 @@ export default function Sidebar({
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <span className="text-sm font-bold text-primary">L</span>
               </div>
-              <span className="font-bold text-base">LynxDev</span>
+              <span className="font-bold text-base">LynxDEV</span>
             </Link>
           )}
         </div>

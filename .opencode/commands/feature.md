@@ -11,7 +11,7 @@ Run the **full ELOS feature pipeline** on the current session. Do not skip any p
 
 Invoke the **mentor** agent. It must teach before any code:
 - Problem + real-world scenario + senior thinking
-- System design thinking mapped to LynxDev's stack
+- System design thinking mapped to LynxDEV's stack
 - Which files change and why
 - Before vs after, common beginner mistakes, industry practice
 - What you'll learn

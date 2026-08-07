@@ -1,4 +1,4 @@
-# LynxDev HUB — Architecture
+# LynxDEV — Architecture
 
 ## Tech Stack
 

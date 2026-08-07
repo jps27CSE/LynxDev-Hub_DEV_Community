@@ -17,7 +17,7 @@ function TerminalLines() {
   return (
     <div className="font-mono text-[13px] sm:text-sm leading-relaxed">
       <p className="text-muted-foreground/60">
-        <span className="text-cyan-400">$</span> lynxdevhub{" "}
+        <span className="text-cyan-400">$</span> lynxdev{" "}
         <span className="text-fuchsia-400">--launch</span>
       </p>
       <p className="text-lime-400">✔ booting developer platform...</p>
@@ -121,7 +121,7 @@ function Hero() {
                   <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
                   <span className="w-3 h-3 rounded-full bg-lime-400/80" />
                   <span className="ml-3 font-mono text-xs text-muted-foreground">
-                    lynxdevhub — zsh
+                    lynxdev — zsh
                   </span>
                 </div>
                 <div className="p-5">

@@ -14,7 +14,7 @@ type EditorClientProps = {
   problem: Problem | null;
 };
 
-const PLAYGROUND_CODE = `// LynxDev playground — write any JavaScript and hit Run.
+const PLAYGROUND_CODE = `// LynxDEV playground — write any JavaScript and hit Run.
 // Output from console.log() appears in the pane below.
 
 function fibonacci(n) {

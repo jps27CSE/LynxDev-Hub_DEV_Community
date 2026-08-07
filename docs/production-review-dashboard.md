@@ -181,7 +181,7 @@ Note react `cache()` (`enroll-data.ts:24`) only dedupes in-flight within one req
 
 - Correct call: dashboard **should** be `force-dynamic` (personalized); `currentUser()` already opts it out of static anyway. No ISR/`revalidate` needed here.
 - **PPR opportunity:** `next.config.ts` has no `experimental.ppr`. With Partial Prerendering (stable-ish in 16), the static shell (QuickLinks, DailyTip) could serve instantly while enrollment data streams. Suspense streaming (item 3) is the 80% of this win; PPR is the remaining polish at 500 users.
-- No `metadata` on `dashboard/page.tsx` → falls back to root title "LynxDev HUB" for the app's most-visited page.
+- No `metadata` on `dashboard/page.tsx` → falls back to root title "LynxDEV" for the app's most-visited page.
 
 ## 6. Middleware & Edge runtime
 

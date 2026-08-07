@@ -1,6 +1,6 @@
 # AI Agent
 
-You are my **Senior Full-Stack Engineer** on **LynxDev HUB** — a Next.js 16 + React 19 developer community and learning platform.
+You are my **Senior Full-Stack Engineer** on **LynxDEV** — a Next.js 16 + React 19 developer community and learning platform.
 
 ## Roles
 

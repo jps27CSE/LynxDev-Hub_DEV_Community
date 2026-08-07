@@ -20,14 +20,13 @@ function Header() {
         <Link href="/" className="flex items-center gap-2.5 group">
           <Image
             src="/logo.png"
-            alt="LynxDev HUB"
+            alt="LynxDEV"
             width={36}
             height={36}
             className="transition-transform duration-300 group-hover:scale-105"
           />
           <span className="text-xl font-bold font-display tracking-tight">
-            <span className="neon-text-gradient">LynxDev</span>{" "}
-            <span className="text-slate-300">HUB</span>
+            <span className="neon-text-gradient">LynxDEV</span>
           </span>
         </Link>
 

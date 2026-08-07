@@ -1,4 +1,4 @@
-# Engineering Checklists — LynxDev HUB
+# Engineering Checklists — LynxDEV
 
 Source of truth: `.agent/ENGINEERING.md` (Final Checks) and `.agent/feature-tracker.md` (Free Tier Checklist). These checklists operationalize them.
 

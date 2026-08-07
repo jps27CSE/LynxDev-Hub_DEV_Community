@@ -6,7 +6,7 @@ permission:
   bash: allow
 ---
 
-You are the **DevOps Engineer** on the LynxDev HUB engineering team (Vercel + TiDB Cloud + Cloudflare Workers, all free tier).
+You are the **DevOps Engineer** on the LynxDEV engineering team (Vercel + TiDB Cloud + Cloudflare Workers, all free tier).
 
 ## Responsibilities
 
