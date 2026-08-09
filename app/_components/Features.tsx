@@ -1,4 +1,10 @@
-import { BookOpen, Bot, Target, Users, type LucideIcon } from "lucide-react";
+import {
+  BookOpen,
+  BrainCircuit,
+  Code2,
+  Target,
+  type LucideIcon,
+} from "lucide-react";
 
 type Feature = {
   title: string;
@@ -13,29 +19,29 @@ const features: Feature[] = [
   {
     title: "Interactive Courses",
     description:
-      "Learn by doing with hands-on exercises, real-time feedback, and structured chapters — like freeCodeCamp, but leaner.",
+      "Hands-on courses with real exercises and an embedded editor per chapter — structured learning, not just videos.",
     icon: BookOpen,
     accent: "text-cyan-400",
     glow: "bg-cyan-400/10 shadow-[0_0_20px_rgba(34,211,238,0.2)]",
     chip: "text-cyan-400/80",
   },
   {
-    title: "AI Developer Mentor",
+    title: "Code Editor",
     description:
-      "Debug, design, and grow with an AI mentor that streams answers — powered by Mistral, always on.",
-    icon: Bot,
-    accent: "text-fuchsia-400",
-    glow: "bg-fuchsia-400/10 shadow-[0_0_20px_rgba(232,121,249,0.2)]",
-    chip: "text-fuchsia-400/80",
+      "A dedicated browser workspace — write and run JavaScript instantly, save your code as a file, and import it back.",
+    icon: Code2,
+    accent: "text-blue-400",
+    glow: "bg-blue-400/10 shadow-[0_0_20px_rgba(59,130,246,0.2)]",
+    chip: "text-blue-400/80",
   },
   {
-    title: "Developer Community",
+    title: "DSA Problems",
     description:
-      "Connect with fellow engineers, share knowledge, ask questions, and grow together as one hub.",
-    icon: Users,
-    accent: "text-violet-400",
-    glow: "bg-violet-400/10 shadow-[0_0_20px_rgba(167,139,250,0.2)]",
-    chip: "text-violet-400/80",
+      "Practice 183 top LeetCode classics plus 36 beginner drills — statement and editor side by side, mark solved as you go.",
+    icon: BrainCircuit,
+    accent: "text-amber-400",
+    glow: "bg-amber-400/10 shadow-[0_0_20px_rgba(251,191,36,0.2)]",
+    chip: "text-amber-400/80",
   },
   {
     title: "Interview Prep",
