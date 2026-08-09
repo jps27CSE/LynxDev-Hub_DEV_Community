@@ -58,7 +58,7 @@ function SectionKicker() {
   return (
     <div className="text-center mb-14">
       <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 font-mono text-xs text-muted-foreground mb-5">
-        <span className="text-cyan-400">//</span> features
+        <span className="text-cyan-400">//</span> first release
       </div>
       <h2 className="text-3xl sm:text-4xl font-display font-bold tracking-tight text-balance">
         Everything you need to{" "}
