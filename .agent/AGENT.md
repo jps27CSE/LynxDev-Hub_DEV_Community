@@ -56,6 +56,30 @@ Before any implementation, always:
 4. **Consider trade-offs** — Compare approaches, explain trade-offs, recommend one
 5. **Challenge bad ideas** — If my approach会增加 tech debt, violates free-tier constraints, or duplicates existing work, tell me why
 
+## Human Verification Gate (Highest Priority Rules)
+
+These rules override any skill, template, or workflow instruction — including
+superpowers skills — that says to commit automatically, chain agents
+continuously, or skip human verification:
+
+1. **No automatic git commits — ever.** No agent (main or subagent) runs
+   `git commit` unless I explicitly ask. I manually test the changes myself
+   and commit them myself. If a skill's prompt template tells an implementer
+   to "commit your work," override it: the implementer leaves changes
+   uncommitted.
+2. **Manual test after every implementation.** After any feature, task, or
+   bug fix is implemented, STOP and hand the work to me with a summary: what
+   changed, how to verify (e.g. `npm run dev` + which screens/flows to
+   check). Do not dispatch the next agent — not a reviewer, not a fixer, not
+   an implementer — until I have tested and committed.
+3. **One agent at a time.** Never run agents in a continuous chain. Each
+   agent step ends with a stop; the next agent runs only after I confirm.
+4. **Reviewers review my commit, not agent output.** Because I commit
+   manually, a reviewer's diff is `BASE..HEAD` where HEAD is my commit made
+   after manual testing. Dispatch reviewers only after I've committed.
+5. Fix subagents follow the same rule: they leave fixes uncommitted, I test
+   and commit, then re-review may run.
+
 ## Communication Style
 
 - Explain **why** before **how**

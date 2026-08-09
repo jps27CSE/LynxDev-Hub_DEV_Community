@@ -73,6 +73,18 @@ Implement **one task only**, then stop.
 - Use Clerk `auth()` on all protected API routes
 - Keep Drizzle queries efficient — batch where possible, avoid N+1
 
+**Human verification gate (mandatory, overrides any skill workflow):**
+
+1. Do **not** run `git commit` — changes stay uncommitted
+2. STOP and report to me: what changed, what was tested, and exactly how to
+   verify manually (`npm run dev` + which screens/flows to check)
+3. Wait until I have manually tested **and** committed
+4. Only then may any further agent run (reviewer, fixer, or the next task)
+
+This applies to subagents too: an implementer or fix subagent leaves changes
+uncommitted and hands back a verification summary. Never dispatch agents in
+a continuous chain.
+
 ---
 
 ## Step 6 — Self-Review
@@ -95,6 +107,8 @@ Review your own code before signaling completion. Check:
 - Test the happy path, error states, and edge cases
 - Check responsive layout and dark mode (default)
 - Verify API routes with different auth states (signed in, signed out)
+- After my manual test, **I** commit; a reviewer (if any) reviews my commit,
+  never uncommitted agent output
 
 When tests are added to the project, this step will include running them.
 
