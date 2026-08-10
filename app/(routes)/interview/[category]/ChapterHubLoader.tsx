@@ -28,7 +28,7 @@ function ChapterHubSkeleton() {
       </div>
 
       <div className="flex flex-1 items-start">
-        <aside className="hidden lg:flex w-72 flex-shrink-0 border-r border-border/40 bg-card/50 sticky top-0 h-dvh flex-col overflow-hidden">
+        <aside className="hidden lg:flex w-72 flex-shrink-0 border-r border-border/40 bg-[#07090e] sticky top-0 h-dvh flex-col overflow-hidden">
           <div className="p-4 pb-2">
             <Skeleton className="h-4 w-24 mb-4" />
             <Skeleton className="h-9 w-full rounded-lg" />
@@ -101,7 +101,7 @@ function ChapterHubSkeleton() {
                   {[0, 1].map((i) => (
                     <div
                       key={i}
-                      className="rounded-2xl border border-border bg-card p-6 pb-4 space-y-3"
+                      className="rounded-2xl border border-border bg-[#10141b] p-6 pb-4 space-y-3"
                     >
                       <div className="flex items-start gap-3">
                         <Skeleton className="h-3 w-6 mt-1" />
@@ -132,7 +132,7 @@ function ChapterHubSkeleton() {
           </div>
         </main>
 
-        <aside className="hidden xl:flex w-56 flex-shrink-0 border-l border-border/40 bg-card/50 sticky top-0 h-dvh flex-col overflow-y-auto">
+        <aside className="hidden xl:flex w-56 flex-shrink-0 border-l border-border/40 bg-[#07090e] sticky top-0 h-dvh flex-col overflow-y-auto">
           <div className="p-4">
             <Skeleton className="h-3 w-24 mb-3" />
             <div className="space-y-1.5">
