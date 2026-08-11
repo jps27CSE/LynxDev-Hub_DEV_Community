@@ -115,7 +115,7 @@ export default async function CoursesPage() {
                       <CourseIcon title={course.title} className="w-8 h-8" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="font-bold text-lg group-hover:text-emerald-500 transition-colors">
+                      <h2 className="font-bold text-lg leading-7 line-clamp-2 min-h-14 group-hover:text-emerald-500 transition-colors">
                         {course.title}
                       </h2>
                       <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">

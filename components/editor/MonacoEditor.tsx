@@ -8,17 +8,19 @@ type MonacoEditorProps = {
   value: string;
   onChange: (value: string) => void;
   height?: string;
+  language?: string;
 };
 
 export function MonacoEditor({
   value,
   onChange,
   height = "400px",
+  language = "javascript",
 }: MonacoEditorProps) {
   return (
     <Monaco
       height={height}
-      language="javascript"
+      language={language}
       value={value}
       onChange={(next) => onChange(next ?? "")}
       theme="vs-dark"

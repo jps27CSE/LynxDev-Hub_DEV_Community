@@ -25,10 +25,23 @@ export type Chapter = {
     instructions: string;
     initialCode: string;
     solution: string;
+    type?: "console" | "browser";
   };
   order_index: number | null;
   points_reward: number | null;
 };
+
+export function getCourseLanguage(
+  title: string,
+  contentType?: "console" | "browser",
+): string {
+  const lower = title.toLowerCase();
+  if (lower.includes("css")) return "css";
+  if (lower.includes("typescript")) return "typescript";
+  if (lower.includes("javascript")) return "javascript";
+  if (lower.includes("html")) return "html";
+  return contentType === "console" ? "javascript" : "html";
+}
 
 export const getAllCourses = cache(async (): Promise<Course[]> => {
   try {

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { getCourseById, getChaptersByCourseId } from "@/lib/course-data";
+import { getCourseById, getChaptersByCourseId, getCourseLanguage } from "@/lib/course-data";
 import LessonClient from "./LessonClient";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -25,7 +25,7 @@ export default async function LessonPage({
     currentIndex < chapters.length - 1 ? chapters[currentIndex + 1] : null;
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex flex-col lg:h-screen lg:overflow-hidden">
       <PageHeader>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -57,7 +57,11 @@ export default async function LessonPage({
         </div>
       </PageHeader>
 
-      <LessonClient chapter={chapter} courseId={course.id} />
+      <LessonClient
+        chapter={chapter}
+        courseId={course.id}
+        language={getCourseLanguage(course.title, chapter.content.type)}
+      />
     </div>
   );
 }

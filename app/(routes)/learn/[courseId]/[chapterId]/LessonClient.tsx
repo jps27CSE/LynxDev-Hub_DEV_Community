@@ -6,6 +6,15 @@ import { Play, RotateCcw, Eye, CheckCircle, Loader2, Star } from "lucide-react";
 import axios from "axios";
 import { UserDetailContext } from "@/context/UserDetailContext";
 import { toast } from "sonner";
+import { MonacoEditor } from "@/components/editor/MonacoEditor";
+
+const IFRAME_SCROLLBAR_CSS = [
+  "html{scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.35) transparent}",
+  "::-webkit-scrollbar{width:8px;height:8px}",
+  "::-webkit-scrollbar-track{background:transparent}",
+  "::-webkit-scrollbar-thumb{background:rgba(100,116,139,0.35);border-radius:9999px}",
+  "::-webkit-scrollbar-thumb:hover{background:rgba(100,116,139,0.55)}",
+].join("");
 
 type ChapterData = {
   id: number;
@@ -21,9 +30,11 @@ type ChapterData = {
 export default function LessonClient({
   chapter,
   courseId,
+  language,
 }: {
   chapter: ChapterData;
   courseId: number;
+  language: string;
 }) {
   const [code, setCode] = useState(chapter.content.initialCode);
   const [output, setOutput] = useState("");
@@ -40,17 +51,19 @@ export default function LessonClient({
       return;
     }
 
+    let originalLog: typeof console.log | undefined;
     try {
       const logs: string[] = [];
-      const originalLog = console.log;
+      originalLog = console.log;
       console.log = (...args) => {
         logs.push(args.map(String).join(" "));
       };
       eval(code);
-      console.log = originalLog;
       setOutput(logs.join("\n") || "Code executed successfully (no output)");
     } catch (e) {
       setOutput(`Error: ${(e as Error).message}`);
+    } finally {
+      if (originalLog) console.log = originalLog;
     }
   };
 
@@ -62,6 +75,9 @@ export default function LessonClient({
         doc.open();
         doc.write(code);
         doc.close();
+        const style = doc.createElement("style");
+        style.textContent = IFRAME_SCROLLBAR_CSS;
+        doc.head?.appendChild(style);
       }
     }
   }, [code, isBrowserMode]);
@@ -104,8 +120,8 @@ export default function LessonClient({
   };
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row">
-      <div className="lg:w-2/5 border-b lg:border-b-0 lg:border-r border-border/40 overflow-y-auto p-6 bg-card">
+    <div className="flex-1 flex flex-col lg:flex-row min-h-0 lg:overflow-hidden">
+      <div className="lg:w-2/5 border-b lg:border-b-0 lg:border-r border-border/40 overflow-y-auto p-6 bg-card min-h-0 scrollbar-thin overscroll-contain max-h-[45dvh] lg:max-h-none">
         <div className="max-w-none">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold">{chapter.title}</h2>
@@ -141,14 +157,14 @@ export default function LessonClient({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col lg:flex-row">
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex-1 p-4 bg-[#1e1e1e]">
-            <textarea
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
+          <div className="flex-1 min-h-[250px] p-4 bg-[#1e1e1e]">
+            <MonacoEditor
               value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="w-full h-full min-h-[250px] bg-transparent text-[#d4d4d4] font-mono text-sm resize-none outline-none leading-relaxed"
-              spellCheck={false}
+              onChange={setCode}
+              height="100%"
+              language={language}
             />
           </div>
 
@@ -169,7 +185,7 @@ export default function LessonClient({
             </div>
 
             {!isBrowserMode && output && (
-              <div className="mt-3 rounded-lg bg-[#1e1e1e] p-3">
+              <div className="mt-3 rounded-lg bg-[#1e1e1e] p-3 max-h-64 overflow-y-auto scrollbar-thin overscroll-contain">
                 <pre className="text-sm text-[#d4d4d4] font-mono whitespace-pre-wrap">
                   {output}
                 </pre>
@@ -179,8 +195,8 @@ export default function LessonClient({
         </div>
 
         {isBrowserMode && (
-          <div className="lg:w-1/2 border-t lg:border-t-0 lg:border-l border-border/40 bg-white">
-            <div className="flex items-center gap-2 px-4 py-2 bg-[#f5f5f5] border-b border-border/40">
+          <div className="lg:w-1/2 border-t lg:border-t-0 lg:border-l border-border/40 bg-white flex flex-col min-h-0 min-w-0">
+            <div className="flex items-center gap-2 px-4 py-2 bg-[#f5f5f5] border-b border-border/40 flex-none">
               <div className="w-3 h-3 rounded-full bg-red-500" />
               <div className="w-3 h-3 rounded-full bg-yellow-500" />
               <div className="w-3 h-3 rounded-full bg-green-500" />
@@ -190,7 +206,7 @@ export default function LessonClient({
             </div>
             <iframe
               ref={iframeRef}
-              className="w-full h-full min-h-[300px]"
+              className="w-full flex-1 min-h-[300px] lg:min-h-0"
               title="Browser Preview"
             />
           </div>
