@@ -54,7 +54,7 @@ const EnrolledCourses = ({
       </div>
       <div className="grid sm:grid-cols-2 gap-4">
         {enrollments.map((enrollment) => {
-          const done = enrollment.progress.completedChapters.length;
+          const done = enrollment.completedCount;
           const total = enrollment.totalChapters;
           const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 

@@ -37,8 +37,10 @@ export type EnrolledCourse = {
   user_id: number;
   course_id: number;
   progress: { completedChapters: number[]; currentChapter: number };
+  completedCount: number;
   nextChapterId: number | null;
   nextChapterNumber: number;
+  nextChapterTitle: string | null;
   totalChapters: number;
   started_at: string;
   completed_at: string | null;
@@ -70,11 +72,12 @@ export const getEnrollmentsByEmail = cache(
 
       if (rows.length === 0) return [];
 
-      const chapterIdsByCourse = new Map<number, number[]>();
+      const chaptersByCourse = new Map<number, { id: number; title: string }[]>();
       const chapterRows = await db
         .select({
           courseId: chapters.course_id,
           chapterId: chapters.id,
+          title: chapters.title,
           orderIndex: chapters.order_index,
         })
         .from(chapters)
@@ -87,9 +90,9 @@ export const getEnrollmentsByEmail = cache(
         .orderBy(chapters.course_id, chapters.order_index, chapters.id);
 
       for (const ch of chapterRows) {
-        const ids = chapterIdsByCourse.get(ch.courseId) ?? [];
-        ids.push(ch.chapterId);
-        chapterIdsByCourse.set(ch.courseId, ids);
+        const list = chaptersByCourse.get(ch.courseId) ?? [];
+        list.push({ id: ch.chapterId, title: ch.title });
+        chaptersByCourse.set(ch.courseId, list);
       }
 
       return rows.map((r) => {
@@ -100,15 +103,17 @@ export const getEnrollmentsByEmail = cache(
         const completedChapters = Array.isArray(rawProgress?.completedChapters)
           ? rawProgress.completedChapters
           : [];
+        const chapterList = chaptersByCourse.get(r.course.id) ?? [];
+        const chapterIds = chapterList.map((c) => c.id);
         const completedSet = new Set(completedChapters);
 
-        const chapterIds = chapterIdsByCourse.get(r.course.id) ?? [];
+        const completedCount = chapterIds.filter((id) => completedSet.has(id))
+          .length;
         const nextChapterIndex = chapterIds.findIndex(
           (id) => !completedSet.has(id),
         );
-
-        const nextChapterId =
-          nextChapterIndex >= 0 ? chapterIds[nextChapterIndex] : null;
+        const nextChapter =
+          nextChapterIndex >= 0 ? chapterList[nextChapterIndex] : null;
 
         return {
           id: r.enrollment.id,
@@ -119,10 +124,12 @@ export const getEnrollmentsByEmail = cache(
             currentChapter:
               typeof rawProgress?.currentChapter === "number"
                 ? rawProgress.currentChapter
-                : nextChapterId ?? 1,
+                : nextChapter?.id ?? 1,
           },
-          nextChapterId,
+          completedCount,
+          nextChapterId: nextChapter?.id ?? null,
           nextChapterNumber: nextChapterIndex + 1,
+          nextChapterTitle: nextChapter?.title ?? null,
           started_at: r.enrollment.started_at?.toISOString() ?? "",
           completed_at: r.enrollment.completed_at?.toISOString() ?? null,
           totalChapters: r.course.chapter_count,
