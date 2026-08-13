@@ -11,6 +11,7 @@ import {
   notFound,
 } from "@/lib/api-error";
 import { getEnrollmentsByEmail } from "@/lib/enroll-data";
+import { getChaptersByCourseId } from "@/lib/course-data";
 import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 
 const EnrollSchema = z.object({
@@ -63,7 +64,16 @@ export async function POST(req: NextRequest) {
 
   if (existing.length > 0) return NextResponse.json(existing[0]);
 
-  await db.insert(enrollments).values({ user_id: userId, course_id: courseId });
+  const firstChapter = await getChaptersByCourseId(courseId);
+
+  await db.insert(enrollments).values({
+    user_id: userId,
+    course_id: courseId,
+    progress: {
+      completedChapters: [],
+      currentChapter: firstChapter[0]?.id ?? 1,
+    },
+  });
 
   const created = await db
     .select()

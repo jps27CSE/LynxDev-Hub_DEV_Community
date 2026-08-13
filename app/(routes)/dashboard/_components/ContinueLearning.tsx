@@ -32,7 +32,9 @@ async function ContinueLearning({ email }: { email: string }) {
   const done = current.progress.completedChapters.length;
   const total = current.totalChapters;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-  const href = `/learn/${current.course_id}/${current.progress.currentChapter}`;
+  const href = current.nextChapterId
+    ? `/learn/${current.course_id}/${current.nextChapterId}`
+    : `/courses/${current.course_id}`;
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
@@ -52,7 +54,7 @@ async function ContinueLearning({ email }: { email: string }) {
             {current.course.title}
           </Link>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Chapter {current.progress.currentChapter} of {total}
+            Chapter {current.nextChapterNumber} of {total}
           </p>
         </div>
       </div>

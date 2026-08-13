@@ -62,9 +62,9 @@ const EnrolledCourses = ({
             <Link
               key={enrollment.id}
               href={
-                enrollment.completed_at
+                enrollment.completed_at || !enrollment.nextChapterId
                   ? `/courses/${enrollment.course_id}`
-                  : `/learn/${enrollment.course_id}/${enrollment.progress.currentChapter}`
+                  : `/learn/${enrollment.course_id}/${enrollment.nextChapterId}`
               }
               className="group relative rounded-2xl border border-border/50 bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 outline-none overflow-hidden"
             >
