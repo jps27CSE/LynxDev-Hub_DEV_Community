@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { getCourseById, getChaptersByCourseId, getCourseLanguage } from "@/lib/course-data";
+import {
+  getCourseById,
+  getChaptersByCourseId,
+  getCourseLanguage,
+} from "@/lib/course-data";
 import LessonClient from "./LessonClient";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -31,12 +35,13 @@ export default async function LessonPage({
           <div className="flex items-center gap-4">
             <Link
               href={`/courses/${course.id}`}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-emerald-500 transition-colors"
             >
               &larr; {course.title}
             </Link>
             <span className="text-muted-foreground">/</span>
-            <span className="text-sm font-medium truncate max-w-[300px]">
+            <span className="inline-flex items-center gap-2 text-sm font-display font-semibold truncate max-w-[300px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shrink-0" />
               {chapter.title}
             </span>
           </div>

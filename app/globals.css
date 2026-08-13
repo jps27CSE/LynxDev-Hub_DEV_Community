@@ -289,8 +289,12 @@
   background-size: 32px 32px;
 }
 
+.lesson-content > *:first-child {
+  margin-top: 0;
+}
+
 .lesson-content p {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .lesson-content code {
@@ -307,33 +311,71 @@
 
 .lesson-content strong {
   color: var(--foreground);
+  font-weight: 600;
 }
 
 .lesson-content ul,
 .lesson-content ol {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
   padding-left: 1.5rem;
 }
 
-.lesson-content li {
-  margin-bottom: 0.25rem;
+.lesson-content ul {
+  list-style: disc;
 }
 
-.lesson-content h1,
-.lesson-content h2,
-.lesson-content h3 {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  margin-top: 0.5rem;
+.lesson-content ol {
+  list-style: decimal;
+}
+
+.lesson-content li {
+  margin-bottom: 0.375rem;
+}
+
+.lesson-content li::marker {
+  color: var(--muted-foreground);
+}
+
+.lesson-content h1 {
+  font-size: 1.25rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
   color: var(--foreground);
 }
 
 .lesson-content h2 {
   font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--foreground);
 }
 
 .lesson-content h3 {
   font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--foreground);
+}
+
+.lesson-content pre {
+  margin: 0.75rem 0 1rem;
+}
+
+.lesson-content blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--muted-foreground);
+}
+
+.lesson-content hr {
+  border-color: var(--border);
+  margin: 1.5rem 0;
 }
 
 @layer base {

@@ -121,19 +121,25 @@ export default function LessonClient({
 
   return (
     <div className="flex-1 flex flex-col lg:flex-row min-h-0 lg:overflow-hidden">
-      <div className="lg:w-2/5 border-b lg:border-b-0 lg:border-r border-border/40 overflow-y-auto p-6 bg-card min-h-0 scrollbar-thin overscroll-contain max-h-[45dvh] lg:max-h-none">
-        <div className="max-w-none">
+      <div className="lg:w-2/5 border-b lg:border-b-0 lg:border-r border-border/40 overflow-y-auto bg-card min-h-0 scrollbar-thin overscroll-contain max-h-[45dvh] lg:max-h-none">
+        <div className="p-6 max-w-none">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-[11px] text-muted-foreground mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            Hands-on Lesson
+          </div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold">{chapter.title}</h2>
+            <h2 className="text-lg font-display font-bold tracking-tight">
+              {chapter.title}
+            </h2>
             {completed && (
-              <span className="text-xs text-green-500 font-medium flex items-center gap-1">
+              <span className="text-xs text-emerald-500 font-medium flex items-center gap-1">
                 <CheckCircle className="w-3.5 h-3.5" />
                 Completed
               </span>
             )}
           </div>
           <div
-            className="text-sm leading-relaxed text-muted-foreground lesson-content"
+            className="text-[15px] leading-7 text-foreground/80 lesson-content max-w-prose"
             dangerouslySetInnerHTML={{ __html: chapter.content.instructions }}
           />
           <div className="mt-6">
@@ -185,8 +191,26 @@ export default function LessonClient({
             </div>
 
             {!isBrowserMode && output && (
-              <div className="mt-3 rounded-lg bg-[#1e1e1e] p-3 max-h-64 overflow-y-auto scrollbar-thin overscroll-contain">
-                <pre className="text-sm text-[#d4d4d4] font-mono whitespace-pre-wrap">
+              <div className="mt-3 rounded-lg bg-[#1e1e1e] max-h-64 overflow-y-auto scrollbar-thin overscroll-contain">
+                <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border-b border-white/10 sticky top-0">
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      output.startsWith("Error:")
+                        ? "bg-red-500"
+                        : "bg-emerald-500 animate-pulse"
+                    }`}
+                  />
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                    Console Output
+                  </span>
+                </div>
+                <pre
+                  className={`text-sm font-mono whitespace-pre-wrap p-3 ${
+                    output.startsWith("Error:")
+                      ? "text-red-400"
+                      : "text-[#d4d4d4]"
+                  }`}
+                >
                   {output}
                 </pre>
               </div>
