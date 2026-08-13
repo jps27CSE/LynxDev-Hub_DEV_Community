@@ -43,6 +43,13 @@
       "when": 1785911929458,
       "tag": "0005_add-rate-limits-table",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1786604016590,
+      "tag": "0006_tiresome_zzzax",
+      "breakpoints": true
     }
   ]
 }

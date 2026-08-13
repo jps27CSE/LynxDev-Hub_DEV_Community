@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
 
       await tx
         .update(enrollments)
-        .set({ progress })
+        .set({ progress, updated_at: new Date() })
         .where(eq(enrollments.id, enrollmentRecord.id));
 
       const newPoints = (user.points ?? 0) + pointsReward;

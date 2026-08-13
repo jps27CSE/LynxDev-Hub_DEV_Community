@@ -1,0 +1,1 @@
+ALTER TABLE `enrollments` ADD `updated_at` timestamp DEFAULT (now());

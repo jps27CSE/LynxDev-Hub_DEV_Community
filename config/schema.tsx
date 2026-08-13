@@ -55,6 +55,7 @@ export const enrollments = mysqlTable(
       .notNull(),
     progress: json(),
     started_at: timestamp("started_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
     completed_at: timestamp("completed_at"),
   },
   (table) => [

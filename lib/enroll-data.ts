@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { db } from "@/config/db";
 import { usersTable, enrollments, courses, chapters } from "@/config/schema";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, desc } from "drizzle-orm";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("enroll-data");
@@ -68,7 +68,8 @@ export const getEnrollmentsByEmail = cache(
         })
         .from(enrollments)
         .where(eq(enrollments.user_id, user.id))
-        .innerJoin(courses, eq(enrollments.course_id, courses.id));
+        .innerJoin(courses, eq(enrollments.course_id, courses.id))
+        .orderBy(desc(enrollments.updated_at), desc(enrollments.id));
 
       if (rows.length === 0) return [];
 
