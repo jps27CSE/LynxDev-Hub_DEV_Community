@@ -1,10 +1,36 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Code2, GraduationCap, Trophy } from "lucide-react";
+import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/config/db";
 import { courses } from "@/config/schema";
 import { eq, asc } from "drizzle-orm";
 import CourseIcon from "@/components/CourseIcon";
+import { getEnrollmentsByEmail } from "@/lib/enroll-data";
 import { difficultyBadgeClass, difficultyIconClass } from "@/lib/interview-ui";
+
+const howItWorks = [
+  {
+    icon: GraduationCap,
+    title: "Enroll in a course",
+    description:
+      "Pick a track that matches your goal — HTML, JavaScript, React, and more — and enroll in seconds.",
+    accent: "bg-emerald-500/10 text-emerald-500",
+  },
+  {
+    icon: Code2,
+    title: "Code hands-on lessons",
+    description:
+      "Learn by building: read short lessons, write real code in the browser editor, and run it instantly.",
+    accent: "bg-sky-500/10 text-sky-500",
+  },
+  {
+    icon: Trophy,
+    title: "Earn points & track progress",
+    description:
+      "Complete chapters to earn points and badges while watching your progress bar fill up.",
+    accent: "bg-amber-500/10 text-amber-500",
+  },
+];
 
 export default async function CoursesPage() {
   const filteredCourses = await db
@@ -12,6 +38,11 @@ export default async function CoursesPage() {
     .from(courses)
     .where(eq(courses.is_published!, true))
     .orderBy(asc(courses.order_index));
+
+  const clerkUser = await currentUser();
+  const email = clerkUser?.primaryEmailAddress?.emailAddress;
+  const enrollments = email ? await getEnrollmentsByEmail(email) : [];
+  const enrollmentByCourse = new Map(enrollments.map((e) => [e.course_id, e]));
 
   return (
     <>
@@ -88,6 +119,14 @@ export default async function CoursesPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredCourses.map((course) => {
               const chapterCount = course.chapter_count || 0;
+              const enrollment = enrollmentByCourse.get(course.id) ?? null;
+              const coursePct =
+                enrollment && enrollment.totalChapters > 0
+                  ? Math.round(
+                      (enrollment.completedCount / enrollment.totalChapters) *
+                        100,
+                    )
+                  : 0;
 
               return (
                 <Link
@@ -146,11 +185,68 @@ export default async function CoursesPage() {
                       </>
                     )}
                   </div>
+
+                  {enrollment && (
+                    <div className="relative mt-4">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span
+                          className={`text-[11px] font-medium ${
+                            coursePct === 100
+                              ? "text-emerald-500"
+                              : "text-primary"
+                          }`}
+                        >
+                          {coursePct === 100 ? "Completed" : "In progress"}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {enrollment.completedCount}/{enrollment.totalChapters}{" "}
+                          chapters
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-700 ${
+                            coursePct === 100
+                              ? "bg-emerald-500"
+                              : "bg-gradient-to-r from-primary to-primary/60"
+                          }`}
+                          style={{ width: `${coursePct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </Link>
               );
             })}
           </div>
         )}
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <h2 className="text-xl font-semibold">How it works</h2>
+        <div className="grid sm:grid-cols-3 gap-4 mt-6">
+          {howItWorks.map((step, i) => (
+            <div
+              key={step.title}
+              className="rounded-2xl border border-border bg-card p-6"
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-10 h-10 rounded-lg ${step.accent} flex items-center justify-center flex-shrink-0`}
+                >
+                  <step.icon className="w-5 h-5" />
+                </div>
+                <span className="text-3xl font-display font-bold text-muted-foreground/20">
+                  {i + 1}
+                </span>
+              </div>
+              <h3 className="font-semibold mt-4">{step.title}</h3>
+              <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+                {step.description}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );
