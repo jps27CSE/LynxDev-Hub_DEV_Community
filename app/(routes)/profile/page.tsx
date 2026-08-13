@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,31 +32,71 @@ export default function ProfilePage() {
   const [points, setPoints] = useState(0);
   const [enrolledCount, setEnrolledCount] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
+  const [profileError, setProfileError] = useState(false);
+  const [enrollError, setEnrollError] = useState(false);
 
-  useEffect(() => {
-    if (!clerkUser) return;
+  const loadProfile = useCallback(() => {
     fetch("/api/user/profile")
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
-        setName(data.name || clerkUser.fullName || "");
+        setName(data.name || clerkUser?.fullName || "");
         setBio(data.bio || "");
         setSkills(Array.isArray(data.skills) ? data.skills : []);
         setPoints(data.points || 0);
+        setProfileError(false);
       })
-      .catch(() => {})
+      .catch((error) => {
+        console.error("[profile] load failed:", error);
+        setProfileError(true);
+      })
       .finally(() => setLoading(false));
+  }, [clerkUser]);
+
+  const refreshStats = useCallback(() => {
+    fetch("/api/user/profile")
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((data) => setPoints(data.points || 0))
+      .catch((error) => {
+        console.error("[profile] points refresh failed:", error);
+        setProfileError(true);
+      });
 
     fetch("/api/enroll")
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         const list: Array<{ completed_at: string | null }> = Array.isArray(data)
           ? data
           : [];
         setEnrolledCount(list.length);
         setCompletedCount(list.filter((e) => e.completed_at).length);
+        setEnrollError(false);
       })
-      .catch(() => {});
-  }, [clerkUser]);
+      .catch((error) => {
+        console.error("[profile] enroll stats failed:", error);
+        setEnrollError(true);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!clerkUser) return;
+    loadProfile();
+    refreshStats();
+  }, [clerkUser, loadProfile, refreshStats]);
+
+  useEffect(() => {
+    const onFocus = () => refreshStats();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [refreshStats]);
 
   const addSkill = () => {
     const trimmed = skillInput.trim();
@@ -98,22 +138,27 @@ export default function ProfilePage() {
   }
 
   const stats = [
-    { label: "Points", value: points, icon: Sparkles, color: "text-amber-500" },
+    {
+      label: "Points",
+      value: profileError ? "—" : points,
+      icon: Sparkles,
+      color: "text-amber-500",
+    },
     {
       label: "Skills",
-      value: skills.length,
+      value: profileError ? "—" : skills.length,
       icon: Layers,
       color: "text-blue-500",
     },
     {
       label: "Enrolled",
-      value: enrolledCount,
+      value: enrollError ? "—" : enrolledCount,
       icon: BookOpen,
       color: "text-emerald-500",
     },
     {
       label: "Completed",
-      value: completedCount,
+      value: enrollError ? "—" : completedCount,
       icon: Trophy,
       color: "text-violet-500",
     },
