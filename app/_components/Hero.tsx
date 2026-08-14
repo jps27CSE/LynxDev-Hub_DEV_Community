@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 const stats = [
-  { value: "12+", label: "Interactive courses", accent: "text-cyan-400" },
+  { value: "3+", label: "Interactive courses", accent: "text-cyan-400" },
   { value: "900+", label: "Interview questions", accent: "text-fuchsia-400" },
   { value: "$0", label: "Forever free", accent: "text-lime-400" },
 ];
@@ -22,7 +22,7 @@ function TerminalLines() {
       </p>
       <p className="text-lime-400">✔ booting developer platform...</p>
       <p className="text-slate-300">
-        <span className="text-cyan-400">✔</span> 12+ interactive courses loaded
+        <span className="text-cyan-400">✔</span> 3+ interactive courses loaded
       </p>
       <p className="text-slate-300">
         <span className="text-cyan-400">✔</span> 900+ interview questions

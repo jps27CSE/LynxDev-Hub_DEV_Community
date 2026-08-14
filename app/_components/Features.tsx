@@ -37,7 +37,7 @@ const features: Feature[] = [
   {
     title: "DSA Problems",
     description:
-      "Practice 183 top LeetCode classics plus 36 beginner drills — statement and editor side by side, mark solved as you go.",
+      "Practice 220+ DSA problems — beginner drills to LeetCode classics — statement and editor side by side, mark solved as you go.",
     icon: BrainCircuit,
     accent: "text-amber-400",
     glow: "bg-amber-400/10 shadow-[0_0_20px_rgba(251,191,36,0.2)]",

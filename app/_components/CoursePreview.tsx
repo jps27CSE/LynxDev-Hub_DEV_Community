@@ -6,31 +6,24 @@ import { difficultyBadgeClass, difficultyIconClass } from "@/lib/interview-ui";
 
 const courses = [
   {
-    title: "HTML & CSS Fundamentals",
+    title: "Learn HTML — Build Websites From Scratch",
     description:
-      "Build your first web pages with semantic HTML and modern CSS — the foundation of every website.",
+      "Semantic markup, forms, tables, and accessibility — build real multi-page sites starting from your first chapter.",
     difficulty: "Beginner" as const,
-    chapters: 12,
+    chapters: 14,
   },
   {
-    title: "JavaScript Essentials",
+    title: "CSS Essentials — Style the Web",
     description:
-      "Master variables, functions, DOM manipulation, and ES6+ features to bring your pages to life.",
+      "Colors, the box model, flexbox, and positioning — style complete layouts like profile cards and hero sections.",
     difficulty: "Beginner" as const,
-    chapters: 16,
+    chapters: 14,
   },
   {
-    title: "React Development",
+    title: "JavaScript Fundamentals — Code It Yourself",
     description:
-      "Build modern UIs with components, hooks, state management, and the full React ecosystem.",
-    difficulty: "Intermediate" as const,
-    chapters: 20,
-  },
-  {
-    title: "Node.js Backend",
-    description:
-      "Create REST APIs, handle databases, authenticate users, and deploy your backend to production.",
-    difficulty: "Intermediate" as const,
+      "Variables, functions, arrays, and objects — write and run real programs in the embedded browser editor.",
+    difficulty: "Beginner" as const,
     chapters: 14,
   },
 ];
@@ -55,7 +48,7 @@ function CoursePreview() {
             developer — with real exercises, not just videos.
           </p>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {courses.map((course) => {
             return (
               <div

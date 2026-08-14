@@ -2,7 +2,7 @@
 
 import * as Clerk from "@clerk/elements/common";
 import * as SignIn from "@clerk/elements/sign-in";
-import { BookOpen, Bot, Target, Users, type LucideIcon } from "lucide-react";
+import { BookOpen, Bot, BrainCircuit, Code2, Target, type LucideIcon } from "lucide-react";
 import {
   AuthPageBackground,
   AuthShell,
@@ -16,8 +16,18 @@ const platformPoints: {
 }[] = [
   {
     icon: BookOpen,
-    text: "12+ interactive courses — learn by doing",
+    text: "3+ interactive courses with an embedded editor per chapter",
     accent: "text-cyan-400",
+  },
+  {
+    icon: Code2,
+    text: "Browser code editor — write and run JavaScript instantly",
+    accent: "text-blue-400",
+  },
+  {
+    icon: BrainCircuit,
+    text: "220+ DSA problems — beginner drills to LeetCode classics",
+    accent: "text-amber-400",
   },
   {
     icon: Bot,
@@ -28,11 +38,6 @@ const platformPoints: {
     icon: Target,
     text: "900+ interview questions, tag-based prep",
     accent: "text-lime-400",
-  },
-  {
-    icon: Users,
-    text: "a community of developers that grows with you",
-    accent: "text-violet-400",
   },
 ];
 
