@@ -2,7 +2,7 @@
 
 import * as Clerk from "@clerk/elements/common";
 import * as SignIn from "@clerk/elements/sign-in";
-import { BookOpen, Bot, BrainCircuit, Code2, Target, type LucideIcon } from "lucide-react";
+import { BookOpen, BrainCircuit, Code2, Target, type LucideIcon } from "lucide-react";
 import {
   AuthPageBackground,
   AuthShell,
@@ -28,11 +28,6 @@ const platformPoints: {
     icon: BrainCircuit,
     text: "220+ DSA problems — beginner drills to LeetCode classics",
     accent: "text-amber-400",
-  },
-  {
-    icon: Bot,
-    text: "AI mentor that streams answers 24/7",
-    accent: "text-fuchsia-400",
   },
   {
     icon: Target,
@@ -67,9 +62,8 @@ export default function SignInPage() {
           </h1>
 
           <p className="mt-6 text-lg text-slate-400 max-w-md leading-relaxed">
-            Interactive courses, an AI mentor, interview prep, and a developer
-            community — handcrafted, zero-cost, and built for engineers who want
-            to ship.
+            Interactive courses, 220+ DSA problems, and interview prep —
+            handcrafted, zero-cost, and built for engineers who want to ship.
           </p>
 
           <ul className="mt-10 space-y-4">

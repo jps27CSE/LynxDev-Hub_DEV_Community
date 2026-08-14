@@ -19,7 +19,7 @@ export default async function InterviewStats() {
             <p className="text-xs text-muted-foreground">
               {stats
                 ? `${stats.questionCount} curated questions to practice`
-                : "Curated questions & AI-powered practice"}
+                : "Curated questions, chapters & practice"}
             </p>
           </div>
         </div>

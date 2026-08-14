@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
   ArrowRight,
-  Bot,
+  Code2,
   Infinity as InfinityIcon,
   Sparkles,
 } from "lucide-react";
@@ -29,9 +29,7 @@ function TerminalLines() {
         indexed
       </p>
       <p className="text-slate-300">
-        <span className="text-cyan-400">✔</span>{" "}
-        <span className="text-fuchsia-400">ai-mentor</span> online — streaming
-        ready
+        <span className="text-cyan-400">✔</span> 220+ DSA problems indexed
       </p>
       <p className="mt-3 text-slate-400">
         <span className="text-cyan-400">$</span> welcome, developer.
@@ -71,12 +69,11 @@ function Hero() {
             </h1>
 
             <p className="mt-6 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Interactive courses, an AI mentor, interview prep, and a developer
-              community — handcrafted, zero-cost, and built for engineers who
-              want to ship.
+              Interactive courses, 220+ DSA problems, and interview prep —
+              handcrafted, zero-cost, and built for engineers who want to ship.
             </p>
 
-            <div className="mt-9 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4">
+            <div className="mt-9 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               <Link href="/sign-in" className="w-full sm:w-auto">
                 <Button
                   size="lg"
@@ -90,7 +87,7 @@ function Hero() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="w-full sm:w-auto text-base px-8 py-2 rounded-lg border-cyan-400/30 bg-transparent text-cyan-100 hover:bg-cyan-400/10 hover:text-white hover:border-cyan-400/60"
+                  className="w-full sm:w-auto text-base px-8 h-12 rounded-lg border-cyan-400/30 bg-transparent text-cyan-100 hover:bg-cyan-400/10 hover:text-white hover:border-cyan-400/60"
                 >
                   Browse Courses
                 </Button>
@@ -132,9 +129,9 @@ function Hero() {
 
             <div className="neon-float absolute -top-6 -left-8 rounded-xl border border-cyan-400/30 bg-[#0a0c14]/90 px-4 py-3 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
               <div className="flex items-center gap-2">
-                <Bot className="w-4 h-4 text-cyan-400" />
+                <Code2 className="w-4 h-4 text-cyan-400" />
                 <span className="font-mono text-xs text-cyan-100">
-                  npm run mentor
+                  npm run learn
                 </span>
               </div>
             </div>

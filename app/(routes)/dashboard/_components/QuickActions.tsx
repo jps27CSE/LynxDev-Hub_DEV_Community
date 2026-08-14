@@ -12,7 +12,7 @@ const actions = [
   },
   {
     label: "Interview Prep",
-    description: "Curated questions, chapters & AI practice",
+    description: "Curated questions, chapters & practice",
     href: "/interview",
     icon: Sparkles,
     accent: "bg-purple-500/10 text-purple-500",
