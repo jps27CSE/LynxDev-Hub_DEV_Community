@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { OnMount } from "@monaco-editor/react";
 
 const Monaco = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
@@ -9,6 +10,8 @@ type MonacoEditorProps = {
   onChange: (value: string) => void;
   height?: string;
   language?: string;
+  fontSize?: number;
+  onMount?: OnMount;
 };
 
 export function MonacoEditor({
@@ -16,6 +19,8 @@ export function MonacoEditor({
   onChange,
   height = "400px",
   language = "javascript",
+  fontSize = 13,
+  onMount,
 }: MonacoEditorProps) {
   return (
     <Monaco
@@ -23,10 +28,11 @@ export function MonacoEditor({
       language={language}
       value={value}
       onChange={(next) => onChange(next ?? "")}
+      onMount={onMount}
       theme="vs-dark"
       options={{
         minimap: { enabled: false },
-        fontSize: 13,
+        fontSize,
         fontFamily: "var(--font-jetbrains-mono), monospace",
         scrollBeyondLastLine: false,
         automaticLayout: true,
