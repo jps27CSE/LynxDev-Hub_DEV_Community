@@ -1,9 +1,12 @@
 import { unstable_cache } from "next/cache";
 
+export const DEFAULT_CONTENT_CACHE_TTL = 3600;
+
 export type ContentCacheConfig = {
   tag: string;
   version: number;
-  ttl: number;
+  /** Seconds to cache, or `false` to cache indefinitely (version-bump-only invalidation). */
+  ttl: number | false;
 };
 
 /**

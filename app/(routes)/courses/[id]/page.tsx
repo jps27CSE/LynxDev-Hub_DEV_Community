@@ -31,6 +31,9 @@ export default async function CourseDetailPage({
 }) {
   const { id } = await params;
   const courseId = parseInt(id);
+  if (!Number.isInteger(courseId)) {
+    notFound();
+  }
   const course = await getCourseById(courseId);
   const chapterList = await getChaptersByCourseId(courseId);
 

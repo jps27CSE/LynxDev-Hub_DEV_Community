@@ -4,7 +4,7 @@ import { interviewCategories, problems } from "@/config/schema";
 import { INTERVIEW_PUBLISHED_SLUGS } from "@/lib/interview-constants";
 import { getReachableQuestionStats } from "@/lib/interview-data";
 import { createLogger } from "@/lib/logger";
-import { createContentCache } from "@/lib/content-cache";
+import { createContentCache, DEFAULT_CONTENT_CACHE_TTL } from "@/lib/content-cache";
 import { count, inArray } from "drizzle-orm";
 
 const log = createLogger("dashboard-stats");
@@ -16,12 +16,11 @@ const log = createLogger("dashboard-stats");
  * Cached values are shared references across requests — treat as read-only.
  */
 const DASHBOARD_STATS_CACHE_VERSION = 2;
-const DASHBOARD_STATS_CACHE_TTL = 3600;
 
 const withDashboardStatsCache = createContentCache({
   tag: "dashboard-stats",
   version: DASHBOARD_STATS_CACHE_VERSION,
-  ttl: DASHBOARD_STATS_CACHE_TTL,
+  ttl: DEFAULT_CONTENT_CACHE_TTL,
 });
 
 export type InterviewStatsData = {

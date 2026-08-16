@@ -15,9 +15,14 @@ export default async function LessonPage({
   params: Promise<{ courseId: string; chapterId: string }>;
 }) {
   const { courseId, chapterId } = await params;
-  const course = await getCourseById(parseInt(courseId));
-  const chapters = await getChaptersByCourseId(parseInt(courseId));
-  const chapter = chapters.find((c) => c.id === parseInt(chapterId));
+  const parsedCourseId = parseInt(courseId);
+  const parsedChapterId = parseInt(chapterId);
+  if (!Number.isInteger(parsedCourseId) || !Number.isInteger(parsedChapterId)) {
+    notFound();
+  }
+  const course = await getCourseById(parsedCourseId);
+  const chapters = await getChaptersByCourseId(parsedCourseId);
+  const chapter = chapters.find((c) => c.id === parsedChapterId);
 
   if (!course || !chapter) {
     notFound();

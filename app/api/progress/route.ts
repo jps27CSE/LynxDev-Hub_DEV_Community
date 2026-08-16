@@ -11,7 +11,7 @@ import {
   notFound,
 } from "@/lib/api-error";
 import { createLogger } from "@/lib/logger";
-import { getChaptersByCourseId } from "@/lib/course-data";
+import { getChaptersMetaByCourseId } from "@/lib/course-data";
 import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 
 const log = createLogger("api/progress");
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   const { courseId, chapterId } = parsed.data;
 
-  const allChapters = await getChaptersByCourseId(courseId);
+  const allChapters = await getChaptersMetaByCourseId(courseId);
   const pointsReward =
     allChapters.find((ch) => ch.id === chapterId)?.points_reward ?? 10;
 
