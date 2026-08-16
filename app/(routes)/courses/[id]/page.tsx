@@ -13,6 +13,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { getCourseById, getChaptersByCourseId } from "@/lib/course-data";
+import { parsePositiveInt } from "@/lib/parse-id";
 import { getEnrollmentsByEmail } from "@/lib/enroll-data";
 import { difficultyBadgeClass, difficultyIconClass } from "@/lib/interview-ui";
 import EnrollButton from "./EnrollButton";
@@ -30,8 +31,8 @@ export default async function CourseDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const courseId = parseInt(id);
-  if (!Number.isInteger(courseId)) {
+  const courseId = parsePositiveInt(id);
+  if (!courseId) {
     notFound();
   }
   const course = await getCourseById(courseId);

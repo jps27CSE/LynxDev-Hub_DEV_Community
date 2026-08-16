@@ -1,12 +1,10 @@
 import Link from "next/link";
 import { ArrowLeft, Code2, GraduationCap, Trophy } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
-import { db } from "@/config/db";
-import { courses } from "@/config/schema";
-import { eq, asc } from "drizzle-orm";
 import CourseIcon from "@/components/CourseIcon";
 import { getEnrollmentsByEmail } from "@/lib/enroll-data";
 import { difficultyBadgeClass, difficultyIconClass } from "@/lib/interview-ui";
+import { getAllCourses } from "@/lib/course-data";
 
 const howItWorks = [
   {
@@ -33,11 +31,7 @@ const howItWorks = [
 ];
 
 export default async function CoursesPage() {
-  const filteredCourses = await db
-    .select()
-    .from(courses)
-    .where(eq(courses.is_published!, true))
-    .orderBy(asc(courses.order_index));
+  const publishedCourses = await getAllCourses();
 
   const clerkUser = await currentUser();
   const email = clerkUser?.primaryEmailAddress?.emailAddress;
@@ -63,7 +57,7 @@ export default async function CoursesPage() {
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs text-muted-foreground mb-6">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                {filteredCourses.length} courses available
+                {publishedCourses.length} courses available
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight leading-[1.1]">
                 Learn to{" "}
@@ -92,24 +86,24 @@ export default async function CoursesPage() {
           <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
             <span className="w-2 h-2 rounded-full bg-emerald-500/70" />
             {
-              filteredCourses.filter((c) => c.difficulty === "Beginner").length
+              publishedCourses.filter((c) => c.difficulty === "Beginner").length
             }{" "}
             Beginner
             <span className="mx-1.5 text-muted-foreground/30">&middot;</span>
             {
-              filteredCourses.filter((c) => c.difficulty === "Intermediate")
+              publishedCourses.filter((c) => c.difficulty === "Intermediate")
                 .length
             }{" "}
             Intermediate
             <span className="mx-1.5 text-muted-foreground/30">&middot;</span>
             {
-              filteredCourses.filter((c) => c.difficulty === "Advanced").length
+              publishedCourses.filter((c) => c.difficulty === "Advanced").length
             }{" "}
             Advanced
           </div>
         </div>
 
-        {filteredCourses.length === 0 ? (
+        {publishedCourses.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-muted-foreground">
               No courses available yet. Check back soon!
@@ -117,8 +111,8 @@ export default async function CoursesPage() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredCourses.map((course) => {
-              const chapterCount = course.chapter_count || 0;
+            {publishedCourses.map((course) => {
+              const chapterCount = course.chapter_count;
               const enrollment = enrollmentByCourse.get(course.id) ?? null;
               const coursePct =
                 enrollment && enrollment.totalChapters > 0

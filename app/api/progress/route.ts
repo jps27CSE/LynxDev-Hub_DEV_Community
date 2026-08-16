@@ -49,8 +49,10 @@ export async function POST(req: NextRequest) {
   const { courseId, chapterId } = parsed.data;
 
   const allChapters = await getChaptersMetaByCourseId(courseId);
-  const pointsReward =
-    allChapters.find((ch) => ch.id === chapterId)?.points_reward ?? 10;
+  const chapterMeta = allChapters.find((ch) => ch.id === chapterId);
+  if (!chapterMeta) return notFound("Chapter");
+
+  const pointsReward = chapterMeta.points_reward ?? 10;
 
   const result = await log.timed("progress upsert", () =>
     db.transaction(async (tx) => {

@@ -8,21 +8,22 @@ import {
 } from "@/lib/course-data";
 import LessonClient from "./LessonClient";
 import { PageHeader } from "@/components/PageHeader";
+import { parsePositiveInt } from "@/lib/parse-id";
 
 export default async function LessonPage({
   params,
 }: {
   params: Promise<{ courseId: string; chapterId: string }>;
 }) {
-  const { courseId, chapterId } = await params;
-  const parsedCourseId = parseInt(courseId);
-  const parsedChapterId = parseInt(chapterId);
-  if (!Number.isInteger(parsedCourseId) || !Number.isInteger(parsedChapterId)) {
+  const { courseId: rawCourseId, chapterId: rawChapterId } = await params;
+  const courseId = parsePositiveInt(rawCourseId);
+  const chapterId = parsePositiveInt(rawChapterId);
+  if (!courseId || !chapterId) {
     notFound();
   }
-  const course = await getCourseById(parsedCourseId);
-  const chapters = await getChaptersByCourseId(parsedCourseId);
-  const chapter = chapters.find((c) => c.id === parsedChapterId);
+  const course = await getCourseById(courseId);
+  const chapters = await getChaptersByCourseId(courseId);
+  const chapter = chapters.find((c) => c.id === chapterId);
 
   if (!course || !chapter) {
     notFound();

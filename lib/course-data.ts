@@ -33,12 +33,10 @@ export type Chapter = Omit<typeof chapters.$inferSelect, "content"> & {
   };
 };
 
-export type ChapterMeta = {
-  id: number;
-  title: string;
-  order_index: number | null;
-  points_reward: number | null;
-};
+export type ChapterMeta = Pick<
+  Chapter,
+  "id" | "title" | "order_index" | "points_reward"
+>;
 
 export function getCourseLanguage(
   title: string,
@@ -69,7 +67,10 @@ export const getAllCourses = cache(async (): Promise<CourseRow[]> => {
 
 export const getCourseById = cache(
   async (id: number): Promise<CourseRow | null> => {
-    if (!Number.isInteger(id)) return null;
+    if (!Number.isInteger(id)) {
+      log.warn("getCourseById called with non-integer id", { id });
+      return null;
+    }
     try {
       return await withCourseCache(`course-${id}`, async () => {
         const result = await db
@@ -88,7 +89,12 @@ export const getCourseById = cache(
 
 export const getChaptersByCourseId = cache(
   async (courseId: number): Promise<Chapter[]> => {
-    if (!Number.isInteger(courseId)) return [];
+    if (!Number.isInteger(courseId)) {
+      log.warn("getChaptersByCourseId called with non-integer id", {
+        courseId,
+      });
+      return [];
+    }
     try {
       return await withCourseCache(`chapters-${courseId}`, async () => {
         const result = await db
@@ -114,7 +120,12 @@ export const getChaptersByCourseId = cache(
  */
 export const getChaptersMetaByCourseId = cache(
   async (courseId: number): Promise<ChapterMeta[]> => {
-    if (!Number.isInteger(courseId)) return [];
+    if (!Number.isInteger(courseId)) {
+      log.warn("getChaptersMetaByCourseId called with non-integer id", {
+        courseId,
+      });
+      return [];
+    }
     try {
       return await withCourseCache(`chapters-meta-${courseId}`, async () => {
         return await db
