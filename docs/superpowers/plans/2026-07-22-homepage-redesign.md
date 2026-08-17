@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Redesign the LynxDev HUB landing page to a modern dev platform (freeCodeCamp/Codecademy style) with Hero, Features grid, YouTube playlist carousel, and course preview cards.
+**Goal:** Redesign the LynxDEV landing page to a modern dev platform (freeCodeCamp/Codecademy style) with Hero, Features grid, YouTube playlist carousel, and course preview cards.
 
 **Architecture:** Static landing page using Next.js server components. No DB reads for hero/features. YouTube playlist uses a config file. Course preview can be hardcoded or fetched via server component.
 
@@ -14,7 +14,7 @@
 - Dark theme by default (already set in globals.css)
 - Use existing shadcn/ui components (Button, Card, Badge)
 - No new npm packages for animation (CSS keyframes only)
-- Keep the "LynxDev HUB" brand name and logo
+- Keep the "LynxDEV" brand name and logo
 - Responsive design (mobile-first)
 
 ---
@@ -52,8 +52,8 @@ function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.png" alt="LynxDev HUB" width={36} height={36} />
-          <span className="text-xl font-bold font-inter">LynxDev HUB</span>
+          <Image src="/logo.png" alt="LynxDEV" width={36} height={36} />
+          <span className="text-xl font-bold font-inter">LynxDEV</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
@@ -529,7 +529,7 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="text-center md:text-left">
-            <h3 className="text-lg font-bold">LynxDev HUB</h3>
+            <h3 className="text-lg font-bold">LynxDEV</h3>
             <p className="text-sm text-muted-foreground mt-1">
               Learn. Build. Grow. For Free.
             </p>
@@ -571,7 +571,7 @@ function Footer() {
         </div>
         <div className="mt-10 pt-6 border-t border-border/40 text-center">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} LynxDev HUB. All rights reserved.
+            &copy; {new Date().getFullYear()} LynxDEV. All rights reserved.
           </p>
         </div>
       </div>

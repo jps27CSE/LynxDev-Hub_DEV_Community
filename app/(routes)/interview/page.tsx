@@ -192,7 +192,7 @@ export default async function InterviewPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="rounded-xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-primary/10 p-6 sm:p-8">
+        <div className="rounded-2xl border border-border bg-gradient-to-br from-primary/5 via-background to-primary/10 p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
               <SlidersHorizontal className="w-6 h-6 text-primary" />
@@ -256,7 +256,7 @@ export default async function InterviewPage() {
 
                 <div className="flex items-start gap-4 relative">
                   <div
-                    className={`w-14 h-14 rounded-2xl ${theme.light} flex items-center justify-center text-3xl flex-shrink-0 ring-1 ring-white/5`}
+                    className={`w-14 h-14 rounded-2xl ${theme.light} flex items-center justify-center text-3xl flex-shrink-0 ring-1 ring-border`}
                   >
                     {cat.icon || "📁"}
                   </div>
@@ -326,7 +326,7 @@ export default async function InterviewPage() {
           {howItWorks.map((step, i) => (
             <div
               key={step.title}
-              className="rounded-xl border border-border/50 bg-card p-6"
+              className="rounded-2xl border border-border bg-card p-6"
             >
               <div className="flex items-center gap-3">
                 <div

@@ -7,7 +7,7 @@ export default async function InterviewStats() {
 
   return (
     <Link href="/interview">
-      <div className="rounded-xl border border-border/50 bg-card p-5 hover:border-border transition-all group">
+      <div className="rounded-2xl border border-border bg-card p-5 hover:border-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 outline-none transition-all group">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-9 h-9 rounded-lg bg-purple-500/10 flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-purple-500" />
@@ -17,13 +17,15 @@ export default async function InterviewStats() {
               Interview Prep
             </h3>
             <p className="text-xs text-muted-foreground">
-              Curated questions & AI-powered practice
+              {stats
+                ? `${stats.questionCount} curated questions to practice`
+                : "Curated questions, chapters & practice"}
             </p>
           </div>
         </div>
-        <div className="flex gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
           <div>
-            <span className="text-2xl font-bold text-purple-500">
+            <span className="text-2xl font-bold text-purple-600 dark:text-purple-500">
               {stats ? stats.categoryCount : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">
@@ -31,7 +33,7 @@ export default async function InterviewStats() {
             </span>
           </div>
           <div>
-            <span className="text-2xl font-bold text-purple-500">
+            <span className="text-2xl font-bold text-purple-600 dark:text-purple-500">
               {stats ? stats.questionCount : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">
@@ -39,7 +41,7 @@ export default async function InterviewStats() {
             </span>
           </div>
           <div>
-            <span className="text-2xl font-bold text-yellow-500">
+            <span className="text-2xl font-bold text-yellow-600 dark:text-yellow-500">
               {stats ? stats.top50Count : "—"}
             </span>
             <span className="text-xs text-muted-foreground ml-1.5">Top 50</span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,31 +32,71 @@ export default function ProfilePage() {
   const [points, setPoints] = useState(0);
   const [enrolledCount, setEnrolledCount] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
+  const [profileError, setProfileError] = useState(false);
+  const [enrollError, setEnrollError] = useState(false);
 
-  useEffect(() => {
-    if (!clerkUser) return;
+  const loadProfile = useCallback(() => {
     fetch("/api/user/profile")
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
-        setName(data.name || clerkUser.fullName || "");
+        setName(data.name || clerkUser?.fullName || "");
         setBio(data.bio || "");
         setSkills(Array.isArray(data.skills) ? data.skills : []);
         setPoints(data.points || 0);
+        setProfileError(false);
       })
-      .catch(() => {})
+      .catch((error) => {
+        console.error("[profile] load failed:", error);
+        setProfileError(true);
+      })
       .finally(() => setLoading(false));
+  }, [clerkUser]);
+
+  const refreshStats = useCallback(() => {
+    fetch("/api/user/profile")
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((data) => setPoints(data.points || 0))
+      .catch((error) => {
+        console.error("[profile] points refresh failed:", error);
+        setProfileError(true);
+      });
 
     fetch("/api/enroll")
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         const list: Array<{ completed_at: string | null }> = Array.isArray(data)
           ? data
           : [];
         setEnrolledCount(list.length);
         setCompletedCount(list.filter((e) => e.completed_at).length);
+        setEnrollError(false);
       })
-      .catch(() => {});
-  }, [clerkUser]);
+      .catch((error) => {
+        console.error("[profile] enroll stats failed:", error);
+        setEnrollError(true);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!clerkUser) return;
+    loadProfile();
+    refreshStats();
+  }, [clerkUser, loadProfile, refreshStats]);
+
+  useEffect(() => {
+    const onFocus = () => refreshStats();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [refreshStats]);
 
   const addSkill = () => {
     const trimmed = skillInput.trim();
@@ -98,22 +138,27 @@ export default function ProfilePage() {
   }
 
   const stats = [
-    { label: "Points", value: points, icon: Sparkles, color: "text-amber-500" },
+    {
+      label: "Points",
+      value: profileError ? "—" : points,
+      icon: Sparkles,
+      color: "text-amber-500",
+    },
     {
       label: "Skills",
-      value: skills.length,
+      value: profileError ? "—" : skills.length,
       icon: Layers,
       color: "text-blue-500",
     },
     {
       label: "Enrolled",
-      value: enrolledCount,
+      value: enrollError ? "—" : enrolledCount,
       icon: BookOpen,
       color: "text-emerald-500",
     },
     {
       label: "Completed",
-      value: completedCount,
+      value: enrollError ? "—" : completedCount,
       icon: Trophy,
       color: "text-violet-500",
     },
@@ -122,7 +167,7 @@ export default function ProfilePage() {
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="relative overflow-hidden border-b border-border/40">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />
+        <div className="absolute inset-0 bg-grid-paper" />
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-3xl" />
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
           <Link
@@ -173,7 +218,7 @@ export default function ProfilePage() {
               return (
                 <div
                   key={s.label}
-                  className="rounded-xl border border-border/50 bg-card p-4 text-center transition-all hover:border-border hover:shadow-sm"
+                  className="rounded-2xl border border-border bg-card p-4 text-center transition-all hover:border-border hover:shadow-sm"
                 >
                   <Icon className={`w-5 h-5 ${s.color} mx-auto`} />
                   <p className="text-xl font-bold mt-1.5">{s.value}</p>
@@ -185,7 +230,7 @@ export default function ProfilePage() {
             })}
           </div>
 
-          <div className="rounded-xl border border-border/50 bg-card divide-y divide-border/30">
+          <div className="rounded-2xl border border-border bg-card divide-y divide-border/30">
             <div className="px-5 py-4">
               <div className="flex items-center gap-2">
                 <PenLine className="w-4 h-4 text-muted-foreground" />

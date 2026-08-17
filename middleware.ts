@@ -1,11 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { getRateLimitConfig } from "@/config/rate-limits";
-import { consumeRateLimit, getRateLimitKey } from "@/lib/rate-limit";
-import { rateLimited } from "@/lib/api-error";
+import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
-  "/sign-up(.*)",
   "/",
   "/api/health(.*)",
 ]);
@@ -13,24 +10,18 @@ const isPublicRoute = createRouteMatcher([
 export default clerkMiddleware(async (auth, req) => {
   const { pathname } = req.nextUrl;
 
+  // OAuth-only signup: first Google/GitHub tap creates the account, so the
+  // sign-up page is redundant. Any lingering /sign-up links land here.
+  if (pathname.startsWith("/sign-up")) {
+    return NextResponse.redirect(new URL("/sign-in", req.url));
+  }
+
   const isPublic = isPublicRoute(req);
-  const session = isPublic ? await auth() : await auth.protect();
-  const userId = session.userId ?? null;
 
-  if (pathname.startsWith("/api/")) {
-    const config = getRateLimitConfig(pathname, req.method);
-    const key = getRateLimitKey(req, userId);
-    const result = consumeRateLimit(key, config.limit, config.windowMs);
-
-    if (!result.success) {
-      const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
-      return rateLimited(
-        retryAfter,
-        config.limit,
-        result.remaining,
-        result.reset,
-      );
-    }
+  if (isPublic) {
+    await auth();
+  } else {
+    await auth.protect();
   }
 });
 

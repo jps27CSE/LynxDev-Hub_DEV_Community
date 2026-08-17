@@ -84,7 +84,7 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border/50 bg-card p-6 space-y-4">
+      <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">Pick your stacks</h2>
           {selectedTags.size > 0 && (
@@ -168,7 +168,7 @@ export default function CustomPracticeClient({ categorySlug, allTags }: Props) {
           {questions.map((q) => (
             <div
               key={q.id}
-              className="rounded-xl border border-border/50 bg-card p-5 space-y-3"
+              className="rounded-2xl border border-border bg-card p-5 space-y-3"
             >
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge

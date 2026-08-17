@@ -21,10 +21,13 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: "LynxDev HUB",
-    template: "%s | LynxDev HUB",
+    default: "LynxDEV",
+    template: "%s | LynxDEV",
   },
   description: "Developer Community",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({

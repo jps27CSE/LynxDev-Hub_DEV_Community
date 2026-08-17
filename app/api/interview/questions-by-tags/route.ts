@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { validationError, badJson, unauthorized } from "@/lib/api-error";
 import { getQuestionsByCategorySlugAndTags } from "@/lib/interview-data";
+import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 
 const MAX_CUSTOM_PRACTICE_QUESTIONS = 100;
 
@@ -14,6 +15,14 @@ const QuestionsByTagsSchema = z.object({
 export async function POST(request: Request) {
   const { userId } = await auth();
   if (!userId) return unauthorized();
+
+  const limited = await enforceDbRateLimit(
+    userId,
+    "interview-questions-by-tags",
+    "/api/interview/questions-by-tags",
+    "POST",
+  );
+  if (limited) return limited;
 
   try {
     let body: unknown;

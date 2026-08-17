@@ -16,11 +16,14 @@ const socialLinks = [
 
 function Footer() {
   return (
-    <footer className="border-t border-border/40 py-12">
+    <footer className="border-t border-white/10 bg-[#05060a] py-12">
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent -mt-12 mb-12" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="text-center md:text-left">
-            <h3 className="text-lg font-bold">LynxDev HUB</h3>
+            <h3 className="text-lg font-bold font-display">
+              <span className="neon-text-gradient">LynxDEV</span>
+            </h3>
             <p className="text-sm text-muted-foreground mt-1">
               Learn. Build. Grow. For Free.
             </p>
@@ -33,7 +36,7 @@ function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-sm text-muted-foreground hover:text-cyan-200 transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -50,7 +53,7 @@ function Footer() {
                       href={link.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-sm text-muted-foreground hover:text-fuchsia-200 transition-colors"
                     >
                       {link.label}
                     </a>
@@ -62,7 +65,7 @@ function Footer() {
         </div>
         <div className="mt-10 pt-6 border-t border-border/40 text-center">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} LynxDev HUB. All rights reserved.
+            &copy; {new Date().getFullYear()} LynxDEV. All rights reserved.
           </p>
           <p className="text-[11px] text-muted-foreground/60 mt-2">
             <VersionBadge />

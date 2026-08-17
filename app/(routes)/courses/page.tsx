@@ -1,55 +1,47 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { db } from "@/config/db";
-import { courses } from "@/config/schema";
-import { eq, asc } from "drizzle-orm";
+import { ArrowLeft, Code2, GraduationCap, Trophy } from "lucide-react";
+import { currentUser } from "@clerk/nextjs/server";
 import CourseIcon from "@/components/CourseIcon";
+import { getEnrollmentsByEmail } from "@/lib/enroll-data";
+import { difficultyBadgeClass, difficultyIconClass } from "@/lib/interview-ui";
+import { getAllCourses } from "@/lib/course-data";
 
-const difficultyConfig: Record<
-  string,
-  { color: string; light: string; badge: string }
-> = {
-  Beginner: {
-    color: "text-green-500",
-    light: "bg-green-500/10",
-    badge: "bg-green-500/10 text-green-500 border-green-500/20",
+const howItWorks = [
+  {
+    icon: GraduationCap,
+    title: "Enroll in a course",
+    description:
+      "Pick a track that matches your goal — HTML, JavaScript, React, and more — and enroll in seconds.",
+    accent: "bg-emerald-500/10 text-emerald-500",
   },
-  Intermediate: {
-    color: "text-yellow-500",
-    light: "bg-yellow-500/10",
-    badge: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+  {
+    icon: Code2,
+    title: "Code hands-on lessons",
+    description:
+      "Learn by building: read short lessons, write real code in the browser editor, and run it instantly.",
+    accent: "bg-sky-500/10 text-sky-500",
   },
-  Advanced: {
-    color: "text-red-500",
-    light: "bg-red-500/10",
-    badge: "bg-red-500/10 text-red-500 border-red-500/20",
+  {
+    icon: Trophy,
+    title: "Earn points & track progress",
+    description:
+      "Complete chapters to earn points while watching your progress bar fill up.",
+    accent: "bg-amber-500/10 text-amber-500",
   },
-};
-
-const ALLOWED_COURSES = [
-  "HTML & CSS Fundamentals",
-  "JavaScript Essentials",
-  "React Development",
-  "Angular Development",
-  "Node.js Backend",
-  "Express.js API Development",
 ];
 
 export default async function CoursesPage() {
-  const allCourses = await db
-    .select()
-    .from(courses)
-    .where(eq(courses.is_published!, true))
-    .orderBy(asc(courses.order_index));
+  const publishedCourses = await getAllCourses();
 
-  const filteredCourses = allCourses.filter((c) =>
-    ALLOWED_COURSES.includes(c.title),
-  );
+  const clerkUser = await currentUser();
+  const email = clerkUser?.primaryEmailAddress?.emailAddress;
+  const enrollments = email ? await getEnrollmentsByEmail(email) : [];
+  const enrollmentByCourse = new Map(enrollments.map((e) => [e.course_id, e]));
 
   return (
     <>
       <div className="relative overflow-hidden border-b border-border/40">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]" />
+        <div className="absolute inset-0 bg-grid-paper" />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-3xl" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="pt-6">
@@ -65,7 +57,7 @@ export default async function CoursesPage() {
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs text-muted-foreground mb-6">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                {filteredCourses.length} courses available
+                {publishedCourses.length} courses available
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight leading-[1.1]">
                 Learn to{" "}
@@ -94,24 +86,24 @@ export default async function CoursesPage() {
           <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
             <span className="w-2 h-2 rounded-full bg-emerald-500/70" />
             {
-              filteredCourses.filter((c) => c.difficulty === "Beginner").length
+              publishedCourses.filter((c) => c.difficulty === "Beginner").length
             }{" "}
             Beginner
             <span className="mx-1.5 text-muted-foreground/30">&middot;</span>
             {
-              filteredCourses.filter((c) => c.difficulty === "Intermediate")
+              publishedCourses.filter((c) => c.difficulty === "Intermediate")
                 .length
             }{" "}
             Intermediate
             <span className="mx-1.5 text-muted-foreground/30">&middot;</span>
             {
-              filteredCourses.filter((c) => c.difficulty === "Advanced").length
+              publishedCourses.filter((c) => c.difficulty === "Advanced").length
             }{" "}
             Advanced
           </div>
         </div>
 
-        {filteredCourses.length === 0 ? (
+        {publishedCourses.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-muted-foreground">
               No courses available yet. Check back soon!
@@ -119,17 +111,22 @@ export default async function CoursesPage() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredCourses.map((course) => {
-              const diff =
-                difficultyConfig[course.difficulty] ||
-                difficultyConfig["Beginner"];
-              const chapterCount = course.chapter_count || 0;
+            {publishedCourses.map((course) => {
+              const chapterCount = course.chapter_count;
+              const enrollment = enrollmentByCourse.get(course.id) ?? null;
+              const coursePct =
+                enrollment && enrollment.totalChapters > 0
+                  ? Math.round(
+                      (enrollment.completedCount / enrollment.totalChapters) *
+                        100,
+                    )
+                  : 0;
 
               return (
                 <Link
                   key={course.id}
                   href={`/courses/${course.id}`}
-                  className="group relative rounded-2xl border border-border/50 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg overflow-hidden"
+                  className="group relative rounded-2xl border border-border/50 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 outline-none overflow-hidden"
                 >
                   <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -146,12 +143,12 @@ export default async function CoursesPage() {
 
                   <div className="flex items-start gap-4 relative">
                     <div
-                      className={`w-14 h-14 rounded-2xl ${diff.light} flex items-center justify-center flex-shrink-0 ring-1 ring-white/5`}
+                      className={`w-14 h-14 rounded-2xl ${difficultyIconClass(course.difficulty)} flex items-center justify-center flex-shrink-0 ring-1 ring-border`}
                     >
                       <CourseIcon title={course.title} className="w-8 h-8" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="font-bold text-lg group-hover:text-emerald-500 transition-colors">
+                      <h2 className="font-bold text-lg leading-7 line-clamp-2 min-h-14 group-hover:text-emerald-500 transition-colors">
                         {course.title}
                       </h2>
                       <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
@@ -162,7 +159,7 @@ export default async function CoursesPage() {
 
                   <div className="flex items-center gap-3 mt-5 pt-4 border-t border-border/30 relative">
                     <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border ${diff.badge}`}
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border ${difficultyBadgeClass(course.difficulty)}`}
                     >
                       {course.difficulty}
                     </span>
@@ -182,11 +179,68 @@ export default async function CoursesPage() {
                       </>
                     )}
                   </div>
+
+                  {enrollment && (
+                    <div className="relative mt-4">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span
+                          className={`text-[11px] font-medium ${
+                            coursePct === 100
+                              ? "text-emerald-500"
+                              : "text-primary"
+                          }`}
+                        >
+                          {coursePct === 100 ? "Completed" : "In progress"}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {enrollment.completedCount}/{enrollment.totalChapters}{" "}
+                          chapters
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-700 ${
+                            coursePct === 100
+                              ? "bg-emerald-500"
+                              : "bg-gradient-to-r from-primary to-primary/60"
+                          }`}
+                          style={{ width: `${coursePct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </Link>
               );
             })}
           </div>
         )}
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <h2 className="text-xl font-semibold">How it works</h2>
+        <div className="grid sm:grid-cols-3 gap-4 mt-6">
+          {howItWorks.map((step, i) => (
+            <div
+              key={step.title}
+              className="rounded-2xl border border-border bg-card p-6"
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-10 h-10 rounded-lg ${step.accent} flex items-center justify-center flex-shrink-0`}
+                >
+                  <step.icon className="w-5 h-5" />
+                </div>
+                <span className="text-3xl font-display font-bold text-muted-foreground/20">
+                  {i + 1}
+                </span>
+              </div>
+              <h3 className="font-semibold mt-4">{step.title}</h3>
+              <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+                {step.description}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );

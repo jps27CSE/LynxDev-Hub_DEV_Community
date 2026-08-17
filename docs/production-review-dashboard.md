@@ -6,6 +6,8 @@
 **Verdict:** functionally solid and auth-safe, but not yet production-hardened. The two biggest risks are (1) a single TiDB hiccup takes down the dashboard for **all** users, and (2) zero observability means you'll never know why. 500 users is small — every issue below is about **bursts and incident response**, not raw throughput.
 
 > **Update (2026-08-04):** Batch 1 (resilience + query reduction) implemented — see [Implementation Status](#batch-1-implementation-status) and the updated fix lists below. Remaining items: Upstash rate limiting, Sentry/Analytics. `chapter_count` denormalization shipped 2026-08-05. DB-backed rate limiting shipped 2026-08-05 (see fix #3).
+>
+> **Update (2026-08-06):** Rate limiting now DB-backed on **all write routes** — `/api/mentor/chat` POST, `/api/interview/generate` POST, `/api/user` POST, `/api/enroll` POST, `/api/progress` POST, `/api/user/profile` PATCH, `/api/interview/stack` POST, `/api/interview/questions-by-tags` POST. The ineffective in-memory middleware limiter (`lib/rate-limit.ts`) was removed entirely — middleware is now auth-only (one shared, globally-consistent counter over the in-memory Map). Also added `acquireTimeout: 5s` to the pool (queued requests fail fast). Remaining: Sentry/Vercel Analytics (observability), optional PPR.
 
 ---
 
@@ -35,7 +37,7 @@
 - `chapter_count` column on `courses` — ✅ done (2026-08-05): migration `drizzle/0003`, seed writes it, `config/backfill-chapter-count.ts` for existing rows, `enroll-data.ts`/`courses/page.tsx`/`mentor.ts` read the column
 - Provider `POST /api/user` scoping — intentionally kept (`LessonClient` depends on `setUserDetail`)
 - `currentUser()` → `auth()` + session claims — deferred to the webhook/email-join work (claim-staleness trade-off)
-- Page `metadata` + middleware matcher trim — ✅ done (2026-08-05): metadata on dashboard + title template in root layout, matcher trimmed, `connectTimeout` on pool, UNIQUE `enrollments(user_id, course_id)` index (`drizzle/0004`), `lib/logger.ts` + `lib/content-cache.ts`
+- Page `metadata` + middleware matcher trim — ✅ done (2026-08-05): metadata on dashboard + title template in root layout, matcher trimmed, `connectTimeout` + `acquireTimeout` on pool (2026-08-06), UNIQUE `enrollments(user_id, course_id)` index (`drizzle/0004`), `lib/logger.ts` + `lib/content-cache.ts`
 
 **Status:** `npm run typecheck` and Prettier clean. Manual `npm run dev` verification pending (no `.env.local` in the working environment).
 
@@ -129,7 +131,7 @@
 |---|-----|--------|--------|
 | 1 | `error.tsx` + `loading.tsx` for the dashboard route | ~30 min | DONE — Batch 1 |
 | 2 | Cache/eliminate the 7 static stat queries — `unstable_cache` or seed-time config | 1–2 hrs | DONE — `lib/dashboard-stats.ts` (`unstable_cache`, tag `dashboard-stats`, 1h TTL) |
-| 3 | Move rate limiting to Upstash — protects AI spend | 2–3 hrs | DONE (DB-backed) — `lib/db-rate-limit.ts` + `rate_limits` table (`drizzle/0005`); enforced in `/api/mentor/chat` POST and `/api/interview/generate` POST; atomic upsert via `LAST_INSERT_ID` in a transaction (TiDB has no `INSERT ... RETURNING`), fail-closed, table bounded per user. Upstash later removes the DB round-trips |
+| 3 | Move rate limiting to Upstash — protects AI spend | 2–3 hrs | DONE (DB-backed) — `lib/db-rate-limit.ts` + `rate_limits` table (`drizzle/0005`); enforced on all **8 write routes** (mentor/chat, interview/generate, user, enroll, progress, user/profile PATCH, interview/stack, questions-by-tags); atomic upsert via `LAST_INSERT_ID` in a transaction (TiDB has no `INSERT ... RETURNING`), fail-closed, table bounded per user. In-memory middleware limiter removed 2026-08-06 (`lib/rate-limit.ts` deleted) — one globally-shared counter now. Upstash later removes the DB round-trips |
 | 4 | Stop swallowing DB errors — log + only return `[]` for true empty cases | ~30 min | DONE — logged + rethrown; `{ error }` 500 on `/api/enroll` GET |
 | 5 | Add Sentry + Vercel Analytics | config only | DEFERRED — needs accounts |
 | 6 | Reduce per-load queries via `Promise.all` + `chapter_count` denormalization | 2–3 hrs | DONE — `Promise.all` + Suspense; `chapter_count` column added (fix in `drizzle/0003`), seed/backfill scripts, `enroll-data.ts` + `courses/page.tsx` + `mentor.ts` all read the column |
@@ -179,7 +181,7 @@ Note react `cache()` (`enroll-data.ts:24`) only dedupes in-flight within one req
 
 - Correct call: dashboard **should** be `force-dynamic` (personalized); `currentUser()` already opts it out of static anyway. No ISR/`revalidate` needed here.
 - **PPR opportunity:** `next.config.ts` has no `experimental.ppr`. With Partial Prerendering (stable-ish in 16), the static shell (QuickLinks, DailyTip) could serve instantly while enrollment data streams. Suspense streaming (item 3) is the 80% of this win; PPR is the remaining polish at 500 users.
-- No `metadata` on `dashboard/page.tsx` → falls back to root title "LynxDev HUB" for the app's most-visited page.
+- No `metadata` on `dashboard/page.tsx` → falls back to root title "LynxDEV" for the app's most-visited page.
 
 ## 6. Middleware & Edge runtime
 
@@ -208,6 +210,6 @@ Note react `cache()` (`enroll-data.ts:24`) only dedupes in-flight within one req
 | 2 | Convert `WelcomeBanner`/`EnrolledCourses`/`DailyTip` to Server Components | 1 hr | DONE |
 | 3 | Server-fetch points/skills once in `page.tsx`; scope `Provider` sync to user creation only | 30 min | PARTIAL — server-fetch done (deduped via react `cache()`); Provider scoping intentionally kept (`LessonClient` needs `setUserDetail`) |
 | 4 | `unstable_cache` the stat counts (mirror `lib/interview-data.ts`) | 30 min | DONE — `lib/dashboard-stats.ts` |
-| 5 | Upstash rate limiting; move hard auth to handlers | 2–3 hrs | DONE (DB-backed) — see fix #3; hard auth still in middleware (`auth.protect()`) + handlers |
+| 5 | Upstash rate limiting; move hard auth to handlers | 2–3 hrs | DONE (DB-backed) — see fix #3; middleware is now auth-only (`auth.protect()`), in-memory limiter deleted |
 | 6 | Add `metadata` to `dashboard/page.tsx`; trim middleware matcher | 30 min | DONE — 2026-08-05 (metadata + root-layout title template, matcher trimmed) |
 | 7 | (Optional) enable PPR in `next.config.ts` | 30 min | NOT DONE |

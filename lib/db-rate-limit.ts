@@ -6,7 +6,15 @@ import { rateLimited } from "@/lib/api-error";
 
 const log = createLogger("db-rate-limit");
 
-export type RateLimitScope = "mentor-chat" | "interview-generate";
+export type RateLimitScope =
+  | "mentor-chat"
+  | "interview-generate"
+  | "user-sync"
+  | "enroll"
+  | "progress"
+  | "profile-update"
+  | "interview-stack"
+  | "interview-questions-by-tags";
 
 export type DbRateLimitResult = {
   success: boolean;
@@ -46,25 +54,27 @@ export async function consumeDbRateLimit(
   const windowStart = Math.floor(Date.now() / windowMs) * windowMs;
 
   try {
-    const count = await db.transaction(async (tx) => {
-      await tx.execute(sql`
-        INSERT INTO rate_limits (bucket, window_start, count)
-        VALUES (${bucket}, ${windowStart}, LAST_INSERT_ID(1))
-        ON DUPLICATE KEY UPDATE
-          count = LAST_INSERT_ID(
-            IF(window_start >= ${windowStart}, count + 1, 1)
-          ),
-          window_start = IF(
-            window_start >= ${windowStart},
-            window_start,
-            ${windowStart}
-          )
-      `);
+    const count = await log.timed("rate-limit upsert", () =>
+      db.transaction(async (tx) => {
+        await tx.execute(sql`
+          INSERT INTO rate_limits (bucket, window_start, count)
+          VALUES (${bucket}, ${windowStart}, LAST_INSERT_ID(1))
+          ON DUPLICATE KEY UPDATE
+            count = LAST_INSERT_ID(
+              IF(window_start >= ${windowStart}, count + 1, 1)
+            ),
+            window_start = IF(
+              window_start >= ${windowStart},
+              window_start,
+              ${windowStart}
+            )
+        `);
 
-      const rows = await tx.execute(sql`SELECT LAST_INSERT_ID() AS c`);
-      const result = rows as unknown as Array<Array<{ c: number }>>;
-      return result[0]?.[0]?.c ?? 1;
-    });
+        const rows = await tx.execute(sql`SELECT LAST_INSERT_ID() AS c`);
+        const result = rows as unknown as Array<Array<{ c: number }>>;
+        return result[0]?.[0]?.c ?? 1;
+      }),
+    );
 
     return {
       success: count <= limit,

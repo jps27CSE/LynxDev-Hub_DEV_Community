@@ -31,7 +31,7 @@ const QuestionCard = memo(function QuestionCard({
     <div
       id={`q-${q.id}`}
       onClick={() => onSelect(q.id)}
-      className={`scroll-mt-24 rounded-xl border bg-card overflow-hidden transition-all duration-200 ${
+      className={`scroll-mt-24 rounded-xl border bg-[#10141b] overflow-hidden transition-all duration-200 ${
         isActive
           ? "border-primary/40 shadow-md ring-1 ring-primary/10"
           : "border-border/50 hover:border-border"
@@ -104,7 +104,7 @@ const QuestionCard = memo(function QuestionCard({
       </div>
 
       {!isCollapsed && (
-        <div className="border-t border-border/40 bg-muted/30 px-6 py-5">
+        <div className="border-t border-border/40 bg-white/[0.03] px-6 py-5">
           <div className="flex items-start gap-3">
             <span className="text-xs font-semibold text-foreground/60 mt-1 flex-shrink-0">
               A.

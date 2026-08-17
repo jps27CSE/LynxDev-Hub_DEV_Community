@@ -7,7 +7,7 @@ import {
   BookOpen,
   Sparkles,
   Terminal,
-  Brain,
+  FileCode2,
   User,
   LogOut,
   ChevronLeft,
@@ -21,6 +21,7 @@ const links = [
   { label: "Courses", href: "/courses", icon: BookOpen },
   { label: "Interview", href: "/interview", icon: Sparkles },
   { label: "Problems", href: "/problems", icon: Terminal },
+  { label: "Editor", href: "/editor", icon: FileCode2 },
 ];
 
 type SidebarProps = {
@@ -53,7 +54,7 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-50 h-full bg-card border-r border-border/50 transition-all duration-300 flex flex-col ${
+        className={`fixed top-0 left-0 z-50 h-full bg-[#07090e] border-r border-border/50 transition-all duration-300 flex flex-col ${
           open ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 ${collapsed ? "w-16" : "w-64"}`}
       >
@@ -73,7 +74,7 @@ export default function Sidebar({
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <span className="text-sm font-bold text-primary">L</span>
               </div>
-              <span className="font-bold text-base">LynxDev</span>
+              <span className="font-bold text-base">LynxDEV</span>
             </Link>
           )}
         </div>
@@ -87,6 +88,7 @@ export default function Sidebar({
                 key={link.href}
                 href={link.href}
                 onClick={onClose}
+                aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                   active
                     ? "bg-primary/10 text-primary"
@@ -105,6 +107,7 @@ export default function Sidebar({
           <Link
             href="/profile"
             onClick={onClose}
+            aria-current={pathname === "/profile" ? "page" : undefined}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
               pathname === "/profile"
                 ? "bg-primary/10 text-primary"

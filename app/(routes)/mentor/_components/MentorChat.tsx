@@ -272,7 +272,7 @@ export default function MentorChat() {
       <div className="flex-1 flex gap-6 px-4 sm:px-6 lg:px-8 py-4 min-h-0 overflow-hidden">
         {/* Context sidebar */}
         <aside className="hidden lg:flex flex-col w-72 shrink-0 gap-4 self-start max-h-full overflow-y-auto">
-          <div className="rounded-xl border border-border/50 bg-card p-5 space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
                 <User className="w-5 h-5 text-purple-500" />
@@ -331,7 +331,7 @@ export default function MentorChat() {
           </div>
 
           {context && context.courses.length > 0 && (
-            <div className="rounded-xl border border-border/50 bg-card p-5 space-y-3">
+            <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
                 Course Progress
               </p>
@@ -388,7 +388,7 @@ export default function MentorChat() {
                       <button
                         key={a.label}
                         onClick={() => sendMessage(a.label)}
-                        className="flex flex-col items-center gap-2 p-4 rounded-xl border border-border/50 bg-card hover:border-primary/30 hover:shadow-sm transition-all text-center"
+                        className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-border bg-card hover:border-primary/30 hover:shadow-sm transition-all text-center"
                       >
                         <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center">
                           <Icon className="w-4.5 h-4.5 text-primary" />

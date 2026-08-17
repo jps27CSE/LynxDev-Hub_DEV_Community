@@ -209,7 +209,7 @@ export default function PracticeClient({
       </div>
 
       <div
-        className={`rounded-xl border border-border/50 border-l-4 bg-card p-6 sm:p-8 ${difficultyAccentClass(current.difficulty)}`}
+        className={`rounded-2xl border border-border border-l-4 bg-card p-6 sm:p-8 ${difficultyAccentClass(current.difficulty)}`}
       >
         <div className="flex items-center gap-2 flex-wrap mb-4">
           <Badge

@@ -120,7 +120,7 @@ function ChaptersRail({
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search chapters..."
-            className="w-full bg-background border border-border/50 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30"
+            className="w-full bg-white/[0.04] border border-border/50 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30"
           />
         </div>
       </div>
@@ -661,7 +661,7 @@ function ChapterHubInner({
 
       <div className="flex flex-1 items-start">
         {sidebarOpen ? (
-          <aside className="hidden lg:flex w-72 flex-shrink-0 border-r border-border/40 bg-card/50 sticky top-0 h-dvh overflow-hidden">
+          <aside className="hidden lg:flex w-72 flex-shrink-0 border-r border-border/40 bg-[#07090e] sticky top-0 h-dvh overflow-hidden">
             <ChaptersRail
               chaptersWithQuestions={chaptersWithQuestions}
               activeId={activeChapter}
@@ -673,7 +673,7 @@ function ChapterHubInner({
             />
           </aside>
         ) : (
-          <div className="hidden lg:flex w-10 flex-shrink-0 border-r border-border/40 bg-card/50 sticky top-0 h-dvh items-start justify-center pt-4">
+          <div className="hidden lg:flex w-10 flex-shrink-0 border-r border-border/40 bg-[#07090e] sticky top-0 h-dvh items-start justify-center pt-4">
             <Button
               variant="ghost"
               size="icon"
@@ -929,7 +929,7 @@ function ChapterHubInner({
         </main>
 
         {currentChapter && (
-          <aside className="hidden xl:flex w-56 flex-shrink-0 border-l border-border/40 bg-card/50 sticky top-0 h-dvh overflow-y-auto scrollbar-thin">
+          <aside className="hidden xl:flex w-56 flex-shrink-0 border-l border-border/40 bg-[#07090e] sticky top-0 h-dvh overflow-y-auto scrollbar-thin">
             <TocRail
               items={tocItems}
               activeSection={activeSection}
@@ -943,7 +943,7 @@ function ChapterHubInner({
       </div>
 
       <Sheet open={mobileChaptersOpen} onOpenChange={setMobileChaptersOpen}>
-        <SheetContent side="left" className="w-80 sm:max-w-sm p-0 gap-0">
+        <SheetContent side="left" className="w-80 sm:max-w-sm p-0 gap-0 bg-[#07090e]">
           <SheetTitle className="sr-only">Chapters</SheetTitle>
           <ChaptersRail
             chaptersWithQuestions={chaptersWithQuestions}
