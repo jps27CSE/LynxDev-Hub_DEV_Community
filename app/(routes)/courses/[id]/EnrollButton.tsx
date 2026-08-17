@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import axios from "axios";
 import { Loader2, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function EnrollButton({ courseId }: { courseId: number }) {
   const { user } = useUser();
@@ -22,8 +23,9 @@ export default function EnrollButton({ courseId }: { courseId: number }) {
     try {
       await axios.post("/api/enroll", { courseId });
       setEnrolled(true);
+      toast.success("Enrolled! Start learning now");
     } catch {
-      // already enrolled or error
+      toast.error("Enrollment failed. Please try again.");
     } finally {
       setLoading(false);
     }

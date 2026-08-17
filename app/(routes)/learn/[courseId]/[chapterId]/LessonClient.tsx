@@ -7,6 +7,7 @@ import axios from "axios";
 import { UserDetailContext } from "@/context/UserDetailContext";
 import { toast } from "sonner";
 import { MonacoEditor } from "@/components/editor/MonacoEditor";
+import { runJavaScript } from "@/lib/editor";
 
 const IFRAME_SCROLLBAR_CSS = [
   "html{scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.35) transparent}",
@@ -38,6 +39,8 @@ export default function LessonClient({
 }) {
   const [code, setCode] = useState(chapter.content.initialCode);
   const [output, setOutput] = useState("");
+  const [runError, setRunError] = useState(false);
+  const [running, setRunning] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -45,25 +48,19 @@ export default function LessonClient({
   const isBrowserMode = chapter.content.type === "browser";
   const { setUserDetail } = useContext(UserDetailContext);
 
-  const runCode = () => {
+  const runCode = async () => {
     if (isBrowserMode) {
       setOutput("");
       return;
     }
 
-    let originalLog: typeof console.log | undefined;
+    setRunning(true);
     try {
-      const logs: string[] = [];
-      originalLog = console.log;
-      console.log = (...args) => {
-        logs.push(args.map(String).join(" "));
-      };
-      eval(code);
-      setOutput(logs.join("\n") || "Code executed successfully (no output)");
-    } catch (e) {
-      setOutput(`Error: ${(e as Error).message}`);
+      const result = await runJavaScript(code);
+      setOutput(result.error ? `Error: ${result.error}` : result.output);
+      setRunError(result.error !== null);
     } finally {
-      if (originalLog) console.log = originalLog;
+      setRunning(false);
     }
   };
 
@@ -85,6 +82,7 @@ export default function LessonClient({
   const resetCode = () => {
     setCode(chapter.content.initialCode);
     setOutput("");
+    setRunError(false);
     setShowSolution(false);
   };
 
@@ -176,9 +174,13 @@ export default function LessonClient({
 
           <div className="border-t border-border/40 bg-card p-4">
             <div className="flex items-center gap-2 flex-wrap">
-              <Button size="sm" onClick={runCode} disabled={isBrowserMode}>
-                <Play className="w-4 h-4 mr-1" />
-                Run
+              <Button size="sm" onClick={runCode} disabled={isBrowserMode || running}>
+                {running ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : (
+                  <Play className="w-4 h-4 mr-1" />
+                )}
+                {running ? "Running..." : "Run"}
               </Button>
               <Button size="sm" variant="outline" onClick={resetCode}>
                 <RotateCcw className="w-4 h-4 mr-1" />
@@ -190,14 +192,12 @@ export default function LessonClient({
               </Button>
             </div>
 
-            {!isBrowserMode && output && (
+            {!isBrowserMode && (output || runError) && (
               <div className="mt-3 rounded-lg bg-[#1e1e1e] max-h-64 overflow-y-auto scrollbar-thin overscroll-contain">
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border-b border-white/10 sticky top-0">
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
-                      output.startsWith("Error:")
-                        ? "bg-red-500"
-                        : "bg-emerald-500 animate-pulse"
+                      runError ? "bg-red-500" : "bg-emerald-500 animate-pulse"
                     }`}
                   />
                   <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
@@ -206,9 +206,7 @@ export default function LessonClient({
                 </div>
                 <pre
                   className={`text-sm font-mono whitespace-pre-wrap p-3 ${
-                    output.startsWith("Error:")
-                      ? "text-red-400"
-                      : "text-[#d4d4d4]"
+                    runError ? "text-red-400" : "text-[#d4d4d4]"
                   }`}
                 >
                   {output}
