@@ -106,8 +106,8 @@ export default function LessonClient({
         icon: <Star className="w-4 h-4 text-yellow-500" />,
       });
       if (res.data.courseCompleted) {
-        toast("Course completed! You earned a badge!", {
-          icon: "🏆",
+        toast("Course completed! Great job!", {
+          icon: "🎉",
         });
       }
     } catch {

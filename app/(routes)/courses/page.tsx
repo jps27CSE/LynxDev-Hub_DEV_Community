@@ -25,7 +25,7 @@ const howItWorks = [
     icon: Trophy,
     title: "Earn points & track progress",
     description:
-      "Complete chapters to earn points and badges while watching your progress bar fill up.",
+      "Complete chapters to earn points while watching your progress bar fill up.",
     accent: "bg-amber-500/10 text-amber-500",
   },
 ];
