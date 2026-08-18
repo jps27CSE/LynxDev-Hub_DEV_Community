@@ -6,6 +6,7 @@ import { getReachableQuestionStats } from "@/lib/interview-data";
 import { createLogger } from "@/lib/logger";
 import { createContentCache, DEFAULT_CONTENT_CACHE_TTL } from "@/lib/content-cache";
 import { count, inArray } from "drizzle-orm";
+import { withConnectRetry } from "@/lib/db-retry";
 
 const log = createLogger("dashboard-stats");
 
@@ -33,15 +34,17 @@ export const getInterviewStats = cache(
   async (): Promise<InterviewStatsData | null> => {
     try {
       return withDashboardStatsCache("interview-stats", async () => {
-        const [catCount, reachable] = await Promise.all([
-          db
-            .select({ value: count() })
-            .from(interviewCategories)
-            .where(
-              inArray(interviewCategories.slug, INTERVIEW_PUBLISHED_SLUGS),
-            ),
-          getReachableQuestionStats(),
-        ]);
+        const [catCount, reachable] = await withConnectRetry(() =>
+          Promise.all([
+            db
+              .select({ value: count() })
+              .from(interviewCategories)
+              .where(
+                inArray(interviewCategories.slug, INTERVIEW_PUBLISHED_SLUGS),
+              ),
+            getReachableQuestionStats(),
+          ]),
+        );
 
         return {
           categoryCount: Number(catCount[0].value),
@@ -67,10 +70,12 @@ export const getProblemStats = cache(
   async (): Promise<ProblemStatsData | null> => {
     try {
       return withDashboardStatsCache("problem-stats", async () => {
-        const rows = await db
-          .select({ difficulty: problems.difficulty, value: count() })
-          .from(problems)
-          .groupBy(problems.difficulty);
+        const rows = await withConnectRetry(() =>
+          db
+            .select({ difficulty: problems.difficulty, value: count() })
+            .from(problems)
+            .groupBy(problems.difficulty),
+        );
 
         let total = 0;
         const byDifficulty: Record<string, number> = {};

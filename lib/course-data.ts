@@ -4,6 +4,7 @@ import { courses, chapters } from "@/config/schema";
 import { eq } from "drizzle-orm";
 import { createLogger } from "@/lib/logger";
 import { createContentCache } from "@/lib/content-cache";
+import { withConnectRetry } from "@/lib/db-retry";
 
 const log = createLogger("course-data");
 
@@ -53,16 +54,20 @@ export function getCourseLanguage(
 /**
  * Failures THROW (after logging) — never return empty data that looks like
  * "no courses". Pages distinguish via their segment `error.tsx` (error state)
- * vs `[]`/`null` (genuine empty / not-found). Matches enroll-data's pattern.
+ * vs `[]`/`null` (genuine empty / not-found). A transient connect error is
+ * retried once first (TiDB Serverless cold start) so the error boundary only
+ * fires for genuine outages.
  */
 export const getAllCourses = cache(async (): Promise<CourseRow[]> => {
   try {
     return await withCourseCache("all-courses", async () => {
-      return await db
-        .select()
-        .from(courses)
-        .where(eq(courses.is_published!, true))
-        .orderBy(courses.order_index);
+      return await withConnectRetry(() =>
+        db
+          .select()
+          .from(courses)
+          .where(eq(courses.is_published!, true))
+          .orderBy(courses.order_index),
+      );
     });
   } catch (error) {
     log.error("getAllCourses failed", error);
@@ -78,11 +83,13 @@ export const getCourseById = cache(
     }
     try {
       return await withCourseCache(`course-${id}`, async () => {
-        const result = await db
-          .select()
-          .from(courses)
-          .where(eq(courses.id, id))
-          .limit(1);
+        const result = await withConnectRetry(() =>
+          db
+            .select()
+            .from(courses)
+            .where(eq(courses.id, id))
+            .limit(1),
+        );
         return result[0] ?? null;
       });
     } catch (error) {
@@ -102,11 +109,13 @@ export const getChaptersByCourseId = cache(
     }
     try {
       return await withCourseCache(`chapters-${courseId}`, async () => {
-        const result = await db
-          .select()
-          .from(chapters)
-          .where(eq(chapters.course_id, courseId))
-          .orderBy(chapters.order_index);
+        const result = await withConnectRetry(() =>
+          db
+            .select()
+            .from(chapters)
+            .where(eq(chapters.course_id, courseId))
+            .orderBy(chapters.order_index),
+        );
         return result.map((ch) => ({
           ...ch,
           content: ch.content as Chapter["content"],
@@ -133,16 +142,18 @@ export const getChaptersMetaByCourseId = cache(
     }
     try {
       return await withCourseCache(`chapters-meta-${courseId}`, async () => {
-        return await db
-          .select({
-            id: chapters.id,
-            title: chapters.title,
-            order_index: chapters.order_index,
-            points_reward: chapters.points_reward,
-          })
-          .from(chapters)
-          .where(eq(chapters.course_id, courseId))
-          .orderBy(chapters.order_index);
+        return await withConnectRetry(() =>
+          db
+            .select({
+              id: chapters.id,
+              title: chapters.title,
+              order_index: chapters.order_index,
+              points_reward: chapters.points_reward,
+            })
+            .from(chapters)
+            .where(eq(chapters.course_id, courseId))
+            .orderBy(chapters.order_index),
+        );
       });
     } catch (error) {
       log.error("getChaptersMetaByCourseId failed", error);

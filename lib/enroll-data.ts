@@ -3,6 +3,7 @@ import { db } from "@/config/db";
 import { usersTable, enrollments, courses, chapters } from "@/config/schema";
 import { eq, inArray, desc } from "drizzle-orm";
 import { createLogger } from "@/lib/logger";
+import { withConnectRetry } from "@/lib/db-retry";
 
 const log = createLogger("enroll-data");
 
@@ -16,18 +17,26 @@ export type UserDetail = {
   subscription: string | null;
 };
 
+/**
+ * User lookups DEGRADE GRACEFULLY — return null on DB failure (after one
+ * connect-error retry) instead of throwing, so a sleeping TiDB cluster renders
+ * the dashboard with fallbacks rather than the error boundary. A true outage
+ * shows empty data; a cold start self-heals via the retry.
+ */
 export const getUserByEmail = cache(
   async (email: string): Promise<UserDetail | null> => {
     try {
-      const users = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.email, email))
-        .limit(1);
-      return users[0] ?? null;
+      return await withConnectRetry(async () => {
+        const users = await db
+          .select()
+          .from(usersTable)
+          .where(eq(usersTable.email, email))
+          .limit(1);
+        return users[0] ?? null;
+      });
     } catch (error) {
       log.error("getUserByEmail failed", error, { email });
-      throw error;
+      return null;
     }
   },
 );
@@ -35,15 +44,17 @@ export const getUserByEmail = cache(
 export const getUserByClerkId = cache(
   async (clerkId: string): Promise<UserDetail | null> => {
     try {
-      const users = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.clerk_id, clerkId))
-        .limit(1);
-      return users[0] ?? null;
+      return await withConnectRetry(async () => {
+        const users = await db
+          .select()
+          .from(usersTable)
+          .where(eq(usersTable.clerk_id, clerkId))
+          .limit(1);
+        return users[0] ?? null;
+      });
     } catch (error) {
       log.error("getUserByClerkId failed", error, { clerkId });
-      throw error;
+      return null;
     }
   },
 );
@@ -162,10 +173,10 @@ export const getEnrollmentsByEmail = cache(
     try {
       const user = await getUserByEmail(email);
       if (!user) return [];
-      return fetchEnrollments(user.id);
+      return await withConnectRetry(() => fetchEnrollments(user.id));
     } catch (error) {
       log.error("getEnrollmentsByEmail failed", error, { email });
-      throw error;
+      return [];
     }
   },
 );
@@ -175,10 +186,10 @@ export const getEnrollmentsByClerkId = cache(
     try {
       const user = await getUserByClerkId(clerkId);
       if (!user) return [];
-      return fetchEnrollments(user.id);
+      return await withConnectRetry(() => fetchEnrollments(user.id));
     } catch (error) {
       log.error("getEnrollmentsByClerkId failed", error, { clerkId });
-      throw error;
+      return [];
     }
   },
 );
