@@ -75,14 +75,37 @@ export async function POST(req: NextRequest) {
       return serverError("Failed to load course data");
     }
 
-    await db.insert(enrollments).values({
-      user_id: dbUserId,
-      course_id: courseId,
-      progress: {
-        completedChapters: [],
-        currentChapter: firstChapter[0]?.id ?? 1,
-      },
-    });
+    try {
+      await db.insert(enrollments).values({
+        user_id: dbUserId,
+        course_id: courseId,
+        progress: {
+          completedChapters: [],
+          currentChapter: firstChapter[0]?.id ?? 1,
+        },
+      });
+    } catch (error) {
+      const code =
+        typeof error === "object" && error !== null && "code" in error
+          ? (error as { code?: unknown }).code
+          : undefined;
+      if (code !== "ER_DUP_ENTRY") {
+        console.error("[api/enroll] insert failed:", error);
+        return serverError("Failed to enroll");
+      }
+      // Race: a concurrent request (progress auto-enroll) created the row
+      // between our check and insert — return the existing enrollment.
+      const existing = await db
+        .select()
+        .from(enrollments)
+        .where(
+          and(
+            eq(enrollments.user_id, dbUserId),
+            eq(enrollments.course_id, courseId),
+          ),
+        );
+      return NextResponse.json(existing[0]);
+    }
 
     const created = await db
       .select()

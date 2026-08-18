@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { buildSandboxedSrcDoc } from "@/lib/editor";
 
 const PREVIEW_SCROLLBAR_CSS = [
   "html{scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.35) transparent}",
@@ -21,25 +21,6 @@ export function BrowserPreview({
   nonce = 0,
   title = "Browser Preview",
 }: BrowserPreviewProps) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    try {
-      const doc = iframe.contentDocument || iframe.contentWindow?.document;
-      if (!doc) return;
-      doc.open();
-      doc.write(html);
-      doc.close();
-      const style = doc.createElement("style");
-      style.textContent = PREVIEW_SCROLLBAR_CSS;
-      doc.head?.appendChild(style);
-    } catch {
-      // Cross-origin frame access can be blocked — preview simply won't update
-    }
-  }, [html, nonce]);
-
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-[#1e1e1e]">
       <div className="flex items-center gap-2 px-3 py-2 bg-[#1e1e1e] border-b border-white/5 flex-none">
@@ -51,7 +32,9 @@ export function BrowserPreview({
         </span>
       </div>
       <iframe
-        ref={iframeRef}
+        key={nonce}
+        srcDoc={buildSandboxedSrcDoc(html, PREVIEW_SCROLLBAR_CSS)}
+        sandbox="allow-scripts"
         className="w-full flex-1 min-h-0 bg-white"
         title={title}
       />
