@@ -20,7 +20,19 @@
 > **Update (2026-08-18):** Improvement #12 implemented.
 > - #12: `lib/course-data.ts` no longer swallows DB failures — all four queries now log + **rethrow** (matching the `enroll-data.ts` pattern). An outage now surfaces as a real error state via the segment `error.tsx` files (built in #4) instead of "No courses available yet" or a misleading 404. `[]`/`null` now mean genuine empty/not-found only. API routes (`/api/enroll`, `/api/progress`) catch the meta-fetch failure and return 500 `{ error: "Failed to load course data" }` via the new `serverError()` helper (`lib/api-error.ts`) instead of "Chapter not found".
 
-**Bottom line:** the module is in better shape than the rest of the app (React `cache()`, batched enrollment queries, single-transaction progress, global DB-backed rate limits, tuned pool — all already applied). It is **not** the bottleneck at 500 users — mentor chat is. The dominant cost driver — **zero cross-request caching for 100%-static seed content** — is now fixed (items #1-2), cutting the module's ~20M RU/month burn to **~6M/month** (~12% of the 50M free budget). Items #3-5 (worker sandbox, enroll toasts, loading/error states) are done as of 2026-08-17, and #12 (empty-vs-error distinction) as of 2026-08-18. Remaining course-module risks are telemetry (#6), request logging (#7), `currentUser()` → `auth()` (#8), and stale docs (#10).
+> **Update (2026-08-18):** Improvement #6 implemented.
+> - #6: per-request RU telemetry. New `lib/request-log.ts` (`AsyncLocalStorage` per-request counter + `withRequestLog(label, fn)`) wraps all 13 API handlers across the 10 routes; drizzle's `logger` hook in `config/db.tsx` counts **every** query (select/insert/update/delete, including inside transactions). Each request emits one line: `[req] POST /api/enroll 200 45ms 5 queries` — per-endpoint RU estimates are now computable from Vercel logs (requests × queries-per-request × RU-per-query). ALS (not a module counter) so concurrent requests on one instance don't mix counts; `countQuery()` is a no-op outside wrapped requests. Redundant manual `performance.now()` lines removed from `interview/stack` + `questions-by-tags`. Verified live: `[req] GET /api/health 200 892ms 1 queries`.
+> - **New finding from live logs (2026-08-18):** rate-limit upsert looked slow — `[db-rate-limit] slow db: rate-limit upsert (2260ms)` = ~80% of a 2864ms `/api/user` request. **On review: not an index problem** (`bucket` is the PK, `schema.tsx:131-135`); likely the explicit 2-statement transaction (TiDB tx overhead) or a cold pooled-connection TLS handshake on the dev box. Single observation — collect more `[req]` samples before acting.
+
+> **Update (2026-08-18):** Improvement #8 implemented.
+> - #8: `currentUser()` → `auth()` everywhere it can work. Added `usersTable.clerk_id` (nullable, unique — migration `drizzle/0007_naive_blue_shield.sql`, applied). New `getUserByClerkId` + `getEnrollmentsByClerkId` (`lib/enroll-data.ts`); shared internal `fetchEnrollments(userId)` keeps email + clerk variants DRY. `getUserContext` (`lib/mentor.ts`) resolves by clerk_id. Swapped to zero-HTTP `auth()`: enroll POST/GET, progress POST, user/profile GET/PATCH, mentor/chat GET/POST + pages `/courses`, `/courses/[id]`, `/mentor`. **12 → 3 `currentUser()` call sites.**
+> - Kept deliberately: `/api/user` POST (the one place with profile data — creates the row and **self-heals clerk_id for legacy rows** on next session sync) and `/dashboard` (needs Clerk `imageUrl` for the avatar; not available from `auth()` — would need an `avatar_url` column, YAGNI until asked).
+> - Note: `auth()` still marks pages dynamic (reads cookies) — the win is removing the external Clerk HTTP call per render (~100-300ms + Clerk API quota), not static rendering.
+
+> **Update (2026-08-18):** Improvement #10 implemented.
+> - #10: stale rate-limit docs corrected. `feature-tracker.md` I.4 + free-tier checklist, `production-review-500-users.md` (lines 112, 166, 193, 198, 250), and `production-review-interview-modules.md:17` now describe the real implementation: **DB-backed, handler-level** limiting via `lib/db-rate-limit.ts` + `config/rate-limits.ts` + `rate_limits` table — middleware is auth-only. Also fixed the health row's false "rate limiting still applies" claim. Future agents reading docs will now build the right thing.
+
+**Bottom line:** the module is in better shape than the rest of the app (React `cache()`, batched enrollment queries, single-transaction progress, global DB-backed rate limits, tuned pool — all already applied). It is **not** the bottleneck at 500 users — mentor chat is. The dominant cost driver — **zero cross-request caching for 100%-static seed content** — is now fixed (items #1-2), cutting the module's ~20M RU/month burn to **~6M/month** (~12% of the 50M free budget). Items #3-5 (worker sandbox, enroll toasts, loading/error states) are done as of 2026-08-17; #12 (empty-vs-error), #6 (per-request query-count telemetry), #8 (`currentUser()` → `auth()`, 12 → 3 call sites), and #10 (stale rate-limit docs) as of 2026-08-18. Remaining course-module risks are request logging (#7) and a once-observed slow rate-limit upsert (~2.2s, single sample — needs more telemetry).
 
 ---
 
@@ -33,7 +45,8 @@
 | 🟡 | ~~`courses/page.tsx` bypasses the cached `getAllCourses()` with a raw `db.select()` — duplicated logic, uncached.~~ ✅ **Fixed 2026-08-16** — uses `getAllCourses()`; unused `db`/`courses`/`eq`/`asc` imports removed; dead `chapter_count || 0` removed. | `app/(routes)/courses/page.tsx:34` |
 | 🟡 | ~~Main-thread `eval(code)` — a freeze/critical stall risk and an unsafe execution path.~~ ✅ **Fixed 2026-08-17** — lesson Run now uses the sandboxed worker `runJavaScript()` (`lib/editor.ts:14`, 5s timeout); infinite loops → "Execution timed out" instead of tab freeze. | ~~`LessonClient.tsx:61`~~ → `LessonClient.tsx:51-65` |
 | 🟡 | ~~No `loading.tsx`/`error.tsx` in `courses/` or `learn/` — synchronous Server Components → blank TTFB on slow DB. Dashboard has both.~~ ✅ **Fixed 2026-08-17** — both added to all three segments; shared `PageError.tsx` for fallbacks. | route dirs → `courses/{loading,error}.tsx`, `courses/[id]/*`, `learn/[courseId]/[chapterId]/*` |
-| 🟡 | `currentUser()` external Clerk HTTP per render — also **forces dynamic rendering**, limiting caching benefits. | `courses/page.tsx:42` |
+| 🟡 | ~~`currentUser()` external Clerk HTTP per render — also **forces dynamic rendering**, limiting caching benefits.~~ ✅ **Fixed 2026-08-18** (#8) — pages + 9 API handlers use local-JWT `auth()`; 12 → 3 call sites. Kept only where profile data is required: `/api/user` POST (row creation + clerk_id self-heal backfill) and `/dashboard` (avatar `imageUrl`). | `courses/page.tsx`, `courses/[id]/page.tsx`, `mentor/page.tsx` |
+| 🟡 | **Rate-limit upsert latency** — observed `[db-rate-limit] slow db: rate-limit upsert (2260ms)`, ~80% of a 2864ms `/api/user` request (2026-08-18, dev logs). Not an index issue (`bucket` is PK, `schema.tsx:131-135`) — suspect TiDB tx overhead (2-statement explicit transaction) or cold-connection handshake. One sample; needs more `[req]` telemetry before concluding. | `lib/db-rate-limit.ts:57-77`, `[req]` telemetry from #6 |
 | ✅ | Enrollment data: 2 batched queries (no N+1), progress route: single transaction, idempotent, atomic. | `lib/enroll-data.ts:64-91`, `app/api/progress/route.ts:56-138` |
 
 **RU math (500 users, 30 days):** catalog ~3M + learn ~12M + enroll/progress ~4.5M + dashboard's enrollment share ~9M ≈ **~28M RU/month combined**. Caching courses+chapters cuts the module to **~6M/month**, keeping total app burn (mentor excluded) under the 50M budget.
@@ -48,13 +61,13 @@
 | 🟡 | **`chapter_count` denormalization drift** — read at `lib/enroll-data.ts:136`; set only at seed time. Any manual chapter change silently breaks dashboard percentages unless `backfill-chapter-count.ts` is re-run. |
 | 🟡 | Enroll POST = 5 sequential queries + cached chapter fetch. Rate limit bounds blast radius, but could collapse to 2 (insert + return via `onDuplicateKeyUpdate`). |
 | 🟡 | `GET /api/enroll` unpaginated — bounded per user (≤ course count), fine now; flag for Phase 3+ when notes/posts arrive. |
-| 🟡 | **Docs mismatch**: `feature-tracker.md` I.4 and `docs/production-review-500-users.md:112,193` claim middleware in-memory limiting + `lib/rate-limit.ts` — that file doesn't exist. Real implementation is handler-level DB limiting. Stale docs are a hazard for future agents. |
+| 🟡 | ~~**Docs mismatch**: `feature-tracker.md` I.4 and `docs/production-review-500-users.md:112,193` claim middleware in-memory limiting + `lib/rate-limit.ts` — that file doesn't exist. Real implementation is handler-level DB limiting. Stale docs are a hazard for future agents.~~ ✅ **Fixed 2026-08-18** (#10) — `feature-tracker.md` I.4 + checklist, `production-review-500-users.md` (112, 166, 193, 198, 250), and `production-review-interview-modules.md:17` now describe the DB-backed handler-level limiter. |
 
 ## 3. Monitoring
 
 | Sev | Finding |
 |-----|---------|
-| 🔴 | **No RU tracking** — the one metric that decides survival on TiDB free tier. You can't predict the quota-exhaustion day (currently ~day 14-18 app-wide per the doc). TiDB console shows it, but nothing in-code correlates per endpoint. |
+| ✅ | ~~**No RU tracking** — the one metric that decides survival on TiDB free tier.~~ **Fixed 2026-08-18** — every API request logs one line via `withRequestLog` (#6): method, path, status, duration ms, query count. Per-endpoint RU now computable from Vercel logs (requests × queries × RU-per-query). Still poll TiDB console weekly for the true total. |
 | 🟡 | `log.timed()` warns on DB calls >250ms (`lib/logger.ts`) — good, but only used in 2 of ~6 course paths (progress route, course-data, enroll-data). |
 | 🟡 | `GET /api/health` exists (SELECT 1, 5s timeout) but nothing polls it — UptimeRobot deliberately deferred. At 500 users, self-detected downtime is 30-min add. |
 | 🟡 | No Vercel Analytics / Speed Insights — 0.2 hr add for real-user LCP data. |
@@ -64,7 +77,7 @@
 | Sev | Finding |
 |-----|---------|
 | ✅ | All catches log via `console.error("[module] fn:", error)` — no silent swallows in data layer. |
-| 🟡 | Unstructured logs — no levels, no correlation IDs, no per-request duration/status lines for API routes. At 500 users, Vercel's plain-text logs become unsearchable. |
+| 🟡 | ~~No per-request duration/status lines for API routes~~ — **Fixed 2026-08-18** (#6): every API request emits `[req] METHOD /path status ms queries`. Still no log levels or correlation IDs, and no middleware → page renders + edge requests still unlogged (that's #7). |
 | 🟡 | No request logging middleware → can't compute per-endpoint error rate / p95 latency from logs. |
 | 🟡 | `pino` deliberately deferred (correct call at 3-4 users; revisit at 500 — 30-min swap). |
 
@@ -100,11 +113,11 @@
 | ~~3~~ | ~~Swap `eval()` → `runJavaScript()` worker in `LessonClient`~~ | ✅ Implemented 2026-08-17 — worker sandbox wired into lesson Run; spinner + disabled state; output styled via `runError` state | Freeze/XSS elimination |
 | ~~4~~ | ~~Add `loading.tsx` + `error.tsx` to `/courses`, `/courses/[id]`, `/learn/*`~~ | ✅ Implemented 2026-08-17 — 6 files; shared `PageError.tsx`; skeletons match dashboard style | UX + failure visibility |
 | ~~5~~ | ~~EnrollButton: replace silent `catch` with toast; progress route already toasts~~ | ✅ Implemented 2026-08-17 — error + success toasts via sonner (already mounted) | Failure transparency |
-| 6 | Add RU/query-count telemetry: extend `logger.timed()` to emit per-route query counts + duration to Vercel logs; poll TiDB console weekly | 1 hr | Predict quota exhaustion |
+| ~~6~~ | ~~Add RU/query-count telemetry: extend `logger.timed()` to emit per-route query counts + duration to Vercel logs; poll TiDB console weekly~~ | ✅ Implemented 2026-08-18 — `lib/request-log.ts` (`AsyncLocalStorage` + `withRequestLog`) wraps all 13 API handlers; drizzle `logger` hook in `config/db.tsx` counts every query. Per-endpoint RU estimable from Vercel logs. Went further than `logger.timed()`: the db-level hook catches queries that aren't wrapped. | Predict quota exhaustion |
 | 7 | API request logging middleware (method, path, status, ms, user) | 30 min | Error rate + p95 from logs |
-| 8 | `currentUser()` → `auth()` + `usersTable.clerk_id` migration (doc estimates 1.5 hr, ~6 routes) | 1.5 hr | Removes Clerk HTTP per render, enables edge caching |
-| 9 | Badges: either build the `badges` table or remove the "You earned a badge!" toast — currently users are promised storage that doesn't exist | 1 hr | Correctness |
-| 10 | Correct stale rate-limit docs (I.4, production-review 2.2/5.2) | 10 min | Agent reliability |
+| ~~8~~ | ~~`currentUser()` → `auth()` + `usersTable.clerk_id` migration (doc estimates 1.5 hr, ~6 routes)~~ | ✅ Implemented 2026-08-18 — `clerk_id` column (migration `0007`), `getUserByClerkId`/`getEnrollmentsByClerkId`, 9 API handlers + 3 pages on `auth()`. `/api/user` POST self-heals legacy rows; dashboard keeps `currentUser()` (avatar). 12 → 3 call sites. | Removes Clerk HTTP per render |
+| ~~9~~ | ~~Badges: either build the `badges` table or remove the "You earned a badge!" toast — currently users are promised storage that doesn't exist~~ | ✅ Implemented 2026-08-17 — commit `2410857`: toast now says "Course completed! Great job!", hero copy drops the badge mention. No toast promises storage that doesn't exist. | Correctness |
+| ~~10~~ | ~~Correct stale rate-limit docs (I.4, production-review 2.2/5.2)~~ | ✅ Implemented 2026-08-18 — 8 stale claims across 3 files corrected to the real DB-backed handler-level limiter (`lib/db-rate-limit.ts` + `rate_limits` table); bonus: health doc row no longer claims a rate limit it doesn't have | Agent reliability |
 | 11 | Vercel Speed Insights + Analytics | 15 min | Real-user perf |
 | ~~12~~ | ~~Empty-vs-error distinction (doc 3.3)~~ | ✅ Implemented 2026-08-18 — `course-data.ts` rethrows after logging; `error.tsx` (from #4) renders the failure state; enroll/progress return 500 via `serverError()` | Kill silent degradation |
 

@@ -6,7 +6,7 @@ import {
   unauthorized,
   notFound,
 } from "@/lib/api-error";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { MENTOR_ENABLED } from "@/config/mentor";
 import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 import { withRequestLog } from "@/lib/request-log";
@@ -30,13 +30,10 @@ export async function GET() {
       );
     }
 
-    const clerkUser = await currentUser();
-    if (!clerkUser) return unauthorized();
+    const { userId } = await auth();
+    if (!userId) return unauthorized();
 
-    const email = clerkUser.primaryEmailAddress?.emailAddress;
-    if (!email) return notFound("Email");
-
-    const ctx = await getUserContext(email);
+    const ctx = await getUserContext(userId);
     if (!ctx) return notFound("User");
 
     return NextResponse.json({ context: ctx, history: [] });
@@ -52,14 +49,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const clerkUser = await currentUser();
-    if (!clerkUser) return unauthorized();
-
-    const email = clerkUser.primaryEmailAddress?.emailAddress;
-    if (!email) return notFound("Email");
+    const { userId } = await auth();
+    if (!userId) return unauthorized();
 
     const limited = await enforceDbRateLimit(
-      clerkUser.id,
+      userId,
       "mentor-chat",
       "/api/mentor/chat",
       "POST",
@@ -78,7 +72,7 @@ export async function POST(req: Request) {
 
     const { message } = parsed.data;
 
-    const ctx = await getUserContext(email);
+    const ctx = await getUserContext(userId);
     if (!ctx) return notFound("Context");
 
     const systemPrompt = buildSystemPrompt(ctx);

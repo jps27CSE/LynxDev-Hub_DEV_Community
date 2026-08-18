@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { db } from "@/config/db";
 import { enrollments, usersTable } from "@/config/schema";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -25,14 +25,11 @@ const ProgressSchema = z.object({
 
 export async function POST(req: NextRequest) {
   return withRequestLog("POST /api/progress", async () => {
-    const clerkUser = await currentUser();
-    if (!clerkUser) return unauthorized();
-
-    const email = clerkUser.primaryEmailAddress?.emailAddress;
-    if (!email) return notFound("Email");
+    const { userId } = await auth();
+    if (!userId) return unauthorized();
 
     const limited = await enforceDbRateLimit(
-      clerkUser.id,
+      userId,
       "progress",
       "/api/progress",
       "POST",
@@ -68,7 +65,7 @@ export async function POST(req: NextRequest) {
         const users = await tx
           .select()
           .from(usersTable)
-          .where(eq(usersTable.email, email))
+          .where(eq(usersTable.clerk_id, userId))
           .limit(1);
 
         if (users.length === 0) return { status: "not-found" } as const;

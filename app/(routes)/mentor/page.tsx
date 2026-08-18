@@ -1,11 +1,11 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { MENTOR_ENABLED } from "@/config/mentor";
 import MentorChat from "./_components/MentorChat";
 
 export default async function MentorPage() {
-  const user = await currentUser();
-  if (!user) redirect("/sign-in");
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
 
   if (!MENTOR_ENABLED) {
     return (

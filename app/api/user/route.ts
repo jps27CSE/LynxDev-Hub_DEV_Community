@@ -17,6 +17,11 @@ const UserSyncSchema = z.object({}).strict();
 
 export async function POST(req: NextRequest) {
   return withRequestLog("POST /api/user", async () => {
+    // Deliberately uses currentUser(), not auth(): this is the only place
+    // that has the profile data (email, name) needed to create the DB row.
+    // Runs once per session — the client syncs on mount. It is also the
+    // self-healing backfill for clerk_id (legacy rows created before the
+    // column existed).
     const clerkUser = await currentUser();
     if (!clerkUser) return unauthorized();
 
@@ -47,10 +52,18 @@ export async function POST(req: NextRequest) {
       .where(eq(usersTable.email, email));
 
     if (existing.length > 0) {
-      return NextResponse.json(existing[0]);
+      const user = existing[0];
+      if (!user.clerk_id) {
+        await db
+          .update(usersTable)
+          .set({ clerk_id: clerkUser.id })
+          .where(eq(usersTable.email, email));
+      }
+      return NextResponse.json({ ...user, clerk_id: clerkUser.id });
     }
 
     await db.insert(usersTable).values({
+      clerk_id: clerkUser.id,
       name: clerkUser.fullName ?? " ",
       email,
       points: 0,

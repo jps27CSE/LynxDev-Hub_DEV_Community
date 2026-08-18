@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { db } from "@/config/db";
 import { enrollments, usersTable } from "@/config/schema";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -11,7 +11,7 @@ import {
   notFound,
   serverError,
 } from "@/lib/api-error";
-import { getEnrollmentsByEmail } from "@/lib/enroll-data";
+import { getEnrollmentsByClerkId } from "@/lib/enroll-data";
 import { getChaptersMetaByCourseId, type ChapterMeta } from "@/lib/course-data";
 import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 import { withRequestLog } from "@/lib/request-log";
@@ -22,14 +22,11 @@ const EnrollSchema = z.object({
 
 export async function POST(req: NextRequest) {
   return withRequestLog("POST /api/enroll", async () => {
-    const clerkUser = await currentUser();
-    if (!clerkUser) return unauthorized();
-
-    const email = clerkUser.primaryEmailAddress?.emailAddress;
-    if (!email) return notFound("Email");
+    const { userId } = await auth();
+    if (!userId) return unauthorized();
 
     const limited = await enforceDbRateLimit(
-      clerkUser.id,
+      userId,
       "enroll",
       "/api/enroll",
       "POST",
@@ -51,19 +48,19 @@ export async function POST(req: NextRequest) {
     const users = await db
       .select()
       .from(usersTable)
-      .where(eq(usersTable.email, email))
+      .where(eq(usersTable.clerk_id, userId))
       .limit(1);
 
     if (users.length === 0) return notFound("User");
 
-    const userId = users[0].id;
+    const dbUserId = users[0].id;
 
     const existing = await db
       .select()
       .from(enrollments)
       .where(
         and(
-          eq(enrollments.user_id, userId),
+          eq(enrollments.user_id, dbUserId),
           eq(enrollments.course_id, courseId),
         ),
       );
@@ -79,7 +76,7 @@ export async function POST(req: NextRequest) {
     }
 
     await db.insert(enrollments).values({
-      user_id: userId,
+      user_id: dbUserId,
       course_id: courseId,
       progress: {
         completedChapters: [],
@@ -92,7 +89,7 @@ export async function POST(req: NextRequest) {
       .from(enrollments)
       .where(
         and(
-          eq(enrollments.user_id, userId),
+          eq(enrollments.user_id, dbUserId),
           eq(enrollments.course_id, courseId),
         ),
       );
@@ -103,14 +100,11 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   return withRequestLog("GET /api/enroll", async () => {
-    const clerkUser = await currentUser();
-    if (!clerkUser) return unauthorized();
-
-    const email = clerkUser.primaryEmailAddress?.emailAddress;
-    if (!email) return NextResponse.json([], { status: 200 });
+    const { userId } = await auth();
+    if (!userId) return unauthorized();
 
     try {
-      const data = await getEnrollmentsByEmail(email);
+      const data = await getEnrollmentsByClerkId(userId);
       return NextResponse.json(data);
     } catch (error) {
       console.error("[api/enroll] GET failed:", error);

@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { getCourseById, getChaptersByCourseId } from "@/lib/course-data";
 import { parsePositiveInt } from "@/lib/parse-id";
-import { getEnrollmentsByEmail } from "@/lib/enroll-data";
+import { getEnrollmentsByClerkId } from "@/lib/enroll-data";
 import { difficultyBadgeClass, difficultyIconClass } from "@/lib/interview-ui";
 import EnrollButton from "./EnrollButton";
 import CourseIcon from "@/components/CourseIcon";
@@ -42,9 +42,8 @@ export default async function CourseDetailPage({
     notFound();
   }
 
-  const clerkUser = await currentUser();
-  const email = clerkUser?.primaryEmailAddress?.emailAddress;
-  const enrollments = email ? await getEnrollmentsByEmail(email) : [];
+  const { userId } = await auth();
+  const enrollments = userId ? await getEnrollmentsByClerkId(userId) : [];
   const enrollment = enrollments.find((e) => e.course_id === courseId) ?? null;
 
   const completedIds = new Set(

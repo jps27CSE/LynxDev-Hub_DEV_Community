@@ -1,6 +1,6 @@
 import { db } from "@/config/db";
 import { usersTable } from "@/config/schema";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -21,16 +21,13 @@ const UpdateProfileSchema = z.object({
 
 export async function GET() {
   return withRequestLog("GET /api/user/profile", async () => {
-    const clerkUser = await currentUser();
-    if (!clerkUser) return unauthorized();
-
-    const email = clerkUser.primaryEmailAddress?.emailAddress;
-    if (!email) return notFound("Email");
+    const { userId } = await auth();
+    if (!userId) return unauthorized();
 
     const users = await db
       .select()
       .from(usersTable)
-      .where(eq(usersTable.email, email))
+      .where(eq(usersTable.clerk_id, userId))
       .limit(1);
 
     if (users.length === 0) return notFound("User");
@@ -41,14 +38,11 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
   return withRequestLog("PATCH /api/user/profile", async () => {
-    const clerkUser = await currentUser();
-    if (!clerkUser) return unauthorized();
-
-    const email = clerkUser.primaryEmailAddress?.emailAddress;
-    if (!email) return notFound("Email");
+    const { userId } = await auth();
+    if (!userId) return unauthorized();
 
     const limited = await enforceDbRateLimit(
-      clerkUser.id,
+      userId,
       "profile-update",
       "/api/user/profile",
       "PATCH",
@@ -73,12 +67,15 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    await db.update(usersTable).set(updates).where(eq(usersTable.email, email));
+    await db
+      .update(usersTable)
+      .set(updates)
+      .where(eq(usersTable.clerk_id, userId));
 
     const updated = await db
       .select()
       .from(usersTable)
-      .where(eq(usersTable.email, email))
+      .where(eq(usersTable.clerk_id, userId))
       .limit(1);
 
     return NextResponse.json(updated[0]);

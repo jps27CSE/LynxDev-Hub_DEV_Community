@@ -13,11 +13,11 @@ export type Message = {
   content: string;
 };
 
-export const getUserContext = cache(async (clerkEmail: string) => {
+export const getUserContext = cache(async (clerkId: string) => {
   const users = await db
     .select()
     .from(usersTable)
-    .where(eq(usersTable.email, clerkEmail))
+    .where(eq(usersTable.clerk_id, clerkId))
     .limit(1);
 
   if (!users.length) return null;
