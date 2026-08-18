@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
+import { countQuery } from "@/lib/request-log";
 
 // Pool is tuned for TiDB free tier (5-connection limit).
 // - connectTimeout bounds connection *establishment*.
@@ -21,4 +22,10 @@ const poolConfig = {
   keepAliveInitialDelay: 10_000,
 } satisfies mysql.PoolOptions & { acquireTimeout: number };
 
-export const db = drizzle(mysql.createPool(poolConfig));
+export const db = drizzle(mysql.createPool(poolConfig), {
+  logger: {
+    logQuery() {
+      countQuery();
+    },
+  },
+});

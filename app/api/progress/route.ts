@@ -14,6 +14,7 @@ import {
 import { createLogger } from "@/lib/logger";
 import { getChaptersMetaByCourseId, type ChapterMeta } from "@/lib/course-data";
 import { enforceDbRateLimit } from "@/lib/db-rate-limit";
+import { withRequestLog } from "@/lib/request-log";
 
 const log = createLogger("api/progress");
 
@@ -23,73 +24,58 @@ const ProgressSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const clerkUser = await currentUser();
-  if (!clerkUser) return unauthorized();
+  return withRequestLog("POST /api/progress", async () => {
+    const clerkUser = await currentUser();
+    if (!clerkUser) return unauthorized();
 
-  const email = clerkUser.primaryEmailAddress?.emailAddress;
-  if (!email) return notFound("Email");
+    const email = clerkUser.primaryEmailAddress?.emailAddress;
+    if (!email) return notFound("Email");
 
-  const limited = await enforceDbRateLimit(
-    clerkUser.id,
-    "progress",
-    "/api/progress",
-    "POST",
-  );
-  if (limited) return limited;
+    const limited = await enforceDbRateLimit(
+      clerkUser.id,
+      "progress",
+      "/api/progress",
+      "POST",
+    );
+    if (limited) return limited;
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return badJson();
-  }
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badJson();
+    }
 
-  const parsed = ProgressSchema.safeParse(body);
-  if (!parsed.success) return validationError(parsed.error);
+    const parsed = ProgressSchema.safeParse(body);
+    if (!parsed.success) return validationError(parsed.error);
 
-  const { courseId, chapterId } = parsed.data;
+    const { courseId, chapterId } = parsed.data;
 
-  let allChapters: ChapterMeta[];
-  try {
-    allChapters = await getChaptersMetaByCourseId(courseId);
-  } catch (error) {
-    log.error("failed to load course chapters", error);
-    return serverError("Failed to load course data");
-  }
-  const chapterMeta = allChapters.find((ch) => ch.id === chapterId);
-  if (!chapterMeta) return notFound("Chapter");
+    let allChapters: ChapterMeta[];
+    try {
+      allChapters = await getChaptersMetaByCourseId(courseId);
+    } catch (error) {
+      log.error("failed to load course chapters", error);
+      return serverError("Failed to load course data");
+    }
+    const chapterMeta = allChapters.find((ch) => ch.id === chapterId);
+    if (!chapterMeta) return notFound("Chapter");
 
-  const pointsReward = chapterMeta.points_reward ?? 10;
+    const pointsReward = chapterMeta.points_reward ?? 10;
 
-  const result = await log.timed("progress upsert", () =>
-    db.transaction(async (tx) => {
-      const users = await tx
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.email, email))
-        .limit(1);
+    const result = await log.timed("progress upsert", () =>
+      db.transaction(async (tx) => {
+        const users = await tx
+          .select()
+          .from(usersTable)
+          .where(eq(usersTable.email, email))
+          .limit(1);
 
-      if (users.length === 0) return { status: "not-found" } as const;
+        if (users.length === 0) return { status: "not-found" } as const;
 
-      const user = users[0];
+        const user = users[0];
 
-      const enrollment = await tx
-        .select()
-        .from(enrollments)
-        .where(
-          and(
-            eq(enrollments.user_id, user.id),
-            eq(enrollments.course_id, courseId),
-          ),
-        )
-        .limit(1);
-
-      let enrollmentRecord = enrollment[0];
-      if (!enrollmentRecord) {
-        await tx
-          .insert(enrollments)
-          .values({ user_id: user.id, course_id: courseId });
-        const created = await tx
+        const enrollment = await tx
           .select()
           .from(enrollments)
           .where(
@@ -97,69 +83,86 @@ export async function POST(req: NextRequest) {
               eq(enrollments.user_id, user.id),
               eq(enrollments.course_id, courseId),
             ),
-          );
-        enrollmentRecord = created[0];
-      }
+          )
+          .limit(1);
 
-      const progress = (enrollmentRecord.progress as {
-        completedChapters: number[];
-        currentChapter: number;
-      }) || {
-        completedChapters: [],
-        currentChapter: 1,
-      };
+        let enrollmentRecord = enrollment[0];
+        if (!enrollmentRecord) {
+          await tx
+            .insert(enrollments)
+            .values({ user_id: user.id, course_id: courseId });
+          const created = await tx
+            .select()
+            .from(enrollments)
+            .where(
+              and(
+                eq(enrollments.user_id, user.id),
+                eq(enrollments.course_id, courseId),
+              ),
+            );
+          enrollmentRecord = created[0];
+        }
 
-      if (progress.completedChapters.includes(chapterId)) {
-        return { status: "already" as const, progress };
-      }
+        const progress = (enrollmentRecord.progress as {
+          completedChapters: number[];
+          currentChapter: number;
+        }) || {
+          completedChapters: [],
+          currentChapter: 1,
+        };
 
-      progress.completedChapters = [...progress.completedChapters, chapterId];
-      progress.currentChapter = chapterId;
+        if (progress.completedChapters.includes(chapterId)) {
+          return { status: "already" as const, progress };
+        }
 
-      await tx
-        .update(enrollments)
-        .set({ progress, updated_at: new Date() })
-        .where(eq(enrollments.id, enrollmentRecord.id));
+        progress.completedChapters = [...progress.completedChapters, chapterId];
+        progress.currentChapter = chapterId;
 
-      const newPoints = (user.points ?? 0) + pointsReward;
-      await tx
-        .update(usersTable)
-        .set({ points: newPoints })
-        .where(eq(usersTable.id, user.id));
-
-      const allDone = allChapters.every((ch) =>
-        progress.completedChapters.includes(ch.id),
-      );
-      if (allDone) {
         await tx
           .update(enrollments)
-          .set({ completed_at: new Date() })
+          .set({ progress, updated_at: new Date() })
           .where(eq(enrollments.id, enrollmentRecord.id));
-      }
 
-      return {
-        status: "ok" as const,
-        points: newPoints,
-        pointsAwarded: pointsReward,
-        progress,
-        courseCompleted: allDone,
-      };
-    }),
-  );
+        const newPoints = (user.points ?? 0) + pointsReward;
+        await tx
+          .update(usersTable)
+          .set({ points: newPoints })
+          .where(eq(usersTable.id, user.id));
 
-  if (result.status === "not-found") return notFound("User");
-  if (result.status === "already") {
+        const allDone = allChapters.every((ch) =>
+          progress.completedChapters.includes(ch.id),
+        );
+        if (allDone) {
+          await tx
+            .update(enrollments)
+            .set({ completed_at: new Date() })
+            .where(eq(enrollments.id, enrollmentRecord.id));
+        }
+
+        return {
+          status: "ok" as const,
+          points: newPoints,
+          pointsAwarded: pointsReward,
+          progress,
+          courseCompleted: allDone,
+        };
+      }),
+    );
+
+    if (result.status === "not-found") return notFound("User");
+    if (result.status === "already") {
+      return NextResponse.json({
+        message: "Already completed",
+        progress: result.progress,
+      });
+    }
+
+    const { points, pointsAwarded, progress, courseCompleted } = result;
     return NextResponse.json({
-      message: "Already completed",
-      progress: result.progress,
+      points,
+      pointsAwarded,
+      progress,
+      courseCompleted,
     });
-  }
-
-  const { points, pointsAwarded, progress, courseCompleted } = result;
-  return NextResponse.json({
-    points,
-    pointsAwarded,
-    progress,
-    courseCompleted,
   });
 }

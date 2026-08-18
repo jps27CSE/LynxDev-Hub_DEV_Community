@@ -11,53 +11,56 @@ import {
   badJson,
 } from "@/lib/api-error";
 import { enforceDbRateLimit } from "@/lib/db-rate-limit";
+import { withRequestLog } from "@/lib/request-log";
 
 const UserSyncSchema = z.object({}).strict();
 
 export async function POST(req: NextRequest) {
-  const clerkUser = await currentUser();
-  if (!clerkUser) return unauthorized();
+  return withRequestLog("POST /api/user", async () => {
+    const clerkUser = await currentUser();
+    if (!clerkUser) return unauthorized();
 
-  const email = clerkUser.primaryEmailAddress?.emailAddress;
-  if (!email) return notFound("Email");
+    const email = clerkUser.primaryEmailAddress?.emailAddress;
+    if (!email) return notFound("Email");
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return badJson();
-  }
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badJson();
+    }
 
-  const parsed = UserSyncSchema.safeParse(body);
-  if (!parsed.success) return validationError(parsed.error);
+    const parsed = UserSyncSchema.safeParse(body);
+    if (!parsed.success) return validationError(parsed.error);
 
-  const limited = await enforceDbRateLimit(
-    clerkUser.id,
-    "user-sync",
-    "/api/user",
-    "POST",
-  );
-  if (limited) return limited;
+    const limited = await enforceDbRateLimit(
+      clerkUser.id,
+      "user-sync",
+      "/api/user",
+      "POST",
+    );
+    if (limited) return limited;
 
-  const existing = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.email, email));
+    const existing = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, email));
 
-  if (existing.length > 0) {
-    return NextResponse.json(existing[0]);
-  }
+    if (existing.length > 0) {
+      return NextResponse.json(existing[0]);
+    }
 
-  await db.insert(usersTable).values({
-    name: clerkUser.fullName ?? " ",
-    email,
-    points: 0,
+    await db.insert(usersTable).values({
+      name: clerkUser.fullName ?? " ",
+      email,
+      points: 0,
+    });
+
+    const created = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, email));
+
+    return NextResponse.json(created[0]);
   });
-
-  const created = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.email, email));
-
-  return NextResponse.json(created[0]);
 }

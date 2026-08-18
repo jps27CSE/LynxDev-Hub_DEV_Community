@@ -11,6 +11,7 @@ import {
   notFound,
 } from "@/lib/api-error";
 import { enforceDbRateLimit } from "@/lib/db-rate-limit";
+import { withRequestLog } from "@/lib/request-log";
 
 const UpdateProfileSchema = z.object({
   name: z.string().trim().min(1).max(255).optional(),
@@ -19,63 +20,67 @@ const UpdateProfileSchema = z.object({
 });
 
 export async function GET() {
-  const clerkUser = await currentUser();
-  if (!clerkUser) return unauthorized();
+  return withRequestLog("GET /api/user/profile", async () => {
+    const clerkUser = await currentUser();
+    if (!clerkUser) return unauthorized();
 
-  const email = clerkUser.primaryEmailAddress?.emailAddress;
-  if (!email) return notFound("Email");
+    const email = clerkUser.primaryEmailAddress?.emailAddress;
+    if (!email) return notFound("Email");
 
-  const users = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.email, email))
-    .limit(1);
+    const users = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, email))
+      .limit(1);
 
-  if (users.length === 0) return notFound("User");
+    if (users.length === 0) return notFound("User");
 
-  return NextResponse.json(users[0]);
+    return NextResponse.json(users[0]);
+  });
 }
 
 export async function PATCH(req: NextRequest) {
-  const clerkUser = await currentUser();
-  if (!clerkUser) return unauthorized();
+  return withRequestLog("PATCH /api/user/profile", async () => {
+    const clerkUser = await currentUser();
+    if (!clerkUser) return unauthorized();
 
-  const email = clerkUser.primaryEmailAddress?.emailAddress;
-  if (!email) return notFound("Email");
+    const email = clerkUser.primaryEmailAddress?.emailAddress;
+    if (!email) return notFound("Email");
 
-  const limited = await enforceDbRateLimit(
-    clerkUser.id,
-    "profile-update",
-    "/api/user/profile",
-    "PATCH",
-  );
-  if (limited) return limited;
-
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return badJson();
-  }
-
-  const parsed = UpdateProfileSchema.safeParse(body);
-  if (!parsed.success) return validationError(parsed.error);
-
-  const updates = parsed.data;
-  if (Object.keys(updates).length === 0) {
-    return NextResponse.json(
-      { error: "No valid fields to update" },
-      { status: 400 },
+    const limited = await enforceDbRateLimit(
+      clerkUser.id,
+      "profile-update",
+      "/api/user/profile",
+      "PATCH",
     );
-  }
+    if (limited) return limited;
 
-  await db.update(usersTable).set(updates).where(eq(usersTable.email, email));
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return badJson();
+    }
 
-  const updated = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.email, email))
-    .limit(1);
+    const parsed = UpdateProfileSchema.safeParse(body);
+    if (!parsed.success) return validationError(parsed.error);
 
-  return NextResponse.json(updated[0]);
+    const updates = parsed.data;
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json(
+        { error: "No valid fields to update" },
+        { status: 400 },
+      );
+    }
+
+    await db.update(usersTable).set(updates).where(eq(usersTable.email, email));
+
+    const updated = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, email))
+      .limit(1);
+
+    return NextResponse.json(updated[0]);
+  });
 }
