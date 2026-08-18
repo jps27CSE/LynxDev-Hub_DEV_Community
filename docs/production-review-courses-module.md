@@ -17,7 +17,10 @@
 > **Update (2026-08-17):** Improvement #4 implemented.
 > - #4: `loading.tsx` + `error.tsx` added to `/courses`, `/courses/[id]`, and `/learn/[courseId]/[chapterId]` (6 files). Skeletons mirror the dashboard pattern (shared `Skeleton` primitive, hero/card-grid/timeline/split-pane shapes); errors use a new shared `components/PageError.tsx` (icon + title + `reset()`), keeping failures segment-local. No more blank TTFB on slow DB or full-page blowups.
 
-**Bottom line:** the module is in better shape than the rest of the app (React `cache()`, batched enrollment queries, single-transaction progress, global DB-backed rate limits, tuned pool — all already applied). It is **not** the bottleneck at 500 users — mentor chat is. The dominant cost driver — **zero cross-request caching for 100%-static seed content** — is now fixed (items #1-2), cutting the module's ~20M RU/month burn to **~6M/month** (~12% of the 50M free budget). Items #3-5 (worker sandbox, enroll toasts, loading/error states) are done as of 2026-08-17. Remaining course-module risks are telemetry (#6-7) and stale docs (#10).
+> **Update (2026-08-18):** Improvement #12 implemented.
+> - #12: `lib/course-data.ts` no longer swallows DB failures — all four queries now log + **rethrow** (matching the `enroll-data.ts` pattern). An outage now surfaces as a real error state via the segment `error.tsx` files (built in #4) instead of "No courses available yet" or a misleading 404. `[]`/`null` now mean genuine empty/not-found only. API routes (`/api/enroll`, `/api/progress`) catch the meta-fetch failure and return 500 `{ error: "Failed to load course data" }` via the new `serverError()` helper (`lib/api-error.ts`) instead of "Chapter not found".
+
+**Bottom line:** the module is in better shape than the rest of the app (React `cache()`, batched enrollment queries, single-transaction progress, global DB-backed rate limits, tuned pool — all already applied). It is **not** the bottleneck at 500 users — mentor chat is. The dominant cost driver — **zero cross-request caching for 100%-static seed content** — is now fixed (items #1-2), cutting the module's ~20M RU/month burn to **~6M/month** (~12% of the 50M free budget). Items #3-5 (worker sandbox, enroll toasts, loading/error states) are done as of 2026-08-17, and #12 (empty-vs-error distinction) as of 2026-08-18. Remaining course-module risks are telemetry (#6), request logging (#7), `currentUser()` → `auth()` (#8), and stale docs (#10).
 
 ---
 
@@ -79,7 +82,7 @@
 
 | Sev | Finding |
 |-----|---------|
-| 🔴 | **Error and empty are indistinguishable.** `getAllCourses()`/`getChaptersByCourseId()` return `[]`/`null` on failure → catalog shows "No courses available yet" (page.tsx:112-117) during a DB outage instead of an error state. Silent degradation — the doc's own Tier 3.3, still open. |
+| 🔴 | ~~**Error and empty are indistinguishable.** `getAllCourses()`/`getChaptersByCourseId()` return `[]`/`null` on failure → catalog shows "No courses available yet" (page.tsx:112-117) during a DB outage instead of an error state. Silent degradation — the doc's own Tier 3.3, still open.~~ ✅ **Fixed 2026-08-18** — `lib/course-data.ts` logs + rethrows (enroll-data pattern); segment `error.tsx` renders the failure state; `/api/enroll` + `/api/progress` return 500 via `serverError()` instead of misleading 404s. |
 | 🟡 | **No retry on transient TiDB failures** — pool keep-alive helps, but a TiDB blip = failed requests; a small retry wrapper (reuse Mistral's backoff pattern in `lib/mentor.ts`) on idempotent reads is cheap. |
 | 🟡 | ~~`EnrollButton` swallows errors (`catch {}`, `EnrollButton.tsx:25`) — failed enrollment looks like success (button stops spinning, no toast).~~ ✅ **Fixed 2026-08-17** — error toast on failure, success toast on enroll; no more silent failure. |
 | ✅ | Progress is a single transaction, idempotent, auto-enrolls, rate-limited — double-click safe. |
@@ -103,6 +106,6 @@
 | 9 | Badges: either build the `badges` table or remove the "You earned a badge!" toast — currently users are promised storage that doesn't exist | 1 hr | Correctness |
 | 10 | Correct stale rate-limit docs (I.4, production-review 2.2/5.2) | 10 min | Agent reliability |
 | 11 | Vercel Speed Insights + Analytics | 15 min | Real-user perf |
-| 12 | Empty-vs-error distinction (doc 3.3) | 1 hr | Kill silent degradation |
+| ~~12~~ | ~~Empty-vs-error distinction (doc 3.3)~~ | ✅ Implemented 2026-08-18 — `course-data.ts` rethrows after logging; `error.tsx` (from #4) renders the failure state; enroll/progress return 500 via `serverError()` | Kill silent degradation |
 
 Items 1-5 alone move the module from ~28M → ~8M RU/month combined with dashboard — the difference between surviving the month and hitting the wall at ~day 14-18.

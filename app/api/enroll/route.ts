@@ -9,9 +9,10 @@ import {
   badJson,
   unauthorized,
   notFound,
+  serverError,
 } from "@/lib/api-error";
 import { getEnrollmentsByEmail } from "@/lib/enroll-data";
-import { getChaptersMetaByCourseId } from "@/lib/course-data";
+import { getChaptersMetaByCourseId, type ChapterMeta } from "@/lib/course-data";
 import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 
 const EnrollSchema = z.object({
@@ -64,7 +65,13 @@ export async function POST(req: NextRequest) {
 
   if (existing.length > 0) return NextResponse.json(existing[0]);
 
-  const firstChapter = await getChaptersMetaByCourseId(courseId);
+  let firstChapter: ChapterMeta[];
+  try {
+    firstChapter = await getChaptersMetaByCourseId(courseId);
+  } catch (error) {
+    console.error("[api/enroll] failed to load course chapters:", error);
+    return serverError("Failed to load course data");
+  }
 
   await db.insert(enrollments).values({
     user_id: userId,

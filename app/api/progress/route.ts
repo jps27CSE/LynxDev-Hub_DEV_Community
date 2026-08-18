@@ -9,9 +9,10 @@ import {
   badJson,
   unauthorized,
   notFound,
+  serverError,
 } from "@/lib/api-error";
 import { createLogger } from "@/lib/logger";
-import { getChaptersMetaByCourseId } from "@/lib/course-data";
+import { getChaptersMetaByCourseId, type ChapterMeta } from "@/lib/course-data";
 import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 
 const log = createLogger("api/progress");
@@ -48,7 +49,13 @@ export async function POST(req: NextRequest) {
 
   const { courseId, chapterId } = parsed.data;
 
-  const allChapters = await getChaptersMetaByCourseId(courseId);
+  let allChapters: ChapterMeta[];
+  try {
+    allChapters = await getChaptersMetaByCourseId(courseId);
+  } catch (error) {
+    log.error("failed to load course chapters", error);
+    return serverError("Failed to load course data");
+  }
   const chapterMeta = allChapters.find((ch) => ch.id === chapterId);
   if (!chapterMeta) return notFound("Chapter");
 

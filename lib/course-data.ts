@@ -50,6 +50,11 @@ export function getCourseLanguage(
   return contentType === "console" ? "javascript" : "html";
 }
 
+/**
+ * Failures THROW (after logging) — never return empty data that looks like
+ * "no courses". Pages distinguish via their segment `error.tsx` (error state)
+ * vs `[]`/`null` (genuine empty / not-found). Matches enroll-data's pattern.
+ */
 export const getAllCourses = cache(async (): Promise<CourseRow[]> => {
   try {
     return await withCourseCache("all-courses", async () => {
@@ -61,7 +66,7 @@ export const getAllCourses = cache(async (): Promise<CourseRow[]> => {
     });
   } catch (error) {
     log.error("getAllCourses failed", error);
-    return [];
+    throw error;
   }
 });
 
@@ -82,7 +87,7 @@ export const getCourseById = cache(
       });
     } catch (error) {
       log.error("getCourseById failed", error);
-      return null;
+      throw error;
     }
   },
 );
@@ -109,7 +114,7 @@ export const getChaptersByCourseId = cache(
       });
     } catch (error) {
       log.error("getChaptersByCourseId failed", error);
-      return [];
+      throw error;
     }
   },
 );
@@ -141,7 +146,7 @@ export const getChaptersMetaByCourseId = cache(
       });
     } catch (error) {
       log.error("getChaptersMetaByCourseId failed", error);
-      return [];
+      throw error;
     }
   },
 );
