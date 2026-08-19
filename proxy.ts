@@ -1,5 +1,9 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import {
+  NextResponse,
+  type NextFetchEvent,
+  type NextRequest,
+} from "next/server";
 
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
@@ -7,23 +11,42 @@ const isPublicRoute = createRouteMatcher([
   "/api/health(.*)",
 ]);
 
-export default clerkMiddleware(async (auth, req) => {
-  const { pathname } = req.nextUrl;
+export default async function middleware(
+  req: NextRequest,
+  event: NextFetchEvent,
+) {
+  const start = performance.now();
+  let userId: string | null = null;
 
-  // OAuth-only signup: first Google/GitHub tap creates the account, so the
-  // sign-up page is redundant. Any lingering /sign-up links land here.
-  if (pathname.startsWith("/sign-up")) {
-    return NextResponse.redirect(new URL("/sign-in", req.url));
-  }
+  const res = await clerkMiddleware(async (auth, r) => {
+    const authObject = await auth();
+    userId = authObject.userId ?? null;
 
-  const isPublic = isPublicRoute(req);
+    const { pathname } = r.nextUrl;
 
-  if (isPublic) {
-    await auth();
-  } else {
+    // OAuth-only signup: first Google/GitHub tap creates the account, so the
+    // sign-up page is redundant. Any lingering /sign-up links land here.
+    if (pathname.startsWith("/sign-up")) {
+      return NextResponse.redirect(new URL("/sign-in", r.url));
+    }
+
+    const isPublic = isPublicRoute(r);
+
+    if (isPublic) {
+      return;
+    }
+
     await auth.protect();
-  }
-});
+  })(req, event);
+
+  const ms = performance.now() - start;
+  const status = res?.status ?? 200;
+  console.info(
+    `[http] ${req.method} ${req.nextUrl.pathname} ${status} ${ms.toFixed(0)}ms${userId ? ` user=${userId}` : ""}`,
+  );
+
+  return res ?? NextResponse.next();
+}
 
 export const config = {
   matcher: [
