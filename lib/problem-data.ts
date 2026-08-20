@@ -3,10 +3,27 @@ import { db } from "@/config/db";
 import { problems } from "@/config/schema";
 import { eq, asc, count, and } from "drizzle-orm";
 import { createLogger } from "@/lib/logger";
+import {
+  createContentCache,
+  DEFAULT_CONTENT_CACHE_TTL,
+} from "@/lib/content-cache";
 import { TOP_PROBLEMS, type TopProblem } from "@/config/problems/top-problems";
 import { TOP_STATEMENTS } from "@/config/problems/top-statements";
 
 const log = createLogger("problem-data");
+
+/**
+ * Invalidation: bump PROBLEMS_DATA_CACHE_VERSION after re-running a seed
+ * script — seeds run outside the Next runtime, so revalidateTag() is unusable
+ * there.
+ */
+const PROBLEMS_DATA_CACHE_VERSION = 1;
+
+const withProblemsCache = createContentCache({
+  tag: "problems",
+  version: PROBLEMS_DATA_CACHE_VERSION,
+  ttl: DEFAULT_CONTENT_CACHE_TTL,
+});
 
 export type Problem = {
   id: number;
@@ -32,40 +49,45 @@ export const getAllProblems = cache(
     difficulty?: string;
     category?: string;
   }): Promise<{ problems: Problem[]; total: number }> => {
+    const key = "problems-all:" + (opts ? JSON.stringify(opts) : "default");
     try {
-      const conditions = [];
-      if (opts?.difficulty && opts.difficulty !== "all") {
-        conditions.push(eq(problems.difficulty, opts.difficulty));
-      }
-      if (opts?.category && opts.category !== "all") {
-        conditions.push(eq(problems.category, opts.category));
-      }
-      const where = conditions.length > 0 ? and(...conditions) : undefined;
+      return await withProblemsCache(key, () =>
+        log.timed("getAllProblems", async () => {
+          const conditions = [];
+          if (opts?.difficulty && opts.difficulty !== "all") {
+            conditions.push(eq(problems.difficulty, opts.difficulty));
+          }
+          if (opts?.category && opts.category !== "all") {
+            conditions.push(eq(problems.category, opts.category));
+          }
+          const where = conditions.length > 0 ? and(...conditions) : undefined;
 
-      const [{ value: rawTotal }] = await db
-        .select({ value: count() })
-        .from(problems)
-        .where(where);
-      const total = Number(rawTotal);
+          const [{ value: rawTotal }] = await db
+            .select({ value: count() })
+            .from(problems)
+            .where(where);
+          const total = Number(rawTotal);
 
-      const query = db
-        .select()
-        .from(problems)
-        .where(where)
-        .orderBy(asc(problems.order_index))
-        .$dynamic();
+          const query = db
+            .select()
+            .from(problems)
+            .where(where)
+            .orderBy(asc(problems.order_index))
+            .$dynamic();
 
-      const result = await (opts?.limit
-        ? query.limit(opts.limit).offset(opts?.offset ?? 0)
-        : query);
-      return {
-        problems: result.map((p) => ({
-          ...p,
-          tags: p.tags as string[],
-          test_cases: p.test_cases as TestCase[] | null,
-        })),
-        total,
-      };
+          const result = await (opts?.limit
+            ? query.limit(opts.limit).offset(opts?.offset ?? 0)
+            : query);
+          return {
+            problems: result.map((p) => ({
+              ...p,
+              tags: p.tags as string[],
+              test_cases: p.test_cases as TestCase[] | null,
+            })),
+            total,
+          };
+        }),
+      );
     } catch (error) {
       log.error("getAllProblems failed", error);
       return { problems: [], total: 0 };
@@ -91,18 +113,22 @@ export const getProblemCategories = cache(async (): Promise<string[]> => {
 export const getProblemById = cache(
   async (id: number): Promise<Problem | null> => {
     try {
-      const result = await db
-        .select()
-        .from(problems)
-        .where(eq(problems.id, id))
-        .limit(1);
-      if (result.length === 0) return null;
-      const p = result[0];
-      return {
-        ...p,
-        tags: p.tags as string[],
-        test_cases: p.test_cases as TestCase[] | null,
-      };
+      return await withProblemsCache("problem-by-id:" + id, () =>
+        log.timed("getProblemById", async () => {
+          const result = await db
+            .select()
+            .from(problems)
+            .where(eq(problems.id, id))
+            .limit(1);
+          if (result.length === 0) return null;
+          const p = result[0];
+          return {
+            ...p,
+            tags: p.tags as string[],
+            test_cases: p.test_cases as TestCase[] | null,
+          };
+        }),
+      );
     } catch (error) {
       log.error("getProblemById failed", error);
       return null;
