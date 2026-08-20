@@ -56,6 +56,9 @@ export default function LessonClient({
     setRunning(true);
     try {
       const result = await runJavaScript(code);
+      if (result.error) {
+        console.warn("[editor] run failed:", result.error);
+      }
       setOutput(result.error ? `Error: ${result.error}` : result.output);
       setRunError(result.error !== null);
     } finally {

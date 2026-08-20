@@ -2,7 +2,13 @@
 
 import * as Clerk from "@clerk/elements/common";
 import * as SignIn from "@clerk/elements/sign-in";
-import { BookOpen, BrainCircuit, Code2, Target, type LucideIcon } from "lucide-react";
+import {
+  BookOpen,
+  BrainCircuit,
+  Code2,
+  Target,
+  type LucideIcon,
+} from "lucide-react";
 import {
   AuthPageBackground,
   AuthShell,

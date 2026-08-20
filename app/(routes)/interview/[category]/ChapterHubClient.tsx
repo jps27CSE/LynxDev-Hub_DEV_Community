@@ -943,7 +943,10 @@ function ChapterHubInner({
       </div>
 
       <Sheet open={mobileChaptersOpen} onOpenChange={setMobileChaptersOpen}>
-        <SheetContent side="left" className="w-80 sm:max-w-sm p-0 gap-0 bg-[#07090e]">
+        <SheetContent
+          side="left"
+          className="w-80 sm:max-w-sm p-0 gap-0 bg-[#07090e]"
+        >
           <SheetTitle className="sr-only">Chapters</SheetTitle>
           <ChaptersRail
             chaptersWithQuestions={chaptersWithQuestions}

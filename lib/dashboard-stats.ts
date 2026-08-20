@@ -4,7 +4,10 @@ import { interviewCategories, problems } from "@/config/schema";
 import { INTERVIEW_PUBLISHED_SLUGS } from "@/lib/interview-constants";
 import { getReachableQuestionStats } from "@/lib/interview-data";
 import { createLogger } from "@/lib/logger";
-import { createContentCache, DEFAULT_CONTENT_CACHE_TTL } from "@/lib/content-cache";
+import {
+  createContentCache,
+  DEFAULT_CONTENT_CACHE_TTL,
+} from "@/lib/content-cache";
 import { count, inArray } from "drizzle-orm";
 import { withConnectRetry } from "@/lib/db-retry";
 

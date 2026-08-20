@@ -132,9 +132,7 @@ export default function EditorClient({ problem }: EditorClientProps) {
               min={10}
               max={24}
               value={fontSize}
-              onChange={(e) =>
-                setFontSizeAndPersist(Number(e.target.value))
-              }
+              onChange={(e) => setFontSizeAndPersist(Number(e.target.value))}
               className="w-16 sm:w-20 h-6 accent-cyan-400 cursor-pointer"
               aria-label="Font size slider"
             />

@@ -84,11 +84,7 @@ export const getCourseById = cache(
     try {
       return await withCourseCache(`course-${id}`, async () => {
         const result = await withConnectRetry(() =>
-          db
-            .select()
-            .from(courses)
-            .where(eq(courses.id, id))
-            .limit(1),
+          db.select().from(courses).where(eq(courses.id, id)).limit(1),
         );
         return result[0] ?? null;
       });
