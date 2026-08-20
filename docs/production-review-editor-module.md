@@ -1,7 +1,7 @@
 # Production Review — Editor Module (500 Concurrent Users, Free Tier)
 
 > **Date:** 2026-08-06
-> **Last updated:** 2026-08-20 — Tier 1 complete: 1.1 (sandbox hardening), 1.3 (log cap), 1.2 (Monaco CDN fallback) implemented
+> **Last updated:** 2026-08-20 — Tier 1 (sandbox, log cap, CDN fallback) + Tier 2 (reset confirm, storage warning, run failure logging) implemented
 > **Scope:** `lib/editor.ts`, `hooks/useCodeEditor.ts`, `components/editor/*`, `components/code-block.tsx`, `/editor` page, workspace + dialog editor surfaces
 > **Stack:** Next.js 16 on Vercel Hobby | TiDB Cloud Starter (Free) | Monaco via jsDelivr CDN
 
@@ -43,7 +43,7 @@ quality** — sandbox security and failure recovery — not infrastructure.
 | Finding | Detail |
 |---|---|
 | ✅ Server | `getProblemById` failures logged via `createLogger("problem-data")` |
-| 🟡 Client | Autosave failures are silently swallowed; no `console.error` on run / dialog failures. Add `console.warn("[editor] run failed/timeout:", ...)` on those paths (surfaces in devtools, free) |
+| ✅ Client | **Fixed 2026-08-20** — `console.warn("[editor] run failed:", …)` on timeout/worker errors in `useCodeEditor.ts`, `code-block.tsx`, `LessonClient.tsx` |
 
 ## 5. Security (the meat)
 
@@ -59,8 +59,8 @@ quality** — sandbox security and failure recovery — not infrastructure.
 |---|---|---|
 | ✅ CDN outage / offline | **Fixed 2026-08-20** — `MonacoEditor.tsx` wraps the dynamic import in `MonacoErrorBoundary` (catches chunk-load throws) + a 10s load timeout (catches the non-throwing CDN script failure); both swap to a controlled `<textarea>` (`MonacoFallback.tsx`) that reuses the same `value`/`onChange` contract and the same worker Run. Editing, Run, Reset, Import, Save all survive; only highlighting/autocomplete and Monaco cursor reporting (EditorWorkspace status bar) degrade | Done |
 | ✅ Infinite loop | 5s timeout + `worker.terminate()` + `revokeObjectURL` | Already solid |
-| 🟢 Private-mode autosave | Edits silently lost on refresh | Warn once: "code won't be saved on this device" |
-| 🟡 Reset destroys unsaved work | `reset()` overwrites `initialCode` + autosave with no confirmation (`hooks/useCodeEditor.ts:53-57`) | Confirm when `code !== initialCode` |
+| ✅ Private-mode autosave | **Fixed 2026-08-20** — `trySaveCodeToStorage` returns a boolean; `useCodeEditor` shows a one-time "Code won't be saved on this device" toast when storage is unavailable | Done |
+| ✅ Reset destroys unsaved work | **Fixed 2026-08-20** — `reset()` confirms via `window.confirm` only when `code !== initialCode`; pristine code resets instantly (`hooks/useCodeEditor.ts:64-75`) | Done |
 | 🟢 File import / run errors | Surfaces in `OutputPane` | ✅ |
 
 ---
@@ -75,9 +75,9 @@ quality** — sandbox security and failure recovery — not infrastructure.
 | 1.2 | **Monaco CDN fallback** — error boundary + 10s load timeout + `<textarea>` fallback that still Runs via the worker (`components/editor/MonacoFallback.tsx`) | Removes the single point of failure for the whole module. **✅ Done 2026-08-20** | 1 hr |
 | 1.3 | **Log cap in the worker** — truncate captured lines (10k) + chars (500KB) with `… N more lines truncated` marker | Protects the main thread from pathological output. **✅ Done 2026-08-20** | 0.25 hr |
 
-### Tier 2 — Optional (~0.5 hour)
+### Tier 2 — Optional (~0.5 hour) — ✅ All done 2026-08-20
 
 | # | Action | Note |
 |---|--------|------|
-| 2.1 | Reset confirmation + "autosave unavailable" warning | Prevents silent data loss |
-| 2.2 | `console.warn` on run timeout / worker errors | Monitoring hygiene via devtools |
+| 2.1 | Reset confirmation + "autosave unavailable" warning | Prevents silent data loss. **✅ Done** — confirm on dirty reset; one-time toast on storage failure |
+| 2.2 | `console.warn` on run timeout / worker errors | Monitoring hygiene via devtools. **✅ Done** — all 3 run paths |

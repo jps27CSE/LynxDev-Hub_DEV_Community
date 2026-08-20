@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   loadSavedCode,
   readCodeFile,
   runJavaScript,
   saveCodeAsFile,
-  saveCodeToStorage,
+  trySaveCodeToStorage,
 } from "@/lib/editor";
 
 type UseCodeEditorOptions = {
@@ -30,11 +31,21 @@ export function useCodeEditor({
   const [output, setOutput] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
+  // Ref, not state: the warning never needs to re-render the tree
+  const storageWarningShown = useRef(false);
   const importInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!storageKey) return;
-    const timer = setTimeout(() => saveCodeToStorage(storageKey, code), 500);
+    const timer = setTimeout(() => {
+      const saved = trySaveCodeToStorage(storageKey, code);
+      if (!saved && !storageWarningShown.current) {
+        storageWarningShown.current = true;
+        toast("Code won't be saved on this device", {
+          description: "Private browsing or storage limits prevent autosave.",
+        });
+      }
+    }, 500);
     return () => clearTimeout(timer);
   }, [code, storageKey]);
 
@@ -44,6 +55,9 @@ export function useCodeEditor({
     setError(null);
     // Runs in a worker with a timeout — always settles, never freezes the tab
     void runJavaScript(code).then((result) => {
+      if (result.error) {
+        console.warn("[editor] run failed:", result.error);
+      }
       setOutput(result.output);
       setError(result.error);
       setRunning(false);
@@ -51,10 +65,16 @@ export function useCodeEditor({
   }, [code]);
 
   const reset = useCallback(() => {
+    if (
+      code !== initialCode &&
+      !window.confirm("Reset to starter code? Your changes will be lost.")
+    ) {
+      return;
+    }
     setCode(initialCode);
     setOutput(null);
     setError(null);
-  }, [initialCode]);
+  }, [code, initialCode]);
 
   const downloadCode = useCallback(() => {
     saveCodeAsFile(code, "solution.js");

@@ -128,10 +128,12 @@ export function loadSavedCode(storageKey: string): string | null {
   }
 }
 
-export function saveCodeToStorage(storageKey: string, code: string) {
+export function trySaveCodeToStorage(storageKey: string, code: string): boolean {
   try {
     localStorage.setItem(storageKey, code);
+    return true;
   } catch {
     // Storage unavailable (private mode / quota) — code just won't persist
+    return false;
   }
 }

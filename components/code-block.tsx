@@ -56,6 +56,9 @@ export function CodeBlock({
     setRunning(true);
     setRunResult(null);
     const result = await runJavaScript(raw);
+    if (result.error) {
+      console.warn("[editor] run failed:", result.error);
+    }
     setRunResult(result);
     setRunning(false);
   };
