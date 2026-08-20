@@ -1,6 +1,7 @@
 # Production Review — Editor Module (500 Concurrent Users, Free Tier)
 
 > **Date:** 2026-08-06
+> **Last updated:** 2026-08-20 — Tier 1.1 (sandbox hardening) implemented
 > **Scope:** `lib/editor.ts`, `hooks/useCodeEditor.ts`, `components/editor/*`, `components/code-block.tsx`, `/editor` page, workspace + dialog editor surfaces
 > **Stack:** Next.js 16 on Vercel Hobby | TiDB Cloud Starter (Free) | Monaco via jsDelivr CDN
 
@@ -48,7 +49,7 @@ quality** — sandbox security and failure recovery — not infrastructure.
 
 | Finding | Detail | Fix |
 |---|---|---|
-| 🔴 **Worker sandbox exposes full globals + same-origin cookies** | `lib/editor.ts:22-41` runs user code with `self` available → `fetch`, `XMLHttpRequest`, `WebSocket`, `importScripts`. A student pasting a "trick" snippet can silently call `/api/*` (cookie-bearing writes) and exfiltrate to any origin. Affects the problems editor, `/editor`, and code-block Run alike | Strip all four globals before eval (8 lines, one place) |
+| ✅ **Worker sandbox no longer exposes network globals** | **Fixed 2026-08-20** — `lib/editor.ts:31-58` runs user code via `new Function` with `fetch`, `XMLHttpRequest`, `WebSocket`, `importScripts`, `navigator` (closes `sendBeacon` exfil), `self`, `globalThis`, and `postMessage` shadowed to `undefined` (param/arg list is a single source of truth, so it can't drift). Covers problems editor, `/editor`, EditorDialog, and code-block Run alike. Verified: all 8 vectors throw; normal exercises unaffected (no seed uses any of these globals). **Known residual:** `(0, eval)("fetch(...)")` and `Function("return this")().fetch` still reach the real globals — out of scope; this is a casual-abuse deterrent, not a security boundary | Done |
 | ✅ No XSS surface | Monaco is a plain editor; `code-block` renders children as React nodes (escaped) | — |
 | ✅ Numeric `problemId` probing | benign — public read-only data | — |
 
@@ -70,7 +71,7 @@ quality** — sandbox security and failure recovery — not infrastructure.
 
 | # | Action | Benefit | Effort |
 |---|--------|---------|--------|
-| 1.1 | **Sandbox hardening** — `lib/editor.ts`: kill `fetch` / `XMLHttpRequest` / `WebSocket` / `importScripts` before evaluating user code | Closes the only real security gap; covers problems editor, `/editor`, playground, and code-block Run in one place. Duplicates problems-review Tier 1.2 — do both together | 0.25 hr |
+| 1.1 | **Sandbox hardening** — `lib/editor.ts`: shadow `fetch` / `XMLHttpRequest` / `WebSocket` / `importScripts` / `navigator` / `self` / `globalThis` / `postMessage` before evaluating user code | Closes the only real security gap; covers problems editor, `/editor`, playground, and code-block Run in one place. Duplicates problems-review Tier 1.2 — do both together. **✅ Done 2026-08-20** | 0.25 hr |
 | 1.2 | **Monaco CDN fallback** — error boundary + `<textarea>` fallback that still Runs via the worker | Removes the single point of failure for the whole module | 1 hr |
 | 1.3 | **Log cap in the worker** — truncate captured lines (~10k) | Protects the main thread from pathological output | 0.25 hr |
 

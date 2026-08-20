@@ -29,7 +29,24 @@ export function runJavaScript(
             error: (...args) => logs.push(args.map(String).join(" ")),
           };
           try {
-            new Function("console", e.data.code)(mockConsole);
+            // Shadow dangerous same-origin globals so pasted "trick" snippets
+            // can't hit cookie-bearing APIs or exfiltrate data. Each name in the
+            // list is both a param of the user's function and an argument to it,
+            // so the two lists can never drift apart.
+            const BLOCKED_GLOBALS = [
+              "fetch",
+              "XMLHttpRequest",
+              "WebSocket",
+              "importScripts",
+              "navigator",
+              "self",
+              "globalThis",
+              "postMessage",
+            ];
+            new Function("console", ...BLOCKED_GLOBALS, e.data.code)(
+              mockConsole,
+              ...BLOCKED_GLOBALS.map(() => undefined),
+            );
             self.postMessage({ output: logs.join("\\n") || "No output", error: null });
           } catch (err) {
             self.postMessage({
