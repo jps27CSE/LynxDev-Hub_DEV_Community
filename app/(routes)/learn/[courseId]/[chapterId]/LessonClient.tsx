@@ -177,7 +177,11 @@ export default function LessonClient({
 
           <div className="border-t border-border/40 bg-card p-4">
             <div className="flex items-center gap-2 flex-wrap">
-              <Button size="sm" onClick={runCode} disabled={isBrowserMode || running}>
+              <Button
+                size="sm"
+                onClick={runCode}
+                disabled={isBrowserMode || running}
+              >
                 {running ? (
                   <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                 ) : (

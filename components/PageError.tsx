@@ -36,9 +36,7 @@ export default function PageError({
           </p>
         </div>
         <Button onClick={handleRetry} disabled={retrying} className="mt-2">
-          {retrying ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : null}
+          {retrying ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
           {retrying ? "Retrying..." : "Try again"}
         </Button>
       </div>

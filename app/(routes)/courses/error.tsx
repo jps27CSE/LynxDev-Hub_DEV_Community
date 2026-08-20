@@ -9,5 +9,7 @@ export default function CoursesError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  return <PageError title="Something went wrong loading courses" reset={reset} />;
+  return (
+    <PageError title="Something went wrong loading courses" reset={reset} />
+  );
 }

@@ -1,5 +1,6 @@
 # Agent working docs — not product code
 .agent
+.opencode
 docs
 
 # Generated — keep pristine for drizzle-kit diffing

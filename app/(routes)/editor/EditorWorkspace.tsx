@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import type { OnMount } from "@monaco-editor/react";
 import { MonacoEditor } from "@/components/editor/MonacoEditor";
-import { EditorToolbar, type EditorLanguage } from "@/components/editor/EditorToolbar";
+import {
+  EditorToolbar,
+  type EditorLanguage,
+} from "@/components/editor/EditorToolbar";
 import { OutputPane } from "@/components/editor/OutputPane";
 import { BrowserPreview } from "@/components/editor/BrowserPreview";
 import { useCodeEditor } from "@/hooks/useCodeEditor";

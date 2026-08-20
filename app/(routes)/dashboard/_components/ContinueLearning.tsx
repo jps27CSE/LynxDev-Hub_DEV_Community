@@ -9,10 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import CourseIcon from "@/components/CourseIcon";
 import { getEnrollmentsByEmail } from "@/lib/enroll-data";
-import {
-  difficultyBadgeClass,
-  difficultyIconClass,
-} from "@/lib/interview-ui";
+import { difficultyBadgeClass, difficultyIconClass } from "@/lib/interview-ui";
 
 async function ContinueLearning({ email }: { email: string }) {
   const enrollments = await getEnrollmentsByEmail(email);
@@ -27,9 +24,7 @@ async function ContinueLearning({ email }: { email: string }) {
         <div className="relative">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-[11px] text-muted-foreground mb-4">
             <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-            {allDone
-              ? "All courses completed"
-              : "No course in progress yet"}
+            {allDone ? "All courses completed" : "No course in progress yet"}
           </div>
           <h2 className="text-2xl sm:text-3xl font-display font-bold tracking-tight">
             {allDone ? (

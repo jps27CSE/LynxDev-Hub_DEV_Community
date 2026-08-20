@@ -128,7 +128,10 @@ export function loadSavedCode(storageKey: string): string | null {
   }
 }
 
-export function trySaveCodeToStorage(storageKey: string, code: string): boolean {
+export function trySaveCodeToStorage(
+  storageKey: string,
+  code: string,
+): boolean {
   try {
     localStorage.setItem(storageKey, code);
     return true;
