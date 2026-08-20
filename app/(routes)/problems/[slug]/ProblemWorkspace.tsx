@@ -79,7 +79,7 @@ export default function ProblemWorkspace({
 
   const navigate = useCallback(
     (key: string) => {
-      if (key !== problem.key) router.push(keyToUrl(key));
+      if (key !== problem.key) router.push(keyToUrl(key), { scroll: false });
     },
     [router, problem.key],
   );
