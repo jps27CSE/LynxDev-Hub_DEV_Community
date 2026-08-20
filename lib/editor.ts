@@ -21,12 +21,33 @@ export function runJavaScript(
     try {
       const source = `
         self.onmessage = (e) => {
+          const MAX_LOG_LINES = 10000;
+          const MAX_LOG_CHARS = 500000;
           const logs = [];
-          const mockConsole = {
-            log: (...args) => logs.push(args.map(String).join(" ")),
-            info: (...args) => logs.push(args.map(String).join(" ")),
-            warn: (...args) => logs.push(args.map(String).join(" ")),
-            error: (...args) => logs.push(args.map(String).join(" ")),
+          let dropped = 0;
+          let chars = 0;
+          const capture = (...args) => {
+            if (logs.length >= MAX_LOG_LINES || chars >= MAX_LOG_CHARS) {
+              dropped++;
+              return;
+            }
+            const line = args.map(String).join(" ");
+            if (chars + line.length > MAX_LOG_CHARS) {
+              const remaining = MAX_LOG_CHARS - chars;
+              logs.push(line.slice(0, remaining));
+              dropped++;
+              chars = MAX_LOG_CHARS;
+              return;
+            }
+            chars += line.length;
+            logs.push(line);
+          };
+          const mockConsole = { log: capture, info: capture, warn: capture, error: capture };
+          const makeOutput = (fallback) => {
+            const body =
+              logs.join("\\n") +
+              (dropped ? "\\n… " + dropped.toLocaleString() + " more lines truncated" : "");
+            return body || fallback;
           };
           try {
             // Shadow dangerous same-origin globals so pasted "trick" snippets
@@ -47,10 +68,10 @@ export function runJavaScript(
               mockConsole,
               ...BLOCKED_GLOBALS.map(() => undefined),
             );
-            self.postMessage({ output: logs.join("\\n") || "No output", error: null });
+            self.postMessage({ output: makeOutput("No output"), error: null });
           } catch (err) {
             self.postMessage({
-              output: logs.join("\\n"),
+              output: makeOutput(""),
               error: err instanceof Error ? err.message : "Error executing code",
             });
           }

@@ -1,7 +1,7 @@
 # Production Review — Editor Module (500 Concurrent Users, Free Tier)
 
 > **Date:** 2026-08-06
-> **Last updated:** 2026-08-20 — Tier 1.1 (sandbox hardening) implemented
+> **Last updated:** 2026-08-20 — Tier 1.1 (sandbox hardening) + 1.3 (log cap) implemented
 > **Scope:** `lib/editor.ts`, `hooks/useCodeEditor.ts`, `components/editor/*`, `components/code-block.tsx`, `/editor` page, workspace + dialog editor surfaces
 > **Stack:** Next.js 16 on Vercel Hobby | TiDB Cloud Starter (Free) | Monaco via jsDelivr CDN
 
@@ -20,7 +20,7 @@ quality** — sandbox security and failure recovery — not infrastructure.
 |---|---|---|
 | Monaco remounts per problem switch | `ProblemPane` is keyed by `problem.key` (`app/(routes)/problems/[slug]/_components/ProblemPane.tsx`) — each sidebar click destroys and recreates the editor (~300-600ms parse, memory churn). Chosen for clean per-problem editor state; the tradeoff is real | 🟡 |
 | Autosave is debounced 500ms | ✅ Writes coalesce (`hooks/useCodeEditor.ts:35-39`) | ✅ |
-| Unbounded log capture | The worker (`lib/editor.ts`) pushes every `console.log` line during the 5s window; `for(;;) console.log(1)` builds a huge array → `postMessage` serialization stalls the main thread anyway. Should cap captured lines (~2-10k) inside the worker | 🟡 |
+| Unbounded log capture | **Fixed 2026-08-20** — worker caps captured output at 10k lines / 500KB (`lib/editor.ts:24-44`); guard short-circuits before string building once capped, so `for(;;) console.log(1)` does ~no work after the cap; single oversized lines are sliced (head preserved) with a `… N more lines truncated` marker | ✅ |
 | Lazy loading | ✅ `next/dynamic` + CDN loader (`components/editor/MonacoEditor.tsx:5`); `EditorDialog` pulls Monaco only when opened — no page carries the cost | ✅ |
 
 ## 2. Scaling
@@ -73,7 +73,7 @@ quality** — sandbox security and failure recovery — not infrastructure.
 |---|--------|---------|--------|
 | 1.1 | **Sandbox hardening** — `lib/editor.ts`: shadow `fetch` / `XMLHttpRequest` / `WebSocket` / `importScripts` / `navigator` / `self` / `globalThis` / `postMessage` before evaluating user code | Closes the only real security gap; covers problems editor, `/editor`, playground, and code-block Run in one place. Duplicates problems-review Tier 1.2 — do both together. **✅ Done 2026-08-20** | 0.25 hr |
 | 1.2 | **Monaco CDN fallback** — error boundary + `<textarea>` fallback that still Runs via the worker | Removes the single point of failure for the whole module | 1 hr |
-| 1.3 | **Log cap in the worker** — truncate captured lines (~10k) | Protects the main thread from pathological output | 0.25 hr |
+| 1.3 | **Log cap in the worker** — truncate captured lines (10k) + chars (500KB) with `… N more lines truncated` marker | Protects the main thread from pathological output. **✅ Done 2026-08-20** | 0.25 hr |
 
 ### Tier 2 — Optional (~0.5 hour)
 
