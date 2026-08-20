@@ -1,7 +1,7 @@
 # Production Review — Editor Module (500 Concurrent Users, Free Tier)
 
 > **Date:** 2026-08-06
-> **Last updated:** 2026-08-20 — Tier 1.1 (sandbox hardening) + 1.3 (log cap) implemented
+> **Last updated:** 2026-08-20 — Tier 1 complete: 1.1 (sandbox hardening), 1.3 (log cap), 1.2 (Monaco CDN fallback) implemented
 > **Scope:** `lib/editor.ts`, `hooks/useCodeEditor.ts`, `components/editor/*`, `components/code-block.tsx`, `/editor` page, workspace + dialog editor surfaces
 > **Stack:** Next.js 16 on Vercel Hobby | TiDB Cloud Starter (Free) | Monaco via jsDelivr CDN
 
@@ -57,7 +57,7 @@ quality** — sandbox security and failure recovery — not infrastructure.
 
 | Scenario | Today | Fix |
 |---|---|---|
-| 🔴 CDN outage / offline | Monaco never loads → blank editor box, user is stuck (no fallback) | ErrorBoundary → plain `<textarea>` fallback that reuses the same worker Run (small change, large win) |
+| ✅ CDN outage / offline | **Fixed 2026-08-20** — `MonacoEditor.tsx` wraps the dynamic import in `MonacoErrorBoundary` (catches chunk-load throws) + a 10s load timeout (catches the non-throwing CDN script failure); both swap to a controlled `<textarea>` (`MonacoFallback.tsx`) that reuses the same `value`/`onChange` contract and the same worker Run. Editing, Run, Reset, Import, Save all survive; only highlighting/autocomplete and Monaco cursor reporting (EditorWorkspace status bar) degrade | Done |
 | ✅ Infinite loop | 5s timeout + `worker.terminate()` + `revokeObjectURL` | Already solid |
 | 🟢 Private-mode autosave | Edits silently lost on refresh | Warn once: "code won't be saved on this device" |
 | 🟡 Reset destroys unsaved work | `reset()` overwrites `initialCode` + autosave with no confirmation (`hooks/useCodeEditor.ts:53-57`) | Confirm when `code !== initialCode` |
@@ -72,7 +72,7 @@ quality** — sandbox security and failure recovery — not infrastructure.
 | # | Action | Benefit | Effort |
 |---|--------|---------|--------|
 | 1.1 | **Sandbox hardening** — `lib/editor.ts`: shadow `fetch` / `XMLHttpRequest` / `WebSocket` / `importScripts` / `navigator` / `self` / `globalThis` / `postMessage` before evaluating user code | Closes the only real security gap; covers problems editor, `/editor`, playground, and code-block Run in one place. Duplicates problems-review Tier 1.2 — do both together. **✅ Done 2026-08-20** | 0.25 hr |
-| 1.2 | **Monaco CDN fallback** — error boundary + `<textarea>` fallback that still Runs via the worker | Removes the single point of failure for the whole module | 1 hr |
+| 1.2 | **Monaco CDN fallback** — error boundary + 10s load timeout + `<textarea>` fallback that still Runs via the worker (`components/editor/MonacoFallback.tsx`) | Removes the single point of failure for the whole module. **✅ Done 2026-08-20** | 1 hr |
 | 1.3 | **Log cap in the worker** — truncate captured lines (10k) + chars (500KB) with `… N more lines truncated` marker | Protects the main thread from pathological output. **✅ Done 2026-08-20** | 0.25 hr |
 
 ### Tier 2 — Optional (~0.5 hour)
