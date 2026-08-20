@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft, Code2, GraduationCap, Trophy } from "lucide-react";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import CourseIcon from "@/components/CourseIcon";
-import { getEnrollmentsByEmail } from "@/lib/enroll-data";
+import { getEnrollmentsByClerkId } from "@/lib/enroll-data";
 import { difficultyBadgeClass, difficultyIconClass } from "@/lib/interview-ui";
 import { getAllCourses } from "@/lib/course-data";
 
@@ -33,9 +33,8 @@ const howItWorks = [
 export default async function CoursesPage() {
   const publishedCourses = await getAllCourses();
 
-  const clerkUser = await currentUser();
-  const email = clerkUser?.primaryEmailAddress?.emailAddress;
-  const enrollments = email ? await getEnrollmentsByEmail(email) : [];
+  const { userId } = await auth();
+  const enrollments = userId ? await getEnrollmentsByClerkId(userId) : [];
   const enrollmentByCourse = new Map(enrollments.map((e) => [e.course_id, e]));
 
   return (

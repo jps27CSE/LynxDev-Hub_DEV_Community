@@ -23,6 +23,10 @@ export function notFound(entity?: string) {
   );
 }
 
+export function serverError(message = "Internal server error") {
+  return NextResponse.json({ error: message }, { status: 500 });
+}
+
 export function rateLimited(
   retryAfterSeconds: number,
   limit: number,

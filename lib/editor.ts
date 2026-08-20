@@ -105,6 +105,24 @@ export function runJavaScript(
   });
 }
 
+/**
+ * Builds a standalone HTML document for a sandboxed preview iframe.
+ * - Injects the preview scrollbar CSS into the lesson's own <head> when the
+ *   lesson ships a full document, otherwise wraps the fragment.
+ * - Used with `sandbox="allow-scripts"` + `srcDoc` so lesson code runs in an
+ *   opaque origin: no parent access, no cookies, no credentialed fetches.
+ */
+export function buildSandboxedSrcDoc(html: string, css = ""): string {
+  const styleBlock = `<style>${css}</style>`;
+  if (/<html[\s>]/i.test(html)) {
+    if (/<head[\s>]/i.test(html)) {
+      return html.replace(/<head([^>]*)>/i, `<head$1>${styleBlock}`);
+    }
+    return html.replace(/<html([^>]*)>/i, `<html$1>${styleBlock}`);
+  }
+  return `<!DOCTYPE html><html><head>${styleBlock}</head><body>${html}</body></html>`;
+}
+
 export function saveCodeAsFile(code: string, filename: string) {
   const blob = new Blob([code], { type: "text/javascript;charset=utf-8" });
   const url = URL.createObjectURL(blob);

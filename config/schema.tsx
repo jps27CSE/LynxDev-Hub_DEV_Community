@@ -12,6 +12,7 @@ import {
 
 export const usersTable = mysqlTable("users", {
   id: int().primaryKey().autoincrement(),
+  clerk_id: varchar("clerk_id", { length: 255 }).unique(),
   name: varchar({ length: 255 }).notNull(),
   email: varchar({ length: 255 }).notNull().unique(),
   bio: text(),

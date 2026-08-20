@@ -14,7 +14,7 @@
 | Item | Status | Where |
 |------|--------|-------|
 | `auth()` + Zod on all 4 interview API routes | ✅ | `app/api/interview/{questions,stack,questions-by-tags,generate}/route.ts` |
-| Rate limits | ✅ | `config/rate-limits.ts` — questions 30/min, stack 20/min, questions-by-tags 20/min, generate 10/min, in-memory via middleware |
+| Rate limits | ✅ | `config/rate-limits.ts` — questions 30/min, stack 20/min, questions-by-tags 20/min, generate 10/min, DB-backed via `lib/db-rate-limit.ts` (global across serverless instances) |
 | React `cache()` on all data functions | ✅ | `lib/interview-data.ts` — all 11 interview fns wrapped |
 | Chapter questions batched in 1 `inArray()` query | ✅ | `getQuestionsByChapterIds()` |
 | Home page queries batched with `Promise.all` | ✅ | `interview/page.tsx` — 5 queries reduced to 3 |

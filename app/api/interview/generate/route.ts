@@ -6,6 +6,7 @@ import { db } from "@/config/db";
 import { interviewCategories } from "@/config/schema";
 import { eq } from "drizzle-orm";
 import { enforceDbRateLimit } from "@/lib/db-rate-limit";
+import { withRequestLog } from "@/lib/request-log";
 import {
   questionTemplates,
   type InterviewTemplate,
@@ -71,63 +72,65 @@ const GenerateSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const { userId } = await auth();
-  if (!userId) return unauthorized();
+  return withRequestLog("POST /api/interview/generate", async () => {
+    const { userId } = await auth();
+    if (!userId) return unauthorized();
 
-  const limited = await enforceDbRateLimit(
-    userId,
-    "interview-generate",
-    "/api/interview/generate",
-    "POST",
-  );
-  if (limited) return limited;
+    const limited = await enforceDbRateLimit(
+      userId,
+      "interview-generate",
+      "/api/interview/generate",
+      "POST",
+    );
+    if (limited) return limited;
 
-  try {
-    let body: unknown;
     try {
-      body = await request.json();
-    } catch {
-      return badJson();
+      let body: unknown;
+      try {
+        body = await request.json();
+      } catch {
+        return badJson();
+      }
+
+      const parsed = GenerateSchema.safeParse(body);
+      if (!parsed.success) return validationError(parsed.error);
+
+      const { categorySlug, tags, count } = parsed.data;
+
+      const catResult = await db
+        .select()
+        .from(interviewCategories)
+        .where(eq(interviewCategories.slug, categorySlug))
+        .limit(1);
+
+      if (catResult.length === 0) {
+        return NextResponse.json(
+          { error: "Category not found" },
+          { status: 404 },
+        );
+      }
+
+      const templates = questionTemplates[categorySlug];
+      if (!templates || templates.length === 0) {
+        return NextResponse.json(
+          { error: "No templates available for this category" },
+          { status: 400 },
+        );
+      }
+
+      const generated = generateQuestions(templates, Math.min(count, 50), tags);
+
+      const enriched = generated.map((g) => ({
+        question: g.question,
+        answer: g.answer,
+        difficulty: g.difficulty,
+        tags: g.tags,
+      }));
+
+      return NextResponse.json({ questions: enriched });
+    } catch (error) {
+      console.error("[interview/generate] POST:", error);
+      return NextResponse.json({ error: "Generation failed" }, { status: 500 });
     }
-
-    const parsed = GenerateSchema.safeParse(body);
-    if (!parsed.success) return validationError(parsed.error);
-
-    const { categorySlug, tags, count } = parsed.data;
-
-    const catResult = await db
-      .select()
-      .from(interviewCategories)
-      .where(eq(interviewCategories.slug, categorySlug))
-      .limit(1);
-
-    if (catResult.length === 0) {
-      return NextResponse.json(
-        { error: "Category not found" },
-        { status: 404 },
-      );
-    }
-
-    const templates = questionTemplates[categorySlug];
-    if (!templates || templates.length === 0) {
-      return NextResponse.json(
-        { error: "No templates available for this category" },
-        { status: 400 },
-      );
-    }
-
-    const generated = generateQuestions(templates, Math.min(count, 50), tags);
-
-    const enriched = generated.map((g) => ({
-      question: g.question,
-      answer: g.answer,
-      difficulty: g.difficulty,
-      tags: g.tags,
-    }));
-
-    return NextResponse.json({ questions: enriched });
-  } catch (error) {
-    console.error("[interview/generate] POST:", error);
-    return NextResponse.json({ error: "Generation failed" }, { status: 500 });
-  }
+  });
 }

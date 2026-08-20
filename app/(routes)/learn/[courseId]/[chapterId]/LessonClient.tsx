@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useContext } from "react";
+import { useState, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { Play, RotateCcw, Eye, CheckCircle, Loader2, Star } from "lucide-react";
 import axios from "axios";
 import { UserDetailContext } from "@/context/UserDetailContext";
 import { toast } from "sonner";
 import { MonacoEditor } from "@/components/editor/MonacoEditor";
-import { runJavaScript } from "@/lib/editor";
+import { runJavaScript, buildSandboxedSrcDoc } from "@/lib/editor";
 
 const IFRAME_SCROLLBAR_CSS = [
   "html{scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.35) transparent}",
@@ -44,7 +44,6 @@ export default function LessonClient({
   const [showSolution, setShowSolution] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const isBrowserMode = chapter.content.type === "browser";
   const { setUserDetail } = useContext(UserDetailContext);
 
@@ -67,21 +66,6 @@ export default function LessonClient({
     }
   };
 
-  useEffect(() => {
-    if (isBrowserMode && iframeRef.current) {
-      const iframe = iframeRef.current;
-      const doc = iframe.contentDocument || iframe.contentWindow?.document;
-      if (doc) {
-        doc.open();
-        doc.write(code);
-        doc.close();
-        const style = doc.createElement("style");
-        style.textContent = IFRAME_SCROLLBAR_CSS;
-        doc.head?.appendChild(style);
-      }
-    }
-  }, [code, isBrowserMode]);
-
   const resetCode = () => {
     setCode(chapter.content.initialCode);
     setOutput("");
@@ -101,6 +85,10 @@ export default function LessonClient({
         courseId,
         chapterId: chapter.id,
       });
+      if (res.data.message === "Already completed") {
+        setCompleted(true);
+        return;
+      }
       setCompleted(true);
       setUserDetail?.((prev) =>
         prev ? { ...prev, points: res.data.points } : prev,
@@ -114,7 +102,7 @@ export default function LessonClient({
         });
       }
     } catch {
-      toast("Already completed or error occurred");
+      toast.error("Failed to save progress. Please try again.");
     } finally {
       setCompleting(false);
     }
@@ -234,7 +222,8 @@ export default function LessonClient({
               </span>
             </div>
             <iframe
-              ref={iframeRef}
+              srcDoc={buildSandboxedSrcDoc(code, IFRAME_SCROLLBAR_CSS)}
+              sandbox="allow-scripts"
               className="w-full flex-1 min-h-[300px] lg:min-h-0"
               title="Browser Preview"
             />
