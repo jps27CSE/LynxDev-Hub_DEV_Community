@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Gift,
 } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
 import { VersionBadge } from "@/components/VersionBadge";
@@ -104,6 +105,18 @@ export default function Sidebar({
         </nav>
 
         <div className="border-t border-border/50 py-3 px-2 space-y-1">
+          <Link
+            href="/whats-new"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all ${
+              collapsed ? "justify-center px-0" : ""
+            }`}
+            title={collapsed ? "What's New" : undefined}
+          >
+            <Gift className="w-5 h-5 shrink-0" />
+            {!collapsed && <span>What&apos;s New</span>}
+          </Link>
+
           <Link
             href="/profile"
             onClick={onClose}
