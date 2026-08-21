@@ -6,6 +6,7 @@ const footerLinks = [
   { label: "Community", href: "/community" },
   { label: "Mentor", href: "/mentor" },
   { label: "Resources", href: "/resources" },
+  { label: "What's New", href: "/whats-new" },
 ];
 
 const socialLinks = [

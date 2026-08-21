@@ -8,6 +8,7 @@ import {
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/",
+  "/whats-new",
   "/api/health(.*)",
 ]);
 
