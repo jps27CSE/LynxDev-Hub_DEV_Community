@@ -3,6 +3,168 @@
   "instructions": [
     ".agent/AGENT.md",
     ".agent/WORKFLOW.md",
-    ".agent/ENGINEERING.md"
-  ]
+    ".agent/ENGINEERING.md",
+    ".agent/architecture.md",
+    ".agent/feature-tracker.md",
+    ".agent/database-schema.md",
+    ".opencode/AGENTS.md",
+    ".opencode/instructions/mentorship.md",
+    ".opencode/instructions/checklists.md"
+  ],
+  "agent": {
+    "mentor": {
+      "description": "Teaches the business problem, real-world scenario, system design, and trade-offs before any code is written",
+      "mode": "primary",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny",
+        "task": "deny",
+        "external_directory": "deny"
+      }
+    },
+    "api": {
+      "description": "Implements API routes and data access endpoints — Zod validation, Clerk auth, rate limits, consistent responses",
+      "mode": "subagent",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "architect": {
+      "description": "Designs file tree, route structure, component boundaries, data flow, and database changes. Read-only",
+      "mode": "subagent",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "backend": {
+      "description": "Implements server-side work — Server Actions, Drizzle queries, data access in lib/, business logic",
+      "mode": "subagent",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "database": {
+      "description": "Handles database work — schema changes, relations, migrations, and efficient Drizzle queries against TiDB",
+      "mode": "subagent",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "devops": {
+      "description": "Owns deployment and free-tier infrastructure — Vercel, TiDB pooling, rate limits, cron cleanup, environment hygiene",
+      "mode": "subagent",
+      "permission": {
+        "edit": "deny",
+        "bash": "allow"
+      }
+    },
+    "frontend": {
+      "description": "Implements frontend work — Server/Client Components, shadcn/ui, Tailwind v4, dark mode",
+      "mode": "subagent",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "performance": {
+      "description": "Audits performance — Server Component footprint, Drizzle query efficiency, TiDB round-trips, caching, bundle. Read-only",
+      "mode": "subagent",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "planner": {
+      "description": "Breaks an approved architecture into independent, sequential, testable tasks. Read-only",
+      "mode": "subagent",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "production": {
+      "description": "Final production gate — free-tier sustainability at 500 users, phase alignment, and pre-commit checklist. Read-only",
+      "mode": "subagent",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "qa": {
+      "description": "Verifies features manually — happy paths, edge cases, auth states, dark mode, responsive layout. Can run dev server",
+      "mode": "subagent",
+      "permission": {
+        "edit": "deny",
+        "bash": "allow"
+      }
+    },
+    "reflection": {
+      "description": "Reinforces learning after a feature — reflection questions, learning summary, engineering journal. Read-only",
+      "mode": "subagent",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "requirements": {
+      "description": "Clarifies feature scope, user flow, acceptance criteria, and phase fit. Read-only",
+      "mode": "subagent",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "reviewer": {
+      "description": "Independently reviews code — strengths, weaknesses, trade-offs, bugs, maintainability. Read-only",
+      "mode": "subagent",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "security": {
+      "description": "Audits code for security issues — Clerk auth, Zod validation, secrets, injection, rate limiting. Read-only",
+      "mode": "subagent",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    }
+  },
+  "command": {
+    "feature": {
+      "description": "Full ELOS feature pipeline — mentor, requirements, architect, planner, implement, review, reflect",
+      "agent": "build",
+      "template": "$ARGUMENTS\n\nRun the **full ELOS feature pipeline** on the current session. Do not skip any phase. Walk the feature through the ELOS chain in order.\n\n## Phase 1 — Teach\n\nInvoke the **mentor** agent. It must teach before any code:\n- Problem + real-world scenario + senior thinking\n- System design thinking mapped to LynxDEV's stack\n- Which files change and why\n- Before vs after, common beginner mistakes, industry practice\n- What you'll learn\n\n## Phase 2 — Understand Requirements\n\nInvoke the **requirements** agent:\n- Check `.agent/feature-tracker.md` phase + plan doc in `.agent/plans/`\n- Clarify scope, assumptions, missing requirements, acceptance criteria, free-tier risks\n- Resolve open questions before proceeding\n\n## Phase 3 — Architecture\n\nInvoke the **architect** agent. Produce affected files, new files, API flow, folder structure, data flow, DB changes, external services, trade-offs. Follow `.agent/architecture.md` and `.agent/ENGINEERING.md` conventions.\n\n## Phase 4 — Plan Tasks\n\nInvoke the **planner** agent. Break into independent, sequential, testable tasks (each under 30 minutes) with dependencies and verification steps.\n\n**STOP here and show the developer the teaching summary, requirements, architecture, and task list. Wait for approval before implementing.**\n\n## Phase 5 — Implement\n\nOnce approved, implement **one task at a time** (do not batch):\n- Route tasks via **backend**/**frontend**/**database**/**api** agents per the work type\n- After each task, run the matching review before moving on\n\n## Phase 6 — Parallel Review\n\nRun independent reviews in parallel:\n- **reviewer** (code review: strengths, weaknesses, trade-offs, scores)\n- **security** (auth, validation, secrets, rate limits)\n- **performance** (TiDB round-trips, N+1, client footprint, free-tier budget)\n- **qa** (happy path, error states, auth states, dark mode, mobile)\n\nConsolidate into a report of blockers, then send fixes back to the implementers.\n\n## Phase 7 — Production Review\n\nInvoke **production** (free-tier sustainability at 500 users, pre-commit checklist) and **devops** (build/typecheck/format). Fix any blockers.\n\n## Phase 8 — Reflect\n\nInvoke **reflection**: reinforcement questions + learning summary + engineering journal entry.\n\nAlways explain the **why** at every step, reference existing patterns in `app/(routes)/`, `lib/`, `config/`, and keep the free-tier constraints in mind."
+    },
+    "bugfix": {
+      "description": "Bug-fix pipeline — reproduce, root-cause, fix one task at a time, review, verify, reflect",
+      "agent": "build",
+      "template": "Run the **bug-fix pipeline** for: $ARGUMENTS\n\n1. **Reproduce** — Invoke **qa** to reproduce and document the exact failing scenario (steps, expected vs actual).\n\n2. **Root cause** — Investigate the relevant code in `app/(routes)/`, `lib/`, `config/`. Identify the actual defect (search for the bug's origin — not where the symptom appears). Explain **why** it happens.\n\n3. **Fix plan** — Present a minimal fix plan (one task). Prefer the smallest change that corrects the bug without introducing new behavior. Wait for approval.\n\n4. **Fix** — Implement one task only. Follow `.agent/ENGINEERING.md` patterns (validation, error states, consistency). Do not refactor unrelated code.\n\n5. **Review** — Invoke **reviewer** and **security**. Fix any blockers.\n\n6. **Verify** — Invoke **qa**: confirm the original bug is fixed, no regression, plus error/loading states, dark mode, and responsiveness.\n\n7. **Reflect** — Invoke **reflection** with a focused learning summary (root-cause pattern, prevention, what you learned).\n\nExplain the **why** behind the root cause and fix at every step."
+    },
+    "hotfix": {
+      "description": "Hotfix pipeline — minimal-scope fix for a critical production issue",
+      "agent": "build",
+      "template": "Run the **hotfix** pipeline for the critical issue: $ARGUMENTS\n\n1. **Confirm criticality** — is this a live blocker (data loss, broken auth, a feature unusable for all users)? If not, use `/bugfix` or `/feature` instead.\n\n2. **Root cause + minimal fix** — Investigate, state the root cause with file:line, and propose the smallest possible fix. Explain **why** this is the correct minimal change. Wait for approval.\n\n3. **Implement** — one task only. Follow existing conventions. **No refactoring**, no scope creep.\n\n4. **Focused review** — Invoke **reviewer** and **security** on just the hotfix diff, not the whole codebase.\n\n5. **Verify the fix** — Invoke **qa**: reproduce the original failure, confirm fixed, and test the directly adjacent flows (2-3 around the fix) for regression. Skip broader regression — restore the app quickly.\n\n6. **Log** — record the incident: root cause, fix, why it was critical, and what should be hardened later (follow-up in feature-tracker).\n\nPriority is correctness and speed — but never ship an unreviewed hotfix."
+    },
+    "refactor": {
+      "description": "Refactor pipeline — understand current design, justify new structure, plan, migrate incrementally, review",
+      "agent": "build",
+      "template": "Run the **refactor** pipeline on: $ARGUMENTS\n\n1. **Understand current state** — Invoke **architect** to map the existing structure (files, responsibilities, data flow) and its weaknesses.\n\n2. **Justify the refactor** — Why? Trade-offs of keeping vs changing (compare, recommend). Confirm the refactor does **not** change observable behavior.\n\n3. **Plan the migration** — Invoke **planner**. Break into **small incremental steps** — each refactor step must leave the app working (no atomic big-bang changes). Note dependencies.\n\n4. **Implement incrementally** — One step at a time, ensuring each is *behavior-preserving*. Follow existing conventions and DRY; extract duplication immediately.\n\n5. **Verify no behavior change** — Invoke **qa**: run the affected user flows (happy path, error states, auth states) after each migration step.\n\n6. **Review + performance** — Invoke **reviewer** and **performance** (especially for any query/component changes).\n\n7. **Reflect** — Learning summary focused on the refactoring technique used.\n\nPreserve behavior; never combine refactor with feature changes in the same step. Explain why each step is safe."
+    },
+    "review": {
+      "description": "Independent code review — run reviewer, security, performance, and qa on given files",
+      "agent": "reviewer",
+      "template": "Independently review the following with a strict senior eye: $ARGUMENTS\n\nRun the **independent reviews** in parallel and consolidate into one report:\n\n1. **reviewer** — Strengths, weaknesses, trade-offs, potential bugs, production risks, SOLID/DRY/KISS/YAGNI, consistency with existing patterns, dead code, error handling, hydration risks.\n\n2. **security** — Clerk `auth()` on all protected routes/actions, Zod validation on inputs, secret exposure, rate-limit compliance, XSS, CSRF.\n\n3. **performance** — Server Component footprint, N+1 and TiDB round-trips, index usage, caching, client bundle, free-tier discipline.\n\n4. **qa** — verify the affected user flows in `npm run dev`: happy path, error states, auth (signed in/out), dark mode, responsive.\n\nMerge into a **consolidated report** of: blocker / non-blocker / recommendation with file:line references. Do not fix — report only."
+    },
+    "release": {
+      "description": "Release pipeline — final gate for production on Vercel free tier",
+      "agent": "build",
+      "template": "Run the **release pipeline** for: $ARGUMENTS\n\n1. **Scope** — Invoke **planner** to enumerate the full set of changes in this release against `.agent/feature-tracker.md`.\n\n2. **Production review** — Invoke **production**: free-tier sustainability at 500 users, phase alignment, engineering standards final checks, free-tier checklist.\n\n3. **DevOps gate** — Invoke **devops**: `npm run build` passes, `npm run typecheck` passes, env vars in place, Drizzle migrations reviewed.\n\n4. **QA sign-off** — Invoke **qa**: full regression of affected user flows, both auth states, dark mode, responsive, rate limits.\n\n5. **Lock-in audit** — zero vendor lock-in. No secrets committed.\n\n6. **Release notes** — summarize behavioral changes, DB migrations, env requirements, and known limitations.\n\n7. **Reflect** — engineering journal entry for the module.\n\nProduce a **RELEASE READY / NOT READY** verdict. Do not publish, deploy, or commit unless explicitly asked."
+    }
+  }
 }
