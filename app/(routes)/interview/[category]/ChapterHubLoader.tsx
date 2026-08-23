@@ -11,7 +11,7 @@ const ChapterHubClient = dynamic(() => import("./ChapterHubClient"), {
 
 function ChapterHubSkeleton() {
   return (
-    <div className="bg-background flex flex-col min-h-dvh">
+    <div className="bg-background flex flex-col h-dvh overflow-hidden">
       <div className="border-b border-border/40 bg-card pl-14 pr-4 sm:pr-6 lg:px-8 py-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -27,8 +27,8 @@ function ChapterHubSkeleton() {
         </div>
       </div>
 
-      <div className="flex flex-1 items-start">
-        <aside className="hidden lg:flex w-72 flex-shrink-0 border-r border-border/40 bg-[#07090e] sticky top-0 h-dvh flex-col overflow-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <aside className="hidden lg:flex w-72 flex-shrink-0 border-r border-border/40 bg-[#07090e] flex-col overflow-hidden">
           <div className="p-4 pb-2">
             <Skeleton className="h-4 w-24 mb-4" />
             <Skeleton className="h-9 w-full rounded-lg" />
@@ -51,7 +51,7 @@ function ChapterHubSkeleton() {
           </nav>
         </aside>
 
-        <main className="flex-1 min-w-0">
+        <main className="flex-1 min-w-0 overflow-y-auto">
           <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-8 space-y-3">
               <Skeleton className="h-3 w-28" />
@@ -132,7 +132,7 @@ function ChapterHubSkeleton() {
           </div>
         </main>
 
-        <aside className="hidden xl:flex w-56 flex-shrink-0 border-l border-border/40 bg-[#07090e] sticky top-0 h-dvh flex-col overflow-y-auto">
+        <aside className="hidden xl:flex w-56 flex-shrink-0 border-l border-border/40 bg-[#07090e] flex-col overflow-y-auto scrollbar-thin">
           <div className="p-4">
             <Skeleton className="h-3 w-24 mb-3" />
             <div className="space-y-1.5">
