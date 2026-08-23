@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,23 @@ export function ProblemPane({
     initialCode: problem.starterCode || "",
     storageKey: `problem:${problem.key}`,
   });
+
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const [editorHeight, setEditorHeight] = useState(0);
+
+  const measureEditor = useCallback(() => {
+    if (editorContainerRef.current) {
+      const rect = editorContainerRef.current.getBoundingClientRect();
+      if (rect.height > 0) setEditorHeight(rect.height);
+    }
+  }, []);
+
+  useEffect(() => {
+    measureEditor();
+    const observer = new ResizeObserver(measureEditor);
+    if (editorContainerRef.current) observer.observe(editorContainerRef.current);
+    return () => observer.disconnect();
+  }, [measureEditor]);
 
   useEffect(() => {
     runRef.current = editor.run;
@@ -179,12 +196,14 @@ export function ProblemPane({
               onImport={editor.importFile}
               importInputRef={editor.importInputRef}
             />
-            <div className="flex-1 min-h-[420px] bg-[#1e1e1e]">
-              <MonacoEditor
-                value={editor.code}
-                onChange={editor.setCode}
-                height="100%"
-              />
+            <div ref={editorContainerRef} className="flex-1 min-h-[200px] bg-[#1e1e1e]">
+              {editorHeight > 0 && (
+                <MonacoEditor
+                  value={editor.code}
+                  onChange={editor.setCode}
+                  height={`${editorHeight}px`}
+                />
+              )}
             </div>
             <div className="shrink-0 p-4 bg-[#05060a] border-t border-border/40 max-h-[220px] overflow-y-auto">
               <OutputPane output={editor.output} error={editor.error} />
