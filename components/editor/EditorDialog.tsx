@@ -31,9 +31,9 @@ export function EditorDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
-        className="sm:max-w-6xl bg-card border-border gap-0 p-0 rounded-2xl overflow-hidden"
+        className="sm:max-w-6xl max-h-[90dvh] sm:max-h-[85dvh] bg-card border-border gap-0 p-0 rounded-2xl overflow-hidden"
       >
-        <DialogHeader className="px-4 py-3 border-b border-border/50 bg-muted/30">
+        <DialogHeader className="px-3 py-2 sm:px-4 sm:py-3 border-b border-border/50 bg-muted/30">
           <DialogTitle className="text-sm font-medium text-foreground">
             JavaScript Editor
           </DialogTitle>
@@ -52,7 +52,7 @@ export function EditorDialog({
           <MonacoEditor
             value={editor.code}
             onChange={editor.setCode}
-            height="min(60vh, 560px)"
+            height="min(45vh, 400px) sm:min(60vh, 560px)"
           />
         </div>
 

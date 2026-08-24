@@ -20,8 +20,8 @@ export function OutputPane({
 
   if (flat) {
     return (
-      <div className="shrink-0 border-t border-white/5 bg-[#181818]">
-        <div className="flex items-center gap-2 px-4 py-2">
+      <div className="shrink-0 border-t border-white/10 bg-[#181818]">
+        <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2">
           {error ? (
             <XCircle className="w-3.5 h-3.5 text-red-500" />
           ) : (
@@ -33,7 +33,7 @@ export function OutputPane({
         </div>
         {hasContent ? (
           <pre
-            className={`text-sm font-mono whitespace-pre-wrap px-4 pb-3 max-h-64 overflow-y-auto ${
+            className={`text-xs sm:text-sm font-mono whitespace-pre-wrap px-3 sm:px-4 pb-2 sm:pb-3 max-h-20 sm:max-h-64 overflow-y-auto ${
               error ? "text-red-400" : "text-slate-300"
             }`}
           >
