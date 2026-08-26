@@ -19,7 +19,7 @@ const log = createLogger("interview-data");
  * script — seeds run outside the Next runtime, so revalidateTag() is unusable
  * there.
  */
-const INTERVIEW_DATA_CACHE_VERSION = 1;
+const INTERVIEW_DATA_CACHE_VERSION = 3;
 const INTERVIEW_DATA_CACHE_TTL = 3600;
 
 const withInterviewCache = createContentCache({
