@@ -303,6 +303,7 @@ function ChapterHubInner({
     useState<InterviewQuestion[]>(initialQuestions);
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [questionsError, setQuestionsError] = useState(false);
+  const mainRef = useRef<HTMLDivElement>(null);
   const questionsCache = useRef<Map<number, InterviewQuestion[]>>(
     new Map([[initialChapterId, initialQuestions]]),
   );
@@ -453,7 +454,7 @@ function ChapterHubInner({
   );
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeChapter]);
 
   const sortedQuestions = useMemo(() => {
@@ -685,7 +686,7 @@ function ChapterHubInner({
           </div>
         )}
 
-        <main className="flex-1 min-w-0 overflow-y-auto">
+        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto">
           <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8 py-8">
             {currentChapter && (
               <div>
