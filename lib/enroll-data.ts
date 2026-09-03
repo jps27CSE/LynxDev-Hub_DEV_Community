@@ -6,6 +6,22 @@ import { createLogger } from "@/lib/logger";
 import { withConnectRetry } from "@/lib/db-retry";
 
 const log = createLogger("enroll-data");
+const isProd = process.env.NODE_ENV === "production";
+
+function maskEmail(email: string): string {
+  if (!isProd) return email;
+  const atIndex = email.indexOf("@");
+  if (atIndex <= 0) return "***";
+  const local = email.slice(0, atIndex);
+  const domain = email.slice(atIndex + 1);
+  if (!domain) return "***";
+  return `${local[0]}***@${domain}`;
+}
+
+function maskId(id: string): string {
+  if (!isProd) return id;
+  return id.slice(0, 4) + "***";
+}
 
 export type UserDetail = {
   id: number;
@@ -35,7 +51,7 @@ export const getUserByEmail = cache(
         return users[0] ?? null;
       });
     } catch (error) {
-      log.error("getUserByEmail failed", error, { email });
+      log.error("getUserByEmail failed", error, { email: maskEmail(email) });
       return null;
     }
   },
@@ -53,7 +69,7 @@ export const getUserByClerkId = cache(
         return users[0] ?? null;
       });
     } catch (error) {
-      log.error("getUserByClerkId failed", error, { clerkId });
+      log.error("getUserByClerkId failed", error, { clerkId: maskId(clerkId) });
       return null;
     }
   },
@@ -175,7 +191,7 @@ export const getEnrollmentsByEmail = cache(
       if (!user) return [];
       return await withConnectRetry(() => fetchEnrollments(user.id));
     } catch (error) {
-      log.error("getEnrollmentsByEmail failed", error, { email });
+      log.error("getEnrollmentsByEmail failed", error, { email: maskEmail(email) });
       return [];
     }
   },
@@ -188,7 +204,7 @@ export const getEnrollmentsByClerkId = cache(
       if (!user) return [];
       return await withConnectRetry(() => fetchEnrollments(user.id));
     } catch (error) {
-      log.error("getEnrollmentsByClerkId failed", error, { clerkId });
+      log.error("getEnrollmentsByClerkId failed", error, { clerkId: maskId(clerkId) });
       return [];
     }
   },

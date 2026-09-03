@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +35,7 @@ export default function ProfilePage() {
   const [completedCount, setCompletedCount] = useState(0);
   const [profileError, setProfileError] = useState(false);
   const [enrollError, setEnrollError] = useState(false);
+  const lastFetchRef = useRef(Date.now());
 
   const loadAll = useCallback(() => {
     Promise.all([
@@ -68,7 +69,10 @@ export default function ProfilePage() {
         setProfileError(true);
         setEnrollError(true);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        lastFetchRef.current = Date.now();
+        setLoading(false);
+      });
   }, [clerkUser]);
 
   const refreshStats = useCallback(() => {
@@ -84,6 +88,7 @@ export default function ProfilePage() {
         setEnrolledCount(list.length);
         setCompletedCount(list.filter((e) => e.completed_at).length);
         setEnrollError(false);
+        lastFetchRef.current = Date.now();
       })
       .catch((error) => {
         console.error("[profile] enroll stats failed:", error);
@@ -97,7 +102,13 @@ export default function ProfilePage() {
   }, [clerkUser, loadAll]);
 
   useEffect(() => {
-    const onFocus = () => refreshStats();
+    const onFocus = () => {
+      const now = Date.now();
+      if (now - lastFetchRef.current > 30_000) {
+        lastFetchRef.current = now;
+        refreshStats();
+      }
+    };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [refreshStats]);
