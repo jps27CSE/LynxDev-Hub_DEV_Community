@@ -5,6 +5,7 @@
 > **Stack:** Next.js 16 on Vercel Hobby | TiDB Cloud Free | Clerk Hobby
 > **Assumption:** 500 concurrent users
 > **Update (2026-09-03):** Fix 1.1 implemented — `page.tsx` converted to Server Component with server-side `auth()` + `redirect()`. Self-review: clean, no bugs found.
+> **Update (2026-09-05):** Fix 1.2 + Playlist fetch implemented — `YoutubeCarousel.tsx` now `loading="lazy"` + `decoding="async"` and fetches live videos from `https://www.youtube.com/feeds/videos.xml?playlist_id=PL...` via `lib/youtube.ts` (ISR 3600, fallback). Self-review: clean.
 
 ---
 
@@ -15,9 +16,9 @@
 | Issue | Detail | Impact |
 |-------|--------|--------|
 | ~~**Entire page is `"use client"`**~~ | ✅ `app/page.tsx` converted to Server Component (2026-09-03). `"use client"` removed, `useUser()` + `useEffect` client redirect replaced with `auth()` + `redirect()` server-side redirect. Now follows same pattern as `app/(routes)/mentor/page.tsx:6-8`. | SSR for SEO, edge-cached HTML, faster TTFB. |
-| **30 YouTube thumbnails loaded eagerly** | `YoutubeCarousel.tsx:93` duplicates the `videos` array (`[...videos, ...videos]`) and renders all 30 `<Image>` tags in the DOM at once. | ~30 × ~20KB = ~600KB of image payloads loaded on initial paint. On mobile/slow connections, this is a 2-3s waterfall. Next.js `<Image>` optimizes format but doesn't lazy-load by default when all are in viewport. |
-| **No `loading="lazy"` on below-fold images** | Hero section has no images, but CoursePreview icons and YoutubeCarousel thumbnails all load immediately. | Unnecessary bandwidth. 500 users × 600KB = ~300MB wasted bandwidth/day. |
-| **Clerk `useUser()` forces CSR** | `app/page.tsx:14` and `app/_components/Header.tsx:14` both call `useUser()`. This hook requires client JS. | Entire page waits for Clerk hydration before rendering meaningful content. On slow 3G, users see blank screen for 1-2s. |
+| ~~**30 YouTube thumbnails loaded eagerly**~~ | ✅ Fixed 2026-09-05: `YoutubeCarousel.tsx:35-42` now sets `loading="lazy"` + `decoding="async"` + `sizes="280px"` on all 30 `<Image>` tags. Below-fold thumbnails defer until near viewport. Saves ~400KB initial payload. | ~30 × ~20KB = ~600KB → ~200KB initial. |
+| ~~**No `loading="lazy"` on below-fold images**~~ | ✅ Fixed 2026-09-05: Same as above. Hero has no images, CoursePreview uses inline SVG (no `<Image>`). | 500 users × ~200KB = ~100MB/day (was 300MB). |
+| **Clerk `useUser()` forces CSR** | `app/_components/Header.tsx:14` still calls `useUser()` (acceptable — `UserButton` requires client). `app/page.tsx` no longer calls it. | Single Clerk subscription; homepage shell streams without hydration block. |
 
 ### 🟡 Medium
 
@@ -120,7 +121,7 @@
 | Issue | Detail | Current Behavior |
 |-------|--------|-----------------|
 | **Clerk outage → homepage still renders** | `auth()` returns `{ userId: null }` on Clerk failure (local JWT verification, no external HTTP). User sees homepage regardless. No graceful degradation needed — homepage is public. | Users see partial page or blank. No graceful fallback. |
-| **YouTube CDN down → broken carousel** | `img.youtube.com` thumbnails fail silently. `next/image` shows alt text or broken image. | Ugly but not fatal. |
+| **YouTube CDN down → broken carousel** | `img.youtube.com` thumbnails fail silently. `next/image` shows alt text. `lib/youtube.ts:85-104` now falls back to `FALLBACK_VIDEOS` (15 curated videos) on RSS failure, so carousel never empty. | Graceful degradation — stale fallback better than blank. |
 | ~~**`router.replace("/dashboard")` fires on every signed-in visit**~~ | ✅ Fixed — server-side `redirect("/dashboard")` only fires when `auth()` returns a `userId`. Signed-in users never reach the homepage. | Unnecessary client-side redirect cycle. |
 
 ---
@@ -132,7 +133,8 @@
 | # | Fix | Benefit | Effort |
 |---|-----|---------|--------|
 | ~~**1.1**~~ | ✅ `app/page.tsx` converted to Server Component. `useUser()` + `useEffect` replaced with `auth()` + `redirect()`. 37→26 lines. No TypeScript errors. Self-review: clean. | SSR for SEO, edge-cached HTML, faster TTFB. | 1 hr |
-| **1.2** | Add `loading="lazy"` to YoutubeCarousel `<Image>` tags and below-fold CoursePreview icons. | Saves ~400KB initial payload per user. | 0.2 hr |
+| ~~**1.2**~~ | ✅ Fixed 2026-09-05: `app/_components/YoutubeCarousel.tsx:35-42` `loading="lazy"` + `decoding="async"` on `<Image>`. `lib/youtube.ts` created for data layer. No TypeScript errors. | Saves ~400KB initial payload per user. | 0.2 hr |
+| ~~**1.5**~~ | ✅ Fixed 2026-09-05: Playlist live fetch — `lib/youtube.ts:7-12` fetches `https://www.youtube.com/feeds/videos.xml?playlist_id=PL...` (user's playlist) with `next: { revalidate: 3600 }` (ISR, ~24 req/day). `YoutubeCarousel.tsx:5-6` is now `async` Server Component (`await getLatestYoutubeVideos()`). Falls back to `FALLBACK_VIDEOS` on error. Before: hardcoded 15 stale videos (newest `JGsTM8UerAM` not in latest 15 RSS). After: live latest (e.g., `OhrNp2CsSBI`). Env placeholder in `.env.example:16-19` (no real ID). | Homepage always shows latest uploads, zero API key, free-tier safe. | 0.5 hr |
 | **1.3** | Split Clerk `useUser()` into a single provider — Header already has it, page.tsx duplicates. Create a `HomeHeader` variant that accepts `isSignedIn` as prop from a parent Server Component. | Eliminates duplicate Clerk subscriptions. | 0.5 hr |
 | **1.4** | Virtualize YoutubeCarousel — render only 5-8 visible thumbnails, lazy-load rest. Or use `IntersectionObserver` to pause animation + defer image load when off-screen. | Reduces DOM nodes from 30 to ~8, saves ~400KB bandwidth. | 1 hr |
 
@@ -157,13 +159,14 @@
 
 ## Verdict
 
-The home page is **the lowest-risk page** in the app — zero DB queries, all hardcoded data. At 500 users, it won't hit TiDB limits or Mistral quotas. Fix 1.1 (Server Component conversion) is complete. Remaining risks:
+The home page is **the lowest-risk page** in the app — zero DB queries. At 500 users, it won't hit TiDB limits or Mistral quotas. Fixes 1.1 (Server Component), 1.2 (lazy-load), and 1.5 (playlist live fetch) are complete. Remaining risks:
 
-1. **Bandwidth waste** from 30 eager YouTube thumbnails (~600KB/user) — Fix 1.2 pending
-2. **No monitoring** — no Vercel Analytics or Speed Insights — Fix 2.2 pending
-3. **Header still uses `useUser()`** — acceptable (shared component, can't refactor for one page)
+1. ~~**Bandwidth waste** from 30 eager YouTube thumbnails (~600KB/user) — Fix 1.2 pending~~ ✅ Fixed — lazy-load cuts initial to ~200KB
+2. ~~**Stale videos** — hardcoded list showed old uploads~~ ✅ Fixed — live playlist RSS (ISR 3600)
+3. **No monitoring** — no Vercel Analytics or Speed Insights — Fix 2.2 pending
+4. **Header still uses `useUser()`** — acceptable (shared component, can't refactor for one page)
 
-**Tier 1 remaining effort: ~1 hour** (lazy loading + carousel virtualization). Tier 2 (analytics, CSP): ~1.3 hrs.
+**Tier 1 remaining effort: ~1 hour** (carousel virtualization 1.4 only). Tier 2 (analytics, CSP): ~1.3 hrs.
 
 ---
 
@@ -191,3 +194,31 @@ The home page is **the lowest-risk page** in the app — zero DB queries, all ha
 | Clerk service down | `auth()` may throw → error boundary → 500 page | Low (JWT is local) |
 | JWT expired | `auth()` returns `{ userId: null }` → user sees homepage | Acceptable for public page |
 | Header `useUser()` on server | Returns `undefined` → client hydrates to `null` → shows sign-in button | Correct behavior (no regression) |
+
+---
+
+## 9. Self-Review of Fix 1.2 + 1.5 (Lazy-load + Playlist Live Fetch)
+
+**Date:** 2026-09-05
+**Reviewer:** AI Agent (self-review)
+**Verdict:** Clean — no bugs, no performance regression, no security exposure.
+
+### Findings
+
+| Category | Result | Detail |
+|----------|--------|--------|
+| **Bugs** | ✅ None | `lib/youtube.ts:48-66` `parseYoutubeRss` handles `<yt:videoId>` + `<media:title>` with `decodeHtmlEntities`. `getLatestYoutubeVideos()` returns `FALLBACK_VIDEOS` on `!res.ok` or empty parse or `catch`. `YoutubeCarousel.tsx:5-6` `async` Server Component works inside `app/page.tsx:14` async parent (streamed). |
+| **Performance** | ✅ Improved | `loading="lazy"` + `decoding="async"` defers 30 thumbs. RSS fetch is server-side with `next: { revalidate: 3600 }` — 24 fetches/day, negligible. No client JS added. |
+| **Security** | ✅ No regression | Playlist ID from `process.env.YOUTUBE_PLAYLIST_ID` or hardcoded fallback; no injection (regex parses only `<yt:videoId>`). `.env.example:16-19` now uses placeholder `PLxxxxxxxx...`, real ID not leaked. `rel="noopener noreferrer"` still set on links. |
+| **Free Tier** | ✅ Pass | Zero API key, RSS is free, ISR caching respects TiDB/Vercel limits. No DB queries. |
+| **Clean Code** | ✅ Pass | `lib/youtube.ts` single responsibility (fetch + parse + fallback). `YoutubeCarousel.tsx` 126→60 lines (removed hardcoded array). Follows `lib/logger.ts` pattern. |
+
+### Edge Cases Documented
+
+| Case | Behavior | Risk |
+|------|----------|------|
+| Playlist RSS 200 but 0 videos | Returns `FALLBACK_VIDEOS` (15 curated) | Low — homepage never empty |
+| YouTube RSS 429 / network error | `catch` → `FALLBACK_VIDEOS` + `logger.error` | Low — logged, graceful |
+| `YOUTUBE_PLAYLIST_ID` missing in env | Falls back to default `PL...` in code | Low — works out of box, `.env.example` is placeholder only |
+| HTML entities in title (`&amp;`) | `decodeHtmlEntities` decodes before render | Low |
+| Build time offline | `fetch` fails → fallback used at build, ISR retries after 3600s | Low |
