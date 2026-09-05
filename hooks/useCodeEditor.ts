@@ -28,9 +28,19 @@ export function useCodeEditor({
     // server and client first render both use `initialCode` (no hydration mismatch)
     return loadSavedCode(storageKey) ?? initialCode;
   });
+
   const [output, setOutput] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
+  // For dialogs (storageKey === null), initialCode is the source of truth per block.
+  // Sync when the block's code changes (chapter switch) so "Open in editor" is never blank.
+  useEffect(() => {
+    if (storageKey === null) {
+      setCode(initialCode);
+      setOutput(null);
+      setError(null);
+    }
+  }, [initialCode, storageKey]);
   // Ref, not state: the warning never needs to re-render the tree
   const storageWarningShown = useRef(false);
   const importInputRef = useRef<HTMLInputElement | null>(null);
@@ -92,6 +102,11 @@ export function useCodeEditor({
     }
   }, []);
 
+  const clearOutput = useCallback(() => {
+    setOutput(null);
+    setError(null);
+  }, []);
+
   return {
     code,
     setCode,
@@ -103,5 +118,6 @@ export function useCodeEditor({
     downloadCode,
     importFile,
     importInputRef,
+    clearOutput,
   };
 }
