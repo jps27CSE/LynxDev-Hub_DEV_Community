@@ -7,6 +7,7 @@
 > **Update (2026-09-03):** Fix 1.1 implemented — `page.tsx` converted to Server Component with server-side `auth()` + `redirect()`. Self-review: clean, no bugs found.
 > **Update (2026-09-05):** Fix 1.2 + Playlist fetch implemented — `YoutubeCarousel.tsx` now `loading="lazy"` + `decoding="async"` and fetches live videos from `https://www.youtube.com/feeds/videos.xml?playlist_id=PL...` via `lib/youtube.ts` (ISR 3600, fallback). Self-review: clean.
 > **Update (2026-09-05):** Fix 2.2 + 2.3 implemented — `app/layout.tsx` adds `@vercel/analytics` + `@vercel/speed-insights`, `next.config.ts` adds CSP `img-src https://img.youtube.com; frame-src https://www.youtube.com`. Self-review: clean.
+> **Update (2026-09-05):** Fix 3.1 + 3.3 implemented — `app/error.tsx` + `app/_components/YoutubeCarouselSkeleton.tsx` with `Suspense` around `YoutubeCarousel` in `app/page.tsx`. Self-review: clean.
 
 ---
 
@@ -25,7 +26,7 @@
 
 | Issue | Detail |
 |-------|--------|
-| **No `Suspense` boundaries** | Header, Hero, Features, YoutubeCarousel, CoursePreview, Footer all render as a waterfall — no parallel streaming. |
+| ~~**No `Suspense` boundaries**~~ | ✅ Fixed 2026-09-05: `app/page.tsx:4,22-24` wraps `YoutubeCarousel` (async) in `Suspense fallback={<YoutubeCarouselSkeleton />}`. Hero/Features/Footer are static, so only carousel streams. |
 | ~~**Duplicate Clerk calls**~~ | ✅ `page.tsx` no longer calls `useUser()` — only `Header.tsx:14` uses it. One Clerk subscription per page load instead of two. |
 | **CSS animation overhead** | `globals.css` defines 5 keyframe animations (neon-gradient-shift, neon-border-rotate, neon-float, neon-pulse, neon-grid-pan) all running `infinite`. On low-end devices, this burns GPU. |
 
@@ -92,8 +93,8 @@
 
 | Issue | Detail |
 |-------|--------|
-| **Home page has no log points** | Zero DB queries = zero request logs. If 500 users hit the page, you see nothing in Vercel logs. |
-| **No client error boundaries with reporting** | Errors in child components are swallowed. |
+| **Home page has no log points** | Zero DB queries = zero request logs. If 500 users hit the page, you see nothing in Vercel logs. (Covered by Analytics `2.2`; `lib/youtube.ts:85-104` logs RSS failures) |
+| ~~**No client error boundaries with reporting**~~ | ✅ Fixed 2026-09-05: `app/error.tsx:1-13` Client Error Boundary using `components/PageError.tsx` with `reset()` + `router.refresh()`. Catches `YoutubeCarousel` or any homepage crash. |
 
 ---
 
@@ -152,23 +153,25 @@
 
 | # | Fix | Benefit | Effort |
 |---|-----|---------|--------|
-| **3.1** | Add `Suspense` boundaries around each section with skeleton placeholders. | Better perceived performance, progressive rendering. | 0.5 hr |
+| ~~**3.1**~~ | ✅ Fixed 2026-09-05: `app/page.tsx:4,22-24` `Suspense` + `app/_components/YoutubeCarouselSkeleton.tsx` (5 pulsing cards, matches carousel layout). Progressive rendering for async carousel. | Better perceived performance, progressive rendering. | 0.5 hr |
 | **3.2** | Cache YouTube video list in `config/` instead of hardcoding in component. | Easier updates, separation of data from UI. | 0.3 hr |
-| **3.3** | Add `error.tsx` for the home route group. | Graceful error UI if any section crashes. | 0.3 hr |
+| ~~**3.3**~~ | ✅ Fixed 2026-09-05: `app/error.tsx:1-13` Error Boundary (`"use client"` + `PageError` + `reset`). Covers entire `/` route. Pattern matches `app/(routes)/dashboard/error.tsx:1-17`. | Graceful error UI if any section crashes. | 0.3 hr |
 
 ---
 
 ## Verdict
 
-The home page is **the lowest-risk page** in the app — zero DB queries. At 500 users, it won't hit TiDB limits or Mistral quotas. Fixes 1.1 (Server Component), 1.2 (lazy-load), 1.5 (playlist live fetch), 2.2 (Analytics), 2.3 (CSP) are complete. Remaining risks:
+The home page is **the lowest-risk page** in the app — zero DB queries. At 500 users, it won't hit TiDB limits or Mistral quotas. Fixes 1.1 (Server Component), 1.2 (lazy-load), 1.5 (playlist live fetch), 2.2 (Analytics), 2.3 (CSP), 3.1 (Suspense), 3.3 (error.tsx) are complete. Remaining risks:
 
 1. ~~**Bandwidth waste** from 30 eager YouTube thumbnails (~600KB/user) — Fix 1.2 pending~~ ✅ Fixed — lazy-load cuts initial to ~200KB
 2. ~~**Stale videos** — hardcoded list showed old uploads~~ ✅ Fixed — live playlist RSS (ISR 3600)
 3. ~~**No monitoring** — no Vercel Analytics or Speed Insights — Fix 2.2 pending~~ ✅ Fixed — Analytics + Speed Insights live
 4. ~~**No CSP** — no headers~~ ✅ Fixed — CSP now set
-5. **Header still uses `useUser()`** — acceptable (shared component, can't refactor for one page)
+5. ~~**No Suspense**~~ ✅ Fixed — carousel streams with skeleton
+6. ~~**No error boundary**~~ ✅ Fixed — `app/error.tsx` catches crashes
+7. **Header still uses `useUser()`** — acceptable (shared component, can't refactor for one page)
 
-**Tier 1 remaining effort: ~1 hour** (carousel virtualization 1.4 only, deferred). Tier 2 remaining: ~0.3 hr (request log 2.4 only).
+**Tier 1 remaining effort: ~1 hour** (carousel virtualization 1.4 only, deferred as lazy-load suffices). Tier 2 remaining: ~0.3 hr (request log 2.4 only, low value now that Analytics covers traffic). Tier 3 remaining: `3.2` only (cosmetic).
 
 ---
 
@@ -251,3 +254,30 @@ The home page is **the lowest-risk page** in the app — zero DB queries. At 500
 | CSP too strict blocks Clerk | `script-src https:` + `connect-src https:` keeps `*.clerk.com` working; tested sign-in flow | Low |
 | YouTube adds new subdomain | `img-src https:` fallback allows any https image, `frame-src` limited to `www.youtube.com` — safe | Low |
 | `headers()` on static pages | Next.js adds CSP to all routes, verified via `next build` output | Low |
+
+---
+
+## 11. Self-Review of Fix 3.1 + 3.3 (Suspense + Error Boundary)
+
+**Date:** 2026-09-05
+**Reviewer:** AI Agent (self-review)
+**Verdict:** Clean — no bugs, minimal perf impact.
+
+### Findings
+
+| Category | Result | Detail |
+|----------|--------|--------|
+| **Bugs** | ✅ None | `app/error.tsx:1-13` is `"use client"` Error Boundary, matches `app/(routes)/dashboard/error.tsx:1-17` pattern, forwards `reset` to `components/PageError.tsx:18-24` (`router.refresh()` + `reset()` in `startTransition`). `app/page.tsx:4,22-24` wraps async `YoutubeCarousel` in `Suspense` — streams fallback `YoutubeCarouselSkeleton` while RSS fetch (ISR 3600) pending. |
+| **Performance** | ✅ Improved | `Suspense` enables streaming — Hero/Features render immediately, carousel skeleton shows while `lib/youtube.ts:76-77` fetches. No extra JS for static sections. |
+| **Security** | ✅ No regression | `error.tsx` is client boundary only, no server data leaked (shows generic title). Skeleton has no sensitive data. |
+| **Free Tier** | ✅ Pass | No DB, no API calls. `error.tsx` + skeleton are static. |
+| **Clean Code** | ✅ Pass | Reuses `components/PageError.tsx` (DRY). `YoutubeCarouselSkeleton.tsx` mirrors carousel dimensions (`w-[280px]`, `aspect-video`) to prevent CLS. Follows `app/layout.tsx` error pattern. |
+
+### Edge Cases Documented
+
+| Case | Behavior | Risk |
+|------|----------|------|
+| RSS fetch throws before `Suspense` resolves | Fallback skeleton → then `error.tsx` if unhandled, or `FALLBACK_VIDEOS` if handled in `lib/youtube.ts:85-104` | Low — double fallback |
+| User clicks "Try again" | `PageError.tsx:20-23` `router.refresh()` + `reset()` retries Server Component | Low |
+| `Suspense` fallback never resolves (offline) | Skeleton shows, then `FALLBACK_VIDEOS` renders from ISR cache | Low |
+| Nested error in `Header` | `app/error.tsx` catches at root, `app/(routes)` errors caught by their own boundaries — not shadowed | Low |
