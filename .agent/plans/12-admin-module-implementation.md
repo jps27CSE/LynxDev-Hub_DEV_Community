@@ -97,7 +97,7 @@ One new table `feedback_tickets` (12 columns, 2 composite indexes). See Task 1 f
 | # | Task | File | Depends | Verify |
 |---|------|------|---------|--------|
 | 1 | ✅ Add `feedback_tickets` table to schema | `config/schema.tsx` | — | `npx drizzle-kit generate` SQL review |
-| 2 | Add 4 admin rate limit scopes | `config/rate-limits.ts` | — | Grep new keys exist |
+| 2 | ✅ Add 4 admin rate limit scopes | `config/rate-limits.ts` | — | Grep new keys exist |
 | 3 | Extend `RateLimitScope` union | `lib/db-rate-limit.ts` | — | `tsc --noEmit` |
 | 4 | Create `isAdmin()` + `requireAdmin()` | `lib/admin-auth.ts` | — | Mock: admin returns true, non-admin 403 |
 | 5 | Create feedback data helpers | `lib/feedback-data.ts` | 1 | `tsc --noEmit`, no N+1 |
@@ -155,9 +155,9 @@ export const feedbackTickets = mysqlTable(
 3. `feedback_user_idx` covers: `WHERE user_id = ? AND is_deleted = false ORDER BY created_at DESC`
 4. `feedback_admin_list_idx` covers: `WHERE status = ? ORDER BY created_at DESC`
 
-### Task 2 — `config/rate-limits.ts`
+### Task 2 — `config/rate-limits.ts` ✅ DONE
 
-Add 4 entries to the `routes` array:
+Add 4 entries to the `routes` array (review: no issues found):
 
 ```typescript
 { pattern: "/api/feedback", method: "POST", config: { limit: 10, windowMs: WINDOW_1M } },
@@ -165,6 +165,8 @@ Add 4 entries to the `routes` array:
 { pattern: "/api/admin/feedback", method: "GET", config: { limit: 30, windowMs: WINDOW_1M } },
 { pattern: "/api/admin/overview", method: "GET", config: { limit: 30, windowMs: WINDOW_1M } },
 ```
+
+**Review verdict:** No bugs, no performance issues, follows existing conventions. PATCH/DELETE on `/api/admin/feedback/[id]` fall back to default 20/min — fine for single admin.
 
 ### Task 3 — `lib/db-rate-limit.ts`
 
@@ -438,4 +440,4 @@ Awaiting manual test and commit before any further agents.
 
 ---
 
-> Generated via ELOS pipeline. Task 1 complete with review fixes. Next: Task 2 (rate limits).
+> Generated via ELOS pipeline. Tasks 1-2 complete with review. Next: Task 3 (RateLimitScope union).
