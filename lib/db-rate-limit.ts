@@ -14,7 +14,11 @@ export type RateLimitScope =
   | "progress"
   | "profile-update"
   | "interview-stack"
-  | "interview-questions-by-tags";
+  | "interview-questions-by-tags"
+  | "feedback-create"
+  | "feedback-list"
+  | "admin-feedback"
+  | "admin-overview";
 
 export type DbRateLimitResult = {
   success: boolean;

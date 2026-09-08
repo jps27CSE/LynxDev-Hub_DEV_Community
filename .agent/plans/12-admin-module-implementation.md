@@ -1,7 +1,7 @@
 # Admin Module — First Ship Implementation Plan
 
 > **Date:** 2026-09-08
-> **Status:** In Progress — Task 1 complete, review fixes applied
+> **Status:** In Progress — Tasks 1-3 complete, review fixes applied
 > **Feature:** 4.6 Admin tools — Feedback tickets + admin overview
 > **Owner:** Single admin (env allowlist)
 > **Stack:** Next.js 16 App Router, Clerk, Drizzle + TiDB MySQL, Tailwind v4 + shadcn/ui
@@ -98,7 +98,7 @@ One new table `feedback_tickets` (12 columns, 2 composite indexes). See Task 1 f
 |---|------|------|---------|--------|
 | 1 | ✅ Add `feedback_tickets` table to schema | `config/schema.tsx` | — | `npx drizzle-kit generate` SQL review |
 | 2 | ✅ Add 4 admin rate limit scopes | `config/rate-limits.ts` | — | Grep new keys exist |
-| 3 | Extend `RateLimitScope` union | `lib/db-rate-limit.ts` | — | `tsc --noEmit` |
+| 3 | ✅ Extend `RateLimitScope` union | `lib/db-rate-limit.ts` | — | `tsc --noEmit` |
 | 4 | Create `isAdmin()` + `requireAdmin()` | `lib/admin-auth.ts` | — | Mock: admin returns true, non-admin 403 |
 | 5 | Create feedback data helpers | `lib/feedback-data.ts` | 1 | `tsc --noEmit`, no N+1 |
 | 6 | Create `POST /api/feedback` (submit) | `app/api/feedback/route.ts` | 2,3,4,5 | curl: 201 valid, 401 no auth, 400 short title, 429 rate |
@@ -168,9 +168,9 @@ Add 4 entries to the `routes` array (review: no issues found):
 
 **Review verdict:** No bugs, no performance issues, follows existing conventions. PATCH/DELETE on `/api/admin/feedback/[id]` fall back to default 20/min — fine for single admin.
 
-### Task 3 — `lib/db-rate-limit.ts`
+### Task 3 — `lib/db-rate-limit.ts` ✅ DONE
 
-Extend `RateLimitScope` union type:
+Extend `RateLimitScope` union type (4 scopes added: `feedback-create`, `feedback-list`, `admin-feedback`, `admin-overview`):
 
 ```typescript
 export type RateLimitScope =
@@ -187,6 +187,8 @@ export type RateLimitScope =
   | "admin-feedback"
   | "admin-overview";
 ```
+
+**Verify:** `npx tsc --noEmit` — no errors in `lib/db-rate-limit.ts` (remaining `.next/types/validator.ts` errors pre-existing for not-yet-created admin/feedback routes).
 
 ### Task 4 — `lib/admin-auth.ts`
 
@@ -440,4 +442,4 @@ Awaiting manual test and commit before any further agents.
 
 ---
 
-> Generated via ELOS pipeline. Tasks 1-2 complete with review. Next: Task 3 (RateLimitScope union).
+> Generated via ELOS pipeline. Tasks 1-3 complete with review. Next: Task 4 (lib/admin-auth.ts).
