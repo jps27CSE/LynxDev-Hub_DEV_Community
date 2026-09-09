@@ -1,7 +1,7 @@
 # Admin Module — First Ship Implementation Plan
 
 > **Date:** 2026-09-08
-> **Status:** In Progress — Tasks 1-4 complete, review fixes applied
+> **Status:** In Progress — Tasks 1-5 complete, review fixes applied
 > **Feature:** 4.6 Admin tools — Feedback tickets + admin overview
 > **Owner:** Single admin (env allowlist)
 > **Stack:** Next.js 16 App Router, Clerk, Drizzle + TiDB MySQL, Tailwind v4 + shadcn/ui
@@ -100,7 +100,7 @@ One new table `feedback_tickets` (12 columns, 2 composite indexes). See Task 1 f
 | 2 | ✅ Add 4 admin rate limit scopes | `config/rate-limits.ts` | — | Grep new keys exist |
 | 3 | ✅ Extend `RateLimitScope` union | `lib/db-rate-limit.ts` | — | `tsc --noEmit` |
 | 4 | ✅ Create `isAdmin()` + `requireAdmin()` | `lib/admin-auth.ts` | — | `tsc --noEmit` clean, review fixes applied |
-| 5 | Create feedback data helpers | `lib/feedback-data.ts` | 1 | `tsc --noEmit`, no N+1 |
+| 5 | ✅ Create feedback data helpers | `lib/feedback-data.ts` | 1 | `tsc --noEmit` clean, review fixes applied |
 | 6 | Create `POST /api/feedback` (submit) | `app/api/feedback/route.ts` | 2,3,4,5 | curl: 201 valid, 401 no auth, 400 short title, 429 rate |
 | 7 | Add `GET /api/feedback` (own tickets) | same file | 5,6 | curl: paginated list of own tickets |
 | 8 | Create `GET /api/admin/feedback` | `app/api/admin/feedback/route.ts` | 2,3,4,5 | curl: 403 non-admin, 200 admin with data |
@@ -297,18 +297,28 @@ export async function requireAdmin() {
 }
 ```
 
-### Task 5 — `lib/feedback-data.ts`
+### Task 5 — `lib/feedback-data.ts` ✅ DONE
 
-Key functions:
-- `createFeedback(userId, data)` — insert, return created row
+7 functions, 358 lines. Data access layer for feedback tickets + admin overview stats.
+
+**Functions:**
+- `createFeedback(userId, data)` — insert + `LAST_INSERT_ID()` in transaction, return created row
 - `getMyFeedback(userId, page)` — paginated own tickets, 20/page, excludes soft-deleted
-- `getAllFeedback({ status, category, q, page })` — admin: join usersTable for email/name, paginated, excludes soft-deleted
+- `getAllFeedback({ status, category, q, page })` — admin: join usersTable for author info, paginated, excludes soft-deleted
 - `getFeedbackById(id)` — single ticket with user info
-- `updateFeedbackStatus(id, status, adminNotes)` — admin update, sets `resolved_at` when status → resolved/closed
-- `softDeleteFeedback(id)` — admin soft delete (`is_deleted = true`)
+- `updateFeedbackStatus(id, status, adminNotes)` — admin update, only sets `resolved_at` on transition TO resolved/closed (preserves audit trail)
+- `softDeleteFeedback(id)` — admin soft delete (`is_deleted = true`), idempotent
 - `getAdminOverview()` — `Promise.all` 6× `count(*)`: users, enrollments, courses, chapters, problems, open tickets
 
-All wrapped in `cache()`, `withConnectRetry()`, `createLogger("feedback-data")`.
+**Key patterns:** `cache()`, `withConnectRetry()`, `createLogger("feedback-data")`, graceful degradation (return safe defaults on DB failure).
+
+**Review fixes applied:**
+1. `InferSelectModel<typeof feedbackTickets>` — type derived from schema, stays in sync automatically
+2. `authorName`/`authorEmail` — renamed from `userName`/`userEmail` to avoid future collision with ticket columns
+3. `resolved_at` audit fix — reads current status first, only sets `resolved_at` on transition TO resolved/closed (not on every update or reopen)
+4. `escapeLike` — escapes `\` before `%` and `_` (MySQL LIKE pattern safety)
+5. `createFeedback` — wrapped in `db.transaction()` to guarantee `LAST_INSERT_ID()` runs on same connection as insert
+6. `adminNotes` — explicit spread with comment explaining Drizzle undefined-skip behavior
 
 ### Task 6-7 — `app/api/feedback/route.ts`
 
@@ -498,4 +508,4 @@ Awaiting manual test and commit before any further agents.
 
 ---
 
-> Generated via ELOS pipeline. Tasks 1-4 complete with review. Next: Task 5 (lib/feedback-data.ts).
+> Generated via ELOS pipeline. Tasks 1-5 complete with review. Next: Task 6 (POST /api/feedback).
