@@ -1,7 +1,7 @@
 # Admin Module — First Ship Implementation Plan
 
 > **Date:** 2026-09-08
-> **Status:** In Progress — Tasks 1-3 complete, review fixes applied
+> **Status:** In Progress — Tasks 1-4 complete, review fixes applied
 > **Feature:** 4.6 Admin tools — Feedback tickets + admin overview
 > **Owner:** Single admin (env allowlist)
 > **Stack:** Next.js 16 App Router, Clerk, Drizzle + TiDB MySQL, Tailwind v4 + shadcn/ui
@@ -99,7 +99,7 @@ One new table `feedback_tickets` (12 columns, 2 composite indexes). See Task 1 f
 | 1 | ✅ Add `feedback_tickets` table to schema | `config/schema.tsx` | — | `npx drizzle-kit generate` SQL review |
 | 2 | ✅ Add 4 admin rate limit scopes | `config/rate-limits.ts` | — | Grep new keys exist |
 | 3 | ✅ Extend `RateLimitScope` union | `lib/db-rate-limit.ts` | — | `tsc --noEmit` |
-| 4 | Create `isAdmin()` + `requireAdmin()` | `lib/admin-auth.ts` | — | Mock: admin returns true, non-admin 403 |
+| 4 | ✅ Create `isAdmin()` + `requireAdmin()` | `lib/admin-auth.ts` | — | `tsc --noEmit` clean, review fixes applied |
 | 5 | Create feedback data helpers | `lib/feedback-data.ts` | 1 | `tsc --noEmit`, no N+1 |
 | 6 | Create `POST /api/feedback` (submit) | `app/api/feedback/route.ts` | 2,3,4,5 | curl: 201 valid, 401 no auth, 400 short title, 429 rate |
 | 7 | Add `GET /api/feedback` (own tickets) | same file | 5,6 | curl: paginated list of own tickets |
@@ -190,7 +190,63 @@ export type RateLimitScope =
 
 **Verify:** `npx tsc --noEmit` — no errors in `lib/db-rate-limit.ts` (remaining `.next/types/validator.ts` errors pre-existing for not-yet-created admin/feedback routes).
 
-### Task 4 — `lib/admin-auth.ts`
+### Task 4 — `lib/admin-auth.ts` ✅ DONE
+
+Create `isAdmin()` + `requireAdmin()` (review fixes applied: `React.cache()`, module-scope env, explicit return type):
+
+```typescript
+import { cache } from "react";
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/config/db";
+import { usersTable } from "@/config/schema";
+import { eq } from "drizzle-orm";
+import { withConnectRetry } from "@/lib/db-retry";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("admin-auth");
+
+const adminEmails = (process.env.ADMIN_EMAILS ?? "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
+const adminClerkIds = (process.env.ADMIN_CLERK_IDS ?? "")
+  .split(",")
+  .map((id) => id.trim())
+  .filter(Boolean);
+
+export const isAdmin = cache(async (userId: string): Promise<boolean> => {
+  if (adminEmails.length === 0 && adminClerkIds.length === 0) return false;
+  if (adminClerkIds.includes(userId)) return true;
+  try {
+    const users = await withConnectRetry(() =>
+      db.select({ email: usersTable.email })
+        .from(usersTable)
+        .where(eq(usersTable.clerk_id, userId))
+        .limit(1),
+    );
+    if (users.length === 0) return false;
+    return adminEmails.includes(users[0].email.toLowerCase());
+  } catch (error) {
+    log.error("isAdmin DB lookup failed", error);
+    return false;
+  }
+});
+
+export async function requireAdmin(): Promise<{ userId: string }> {
+  const { userId } = await auth();
+  if (!userId) throw new Response(null, { status: 302, headers: { Location: "/sign-in" } });
+  const admin = await isAdmin(userId);
+  if (!admin) throw new Response("Forbidden", { status: 403 });
+  return { userId };
+}
+```
+
+**Review fixes applied:**
+1. `React.cache()` — deduplicates DB lookups for same userId within a single request
+2. Module-scope env parsing — `adminEmails`/`adminClerkIds` computed once at import, not per call
+3. Explicit return type on `requireAdmin(): Promise<{ userId: string }>`
+4. Removed redundant `.toLowerCase()` — already lowercased on parse
 
 ```typescript
 import { auth } from "@clerk/nextjs/server";
@@ -442,4 +498,4 @@ Awaiting manual test and commit before any further agents.
 
 ---
 
-> Generated via ELOS pipeline. Tasks 1-3 complete with review. Next: Task 4 (lib/admin-auth.ts).
+> Generated via ELOS pipeline. Tasks 1-4 complete with review. Next: Task 5 (lib/feedback-data.ts).
