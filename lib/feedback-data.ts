@@ -33,8 +33,10 @@ export type AdminOverview = {
   openTickets: number;
 };
 
-function clampPage(page: number): number {
-  return Math.max(1, Math.min(500, Math.floor(page) || 1));
+export const FEEDBACK_MAX_PAGE = 500;
+
+export function clampPage(page: number): number {
+  return Math.max(1, Math.min(FEEDBACK_MAX_PAGE, Math.floor(page) || 1));
 }
 
 function escapeLike(input: string): string {

@@ -1,8 +1,5 @@
 import { z } from "zod";
-import { db } from "@/config/db";
-import { usersTable } from "@/config/schema";
 import { auth } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import {
   validationError,
@@ -11,7 +8,12 @@ import {
   notFound,
   serverError,
 } from "@/lib/api-error";
-import { createFeedback } from "@/lib/feedback-data";
+import {
+  createFeedback,
+  getMyFeedback,
+  clampPage,
+} from "@/lib/feedback-data";
+import { getDbUserIdByClerkId } from "@/lib/user-lookup";
 import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 import { withRequestLog } from "@/lib/request-log";
 
@@ -29,13 +31,17 @@ export async function POST(req: NextRequest) {
     const { userId } = await auth();
     if (!userId) return unauthorized();
 
-    const limited = await enforceDbRateLimit(
-      userId,
-      "feedback-create",
-      "/api/feedback",
-      "POST",
-    );
-    if (limited) return limited;
+    try {
+      const limited = await enforceDbRateLimit(
+        userId,
+        "feedback-create",
+        "/api/feedback",
+        "POST",
+      );
+      if (limited) return limited;
+    } catch {
+      return serverError("Failed to check rate limit");
+    }
 
     let body: unknown;
     try {
@@ -47,17 +53,69 @@ export async function POST(req: NextRequest) {
     const parsed = FeedbackSchema.safeParse(body);
     if (!parsed.success) return validationError(parsed.error);
 
-    const users = await db
-      .select({ id: usersTable.id })
-      .from(usersTable)
-      .where(eq(usersTable.clerk_id, userId))
-      .limit(1);
+    let dbUserId: number | null;
+    try {
+      dbUserId = await getDbUserIdByClerkId(userId);
+    } catch {
+      return serverError("Failed to load user");
+    }
 
-    if (users.length === 0) return notFound("User");
+    if (dbUserId === null) return notFound("User");
 
-    const created = await createFeedback(users[0].id, parsed.data);
+    const created = await createFeedback(dbUserId, parsed.data);
     if (!created) return serverError("Failed to create feedback");
 
     return NextResponse.json(created, { status: 201 });
+  });
+}
+
+export async function GET(req: NextRequest) {
+  return withRequestLog("GET /api/feedback", async () => {
+    const { userId } = await auth();
+    if (!userId) return unauthorized();
+
+    try {
+      const limited = await enforceDbRateLimit(
+        userId,
+        "feedback-list",
+        "/api/feedback",
+        "GET",
+      );
+      if (limited) return limited;
+    } catch {
+      return serverError("Failed to check rate limit");
+    }
+
+    // Strict digits-only parse: rejects hex (0x10), scientific (1e3),
+    // Infinity, and empty strings that Number() would coerce. Single source
+    // of bounds truth is clampPage() in lib/feedback-data.ts.
+    const rawPage = req.nextUrl.searchParams.get("page");
+    const requestedPage =
+      rawPage !== null && /^\d+$/.test(rawPage) ? parseInt(rawPage, 10) : 1;
+    const page = clampPage(requestedPage);
+
+    let dbUserId: number | null;
+    try {
+      dbUserId = await getDbUserIdByClerkId(userId);
+    } catch {
+      return serverError("Failed to load user");
+    }
+
+    if (dbUserId === null) return notFound("User");
+
+    const { data, total, hasMore } = await getMyFeedback(dbUserId, page);
+
+    // admin_notes + metadata are internal: the admin dialog (Task 13) edits
+    // notes, the user list (Task 14) shows Title/Category/Status/Created only.
+    // Stripping here guarantees the user-facing API never leaks internal notes
+    // even though getMyFeedback returns full rows.
+    const visible = data.map(
+      ({ admin_notes: _adminNotes, metadata: _metadata, ...rest }) => rest,
+    );
+
+    return NextResponse.json(
+      { data: visible, total, page, hasMore },
+      { headers: { "Cache-Control": "private, no-store" } },
+    );
   });
 }

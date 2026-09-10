@@ -1,7 +1,7 @@
 # Admin Module — First Ship Implementation Plan
 
 > **Date:** 2026-09-08
-> **Status:** In Progress — Tasks 1-6 complete, review fixes applied
+> **Status:** In Progress — Tasks 1-7 complete, review fixes applied
 > **Feature:** 4.6 Admin tools — Feedback tickets + admin overview
 > **Owner:** Single admin (env allowlist)
 > **Stack:** Next.js 16 App Router, Clerk, Drizzle + TiDB MySQL, Tailwind v4 + shadcn/ui
@@ -20,7 +20,13 @@
 - Admin overview (live stats cards)
 - Sidebar link (hidden for non-admin)
 
-**Out of scope:** Course authoring, bulk import, hard delete, email, multi-admin.
+**Retention lifecycle (confirmed 2026-09-10):**
+- Resolve (`PATCH status=resolved/closed`) keeps the row — user keeps seeing `Resolved` history via `GET /api/feedback` + Task 14 list.
+- No auto hard-delete on resolve. DB stays clean from view, not from disk.
+- Admin manually deletes finished tickets from admin panel (`DELETE` → `is_deleted=true`). Deleted tickets disappear from both admin list and user's list.
+- Rationale: ticket rows are ~1-2KB; 500 users × 10 tickets ≈ 10MB, negligible on TiDB 0.5GB free tier. Preserves audit trail.
+
+**Out of scope:** Course authoring, bulk import, hard delete (physical `DELETE FROM`), auto-purge cron, email, multi-admin.
 
 ---
 
@@ -102,7 +108,7 @@ One new table `feedback_tickets` (12 columns, 2 composite indexes). See Task 1 f
 | 4 | ✅ Create `isAdmin()` + `requireAdmin()` | `lib/admin-auth.ts` | — | `tsc --noEmit` clean, review fixes applied |
 | 5 | ✅ Create feedback data helpers | `lib/feedback-data.ts` | 1 | `tsc --noEmit` clean, review fixes applied |
 | 6 | ✅ Create `POST /api/feedback` (submit) | `app/api/feedback/route.ts` | 2,3,4,5 | `tsc --noEmit` clean, review clean |
-| 7 | Add `GET /api/feedback` (own tickets) | same file | 5,6 | curl: paginated list of own tickets |
+| 7 | ✅ Add `GET /api/feedback` (own tickets) | same file + `lib/user-lookup.ts` | 5,6 | `tsc --noEmit` clean, review fixes applied |
 | 8 | Create `GET /api/admin/feedback` | `app/api/admin/feedback/route.ts` | 2,3,4,5 | curl: 403 non-admin, 200 admin with data |
 | 9 | Create `PATCH + DELETE /api/admin/feedback/[id]` | `app/api/admin/feedback/[id]/route.ts` | 2,3,4,5 | curl: status update, soft delete |
 | 10 | Create `GET /api/admin/overview` | `app/api/admin/overview/route.ts` | 2,3,4 | curl: 6 stats counts |
@@ -355,14 +361,15 @@ const FeedbackSchema = z.object({
 6. return 201 + created row
 ```
 
-**GET:**
+**GET (implemented + review fixes applied):**
 ```
 1. withRequestLog("GET /api/feedback")
 2. auth() → 401
-3. enforceDbRateLimit(userId, "feedback-list", ...) → 429
-4. parse page from searchParams (default 1, clamped 1-500)
-5. getMyFeedback(dbUserId, page)
-6. return { data, total, page, hasMore }
+3. enforceDbRateLimit(userId, "feedback-list", ...) → 429 (throw → JSON 500, fail-closed)
+4. strict digits-only page parse → clampPage() from lib/feedback-data.ts (single bounds truth, 1..500)
+5. getDbUserIdByClerkId() from lib/user-lookup.ts (shared POST/GET, retry + JSON 500 on DB failure)
+6. getMyFeedback(dbUserId, page) → strip admin_notes + metadata (internal-only) → { data, total, page, hasMore }
+7. Cache-Control: private, no-store (explicit fresh; Task 14 refreshes on submit)
 ```
 
 ### Task 8 — `app/api/admin/feedback/route.ts`
@@ -391,15 +398,16 @@ const FeedbackSchema = z.object({
 7. return 200 + updated row
 ```
 
-**DELETE:**
+**DELETE (manual cleanup after resolve — confirmed 2026-09-10):**
 ```
 1. withRequestLog("DELETE /api/admin/feedback/[id]")
 2. auth() → 401
 3. isAdmin() → 403
 4. parse id, validate
-5. softDeleteFeedback(id)
+5. softDeleteFeedback(id)  // is_deleted=true; hidden from getAllFeedback + getMyFeedback, row kept for audit
 6. return 200 { success: true }
 ```
+Admin flow: resolve first (`PATCH`), user sees `Resolved`, then admin deletes when done. No auto-delete on resolve.
 
 ### Task 10 — `app/api/admin/overview/route.ts`
 
@@ -477,9 +485,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
 `app/(routes)/feedback/_components/MyTicketsList.tsx` — Client:
 - shadcn `Table` with columns: Title, Category, Status, Created
-- `Badge` for status
+- `Badge` for status (open=blue, in_progress=yellow, resolved=green, closed=gray)
 - Pagination
-- Empty state when no tickets
+- Empty state when no tickets (“No tickets yet” / after admin manual delete, resolved tickets disappear — expected, not a bug)
+- Resolved tickets stay visible until admin manually deletes them (retention confirmed 2026-09-10)
 
 ### Task 15 — Sidebar modification
 
@@ -512,8 +521,8 @@ After Task 16, STOP. No commit. Verify:
 2. Sign in as admin → `/admin` shows stats cards, `/admin/feedback` shows table
 3. Sign in as non-admin → `/admin` returns 404
 4. Submit feedback via `/feedback` → appears in admin list
-5. PATCH status in admin → status updates
-6. Soft delete → ticket disappears from list
+5. PATCH status in admin → status updates; user sees new status on `/feedback`
+6. Admin manual delete after resolve → ticket disappears from admin list AND user list (soft delete, `is_deleted=true`)
 7. Sidebar shows Admin link only for admin user
 8. Rate limit: 11th POST in 60s → 429
 
@@ -531,4 +540,4 @@ Awaiting manual test and commit before any further agents.
 
 ---
 
-> Generated via ELOS pipeline. Tasks 1-6 complete with review. Next: Task 7 (GET /api/feedback).
+> Generated via ELOS pipeline. Tasks 1-7 complete with review. Next: Task 8 (GET /api/admin/feedback).
