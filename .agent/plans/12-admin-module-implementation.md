@@ -1,7 +1,7 @@
 # Admin Module — First Ship Implementation Plan
 
 > **Date:** 2026-09-08
-> **Status:** In Progress — Tasks 1-5 complete, review fixes applied
+> **Status:** In Progress — Tasks 1-6 complete, review fixes applied
 > **Feature:** 4.6 Admin tools — Feedback tickets + admin overview
 > **Owner:** Single admin (env allowlist)
 > **Stack:** Next.js 16 App Router, Clerk, Drizzle + TiDB MySQL, Tailwind v4 + shadcn/ui
@@ -101,7 +101,7 @@ One new table `feedback_tickets` (12 columns, 2 composite indexes). See Task 1 f
 | 3 | ✅ Extend `RateLimitScope` union | `lib/db-rate-limit.ts` | — | `tsc --noEmit` |
 | 4 | ✅ Create `isAdmin()` + `requireAdmin()` | `lib/admin-auth.ts` | — | `tsc --noEmit` clean, review fixes applied |
 | 5 | ✅ Create feedback data helpers | `lib/feedback-data.ts` | 1 | `tsc --noEmit` clean, review fixes applied |
-| 6 | Create `POST /api/feedback` (submit) | `app/api/feedback/route.ts` | 2,3,4,5 | curl: 201 valid, 401 no auth, 400 short title, 429 rate |
+| 6 | ✅ Create `POST /api/feedback` (submit) | `app/api/feedback/route.ts` | 2,3,4,5 | `tsc --noEmit` clean, review clean |
 | 7 | Add `GET /api/feedback` (own tickets) | same file | 5,6 | curl: paginated list of own tickets |
 | 8 | Create `GET /api/admin/feedback` | `app/api/admin/feedback/route.ts` | 2,3,4,5 | curl: 403 non-admin, 200 admin with data |
 | 9 | Create `PATCH + DELETE /api/admin/feedback/[id]` | `app/api/admin/feedback/[id]/route.ts` | 2,3,4,5 | curl: status update, soft delete |
@@ -320,9 +320,32 @@ export async function requireAdmin() {
 5. `createFeedback` — wrapped in `db.transaction()` to guarantee `LAST_INSERT_ID()` runs on same connection as insert
 6. `adminNotes` — explicit spread with comment explaining Drizzle undefined-skip behavior
 
-### Task 6-7 — `app/api/feedback/route.ts`
+### Task 6 — `app/api/feedback/route.ts` (POST) ✅ DONE
 
-**POST:**
+63 lines. Zod validation → Clerk auth → rate limit → DB user lookup → createFeedback → 201.
+
+**Zod schema:**
+```typescript
+const FeedbackSchema = z.object({
+  category: z.enum(["bug", "feature", "feedback", "other"]).default("other"),
+  title: z.string().min(5).max(120),
+  message: z.string().min(10).max(5000),
+});
+```
+
+**Route flow:**
+```
+1. withRequestLog("POST /api/feedback")
+2. auth() → 401 if no userId
+3. enforceDbRateLimit(userId, "feedback-create", ...) → 429 if limited
+4. req.json() → Zod safeParse
+5. DB lookup: clerkId → dbUserId (usersTable)
+6. createFeedback(dbUserId, data) → 201 + created row
+```
+
+**Note:** Plan said `type: enum` but schema uses `category` — matched to `feedbackTickets` table and `createFeedback()` helper.
+
+### Task 7 — `app/api/feedback/route.ts` (GET)
 ```
 1. withRequestLog("POST /api/feedback")
 2. auth() → 401 if no userId
@@ -508,4 +531,4 @@ Awaiting manual test and commit before any further agents.
 
 ---
 
-> Generated via ELOS pipeline. Tasks 1-5 complete with review. Next: Task 6 (POST /api/feedback).
+> Generated via ELOS pipeline. Tasks 1-6 complete with review. Next: Task 7 (GET /api/feedback).
