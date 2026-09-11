@@ -42,19 +42,17 @@ async function seedInterviewChapters() {
 
       if (!chapterId) {
         // Create the chapter only once (deduplicated by title)
+        const content: Record<string, unknown> = {
+          keyPoints: ch.content.keyPoints,
+          tips: ch.content.tips,
+        };
+        if (ch.content.overview) content.overview = ch.content.overview;
+        if (ch.content.realLifeScenario) content.realLifeScenario = ch.content.realLifeScenario;
+        if (ch.content.explanation) content.explanation = ch.content.explanation;
+
         await db.insert(interviewChapters).values({
           title: ch.title,
-          content: {
-            ...(ch.content.overview && { overview: ch.content.overview }),
-            ...(ch.content.realLifeScenario && {
-              realLifeScenario: ch.content.realLifeScenario,
-            }),
-            ...(ch.content.explanation && {
-              explanation: ch.content.explanation,
-            }),
-            keyPoints: ch.content.keyPoints,
-            tips: ch.content.tips,
-          },
+          content,
         });
 
         const inserted = await db
