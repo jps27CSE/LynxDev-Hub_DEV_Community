@@ -19,14 +19,14 @@ function DailyTip() {
   const tip = tips[dayOfYear % tips.length];
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5">
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <Lightbulb className="w-5 h-5 text-primary" />
+    <div className="rounded-xl sm:rounded-2xl border border-border bg-card p-3.5 sm:p-4 lg:p-5 overflow-hidden">
+      <div className="flex items-start gap-2.5 sm:gap-3">
+        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
         </div>
-        <div>
-          <h3 className="font-semibold text-sm">Daily Tip</h3>
-          <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+        <div className="min-w-0">
+          <h3 className="font-semibold text-xs sm:text-sm">Daily Tip</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed line-clamp-3">
             {tip}
           </p>
         </div>

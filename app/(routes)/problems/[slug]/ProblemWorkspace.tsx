@@ -5,6 +5,13 @@ import { useRouter } from "next/navigation";
 import type { WorkspaceProblem, WorkspaceSummary } from "@/lib/problem-data";
 import { ProblemBrowser } from "./_components/ProblemBrowser";
 import { ProblemPane } from "./_components/ProblemPane";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const SOLVED_PREFIX = "ws-solved:";
 
@@ -79,7 +86,7 @@ export default function ProblemWorkspace({
 
   const navigate = useCallback(
     (key: string) => {
-      if (key !== problem.key) router.push(keyToUrl(key));
+      if (key !== problem.key) router.push(keyToUrl(key), { scroll: false });
     },
     [router, problem.key],
   );
@@ -118,18 +125,18 @@ export default function ProblemWorkspace({
     <div className="flex flex-col lg:h-screen lg:overflow-hidden">
       <div className="lg:hidden p-3 space-y-2 border-b border-border/40 bg-[#07090e]">
         <div className="flex items-center gap-2">
-          <select
-            value={problem.key}
-            onChange={(e) => navigate(e.target.value)}
-            className="flex-1 min-w-0 rounded-lg border border-border/50 bg-card px-2.5 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-ring"
-            aria-label="Select problem"
-          >
-            {filtered.map((s) => (
-              <option key={s.key} value={s.key}>
-                {s.title} ({s.difficulty})
-              </option>
-            ))}
-          </select>
+          <Select value={problem.key} onValueChange={navigate}>
+            <SelectTrigger className="flex-1 min-w-0 h-9 text-[13px]" aria-label="Select problem">
+              <SelectValue placeholder="Select problem" />
+            </SelectTrigger>
+            <SelectContent>
+              {filtered.map((s) => (
+                <SelectItem key={s.key} value={s.key}>
+                  {s.title} ({s.difficulty})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {isSolved && (
             <span className="shrink-0 font-mono text-emerald-400 text-sm">
               ✓

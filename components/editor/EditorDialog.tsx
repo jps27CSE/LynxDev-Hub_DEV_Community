@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -27,13 +28,22 @@ export function EditorDialog({
     storageKey: null,
   });
 
+  // Ensure dialog always shows fresh code when opened (and when initialCode changes while closed).
+  useEffect(() => {
+    if (open) {
+      editor.setCode(initialCode);
+      editor.clearOutput();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps — setCode/clearOutput are stable, we want to sync only on open/initialCode
+  }, [open, initialCode]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
-        className="sm:max-w-6xl bg-card border-border gap-0 p-0 rounded-2xl overflow-hidden"
+        className="sm:max-w-6xl max-h-[90dvh] sm:max-h-[85dvh] bg-card border-border gap-0 p-0 rounded-2xl overflow-hidden"
       >
-        <DialogHeader className="px-4 py-3 border-b border-border/50 bg-muted/30">
+        <DialogHeader className="px-3 py-2 sm:px-4 sm:py-3 border-b border-border/50 bg-muted/30">
           <DialogTitle className="text-sm font-medium text-foreground">
             JavaScript Editor
           </DialogTitle>
@@ -48,11 +58,11 @@ export function EditorDialog({
           importInputRef={editor.importInputRef}
         />
 
-        <div className="bg-[#1e1e1e]">
+        <div className="bg-[#1e1e1e] h-[400px] sm:h-[500px]">
           <MonacoEditor
             value={editor.code}
             onChange={editor.setCode}
-            height="min(60vh, 560px)"
+            height="100%"
           />
         </div>
 

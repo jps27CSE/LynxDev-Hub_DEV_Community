@@ -66,6 +66,26 @@ const routes: { pattern: string; method: string; config: RateLimitConfig }[] = [
     method: "PATCH",
     config: { limit: 10, windowMs: WINDOW_1M },
   },
+  {
+    pattern: "/api/feedback",
+    method: "POST",
+    config: { limit: 10, windowMs: WINDOW_1M },
+  },
+  {
+    pattern: "/api/feedback",
+    method: "GET",
+    config: { limit: 30, windowMs: WINDOW_1M },
+  },
+  {
+    pattern: "/api/admin/feedback",
+    method: "GET",
+    config: { limit: 30, windowMs: WINDOW_1M },
+  },
+  {
+    pattern: "/api/admin/overview",
+    method: "GET",
+    config: { limit: 30, windowMs: WINDOW_1M },
+  },
 ];
 
 const defaultConfig: RateLimitConfig = { limit: 20, windowMs: WINDOW_1M };

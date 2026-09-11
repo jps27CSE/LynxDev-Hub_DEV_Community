@@ -65,6 +65,8 @@ export class MonacoErrorBoundary extends Component<
   }
 
   componentDidCatch(error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes("Canceled")) return;
     console.warn("[editor] Monaco failed to load:", error);
   }
 

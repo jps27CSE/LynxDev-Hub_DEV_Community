@@ -1,8 +1,17 @@
 "use client";
 
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, RotateCcw, Eye, CheckCircle, Loader2, Star } from "lucide-react";
+import {
+  Play,
+  RotateCcw,
+  Eye,
+  CheckCircle,
+  Loader2,
+  Star,
+  Code2,
+  Globe,
+} from "lucide-react";
 import axios from "axios";
 import { UserDetailContext } from "@/context/UserDetailContext";
 import { toast } from "sonner";
@@ -44,8 +53,38 @@ export default function LessonClient({
   const [showSolution, setShowSolution] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [mobileTab, setMobileTab] = useState<"code" | "preview">("code");
   const isBrowserMode = chapter.content.type === "browser";
   const { setUserDetail } = useContext(UserDetailContext);
+
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const [editorHeight, setEditorHeight] = useState(0);
+
+  const measureEditor = useCallback(() => {
+    if (editorContainerRef.current) {
+      const rect = editorContainerRef.current.getBoundingClientRect();
+      if (rect.height > 0) setEditorHeight(rect.height);
+    }
+  }, []);
+
+  useEffect(() => {
+    measureEditor();
+    const observer = new ResizeObserver(measureEditor);
+    if (editorContainerRef.current) observer.observe(editorContainerRef.current);
+    return () => observer.disconnect();
+  }, [measureEditor]);
+
+  useEffect(() => {
+    const originalError = console.error;
+    console.error = (...args: unknown[]) => {
+      const msg = args.map(String).join(" ");
+      if (msg.includes("Canceled")) return;
+      originalError.apply(console, args);
+    };
+    return () => {
+      console.error = originalError;
+    };
+  }, []);
 
   const runCode = async () => {
     if (isBrowserMode) {
@@ -98,7 +137,7 @@ export default function LessonClient({
       });
       if (res.data.courseCompleted) {
         toast("Course completed! Great job!", {
-          icon: "🎉",
+          icon: "\uD83C\uDF89",
         });
       }
     } catch {
@@ -109,9 +148,10 @@ export default function LessonClient({
   };
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row min-h-0 lg:overflow-hidden">
-      <div className="lg:w-2/5 border-b lg:border-b-0 lg:border-r border-border/40 overflow-y-auto bg-card min-h-0 scrollbar-thin overscroll-contain max-h-[45dvh] lg:max-h-none">
-        <div className="p-6 max-w-none">
+    <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+      {/* Instructions panel */}
+      <div className="lg:w-2/5 border-b lg:border-b-0 lg:border-r border-border/40 overflow-y-auto bg-card min-h-0 scrollbar-thin overscroll-contain max-h-[40dvh] lg:max-h-none shrink-0">
+        <div className="p-4 sm:p-6 max-w-none">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-[11px] text-muted-foreground mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
             Hands-on Lesson
@@ -141,8 +181,6 @@ export default function LessonClient({
             >
               {completing ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : completed ? (
-                <CheckCircle className="w-4 h-4 mr-2" />
               ) : (
                 <CheckCircle className="w-4 h-4 mr-2" />
               )}
@@ -152,18 +190,56 @@ export default function LessonClient({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col lg:flex-row min-h-0 min-w-0">
-        <div className="flex-1 flex flex-col min-w-0 min-h-0">
-          <div className="flex-1 min-h-[250px] p-4 bg-[#1e1e1e]">
-            <MonacoEditor
-              value={code}
-              onChange={setCode}
-              height="100%"
-              language={language}
-            />
+      {/* Mobile tab toggle — only in browser mode, only on mobile */}
+      {isBrowserMode && (
+        <div className="flex lg:hidden border-b border-border/40 bg-card shrink-0">
+          <button
+            onClick={() => setMobileTab("code")}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors ${
+              mobileTab === "code"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Code2 className="w-3.5 h-3.5" />
+            Code
+          </button>
+          <button
+            onClick={() => setMobileTab("preview")}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors ${
+              mobileTab === "preview"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5" />
+            Preview
+          </button>
+        </div>
+      )}
+
+      {/* Editor + Preview — original desktop layout preserved */}
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 min-w-0 overflow-hidden">
+        <div
+          className={`flex-1 flex flex-col min-w-0 min-h-0 ${
+            isBrowserMode && mobileTab !== "code" ? "hidden lg:flex" : ""
+          }`}
+        >
+          <div
+            ref={editorContainerRef}
+            className="h-[38dvh] lg:h-auto lg:flex-1 p-3 sm:p-4 bg-[#1e1e1e] overflow-hidden"
+          >
+            {editorHeight > 0 && (
+              <MonacoEditor
+                value={code}
+                onChange={setCode}
+                height={`${editorHeight}px`}
+                language={language}
+              />
+            )}
           </div>
 
-          <div className="border-t border-border/40 bg-card p-4">
+          <div className="border-t border-border/40 bg-card p-3 sm:p-4 shrink-0">
             <div className="flex items-center gap-2 flex-wrap">
               <Button
                 size="sm"
@@ -181,7 +257,11 @@ export default function LessonClient({
                 <RotateCcw className="w-4 h-4 mr-1" />
                 Reset
               </Button>
-              <Button size="sm" variant="outline" onClick={handleShowSolution}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleShowSolution}
+              >
                 <Eye className="w-4 h-4 mr-1" />
                 Show Solution
               </Button>
@@ -192,7 +272,9 @@ export default function LessonClient({
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border-b border-white/10 sticky top-0">
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
-                      runError ? "bg-red-500" : "bg-emerald-500 animate-pulse"
+                      runError
+                        ? "bg-red-500"
+                        : "bg-emerald-500 animate-pulse"
                     }`}
                   />
                   <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
@@ -212,12 +294,16 @@ export default function LessonClient({
         </div>
 
         {isBrowserMode && (
-          <div className="lg:w-1/2 border-t lg:border-t-0 lg:border-l border-border/40 bg-white flex flex-col min-h-0 min-w-0">
-            <div className="flex items-center gap-2 px-4 py-2 bg-[#f5f5f5] border-b border-border/40 flex-none">
-              <div className="w-3 h-3 rounded-full bg-red-500" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500" />
-              <div className="w-3 h-3 rounded-full bg-green-500" />
-              <span className="text-xs text-muted-foreground ml-2">
+          <div
+            className={`border-t lg:border-t-0 lg:border-l border-border/40 bg-white flex flex-col min-h-0 min-w-0 ${
+              mobileTab !== "preview" ? "hidden lg:flex" : "flex-1"
+            } lg:w-1/2`}
+          >
+            <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#f5f5f5] border-b border-border/40 flex-none">
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500" />
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500" />
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500" />
+              <span className="text-[10px] sm:text-xs text-muted-foreground ml-1 sm:ml-2">
                 Browser Preview
               </span>
             </div>

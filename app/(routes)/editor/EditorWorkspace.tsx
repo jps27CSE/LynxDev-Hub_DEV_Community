@@ -159,7 +159,7 @@ export default function EditorWorkspace({
       </div>
 
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden">
-        <div className="flex flex-col h-[45dvh] lg:h-auto lg:flex-1 min-h-0 min-w-0">
+        <div className="flex flex-col flex-1 lg:flex-1 min-h-0 min-w-0 overflow-hidden">
           <div className="flex-1 min-h-0 bg-[#1e1e1e]">
             <MonacoEditor
               value={editor.code}
@@ -181,7 +181,7 @@ export default function EditorWorkspace({
         </div>
 
         {isWeb && (
-          <div className="lg:w-1/2 border-t lg:border-t-0 lg:border-l border-white/5 min-h-[50dvh] lg:min-h-0 flex flex-col">
+          <div className="lg:w-1/2 border-t lg:border-t-0 lg:border-l border-white/5 min-h-[30dvh] sm:min-h-[50dvh] lg:min-h-0 flex flex-col">
             <BrowserPreview
               html={previewHtml}
               nonce={nonce}

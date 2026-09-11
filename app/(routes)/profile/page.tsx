@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ import {
   Layers,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
   const { user: clerkUser } = useUser();
@@ -34,39 +35,47 @@ export default function ProfilePage() {
   const [completedCount, setCompletedCount] = useState(0);
   const [profileError, setProfileError] = useState(false);
   const [enrollError, setEnrollError] = useState(false);
+  const lastFetchRef = useRef(Date.now());
 
-  const loadProfile = useCallback(() => {
-    fetch("/api/user/profile")
-      .then(async (r) => {
+  const loadAll = useCallback(() => {
+    Promise.all([
+      fetch("/api/user/profile").then(async (r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
-      })
-      .then((data) => {
-        setName(data.name || clerkUser?.fullName || "");
-        setBio(data.bio || "");
-        setSkills(Array.isArray(data.skills) ? data.skills : []);
-        setPoints(data.points || 0);
+      }),
+      fetch("/api/enroll").then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      }),
+    ])
+      .then(([profile, enrollments]) => {
+        setName(profile.name || clerkUser?.fullName || "");
+        setBio(profile.bio || "");
+        setSkills(Array.isArray(profile.skills) ? profile.skills : []);
+        setPoints(profile.points || 0);
         setProfileError(false);
+
+        const list: Array<{ completed_at: string | null }> = Array.isArray(
+          enrollments,
+        )
+          ? enrollments
+          : [];
+        setEnrolledCount(list.length);
+        setCompletedCount(list.filter((e) => e.completed_at).length);
+        setEnrollError(false);
       })
       .catch((error) => {
         console.error("[profile] load failed:", error);
         setProfileError(true);
+        setEnrollError(true);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        lastFetchRef.current = Date.now();
+        setLoading(false);
+      });
   }, [clerkUser]);
 
   const refreshStats = useCallback(() => {
-    fetch("/api/user/profile")
-      .then(async (r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((data) => setPoints(data.points || 0))
-      .catch((error) => {
-        console.error("[profile] points refresh failed:", error);
-        setProfileError(true);
-      });
-
     fetch("/api/enroll")
       .then(async (r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -79,6 +88,7 @@ export default function ProfilePage() {
         setEnrolledCount(list.length);
         setCompletedCount(list.filter((e) => e.completed_at).length);
         setEnrollError(false);
+        lastFetchRef.current = Date.now();
       })
       .catch((error) => {
         console.error("[profile] enroll stats failed:", error);
@@ -88,12 +98,17 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!clerkUser) return;
-    loadProfile();
-    refreshStats();
-  }, [clerkUser, loadProfile, refreshStats]);
+    loadAll();
+  }, [clerkUser, loadAll]);
 
   useEffect(() => {
-    const onFocus = () => refreshStats();
+    const onFocus = () => {
+      const now = Date.now();
+      if (now - lastFetchRef.current > 30_000) {
+        lastFetchRef.current = now;
+        refreshStats();
+      }
+    };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [refreshStats]);
@@ -121,9 +136,12 @@ export default function ProfilePage() {
       if (res.ok) {
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
+      } else {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || "Failed to save profile. Please try again.");
       }
     } catch {
-      // silent
+      toast.error("Network error. Please check your connection and try again.");
     } finally {
       setSaving(false);
     }
@@ -253,9 +271,13 @@ export default function ProfilePage() {
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 rows={3}
+                maxLength={2000}
                 className="w-full mt-2 px-0 py-1 bg-transparent text-sm text-foreground outline-none border-b border-transparent focus:border-primary/30 transition-colors resize-none"
                 placeholder="Tell us about yourself — your experience, interests, goals..."
               />
+              <p className="text-[10px] text-muted-foreground mt-1 text-right">
+                {bio.length}/2000
+              </p>
             </div>
             <div className="px-5 py-4">
               <div className="flex items-center gap-2">

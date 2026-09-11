@@ -37,31 +37,36 @@ export default async function LessonPage({
   return (
     <div className="flex flex-col lg:h-screen lg:overflow-hidden">
       <PageHeader>
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0 shrink">
             <Link
               href={`/courses/${course.id}`}
-              className="text-sm text-muted-foreground hover:text-emerald-500 transition-colors"
+              className="text-sm text-muted-foreground hover:text-emerald-500 transition-colors shrink-0"
             >
-              &larr; {course.title}
+              &larr;
+              <span className="hidden sm:inline ml-1">{course.title}</span>
             </Link>
-            <span className="text-muted-foreground">/</span>
-            <span className="inline-flex items-center gap-2 text-sm font-display font-semibold truncate max-w-[300px]">
+            <span className="text-muted-foreground hidden sm:inline">/</span>
+            <span className="inline-flex items-center gap-2 text-sm font-display font-semibold truncate min-w-0">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shrink-0" />
-              {chapter.title}
+              <span className="truncate">{chapter.title}</span>
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {prevChapter && (
               <Link href={`/learn/${course.id}/${prevChapter.id}`}>
-                <Button variant="outline" size="sm">
-                  Previous
+                <Button variant="outline" size="sm" className="px-2 sm:px-3">
+                  <span className="hidden sm:inline">Previous</span>
+                  <span className="sm:hidden">&larr;</span>
                 </Button>
               </Link>
             )}
             {nextChapter && (
               <Link href={`/learn/${course.id}/${nextChapter.id}`}>
-                <Button size="sm">Next</Button>
+                <Button size="sm" className="px-2 sm:px-3">
+                  <span className="hidden sm:inline">Next</span>
+                  <span className="sm:hidden">&rarr;</span>
+                </Button>
               </Link>
             )}
           </div>

@@ -1,6 +1,7 @@
 import {
   bigint,
   boolean,
+  index,
   int,
   json,
   mysqlTable,
@@ -147,3 +148,27 @@ export const problems = mysqlTable("problems", {
   test_cases: json("test_cases"),
   order_index: int("order_index").default(0),
 });
+
+export const feedbackTickets = mysqlTable(
+  "feedback_tickets",
+  {
+    id: int().primaryKey().autoincrement(),
+    user_id: int("user_id")
+      .references(() => usersTable.id)
+      .notNull(),
+    title: varchar({ length: 120 }).notNull(),
+    message: text().notNull(),
+    category: varchar({ length: 20 }).default("other"),
+    status: varchar({ length: 20 }).default("open"),
+    admin_notes: text("admin_notes"),
+    metadata: json(),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+    resolved_at: timestamp("resolved_at"),
+    is_deleted: boolean("is_deleted").default(false),
+  },
+  (table) => [
+    index("feedback_user_idx").on(table.user_id, table.is_deleted, table.created_at),
+    index("feedback_admin_list_idx").on(table.status, table.created_at),
+  ],
+);

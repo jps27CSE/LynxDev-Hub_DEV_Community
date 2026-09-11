@@ -14,7 +14,11 @@ export type RateLimitScope =
   | "progress"
   | "profile-update"
   | "interview-stack"
-  | "interview-questions-by-tags";
+  | "interview-questions-by-tags"
+  | "feedback-create"
+  | "feedback-list"
+  | "admin-feedback"
+  | "admin-overview";
 
 export type DbRateLimitResult = {
   success: boolean;
@@ -82,7 +86,10 @@ export async function consumeDbRateLimit(
       reset: windowStart + windowMs,
     };
   } catch (error) {
-    log.error("consumeDbRateLimit failed", error, { bucket });
+    const isProd = process.env.NODE_ENV === "production";
+    log.error("consumeDbRateLimit failed", error, {
+      bucket: isProd ? bucket.replace(/user:[^:]+/, "user:***") : bucket,
+    });
     throw error;
   }
 }

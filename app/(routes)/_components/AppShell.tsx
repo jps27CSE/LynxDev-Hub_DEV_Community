@@ -30,7 +30,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#05060a]">
+    <div className="min-h-screen bg-[#05060a] overflow-x-hidden">
       <Sidebar
         open={sidebarOpen}
         collapsed={sidebarCollapsed}
@@ -47,11 +47,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </button>
 
       <div
-        className={`transition-all duration-300 flex flex-col min-h-screen ${
+        className={`transition-all duration-300 flex flex-col min-h-screen overflow-hidden ${
           sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
         }`}
       >
-        <main className="flex-1 flex flex-col">{children}</main>
+        <main className="flex-1 flex flex-col min-w-0 w-full overflow-hidden">{children}</main>
       </div>
     </div>
   );

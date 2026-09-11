@@ -93,8 +93,8 @@ export default function EditorClient({ problem }: EditorClientProps) {
   return (
     <div className="h-dvh flex flex-col bg-[#05060a] overflow-hidden">
       {/* VS Code-style title bar */}
-      <div className="shrink-0 flex items-center justify-between gap-3 h-11 px-3 sm:px-4 bg-[#181818] border-b border-white/5">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="shrink-0 flex items-center justify-between gap-2 sm:gap-3 h-10 sm:h-11 px-2 sm:px-4 bg-[#181818] border-b border-white/5">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <div className="hidden sm:flex items-center gap-1.5 shrink-0">
             <span className="w-3 h-3 rounded-full bg-[#ff5f57]" />
             <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
@@ -102,18 +102,19 @@ export default function EditorClient({ problem }: EditorClientProps) {
           </div>
           <FileCode2 className="w-4 h-4 text-cyan-400 shrink-0" />
           <span className="text-xs font-mono text-muted-foreground truncate">
-            {problem ? problem.title : "Code Playground"} — {fileName}
+            <span className="hidden sm:inline">{problem ? problem.title : "Code Playground"} — </span>
+            {fileName}
           </span>
           {problem && (
             <Badge
               variant="outline"
-              className={`${difficultyBadgeClass(problem.difficulty)} shrink-0`}
+              className={`${difficultyBadgeClass(problem.difficulty)} shrink-0 hidden sm:inline-flex`}
             >
               {problem.difficulty}
             </Badge>
           )}
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <div
             className="flex items-center gap-0.5 rounded-lg border border-white/10 bg-white/[0.03] px-1 py-1 shadow-[inset_0_1px_0_0_rgb(255_255_255/0.04)]"
             title="Editor font size"
@@ -133,7 +134,7 @@ export default function EditorClient({ problem }: EditorClientProps) {
               max={24}
               value={fontSize}
               onChange={(e) => setFontSizeAndPersist(Number(e.target.value))}
-              className="w-16 sm:w-20 h-6 accent-cyan-400 cursor-pointer"
+              className="hidden sm:block w-20 h-6 accent-cyan-400 cursor-pointer"
               aria-label="Font size slider"
             />
             <button
@@ -153,7 +154,8 @@ export default function EditorClient({ problem }: EditorClientProps) {
               href={`/problems/${problem.id}`}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              &larr; Back to Problem
+              <span className="hidden sm:inline">&larr; Back to Problem</span>
+              <span className="sm:hidden">&larr;</span>
             </Link>
           )}
         </div>

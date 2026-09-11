@@ -3,13 +3,11 @@ import { VersionBadge } from "@/components/VersionBadge";
 
 const footerLinks = [
   { label: "Courses", href: "/courses" },
-  { label: "Community", href: "/community" },
-  { label: "Mentor", href: "/mentor" },
-  { label: "Resources", href: "/resources" },
+  { label: "What's New", href: "/whats-new" },
 ];
 
 const socialLinks = [
-  { label: "YouTube", href: "https://youtube.com/@CodeInsightsByJack" },
+  { label: "YouTube", href: "https://www.youtube.com/playlist?list=PLiGGopVZ-5D3M-sZgSgpAmaJdNKctKnlt" },
   { label: "GitHub", href: "https://github.com/jps27cse" },
   { label: "LinkedIn", href: "https://www.linkedin.com/in/jps27cse" },
 ];

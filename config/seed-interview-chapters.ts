@@ -45,6 +45,13 @@ async function seedInterviewChapters() {
         await db.insert(interviewChapters).values({
           title: ch.title,
           content: {
+            ...(ch.content.overview && { overview: ch.content.overview }),
+            ...(ch.content.realLifeScenario && {
+              realLifeScenario: ch.content.realLifeScenario,
+            }),
+            ...(ch.content.explanation && {
+              explanation: ch.content.explanation,
+            }),
             keyPoints: ch.content.keyPoints,
             tips: ch.content.tips,
           },

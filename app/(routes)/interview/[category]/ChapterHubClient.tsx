@@ -303,6 +303,7 @@ function ChapterHubInner({
     useState<InterviewQuestion[]>(initialQuestions);
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [questionsError, setQuestionsError] = useState(false);
+  const mainRef = useRef<HTMLDivElement>(null);
   const questionsCache = useRef<Map<number, InterviewQuestion[]>>(
     new Map([[initialChapterId, initialQuestions]]),
   );
@@ -453,7 +454,7 @@ function ChapterHubInner({
   );
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeChapter]);
 
   const sortedQuestions = useMemo(() => {
@@ -612,7 +613,7 @@ function ChapterHubInner({
   }
 
   return (
-    <div className="bg-background flex flex-col min-h-dvh">
+    <div className="bg-background flex flex-col h-dvh overflow-hidden">
       <PageHeader>
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -659,9 +660,9 @@ function ChapterHubInner({
         </div>
       </PageHeader>
 
-      <div className="flex flex-1 items-start">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {sidebarOpen ? (
-          <aside className="hidden lg:flex w-72 flex-shrink-0 border-r border-border/40 bg-[#07090e] sticky top-0 h-dvh overflow-hidden">
+          <aside className="hidden lg:flex w-72 flex-shrink-0 border-r border-border/40 bg-[#07090e] overflow-hidden flex-col">
             <ChaptersRail
               chaptersWithQuestions={chaptersWithQuestions}
               activeId={activeChapter}
@@ -673,7 +674,7 @@ function ChapterHubInner({
             />
           </aside>
         ) : (
-          <div className="hidden lg:flex w-10 flex-shrink-0 border-r border-border/40 bg-[#07090e] sticky top-0 h-dvh items-start justify-center pt-4">
+          <div className="hidden lg:flex w-10 flex-shrink-0 border-r border-border/40 bg-[#07090e] items-start justify-center pt-4">
             <Button
               variant="ghost"
               size="icon"
@@ -685,7 +686,7 @@ function ChapterHubInner({
           </div>
         )}
 
-        <main className="flex-1 min-w-0">
+        <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto">
           <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8 py-8">
             {currentChapter && (
               <div>
@@ -929,7 +930,7 @@ function ChapterHubInner({
         </main>
 
         {currentChapter && (
-          <aside className="hidden xl:flex w-56 flex-shrink-0 border-l border-border/40 bg-[#07090e] sticky top-0 h-dvh overflow-y-auto scrollbar-thin">
+          <aside className="hidden xl:flex w-56 flex-shrink-0 border-l border-border/40 bg-[#07090e] overflow-y-auto scrollbar-thin flex-col">
             <TocRail
               items={tocItems}
               activeSection={activeSection}

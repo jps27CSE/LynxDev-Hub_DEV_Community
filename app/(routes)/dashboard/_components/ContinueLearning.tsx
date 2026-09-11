@@ -18,15 +18,15 @@ async function ContinueLearning({ email }: { email: string }) {
   if (!current) {
     const allDone = enrollments.length > 0;
     return (
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/5 via-background to-primary/10 p-8 sm:p-10">
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-border bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4 sm:p-6 lg:p-10">
         <div className="absolute inset-0 bg-grid-paper" />
         <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
         <div className="relative">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-[11px] text-muted-foreground mb-4">
-            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+          <div className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-full border border-border/50 bg-card/50 text-[10px] sm:text-[11px] text-muted-foreground mb-3 sm:mb-4">
+            <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-500" />
             {allDone ? "All courses completed" : "No course in progress yet"}
           </div>
-          <h2 className="text-2xl sm:text-3xl font-display font-bold tracking-tight">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold tracking-tight">
             {allDone ? (
               <>
                 Outstanding — you finished every{" "}
@@ -43,21 +43,21 @@ async function ContinueLearning({ email }: { email: string }) {
               </>
             )}
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground max-w-lg">
+          <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-lg">
             {allDone
               ? "Pick a new skill, sharpen your interview answers, or grind some DSA problems."
               : "Enroll in a course with hands-on lessons, or dive into interview prep and problem solving."}
           </p>
-          <div className="flex flex-wrap gap-3 mt-6">
-            <Button asChild>
+          <div className="flex flex-wrap gap-2 sm:gap-3 mt-4 sm:mt-6">
+            <Button asChild size="sm">
               <Link href="/courses">
                 Browse Courses
-                <ArrowRight className="w-4 h-4 ml-1.5" />
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Link>
             </Button>
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" size="sm">
               <Link href="/interview">
-                <Sparkles className="w-4 h-4 mr-1.5" />
+                <Sparkles className="w-3.5 h-3.5 mr-1" />
                 Interview Prep
               </Link>
             </Button>
@@ -75,51 +75,49 @@ async function ContinueLearning({ email }: { email: string }) {
     : `/courses/${current.course_id}`;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/5 via-background to-primary/10 p-6 sm:p-8">
+    <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-border bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4 sm:p-6 lg:p-8">
       <div className="absolute inset-0 bg-grid-paper" />
       <div className="absolute -top-24 -right-24 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
       <div className="relative">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-[11px] text-muted-foreground mb-4">
+        <div className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-full border border-border/50 bg-card/50 text-[10px] sm:text-[11px] text-muted-foreground mb-3 sm:mb-4">
           <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
           Continue Learning
         </div>
 
-        <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-          <div className="flex items-center gap-4 min-w-0 flex-1">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4 sm:gap-6">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
             <div
-              className={`w-14 h-14 rounded-2xl ${difficultyIconClass(current.course.difficulty)} flex items-center justify-center flex-shrink-0 ring-1 ring-border`}
+              className={`w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl sm:rounded-2xl ${difficultyIconClass(current.course.difficulty)} flex items-center justify-center flex-shrink-0 ring-1 ring-border`}
             >
-              <CourseIcon title={current.course.title} className="w-7 h-7" />
+              <CourseIcon title={current.course.title} className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
             </div>
-            <div className="min-w-0">
-              <h2 className="text-lg sm:text-xl font-display font-bold tracking-tight truncate">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base sm:text-lg lg:text-xl font-display font-bold tracking-tight truncate">
                 {current.course.title}
               </h2>
-              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 mt-1 sm:mt-1.5 flex-wrap">
                 <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${difficultyBadgeClass(current.course.difficulty)}`}
+                  className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-medium border ${difficultyBadgeClass(current.course.difficulty)}`}
                 >
                   {current.course.difficulty}
                 </span>
-                <span className="text-xs text-muted-foreground">
-                  {current.nextChapterTitle
-                    ? `Next up: Chapter ${current.nextChapterNumber} — ${current.nextChapterTitle}`
-                    : `${done}/${total} chapters completed`}
+                <span className="text-[10px] sm:text-xs text-muted-foreground">
+                  {done}/{total} chapters
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
             <div className="text-right">
-              <p className="text-2xl font-bold tracking-tight">{pct}%</p>
-              <p className="text-[11px] text-muted-foreground">
-                {done}/{total} chapters
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight">{pct}%</p>
+              <p className="text-[10px] sm:text-[11px] text-muted-foreground">
+                {done}/{total}
               </p>
             </div>
-            <Button asChild size="lg" className="gap-1.5">
+            <Button asChild size="sm" className="gap-1.5 sm:size-lg">
               <Link href={href}>
-                <Play className="w-4 h-4 fill-current" />
+                <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
                 Resume
               </Link>
             </Button>
@@ -127,7 +125,7 @@ async function ContinueLearning({ email }: { email: string }) {
         </div>
 
         {total > 0 && (
-          <div className="mt-6 h-2 w-full bg-muted/70 rounded-full overflow-hidden">
+          <div className="mt-4 sm:mt-6 h-1.5 sm:h-2 w-full bg-muted/70 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-700"
               style={{ width: `${pct}%` }}
@@ -137,10 +135,10 @@ async function ContinueLearning({ email }: { email: string }) {
 
         <Link
           href={`/courses/${current.course_id}`}
-          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mt-4"
+          className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground hover:text-foreground transition-colors mt-3 sm:mt-4"
         >
           View course details
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
         </Link>
       </div>
     </div>

@@ -8,7 +8,10 @@ import {
   MonacoTextareaFallback,
 } from "@/components/editor/MonacoFallback";
 
-const Monaco = dynamic(() => import("@monaco-editor/react"), { ssr: false });
+const Monaco = dynamic(() => import("@monaco-editor/react"), {
+  ssr: false,
+  loading: () => null,
+});
 
 const MONACO_LOAD_TIMEOUT_MS = 10_000;
 

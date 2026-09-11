@@ -1,4 +1,7 @@
+import { useLayoutEffect, useRef } from "react";
 import type { WorkspaceSummary } from "@/lib/problem-data";
+
+let lastSidebarScrollTop = 0;
 
 const DIFFICULTIES = ["all", "basic", "easy", "medium", "hard"] as const;
 const SOURCES = ["all", "in-house", "top"] as const;
@@ -54,6 +57,7 @@ function ProblemRow({
   return (
     <button
       onClick={() => onNavigate(item.key)}
+      data-active={active}
       className={`w-full flex items-center gap-2.5 px-4 py-[7px] text-left transition-colors ${
         active
           ? "bg-cyan-500/[0.08] border-r-2 border-r-cyan-400"
@@ -99,8 +103,23 @@ export function ProblemBrowser({
   searchRef,
   onNavigate,
 }: ProblemBrowserProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
   const inHouse = filtered.filter((s) => s.source === "in-house");
   const top = filtered.filter((s) => s.source === "top");
+
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = Math.min(
+      lastSidebarScrollTop,
+      el.scrollHeight - el.clientHeight,
+    );
+    const active = el.querySelector('[data-active="true"]');
+    active?.scrollIntoView({ block: "nearest" });
+    return () => {
+      lastSidebarScrollTop = el.scrollTop;
+    };
+  }, []);
 
   return (
     <div className="flex flex-col h-full">
@@ -164,7 +183,13 @@ export function ProblemBrowser({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-2 pb-6">
+      <div
+        ref={scrollRef}
+        onScroll={() => {
+          lastSidebarScrollTop = scrollRef.current?.scrollTop ?? 0;
+        }}
+        className="flex-1 overflow-y-auto py-2 pb-6"
+      >
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-16 px-4 text-center">
             <span className="text-2xl opacity-60">⌕</span>

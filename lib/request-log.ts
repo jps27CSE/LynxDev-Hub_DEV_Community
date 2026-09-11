@@ -1,6 +1,10 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import { randomUUID } from "node:crypto";
+
+const isProd = process.env.NODE_ENV === "production";
 
 type RequestStore = {
+  requestId: string;
   queryCount: number;
 };
 
@@ -11,11 +15,16 @@ export function countQuery(): void {
   if (store) store.queryCount += 1;
 }
 
+export function getRequestId(): string | undefined {
+  return storage.getStore()?.requestId;
+}
+
 export async function withRequestLog<T>(
   label: string,
   fn: () => Promise<T>,
 ): Promise<T> {
-  const store: RequestStore = { queryCount: 0 };
+  const requestId = randomUUID();
+  const store: RequestStore = { requestId, queryCount: 0 };
   const start = performance.now();
   let result: unknown;
   try {
@@ -23,9 +32,23 @@ export async function withRequestLog<T>(
     return result as T;
   } finally {
     const ms = performance.now() - start;
-    const status = result instanceof Response ? ` ${result.status}` : "";
-    console.info(
-      `[req] ${label}${status} ${ms.toFixed(0)}ms ${store.queryCount} queries`,
-    );
+    const status = result instanceof Response ? result.status : 0;
+    if (isProd) {
+      console.log(
+        JSON.stringify({
+          level: "info",
+          msg: label,
+          requestId,
+          status,
+          duration: Math.round(ms),
+          queries: store.queryCount,
+          time: new Date().toISOString(),
+        }),
+      );
+    } else {
+      console.info(
+        `[req] ${label} ${status} ${ms.toFixed(0)}ms ${store.queryCount} queries ${requestId.slice(0, 8)}`,
+      );
+    }
   }
 }

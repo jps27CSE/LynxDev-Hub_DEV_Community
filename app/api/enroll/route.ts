@@ -128,7 +128,9 @@ export async function GET() {
 
     try {
       const data = await getEnrollmentsByClerkId(userId);
-      return NextResponse.json(data);
+      return NextResponse.json(data, {
+        headers: { "Cache-Control": "private, max-age=30" },
+      });
     } catch (error) {
       console.error("[api/enroll] GET failed:", error);
       return NextResponse.json(

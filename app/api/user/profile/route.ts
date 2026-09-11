@@ -15,7 +15,7 @@ import { withRequestLog } from "@/lib/request-log";
 
 const UpdateProfileSchema = z.object({
   name: z.string().trim().min(1).max(255).optional(),
-  bio: z.string().optional(),
+  bio: z.string().max(2000).optional(),
   skills: z.array(z.string().max(255)).max(50).optional(),
 });
 
@@ -32,7 +32,9 @@ export async function GET() {
 
     if (users.length === 0) return notFound("User");
 
-    return NextResponse.json(users[0]);
+    return NextResponse.json(users[0], {
+      headers: { "Cache-Control": "private, max-age=30" },
+    });
   });
 }
 
@@ -60,6 +62,9 @@ export async function PATCH(req: NextRequest) {
     if (!parsed.success) return validationError(parsed.error);
 
     const updates = parsed.data;
+    if (updates.skills) {
+      updates.skills = [...new Set(updates.skills)];
+    }
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
         { error: "No valid fields to update" },
