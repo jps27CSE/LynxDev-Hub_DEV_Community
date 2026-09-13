@@ -1,7 +1,7 @@
 # Admin Module — First Ship Implementation Plan
 
 > **Date:** 2026-09-08
-> **Status:** In Progress — Tasks 1-8 complete, review fixes applied
+> **Status:** In Progress — Tasks 1-9 complete, review fixes applied
 > **Feature:** 4.6 Admin tools — Feedback tickets + admin overview
 > **Owner:** Single admin (env allowlist)
 > **Stack:** Next.js 16 App Router, Clerk, Drizzle + TiDB MySQL, Tailwind v4 + shadcn/ui
@@ -110,7 +110,7 @@ One new table `feedback_tickets` (12 columns, 2 composite indexes). See Task 1 f
 | 6 | ✅ Create `POST /api/feedback` (submit) | `app/api/feedback/route.ts` | 2,3,4,5 | `tsc --noEmit` clean, review clean |
 | 7 | ✅ Add `GET /api/feedback` (own tickets) | same file + `lib/user-lookup.ts` | 5,6 | `tsc --noEmit` clean, review fixes applied |
 | 8 | ✅ Create `GET /api/admin/feedback` | `app/api/admin/feedback/route.ts` | 2,3,4,5 | `tsc --noEmit` clean, review clean |
-| 9 | Create `PATCH + DELETE /api/admin/feedback/[id]` | `app/api/admin/feedback/[id]/route.ts` | 2,3,4,5 | curl: status update, soft delete |
+| 9 | ✅ Create `PATCH + DELETE /api/admin/feedback/[id]` | `app/api/admin/feedback/[id]/route.ts` | 2,3,4,5 | `tsc --noEmit` clean, review clean, hard delete |
 | 10 | Create `GET /api/admin/overview` | `app/api/admin/overview/route.ts` | 2,3,4 | curl: 6 stats counts |
 | 11 | Create admin layout guard | `app/(routes)/admin/layout.tsx` | 4 | `/admin` → 404 for non-admin |
 | 12 | Create admin overview page + stats cards | `app/(routes)/admin/page.tsx` + `_components/OverviewStats.tsx` | 10,11 | `/admin` shows 6 stat cards |
@@ -313,7 +313,7 @@ export async function requireAdmin() {
 - `getAllFeedback({ status, category, q, page })` — admin: join usersTable for author info, paginated, excludes soft-deleted
 - `getFeedbackById(id)` — single ticket with user info
 - `updateFeedbackStatus(id, status, adminNotes)` — admin update, only sets `resolved_at` on transition TO resolved/closed (preserves audit trail)
-- `softDeleteFeedback(id)` — admin soft delete (`is_deleted = true`), idempotent
+- `deleteFeedback(id)` — admin hard delete (`DELETE FROM feedback_tickets WHERE id = ?`), idempotent
 - `getAdminOverview()` — `Promise.all` 6× `count(*)`: users, enrollments, courses, chapters, problems, open tickets
 
 **Key patterns:** `cache()`, `withConnectRetry()`, `createLogger("feedback-data")`, graceful degradation (return safe defaults on DB failure).
@@ -389,29 +389,32 @@ const FeedbackSchema = z.object({
 
 **Also added:** `forbidden()` helper to `lib/api-error.ts` — follows existing `unauthorized()` pattern.
 
-### Task 9 — `app/api/admin/feedback/[id]/route.ts`
+### Task 9 — `app/api/admin/feedback/[id]/route.ts` ✅ DONE
 
-**PATCH:**
+82 lines. Two admin-only mutations: PATCH (status update) + DELETE (soft delete).
+
+**PATCH flow:**
 ```
 1. withRequestLog("PATCH /api/admin/feedback/[id]")
 2. auth() → 401
 3. isAdmin() → 403
-4. parse id from params, validate with Zod
+4. Zod params: id regex /^\d+$/
 5. req.json() → Zod { status: enum, adminNotes?: string }
 6. updateFeedbackStatus(id, status, adminNotes)
-7. return 200 + updated row
+7. return 200 + updated row (or 404 if not found)
 ```
 
-**DELETE (manual cleanup after resolve — confirmed 2026-09-10):**
+**DELETE flow:**
 ```
 1. withRequestLog("DELETE /api/admin/feedback/[id]")
 2. auth() → 401
 3. isAdmin() → 403
-4. parse id, validate
-5. softDeleteFeedback(id)  // is_deleted=true; hidden from getAllFeedback + getMyFeedback, row kept for audit
+4. Zod params: id regex /^\d+$/
+5. deleteFeedback(id)  // hard delete: DELETE FROM feedback_tickets WHERE id = ?
 6. return 200 { success: true }
 ```
-Admin flow: resolve first (`PATCH`), user sees `Resolved`, then admin deletes when done. No auto-delete on resolve.
+
+**Admin flow:** resolve first (PATCH), user sees "Resolved", then admin deletes when done. No auto-delete on resolve. Hard delete — row permanently removed from database.
 
 ### Task 10 — `app/api/admin/overview/route.ts`
 
@@ -544,4 +547,4 @@ Awaiting manual test and commit before any further agents.
 
 ---
 
-> Generated via ELOS pipeline. Tasks 1-8 complete with review. Next: Task 9 (PATCH + DELETE /api/admin/feedback/[id]).
+> Generated via ELOS pipeline. Tasks 1-9 complete with review (hard delete). Next: Task 10 (GET /api/admin/overview).
