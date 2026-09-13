@@ -1,7 +1,7 @@
 # Admin Module — First Ship Implementation Plan
 
 > **Date:** 2026-09-08
-> **Status:** In Progress — Tasks 1-7 complete, review fixes applied
+> **Status:** In Progress — Tasks 1-8 complete, review fixes applied
 > **Feature:** 4.6 Admin tools — Feedback tickets + admin overview
 > **Owner:** Single admin (env allowlist)
 > **Stack:** Next.js 16 App Router, Clerk, Drizzle + TiDB MySQL, Tailwind v4 + shadcn/ui
@@ -109,7 +109,7 @@ One new table `feedback_tickets` (12 columns, 2 composite indexes). See Task 1 f
 | 5 | ✅ Create feedback data helpers | `lib/feedback-data.ts` | 1 | `tsc --noEmit` clean, review fixes applied |
 | 6 | ✅ Create `POST /api/feedback` (submit) | `app/api/feedback/route.ts` | 2,3,4,5 | `tsc --noEmit` clean, review clean |
 | 7 | ✅ Add `GET /api/feedback` (own tickets) | same file + `lib/user-lookup.ts` | 5,6 | `tsc --noEmit` clean, review fixes applied |
-| 8 | Create `GET /api/admin/feedback` | `app/api/admin/feedback/route.ts` | 2,3,4,5 | curl: 403 non-admin, 200 admin with data |
+| 8 | ✅ Create `GET /api/admin/feedback` | `app/api/admin/feedback/route.ts` | 2,3,4,5 | `tsc --noEmit` clean, review clean |
 | 9 | Create `PATCH + DELETE /api/admin/feedback/[id]` | `app/api/admin/feedback/[id]/route.ts` | 2,3,4,5 | curl: status update, soft delete |
 | 10 | Create `GET /api/admin/overview` | `app/api/admin/overview/route.ts` | 2,3,4 | curl: 6 stats counts |
 | 11 | Create admin layout guard | `app/(routes)/admin/layout.tsx` | 4 | `/admin` → 404 for non-admin |
@@ -372,18 +372,22 @@ const FeedbackSchema = z.object({
 7. Cache-Control: private, no-store (explicit fresh; Task 14 refreshes on submit)
 ```
 
-### Task 8 — `app/api/admin/feedback/route.ts`
+### Task 8 — `app/api/admin/feedback/route.ts` ✅ DONE
 
-**GET:**
+49 lines. Admin-only list endpoint with filtering and pagination.
+
+**Route flow:**
 ```
 1. withRequestLog("GET /api/admin/feedback")
-2. auth() → 401
+2. auth() → 401 if no userId
 3. isAdmin(userId) → 403 if false
-4. enforceDbRateLimit(userId, "admin-feedback", ...) → 429
-5. parse searchParams: status, category, q, page
+4. enforceDbRateLimit(userId, "admin-feedback", ...) → 429 if limited
+5. parse searchParams: status, category, q, page (strict digits-only)
 6. getAllFeedback({ status, category, q, page })
-7. return { data, total, page, hasMore }
+7. return { data, total, hasMore }
 ```
+
+**Also added:** `forbidden()` helper to `lib/api-error.ts` — follows existing `unauthorized()` pattern.
 
 ### Task 9 — `app/api/admin/feedback/[id]/route.ts`
 
@@ -540,4 +544,4 @@ Awaiting manual test and commit before any further agents.
 
 ---
 
-> Generated via ELOS pipeline. Tasks 1-7 complete with review. Next: Task 8 (GET /api/admin/feedback).
+> Generated via ELOS pipeline. Tasks 1-8 complete with review. Next: Task 9 (PATCH + DELETE /api/admin/feedback/[id]).
