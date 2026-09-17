@@ -113,7 +113,7 @@ One new table `feedback_tickets` (12 columns, 2 composite indexes). See Task 1 f
 | 9 | ✅ Create `PATCH + DELETE /api/admin/feedback/[id]` | `app/api/admin/feedback/[id]/route.ts` | 2,3,4,5 | `tsc --noEmit` clean, review clean, hard delete |
 | 10 | ✅ Create `GET /api/admin/overview` | `app/api/admin/overview/route.ts` | 2,3,4 | `tsc --noEmit` clean |
 | 11 | ✅ Create admin layout guard | `app/(routes)/admin/layout.tsx` | 4 | `tsc --noEmit` clean, notFound() for non-admin |
-| 12 | Create admin overview page + stats cards | `app/(routes)/admin/page.tsx` + `_components/OverviewStats.tsx` | 10,11 | `/admin` shows 6 stat cards |
+| 12 | ✅ Create admin overview page + stats cards | `app/(routes)/admin/page.tsx` + `_components/OverviewStats.tsx` | 10,11 | `tsc --noEmit` clean, 6 cards responsive |
 | 13 | Create admin feedback list + table + dialog | `app/(routes)/admin/feedback/page.tsx` + `_components/*` | 8,9,11 | Filter, PATCH, soft delete UI |
 | 14 | Create user feedback form + my tickets | `app/(routes)/feedback/page.tsx` + `_components/*` | 6,7 | Submit → list own tickets |
 | 15 | Add Admin link to Sidebar (conditional) | `app/(routes)/_components/Sidebar.tsx` | 4 | Sidebar shows Admin only for admin user |
@@ -448,6 +448,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
 ✅ Complete. `tsc --noEmit` clean.
 
+✅ Complete. `tsc --noEmit` clean. OverviewStats is Server Component (no hooks/event handlers — follows dashboard pattern).
+
 ### Task 12 — Admin overview page
 
 `app/(routes)/admin/page.tsx` — Server Component:
@@ -551,4 +553,4 @@ Awaiting manual test and commit before any further agents.
 
 ---
 
-> Generated via ELOS pipeline. Tasks 1-11 complete. Next: Task 12 (admin overview page + stats cards).
+> Generated via ELOS pipeline. Tasks 1-12 complete. Next: Task 13 (admin feedback list + table + dialog).
