@@ -105,7 +105,7 @@ export const getMyFeedback = cache(
         const p = clampPage(page);
         const offset = (p - 1) * PAGE_SIZE;
 
-        const where = eq(feedbackTickets.user_id, userId);
+        const where = and(eq(feedbackTickets.user_id, userId), eq(feedbackTickets.is_deleted, false));
 
         const [countResult, rows] = await Promise.all([
           db
@@ -151,7 +151,7 @@ export const getAllFeedback = cache(
         const p = clampPage(opts.page ?? 1);
         const offset = (p - 1) * PAGE_SIZE;
 
-        const conditions = [];
+        const conditions = [eq(feedbackTickets.is_deleted, false)];
 
         if (opts.status) {
           conditions.push(eq(feedbackTickets.status, opts.status));
@@ -221,8 +221,8 @@ export const getFeedbackById = cache(
             usersTable,
             eq(feedbackTickets.user_id, usersTable.id),
           )
-          .where(eq(feedbackTickets.id, id))
-          .limit(1);
+            .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)))
+            .limit(1);
 
         if (rows.length === 0) return null;
         const r = rows[0];
@@ -253,8 +253,10 @@ export async function updateFeedbackStatus(
       const [current] = await db
         .select({ status: feedbackTickets.status })
         .from(feedbackTickets)
-        .where(eq(feedbackTickets.id, id))
+        .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)))
         .limit(1);
+
+      if (!current) return null;
 
       const isResolving =
         status === "resolved" || status === "closed";
@@ -270,12 +272,12 @@ export async function updateFeedbackStatus(
           ...(adminNotes !== undefined && { admin_notes: adminNotes }),
           ...(setResolvedAt && { resolved_at: new Date() }),
         })
-        .where(eq(feedbackTickets.id, id));
+        .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)));
 
       const [updated] = await db
         .select()
         .from(feedbackTickets)
-        .where(eq(feedbackTickets.id, id))
+        .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)))
         .limit(1);
 
       return updated ?? null;
@@ -287,16 +289,27 @@ export async function updateFeedbackStatus(
 }
 
 /**
- * Admin: permanently delete a ticket. Idempotent — already deleted returns success.
+ * Admin: permanently delete a resolved/closed ticket.
+ * Only tickets with status "resolved" or "closed" can be hard-deleted.
+ * Unsolved tickets must not be removed from the database.
  */
 export async function deleteFeedback(id: number): Promise<boolean> {
   try {
-    await withConnectRetry(async () => {
+    return await withConnectRetry(async () => {
+      const [current] = await db
+        .select({ status: feedbackTickets.status })
+        .from(feedbackTickets)
+        .where(eq(feedbackTickets.id, id))
+        .limit(1);
+
+      if (!current) return false;
+      if (current.status !== "resolved" && current.status !== "closed") return false;
+
       await db
         .delete(feedbackTickets)
         .where(eq(feedbackTickets.id, id));
+      return true;
     });
-    return true;
   } catch (error) {
     log.error("deleteFeedback failed", error);
     return false;
@@ -320,7 +333,7 @@ export const getAdminOverview = cache(
           db
             .select({ value: count() })
             .from(feedbackTickets)
-            .where(eq(feedbackTickets.status, "open")),
+            .where(and(eq(feedbackTickets.status, "open"), eq(feedbackTickets.is_deleted, false))),
         ]);
 
         return {

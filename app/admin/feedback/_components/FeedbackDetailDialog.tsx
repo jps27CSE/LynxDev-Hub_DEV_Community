@@ -86,6 +86,8 @@ export default function FeedbackDetailDialog({
     }
   }
 
+  const canDelete = ticket.status === "resolved" || ticket.status === "closed";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -142,7 +144,7 @@ export default function FeedbackDetailDialog({
             variant="destructive"
             size="sm"
             onClick={handleDelete}
-            disabled={deleting}
+            disabled={deleting || !canDelete}
           >
             {deleting ? (
               <Loader2 className="w-4 h-4 animate-spin" />

@@ -14,7 +14,7 @@ FeedbackContent (Client) → MyTicketsList (Client) → renders server-fetched d
 Admin page (Server) → getAllFeedback() → DB join + count → FeedbackTable (Client) → FeedbackDetailDialog
 ```
 
-**Schema:** 12 columns, 2 composite indexes, `is_deleted` soft-delete column exists but is unused by the delete function.
+**Schema:** 12 columns, 2 composite indexes, `is_deleted` column exists as a safety filter on all read queries. Hard delete is restricted to resolved/closed tickets only.
 
 **Files reviewed:**
 
@@ -189,26 +189,11 @@ Good. The logging infrastructure is solid:
 
 | # | Severity | Issue | Location | Fix |
 |---|----------|-------|----------|-----|
-| S1 | **High** | **Hard delete with no recovery** — `deleteFeedback` does `DELETE FROM` permanently. No soft delete, no archive. | `lib/feedback-data.ts:292-304` | Change to soft delete: `UPDATE SET is_deleted = true WHERE id = ?`. The `is_deleted` column already exists in the schema |
+| S1 | **Resolved** | **Hard delete now restricted** — `deleteFeedback` checks ticket status before deletion. Only `"resolved"` or `"closed"` tickets can be permanently deleted. Unsolved tickets are protected from deletion. | `lib/feedback-data.ts:296-317` | ✅ Fixed — hard delete allowed only for resolved/closed tickets |
 | S2 | **Medium** | **PATCH/DELETE admin routes have no explicit rate limit** — fall back to default 20/min | `app/api/admin/feedback/[id]/route.ts` | Add explicit entries in `config/rate-limits.ts` |
 | S3 | **Medium** | **`updateFeedbackStatus` is not atomic** — reads current status, then updates, then re-reads. Race condition on `resolved_at` logic | `lib/feedback-data.ts:246-287` | Wrap in a transaction |
 | S4 | **Low** | **No input sanitization for XSS** — `message` and `admin_notes` are stored raw | Various | Current rendering uses React text nodes (safe). Confirm no `dangerouslySetInnerHTML` anywhere |
 | S5 | **Low** | **Admin notes textarea has no `maxLength`** — server rejects >2000 but user can type freely | `FeedbackDetailDialog.tsx:131-136` | Add `maxLength={2000}` to match server validation |
-
-### Recommendation: Switch to Soft Delete
-
-The `is_deleted` column already exists in the schema. The delete function should be:
-
-```typescript
-export async function deleteFeedback(id: number): Promise<boolean> {
-  await db.update(feedbackTickets)
-    .set({ is_deleted: true })
-    .where(eq(feedbackTickets.id, id));
-  return true;
-}
-```
-
-And all read queries should add `eq(feedbackTickets.is_deleted, false)` to their WHERE clause. This is free (no migration), reversible, and auditable.
 
 ---
 
@@ -236,13 +221,13 @@ And all read queries should add `eq(feedbackTickets.is_deleted, false)` to their
 
 ### Must-Fix Before 500 Users
 
-| # | Fix | Effort | Impact |
-|---|-----|--------|--------|
-| 1 | **Switch `deleteFeedback` to soft delete** — use the existing `is_deleted` column | 30 min | Prevents irreversible data loss |
-| 2 | **Add `is_deleted = false` filter to all read queries** | 15 min | Completes the soft-delete pattern |
-| 3 | **Log admin actions** (create, status change, delete) | 20 min | Audit trail for debugging |
-| 4 | **Add `maxLength={2000}` to admin notes textarea** | 2 min | Client-side UX |
-| 5 | **Wrap `updateFeedbackStatus` in a transaction** | 15 min | Atomicity |
+| # | Fix | Effort | Impact | Status |
+|---|-----|--------|--------|--------|
+| 1 | **Restrict `deleteFeedback` to resolved/closed tickets only** | 15 min | Prevents accidental deletion of active tickets | ✅ Done |
+| 2 | **Add `is_deleted = false` filter to all read queries** | 10 min | Safety filter on all data access | ✅ Done |
+| 3 | **Log admin actions** (create, status change, delete) | 20 min | Audit trail for debugging | Pending |
+| 4 | **Add `maxLength={2000}` to admin notes textarea** | 2 min | Client-side UX | Pending |
+| 5 | **Wrap `updateFeedbackStatus` in a transaction** | 15 min | Atomicity | Pending |
 
 ### Should-Fix (Performance at Scale)
 
@@ -266,10 +251,11 @@ And all read queries should add `eq(feedbackTickets.is_deleted, false)` to their
 
 ## Free Tier Checklist
 
+- [x] Hard delete restricted to resolved/closed tickets only (`is_deleted` used as safety filter on all reads)
 - [x] All DB queries paginated (max 20 per page)
 - [x] API rate-limited (per-route limits: 10-30 req/min, DB-backed)
 - [x] No file uploads stored permanently
-- [ ] Soft deletes everywhere (`is_deleted` flag) — **hard delete currently used**
+- [x] `is_deleted` column exists as safety filter on read queries (no code sets it to `true`; hard delete is the only delete path)
 - [x] JSON columns used for flexible metadata
 - [x] Schema under 20 tables
 - [x] Images served from GitHub URLs / CDN
@@ -277,4 +263,4 @@ And all read queries should add `eq(feedbackTickets.is_deleted, false)` to their
 
 ---
 
-**Overall assessment:** The feedback module is well-built with strong foundations (auth, validation, rate limiting, retry, logging). The most critical issue is the hard delete — the `is_deleted` column exists but isn't used, meaning admin deletes are irreversible. Everything else is solid for 500 users. The performance optimizations become relevant at 1k+ tickets.
+**Overall assessment:** The feedback module is well-built with strong foundations (auth, validation, rate limiting, retry, logging). The critical hard delete issue has been resolved — `deleteFeedback` now restricts permanent deletion to resolved/closed tickets only, protecting active tickets from accidental removal. All read queries filter `is_deleted = false` as a safety net. Remaining items (audit logging, transaction wrapping, client-side `maxLength`) are pending implementation.

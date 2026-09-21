@@ -77,6 +77,8 @@ export async function DELETE(
 
     const success = await deleteFeedback(id);
 
+    if (!success) return forbidden();
+
     return NextResponse.json({ success });
   });
 }
