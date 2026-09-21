@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -53,7 +53,6 @@ export default function FeedbackTable({
   currentQ: string;
 }) {
   const router = useRouter();
-  const [searchParams] = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [data, setData] = useState<Ticket[]>(initialData);
