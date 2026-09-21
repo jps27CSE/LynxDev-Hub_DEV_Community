@@ -6,10 +6,8 @@ import Sidebar from "./Sidebar";
 
 export default function AppShell({
   children,
-  adminLink,
 }: {
   children: React.ReactNode;
-  adminLink?: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -42,7 +40,6 @@ export default function AppShell({
         collapsed={sidebarCollapsed}
         onToggleCollapse={toggleCollapse}
         onClose={() => setSidebarOpen(false)}
-        adminLink={adminLink}
       />
 
       <button

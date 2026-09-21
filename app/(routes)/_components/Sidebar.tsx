@@ -30,7 +30,6 @@ type SidebarProps = {
   collapsed: boolean;
   onToggleCollapse: () => void;
   onClose: () => void;
-  adminLink?: React.ReactNode;
 };
 
 export default function Sidebar({
@@ -38,7 +37,6 @@ export default function Sidebar({
   collapsed,
   onToggleCollapse,
   onClose,
-  adminLink,
 }: SidebarProps) {
   const pathname = usePathname();
 
@@ -104,7 +102,6 @@ export default function Sidebar({
               </Link>
             );
           })}
-          {adminLink}
         </nav>
 
         <div className="border-t border-border/50 py-3 px-2 space-y-1">
