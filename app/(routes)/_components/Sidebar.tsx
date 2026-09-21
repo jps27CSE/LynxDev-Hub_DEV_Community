@@ -13,7 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Gift,
-  MessageSquare,
 } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
 import { VersionBadge } from "@/components/VersionBadge";
@@ -24,7 +23,6 @@ const links = [
   { label: "Interview", href: "/interview", icon: Sparkles },
   { label: "Problems", href: "/problems", icon: Terminal },
   { label: "Editor", href: "/editor", icon: FileCode2 },
-  { label: "Feedback", href: "/feedback", icon: MessageSquare },
 ];
 
 type SidebarProps = {

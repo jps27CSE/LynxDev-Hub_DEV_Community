@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
+import HelpButton from "./HelpButton";
 
 export default function AppShell({
   children,
@@ -57,6 +58,8 @@ export default function AppShell({
       >
         <main className="flex-1 flex flex-col min-w-0 w-full overflow-hidden">{children}</main>
       </div>
+
+      <HelpButton />
     </div>
   );
 }
