@@ -81,6 +81,9 @@ export async function createFeedback(
           .where(eq(feedbackTickets.id, insertedId))
           .limit(1);
 
+        if (created) {
+          log.info("created", { id: created.id, userId, category: created.category });
+        }
         return created ?? null;
       });
     });
@@ -247,6 +250,7 @@ export async function updateFeedbackStatus(
   id: number,
   status: string,
   adminNotes?: string,
+  adminId?: string,
 ): Promise<FeedbackTicket | null> {
   try {
     return await withConnectRetry(async () => {
@@ -280,6 +284,9 @@ export async function updateFeedbackStatus(
         .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)))
         .limit(1);
 
+      if (updated) {
+        log.info("status_changed", { id, from: current.status, to: status, adminId });
+      }
       return updated ?? null;
     });
   } catch (error) {
@@ -293,7 +300,7 @@ export async function updateFeedbackStatus(
  * Only tickets with status "resolved" or "closed" can be hard-deleted.
  * Unsolved tickets must not be removed from the database.
  */
-export async function deleteFeedback(id: number): Promise<boolean> {
+export async function deleteFeedback(id: number, adminId?: string): Promise<boolean> {
   try {
     return await withConnectRetry(async () => {
       const [current] = await db
@@ -308,6 +315,7 @@ export async function deleteFeedback(id: number): Promise<boolean> {
       await db
         .delete(feedbackTickets)
         .where(eq(feedbackTickets.id, id));
+      log.warn("deleted", { id, status: current.status, adminId });
       return true;
     });
   } catch (error) {
