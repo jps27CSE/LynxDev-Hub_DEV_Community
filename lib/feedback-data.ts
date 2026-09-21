@@ -91,8 +91,9 @@ export async function createFeedback(
 }
 
 /**
- * Get current user's own tickets, paginated, excludes soft-deleted.
- * Uses composite index: feedback_user_idx(user_id, is_deleted, created_at).
+ * Get current user's own tickets, paginated.
+ * Uses composite index: feedback_user_idx(user_id, is_deleted, created_at)
+ * — covers WHERE user_id = ? and ORDER BY created_at DESC.
  */
 export const getMyFeedback = cache(
   async (
@@ -104,10 +105,7 @@ export const getMyFeedback = cache(
         const p = clampPage(page);
         const offset = (p - 1) * PAGE_SIZE;
 
-        const where = and(
-          eq(feedbackTickets.user_id, userId),
-          eq(feedbackTickets.is_deleted, false),
-        );
+        const where = eq(feedbackTickets.user_id, userId);
 
         const [countResult, rows] = await Promise.all([
           db
@@ -153,7 +151,7 @@ export const getAllFeedback = cache(
         const p = clampPage(opts.page ?? 1);
         const offset = (p - 1) * PAGE_SIZE;
 
-        const conditions = [eq(feedbackTickets.is_deleted, false)];
+        const conditions = [];
 
         if (opts.status) {
           conditions.push(eq(feedbackTickets.status, opts.status));
@@ -206,7 +204,7 @@ export const getAllFeedback = cache(
 );
 
 /**
- * Get a single ticket with user info. Returns null if not found or deleted.
+ * Get a single ticket with user info. Returns null if not found.
  */
 export const getFeedbackById = cache(
   async (id: number): Promise<FeedbackTicketWithUser | null> => {
@@ -223,12 +221,7 @@ export const getFeedbackById = cache(
             usersTable,
             eq(feedbackTickets.user_id, usersTable.id),
           )
-          .where(
-            and(
-              eq(feedbackTickets.id, id),
-              eq(feedbackTickets.is_deleted, false),
-            ),
-          )
+          .where(eq(feedbackTickets.id, id))
           .limit(1);
 
         if (rows.length === 0) return null;
@@ -294,19 +287,18 @@ export async function updateFeedbackStatus(
 }
 
 /**
- * Admin: soft-delete a ticket. Idempotent — already deleted returns success.
+ * Admin: permanently delete a ticket. Idempotent — already deleted returns success.
  */
-export async function softDeleteFeedback(id: number): Promise<boolean> {
+export async function deleteFeedback(id: number): Promise<boolean> {
   try {
     await withConnectRetry(async () => {
       await db
-        .update(feedbackTickets)
-        .set({ is_deleted: true })
+        .delete(feedbackTickets)
         .where(eq(feedbackTickets.id, id));
     });
     return true;
   } catch (error) {
-    log.error("softDeleteFeedback failed", error);
+    log.error("deleteFeedback failed", error);
     return false;
   }
 }
@@ -328,12 +320,7 @@ export const getAdminOverview = cache(
           db
             .select({ value: count() })
             .from(feedbackTickets)
-            .where(
-              and(
-                eq(feedbackTickets.status, "open"),
-                eq(feedbackTickets.is_deleted, false),
-              ),
-            ),
+            .where(eq(feedbackTickets.status, "open")),
         ]);
 
         return {

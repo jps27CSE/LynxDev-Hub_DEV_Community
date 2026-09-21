@@ -16,6 +16,10 @@ export function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
+export function forbidden() {
+  return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+}
+
 export function notFound(entity?: string) {
   return NextResponse.json(
     { error: entity ? `${entity} not found` : "Not found" },
