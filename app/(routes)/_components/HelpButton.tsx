@@ -29,7 +29,7 @@ export default function HelpButton() {
 
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="w-10 h-10 rounded-full bg-[#1a1d24] border border-border/50 text-muted-foreground hover:text-foreground hover:bg-[#22252d] flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+        className="w-10 h-10 rounded-full bg-[#1a1d24] border border-border/50 text-muted-foreground hover:text-foreground hover:bg-[#22252d] flex items-center justify-center shadow-lg hover:shadow-xl transition-all"
         aria-label="Help"
       >
         {open ? (

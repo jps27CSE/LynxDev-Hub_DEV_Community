@@ -42,7 +42,7 @@ export default function RootLayout({
       <html lang="en" suppressHydrationWarning className="dark">
         <body
           suppressHydrationWarning
-          className={`${geistSans.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} antialiased`}
+          className={`${geistSans.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} antialiased overflow-x-hidden`}
         >
           <Provider
             attribute="class"
