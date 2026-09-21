@@ -254,40 +254,42 @@ export async function updateFeedbackStatus(
 ): Promise<FeedbackTicket | null> {
   try {
     return await withConnectRetry(async () => {
-      const [current] = await db
-        .select({ status: feedbackTickets.status })
-        .from(feedbackTickets)
-        .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)))
-        .limit(1);
+      return await db.transaction(async (tx) => {
+        const [current] = await tx
+          .select({ status: feedbackTickets.status })
+          .from(feedbackTickets)
+          .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)))
+          .limit(1);
 
-      if (!current) return null;
+        if (!current) return null;
 
-      const isResolving =
-        status === "resolved" || status === "closed";
-      const wasNotResolved =
-        current?.status !== "resolved" && current?.status !== "closed";
-      const setResolvedAt = isResolving && wasNotResolved;
+        const isResolving =
+          status === "resolved" || status === "closed";
+        const wasNotResolved =
+          current?.status !== "resolved" && current?.status !== "closed";
+        const setResolvedAt = isResolving && wasNotResolved;
 
-      await db
-        .update(feedbackTickets)
-        .set({
-          status,
-          // Drizzle skips undefined — only set notes if provided
-          ...(adminNotes !== undefined && { admin_notes: adminNotes }),
-          ...(setResolvedAt && { resolved_at: new Date() }),
-        })
-        .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)));
+        await tx
+          .update(feedbackTickets)
+          .set({
+            status,
+            // Drizzle skips undefined — only set notes if provided
+            ...(adminNotes !== undefined && { admin_notes: adminNotes }),
+            ...(setResolvedAt && { resolved_at: new Date() }),
+          })
+          .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)));
 
-      const [updated] = await db
-        .select()
-        .from(feedbackTickets)
-        .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)))
-        .limit(1);
+        const [updated] = await tx
+          .select()
+          .from(feedbackTickets)
+          .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)))
+          .limit(1);
 
-      if (updated) {
-        log.info("status_changed", { id, from: current.status, to: status, adminId });
-      }
-      return updated ?? null;
+        if (updated) {
+          log.info("status_changed", { id, from: current.status, to: status, adminId });
+        }
+        return updated ?? null;
+      });
     });
   } catch (error) {
     log.error("updateFeedbackStatus failed", error);
