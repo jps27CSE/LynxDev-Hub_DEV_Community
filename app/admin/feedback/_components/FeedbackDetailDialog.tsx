@@ -135,6 +135,7 @@ export default function FeedbackDetailDialog({
               onChange={(e) => setAdminNotes(e.target.value)}
               placeholder="Internal notes about this ticket..."
               rows={3}
+              maxLength={2000}
             />
           </div>
         </div>
