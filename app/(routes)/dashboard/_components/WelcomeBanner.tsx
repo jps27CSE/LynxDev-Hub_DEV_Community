@@ -1,3 +1,5 @@
+"use client";
+
 import { Pencil } from "lucide-react";
 import Link from "next/link";
 

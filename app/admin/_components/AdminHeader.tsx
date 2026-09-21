@@ -1,3 +1,5 @@
+"use client";
+
 import { ShieldCheck, Clock } from "lucide-react";
 
 const timeGreeting = () => {
