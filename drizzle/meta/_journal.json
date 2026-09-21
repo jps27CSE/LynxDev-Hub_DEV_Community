@@ -57,6 +57,13 @@
       "when": 1787057336070,
       "tag": "0007_naive_blue_shield",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1789964133534,
+      "tag": "0008_redundant_gauntlet",
+      "breakpoints": true
     }
   ]
 }
