@@ -51,6 +51,7 @@ export async function PATCH(
       id,
       parsed.data.status,
       parsed.data.adminNotes,
+      userId,
     );
 
     if (!updated) return notFound("Feedback ticket");
@@ -75,7 +76,9 @@ export async function DELETE(
     if (!idParsed.success) return validationError(idParsed.error);
     const id = Number(rawId);
 
-    const success = await deleteFeedback(id);
+    const success = await deleteFeedback(id, userId);
+
+    if (!success) return forbidden();
 
     return NextResponse.json({ success });
   });

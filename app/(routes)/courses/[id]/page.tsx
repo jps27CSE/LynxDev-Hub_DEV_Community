@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -20,6 +21,20 @@ import EnrollButton from "./EnrollButton";
 import CourseIcon from "@/components/CourseIcon";
 import ChapterTimeline from "./ChapterTimeline";
 import type { Chapter } from "@/lib/course-data";
+
+type Props = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const courseId = parsePositiveInt(id);
+  if (!courseId) return { title: "Course Not Found" };
+  const course = await getCourseById(courseId);
+  if (!course) return { title: "Course Not Found" };
+  return {
+    title: course.title,
+    description: course.description || `${course.title} — free course on LynxDEV.`,
+  };
+}
 
 function totalPoints(chapters: Chapter[]): number {
   return chapters.reduce((sum, c) => sum + (c.points_reward ?? 0), 0);

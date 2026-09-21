@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Code2, GraduationCap, Trophy } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
@@ -5,6 +6,12 @@ import CourseIcon from "@/components/CourseIcon";
 import { getEnrollmentsByClerkId } from "@/lib/enroll-data";
 import { difficultyBadgeClass, difficultyIconClass } from "@/lib/interview-ui";
 import { getAllCourses } from "@/lib/course-data";
+
+export const metadata: Metadata = {
+  title: "Courses",
+  description:
+    "Free web development courses — HTML, CSS, JavaScript, React, and more. Learn by coding hands-on lessons in the browser.",
+};
 
 const howItWorks = [
   {

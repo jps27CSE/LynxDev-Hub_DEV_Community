@@ -22,13 +22,37 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://lynxdev.io"),
   title: {
     default: "LynxDEV",
     template: "%s | LynxDEV",
   },
-  description: "Developer Community",
+  description:
+    "Free developer community — courses, interview prep, DSA problems, and AI mentorship for web developers.",
   icons: {
     icon: "/logo.png",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: "LynxDEV",
+    title: "LynxDEV",
+    description:
+      "Free developer community — courses, interview prep, DSA problems, and AI mentorship for web developers.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LynxDEV",
+    description:
+      "Free developer community — courses, interview prep, DSA problems, and AI mentorship for web developers.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
   },
 };
 

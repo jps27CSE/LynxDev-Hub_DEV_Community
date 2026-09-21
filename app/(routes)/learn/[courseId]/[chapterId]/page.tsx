@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,23 @@ import {
 import LessonClient from "./LessonClient";
 import { PageHeader } from "@/components/PageHeader";
 import { parsePositiveInt } from "@/lib/parse-id";
+
+type Props = { params: Promise<{ courseId: string; chapterId: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { courseId: rawCourseId, chapterId: rawChapterId } = await params;
+  const courseId = parsePositiveInt(rawCourseId);
+  const chapterId = parsePositiveInt(rawChapterId);
+  if (!courseId || !chapterId) return { title: "Lesson Not Found" };
+  const course = await getCourseById(courseId);
+  const chapters = await getChaptersByCourseId(courseId);
+  const chapter = chapters.find((c) => c.id === chapterId);
+  if (!course || !chapter) return { title: "Lesson Not Found" };
+  return {
+    title: `${chapter.title} — ${course.title}`,
+    description: `Learn ${chapter.title} in the ${course.title} course on LynxDEV.`,
+  };
+}
 
 export default async function LessonPage({
   params,

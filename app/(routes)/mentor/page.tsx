@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { MENTOR_ENABLED } from "@/config/mentor";
 import MentorChat from "./_components/MentorChat";
+
+export const metadata: Metadata = {
+  title: "AI Mentor",
+  description:
+    "Get personalized coding help and career guidance from an AI mentor powered by Mistral.",
+};
 
 export default async function MentorPage() {
   const { userId } = await auth();
