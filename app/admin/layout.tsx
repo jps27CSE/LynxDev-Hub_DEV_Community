@@ -18,7 +18,7 @@ export default async function AdminLayout({
     <div className="min-h-screen bg-[#05060a]">
       <AdminSidebar />
       <div className="ml-64">
-        <main className="min-h-screen p-6">{children}</main>
+        <main className="min-h-screen p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );
