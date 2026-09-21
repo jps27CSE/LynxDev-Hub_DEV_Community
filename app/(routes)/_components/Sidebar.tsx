@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
 import { VersionBadge } from "@/components/VersionBadge";
-import AdminLink from "./AdminLink";
 
 const links = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -31,6 +30,7 @@ type SidebarProps = {
   collapsed: boolean;
   onToggleCollapse: () => void;
   onClose: () => void;
+  adminLink?: React.ReactNode;
 };
 
 export default function Sidebar({
@@ -38,6 +38,7 @@ export default function Sidebar({
   collapsed,
   onToggleCollapse,
   onClose,
+  adminLink,
 }: SidebarProps) {
   const pathname = usePathname();
 
@@ -103,7 +104,7 @@ export default function Sidebar({
               </Link>
             );
           })}
-          <AdminLink collapsed={collapsed} pathname={pathname} />
+          {adminLink}
         </nav>
 
         <div className="border-t border-border/50 py-3 px-2 space-y-1">

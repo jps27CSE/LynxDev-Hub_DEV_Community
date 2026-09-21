@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
 
-export default function AppShell({ children }: { children: React.ReactNode }) {
+export default function AppShell({
+  children,
+  adminLink,
+}: {
+  children: React.ReactNode;
+  adminLink?: React.ReactNode;
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -36,6 +42,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         collapsed={sidebarCollapsed}
         onToggleCollapse={toggleCollapse}
         onClose={() => setSidebarOpen(false)}
+        adminLink={adminLink}
       />
 
       <button
