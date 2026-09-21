@@ -32,7 +32,7 @@ export default function FeedbackContent({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <FeedbackForm onCreated={refresh} />
       <MyTicketsList
         key={key}
