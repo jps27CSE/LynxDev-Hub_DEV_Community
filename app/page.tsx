@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -8,6 +9,12 @@ import YoutubeCarousel from "@/app/_components/YoutubeCarousel";
 import YoutubeCarouselSkeleton from "@/app/_components/YoutubeCarouselSkeleton";
 import CoursePreview from "@/app/_components/CoursePreview";
 import Footer from "@/app/_components/Footer";
+
+export const metadata: Metadata = {
+  title: "LynxDEV",
+  description:
+    "Free developer community — learn web development, prep for interviews, solve DSA problems, and get AI mentorship.",
+};
 
 export default async function Home() {
   const { userId } = await auth();

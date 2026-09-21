@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import StackClient from "./StackClient";
 import { PageHeader } from "@/components/PageHeader";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "My Stack Practice",
+  description:
+    "Practice interview questions filtered by your tech stack — Angular, React, Spring Boot, and more.",
 };
 
 export default function StackPage() {

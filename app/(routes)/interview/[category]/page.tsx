@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   getCategoryBySlug,
@@ -7,6 +8,18 @@ import {
 } from "@/lib/interview-data";
 import type { InterviewQuestion } from "@/lib/interview-data";
 import ChapterHubLoader from "./ChapterHubLoader";
+
+type Props = { params: Promise<{ category: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { category: slug } = await params;
+  const cat = await getCategoryBySlug(slug);
+  if (!cat) return { title: "Category Not Found" };
+  return {
+    title: cat.name,
+    description: cat.description || `${cat.name} interview questions and chapters on LynxDEV.`,
+  };
+}
 
 export default async function CategoryPage({
   params,

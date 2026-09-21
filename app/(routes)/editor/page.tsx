@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { getProblemById } from "@/lib/problem-data";
 import EditorClient from "./EditorClient";
+
+export const metadata: Metadata = {
+  title: "Code Editor",
+  description:
+    "Practice coding in the browser — solve DSA problems with a built-in editor, test runner, and AI hints.",
+};
 
 type EditorPageProps = {
   searchParams: Promise<{ problemId?: string }>;

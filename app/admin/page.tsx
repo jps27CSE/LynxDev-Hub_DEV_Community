@@ -7,8 +7,9 @@ import QuickActions from "./_components/QuickActions";
 import AdminHeader from "./_components/AdminHeader";
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard — LynxDEV",
-  description: "Platform overview and management.",
+  title: "Admin Dashboard",
+  description:
+    "Platform overview — users, enrollments, courses, and feedback management.",
 };
 
 export default async function AdminPage() {

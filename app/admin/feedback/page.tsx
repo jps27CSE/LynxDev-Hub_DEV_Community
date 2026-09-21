@@ -3,8 +3,9 @@ import { getAllFeedback, clampPage } from "@/lib/feedback-data";
 import FeedbackTable from "./_components/FeedbackTable";
 
 export const metadata: Metadata = {
-  title: "Manage Feedback — Admin",
-  description: "View and manage user feedback tickets.",
+  title: "Manage Feedback",
+  description:
+    "View, respond to, and manage user feedback tickets on LynxDEV.",
 };
 
 export default async function AdminFeedbackPage({

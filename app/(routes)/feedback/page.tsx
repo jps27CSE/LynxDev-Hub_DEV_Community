@@ -7,8 +7,9 @@ import { MessageSquare, Plus } from "lucide-react";
 import FeedbackContent from "./_components/FeedbackContent";
 
 export const metadata: Metadata = {
-  title: "My Feedback — LynxDEV",
-  description: "Submit feedback and track your tickets.",
+  title: "Feedback",
+  description:
+    "Submit feedback, report bugs, or request features on the LynxDEV platform.",
 };
 
 export default async function FeedbackPage({
