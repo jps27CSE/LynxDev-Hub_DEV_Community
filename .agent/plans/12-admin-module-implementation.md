@@ -116,7 +116,7 @@ One new table `feedback_tickets` (12 columns, 2 composite indexes). See Task 1 f
 | 12 | ✅ Create admin overview page + stats cards | `app/(routes)/admin/page.tsx` + `_components/OverviewStats.tsx` | 10,11 | `tsc --noEmit` clean, 6 cards responsive |
 | 13 | ✅ Create admin feedback list + table + dialog | `app/(routes)/admin/feedback/page.tsx` + `_components/*` | 8,9,11 | `tsc --noEmit` clean, filter, search, PATCH, hard delete |
 | 14 | ✅ Create user feedback form + my tickets | `app/(routes)/feedback/page.tsx` + `_components/*` | 6,7 | `tsc --noEmit` clean, submit + list own tickets |
-| 15 | Add Admin link to Sidebar (conditional) | `app/(routes)/_components/Sidebar.tsx` | 4 | Sidebar shows Admin only for admin user |
+| 15 | ✅ Add Admin link to Sidebar (conditional) | `app/(routes)/_components/Sidebar.tsx` + `AdminLink.tsx` | 4 | `tsc --noEmit` clean, Server Component admin check |
 | 16 | Self-review + harden | — | 1-15 | `tsc`, `build`, ENGINEERING checklist |
 
 **Execution order:** schema → rate limits → auth → data helpers → user API → admin API → guard → pages → sidebar → review.
@@ -518,6 +518,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
 ### Task 15 — Sidebar modification
 
+✅ Complete. `tsc --noEmit` clean. Server Component approach:
+
+- `AdminLink.tsx` — Server Component, checks `auth()` + `isAdmin()`, renders Link only for admin
+- Sidebar imports `AdminLink` and renders it after regular links
+- No env vars exposed to client — admin check happens server-side
+- ShieldCheck icon, active state when on `/admin/*`
+
 `app/(routes)/_components/Sidebar.tsx`:
 - Import `ShieldCheck` from `lucide-react`
 - Import `useUser` from `@clerk/nextjs`
@@ -566,4 +573,4 @@ Awaiting manual test and commit before any further agents.
 
 ---
 
-> Generated via ELOS pipeline. Tasks 1-14 complete. Next: Task 15 (Admin link in Sidebar).
+> Generated via ELOS pipeline. Tasks 1-15 complete. Next: Task 16 (final self-review + harden).

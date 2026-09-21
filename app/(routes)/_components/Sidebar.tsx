@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
 import { VersionBadge } from "@/components/VersionBadge";
+import AdminLink from "./AdminLink";
 
 const links = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -102,6 +103,7 @@ export default function Sidebar({
               </Link>
             );
           })}
+          <AdminLink collapsed={collapsed} pathname={pathname} />
         </nav>
 
         <div className="border-t border-border/50 py-3 px-2 space-y-1">
