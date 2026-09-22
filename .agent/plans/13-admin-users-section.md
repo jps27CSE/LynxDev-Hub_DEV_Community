@@ -1,0 +1,205 @@
+# Admin Users Section — Finalized Feature Spec (Free-Tier Safe)
+
+> **Date:** 2026-09-22
+> **Status:** Task 1 — Done (Build Mode, uncommitted)
+> **Scope:** Expand `Admin Panel > Users` — list usernames + safe admin actions
+> **Progress:** ✅ Task 1 `lib/admin-users.ts` complete 2026-09-22 — Tasks 2-11 pending
+> **Stack:** Next.js 16 App Router (Server Components default), Clerk `auth()`, Drizzle + TiDB MySQL (pool `connectionLimit:5`), Tailwind v4 + shadcn/ui, Vercel Hobby Free, TiDB Cloud Starter Free
+> **Constraint:** Zero cost forever — every query paginated (20), rate-limited, batched. No feature may exhaust 50M RU/month or 100GB bandwidth.
+
+---
+
+## 1. Business Problem
+
+Admin can see `Total Users` count on `/admin` (`lib/feedback-data.ts:338 getAdminOverview` 6×`count()`), but cannot list users, search by name/email, or inspect enrollments/feedback per user. Support requires username lookup + drill-in without burning RU/bandwidth.
+
+**Goal:** Read-only observability first, safe moderation second. Incremental delivery.
+
+---
+
+## 2. Finalized Features — Included vs Excluded (Free-Tier Rationale)
+
+### ✅ INCLUDED — Phase 1 (Ship First, Zero Migration)
+
+| # | Feature | What it does | Why included (cost) |
+|---|---------|--------------|---------------------|
+| **U-01** | **Paginated Users Table** `/admin/users` | Columns: `Name (avatar fallback) · Email · Points · Enrollments # · Feedback # · Subscription`. `20/page` fixed, `offset` pagination, `orderBy desc(id)` default. Server Component fetches via `lib/admin-users.ts`, passes props to Client table. Reuses `app/admin/feedback/_components/FeedbackTable.tsx` pattern. | **~5-10 RU** per page: single `SELECT ... LIMIT 20 OFFSET x`. ~3KB JSON. Safest primitive. Mirror `feedback-data.ts:118` `PAGE_SIZE=20`. |
+| **U-02** | **Search (name/email)** | Query param `?q=jacks`, debounced 300ms client, `q.length >=2` enforced server, `truncateSearch 100` + `escapeLike` (`feedback-data.ts:42-50`) + `LIKE '%q%'` with `LIMIT 20`. URL-synced (`router.push ?q=&page=`). | Cheap *with guardrails*: 1 query capped 20 rows. Without guardrails = full scan → 100 RU. Rate-limit 20/min prevents spam. |
+| **U-03** | **Sort + Filter (minimal)** | Sort: `newest (id desc)` / `points desc` / `name asc` — whitelist 3 values only (Zod enum). Filter: `subscription` (if used) — `WHERE subscription=?`. | Whitelist avoids dynamic `ORDER BY` injection. Requires indexes only if sort on `points` — add `INDEX(points)` lazily. |
+| **U-04** | **User Detail Drawer** | Click row → `Dialog` (reuse `FeedbackDetailDialog.tsx:52` pattern). Header: name/email/bio/skills/points. Tabs lazy-loaded: (a) **Enrollments** with progress bar (reuse `lib/enroll-data.ts:100 fetchEnrollments` batched `inArray`), (b) **Feedback tickets** submitted by user (reuse `feedback_user_idx`). No `mentor_conversations` in v1. | **~15 RU** per open: 1 user query + 1 batched enrollments query + 1 feedback count. Batched via `Promise.all`, not N+1 loop. Tabs fetch on demand. |
+| **U-05** | **Stat Strip (light)** | Above table: `Total Users` (from cached `getAdminOverview` or `SELECT COUNT(*) FROM users`), `New (7d)` only after `created_at` migration. No charts in v1. | Reuse existing `OverviewStats.tsx` — no new 6×`count()` burst. `React.cache()` dedup per request (`lib/feedback-data.ts:333`). |
+| **U-06** | **Pagination + Empty/Error/Loading States** | Clamped `page 1..500` (`FEEDBACK_MAX_PAGE:36`), `hasMore` boolean, skeleton `components/ui/skeleton.tsx`, dark-mode + responsive overflow. | Prevents `?page=99999` DoS (`feedback-data.ts:38 clampPage`). Zero extra cost. |
+| **U-07** | **Sidebar Link + Auth Guard** | Add `{label:"Users", href:"/admin/users", icon:Users}` to `app/admin/_components/AdminSidebar.tsx:14`. Guard `app/admin/layout.tsx:14 isAdmin()` + every `app/api/admin/users/*` with `auth()`+`isAdmin()`+`enforceDbRateLimit`. | Zero RU, reuses `lib/admin-auth.ts:27` fast-path `ADMIN_CLERK_IDS`. Fail-closed if env empty. |
+
+**Outcomes:** Admin can answer "who is this user, what courses/tickets do they have" in 2 clicks, <20 RU per interaction, <5KB payload — safe for 500 users on free tier.
+
+### ✅ INCLUDED — Phase 2 (One Migration, Only If Needed)
+
+Requires `drizzle-kit generate` migration `0010` (or `0009` if no pending):
+
+```sql
+ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+ALTER TABLE users ADD COLUMN is_banned BOOLEAN DEFAULT FALSE NOT NULL;
+CREATE INDEX users_created_at_idx ON users(created_at);
+CREATE INDEX users_points_idx ON users(points);
+```
+
+| # | Feature | Condition to ship | Cost |
+|---|---------|-------------------|------|
+| **U-08** | **Joined Date + Sort by Newest** | Ship only with `created_at` migration. Enables `ORDER BY created_at DESC` and `New (7d)` stat. | One-time DDL, indexed sort = ~8 RU vs filesort 40 RU. |
+| **U-09** | **Ban / Unban (DB flag)** | Soft ban: `PATCH /api/admin/users/[id]/ban {is_banned:boolean, reason?}` sets flag. App checks `is_banned` at login (middleware or `getUserByClerkId` wrapper) and shows `/banned`. No `clerkClient.users.banUser` in v1 (saves Clerk API quota). | 1 `UPDATE` (~5 RU), no Clerk API. Safer than hard delete (keeps FK). |
+| **U-10** | **Points Adjustment** | `PATCH /api/admin/users/[id]/points {delta:number, reason:string}` Zod `delta -1000..1000`, audit log via `createLogger`. | 1 `UPDATE` (~5 RU). Rate-limit `10/min`. Avoids abuse. |
+
+> **Do not ship Phase 2 before Phase 1 is verified on production** (`npm run dev` + `/admin/users` as admin vs non-admin).
+
+### ❌ EXCLUDED — Eats RU / Bandwidth on Free Tier (Do Not Ship)
+
+| Feature | Why excluded | RU / Bandwidth hit |
+|---------|--------------|--------------------|
+| **Show All / unbounded `SELECT *` without `LIMIT`** | `10k users × 500B = 5MB` JSON exceeds Vercel 5MB response, hits TiDB `256 MiB` query memory (`docs/production-review-500-users.md:14`), pool stall 15s. | 5k+ RU + 5MB bandwidth per request |
+| **Live search per keystroke (no debounce)** | 1 scan per key × 500 admin loads = 10k scans/day | Exhausts 50M RU in days |
+| **CSV Export ALL users** | 10k rows = 2-5MB, 10-15s CPU stringify → Vercel 60s timeout risk, holds pool slot, 500 exports/mo = 2.5GB bandwidth. | 75 RU + 5MB + 5s CPU each |
+| **Bulk actions >20 users** | Large `UPDATE ... WHERE id IN (100)` locks rows, burns RU, long txn. | 50+ RU + lock contention |
+| **4-table timeline (users+enrollments+feedback+mentor)** | 4-way join per detail = heavy. | 40-80 RU per detail |
+| **Realtime polling 5s** | 12 req/min per open tab × admins. | 12× RU multiplier |
+| **recharts growth chart in initial load** | `+85KB` bundle (`package.json:66`) on every admin page. | Bandwidth + CPU |
+| **Hard delete user** | Breaks `enrollments.user_id FK`, loses audit. Use `is_deleted` soft delete + cron `vercel.json:3` `0 3 * * *`. | Write amplification |
+| **Full-text `LIKE '%term%'` without limit / prefix** | Leading `%` cannot use btree index → full scan. | 100 RU at 10k rows |
+| **Impersonate / View-as without audit** | Security risk, log burden. | Not needed for 1 admin |
+
+**Rule:** If a feature needs `SELECT without LIMIT`, `LIKE` without cap, `N+1 loop`, or `>1MB response`, it fails the free-tier gate.
+
+---
+
+## 3. Architecture (Free-Tier Optimized)
+
+### File Tree (every file justified)
+
+```
+app/admin/layout.tsx                          # existing guard — isAdmin() check, no change
+app/admin/_components/AdminSidebar.tsx        # +Users link (Users icon)
+app/admin/page.tsx                            # existing OverviewStats — no change (reuse for strip)
+app/admin/users/page.tsx                      # NEW Server Component — data boundary, parse searchParams, call lib
+app/admin/users/_components/UsersTable.tsx    # NEW Client — search input (debounced 300ms), sort/filter, table, pagination
+app/admin/users/_components/UserDetailDialog.tsx # NEW Client — Dialog, lazy tabs (Enrollments, Feedback)
+# Optional alt: app/admin/users/[id]/page.tsx — full page detail if deep-link needed (pick dialog first)
+app/api/admin/users/route.ts                  # NEW GET — Zod q/page/sort→auth→isAdmin→rateLimit→Drizzle
+app/api/admin/users/[id]/route.ts             # NEW GET single + PATCH (Phase 2: ban/points) — Zod→auth→isAdmin→rateLimit
+lib/admin-users.ts                            # NEW data layer — getUsersPaginated(opts), getUserWithStats(id)
+config/rate-limits.ts                         # +2 scopes: admin-users 20/min, admin-users-detail 30/min
+drizzle/0010_*.sql                            # Phase 2 only: created_at, is_banned, indexes
+```
+
+### Component Boundaries
+
+*   **Server:** `app/admin/users/page.tsx` (also `UserDetailDialog` data if page variant). Fetches via `lib/admin-users.ts` with `cache()` + `withConnectRetry` (`config/db.tsx:18` pool 5).
+*   **Client leaves only:** `UsersTable.tsx`, `UserDetailDialog.tsx` — `"use client"` for `useState`, `useRouter`, `debounce`.
+*   Reuse: `components/ui/{table,dialog,badge,input,select,skeleton,pagination}`, `cn()` (`lib/utils.ts`), `lucide-react: Users`.
+
+### Data Flow
+
+```
+List:  page.tsx --searchParams--> getUsersPaginated({q, sort, page, limit:20})
+       → Drizzle .select({id,name,email,points,subscription}).from(usersTable)
+         .where(and(like?name/email, eq?subscription)).orderBy(...).limit(20).offset(...)
+       → props → UsersTable (client filters via ?q= → server refetch)
+
+Detail: row click → Dialog → GET /api/admin/users/[id]
+        → Promise.all([getUserById, fetchEnrollments(userId), getFeedbackByUserId])
+        → batched, inArray where needed, tabs lazy
+```
+
+### DB Changes
+
+**Phase 1:** None — uses `config/schema.tsx:14 usersTable` as-is (`id, clerk_id, name, email, bio, skills json, points, subscription`). No storage impact.
+
+**Phase 2 migration (deferred):** `created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`, `is_banned BOOLEAN DEFAULT FALSE`, `banned_reason TEXT nullable`, `banned_at TIMESTAMP nullable`, indexes `users_created_at_idx`, `users_points_idx`. Storage: +~16 bytes/row, <1MB for 10k users. Under 20 tables limit.
+
+### API Contract (Standard: `lib/api-error.ts`)
+
+```
+GET /api/admin/users?q=&sort=newest|points|name&page=1
+  1. Zod: q ≤100, page 1..500, sort enum
+  2. auth() → 401
+  3. isAdmin() → 403
+  4. enforceDbRateLimit("admin-users", "/api/admin/users", "GET") 20/min → 429 Retry-After
+  5. Drizzle query (limit 20, escapeLike, truncateSearch)
+  6. → {data: UserRow[], total, page, hasMore} 200
+
+GET /api/admin/users/[id]
+  → single user + counts (enrollments, feedback) — 30/min
+
+PATCH /api/admin/users/[id]/ban          (Phase 2) — {is_banned, reason?} 10/min
+PATCH /api/admin/users/[id]/points       (Phase 2) — {delta, reason} 10/min
+```
+
+Errors: `{error:string, details?:unknown}` — never leak internals. `withRequestLog` (`app/api/admin/overview/route.ts:10` pattern).
+
+### Free-Tier Safeguards Checklist
+
+*   [ ] Pagination `LIMIT 20` fixed, `clampPage` (`feedback-data.ts:38`)
+*   [ ] `escapeLike` + `truncateSearch(100)` on `q`
+*   [ ] Debounce 300ms, min 2 chars, no live per-keystroke
+*   [ ] Whitelisted sort enum, no dynamic `sql` string
+*   [ ] No `SELECT *` unbounded, no `JOIN` without limit
+*   [ ] Batched `inArray()` not N+1 loop (`enroll-data.ts:122`)
+*   [ ] `cache()` per request, `withConnectRetry` for TiDB wake (`lib/db-retry.ts:47`)
+*   [ ] Pool `connectionLimit:5` respected — no `Promise.all` >5 heavy queries (`config/db.tsx:18`)
+*   [ ] Rate limits DB-backed (`lib/db-rate-limit.ts`, `rate_limits` table) — 20/min users, 5/min ban/points
+*   [ ] Soft delete `is_deleted` pattern if delete ever added (`feedbackTickets.is_deleted:168`)
+*   [ ] Dark mode + responsive table overflow handled
+*   [ ] No file uploads, no `recharts` eager load, images via Clerk CDN
+
+---
+
+## 4. Tasks (Sequential, <30 min each, One Agent at a Time)
+
+| # | Task | Files | Depends | Status | Verify |
+|---|------|-------|---------|--------|--------|
+| 1 | Data layer `lib/admin-users.ts` — `getUsersPaginated`, `getUserWithStats` (pure Drizzle, batched, `cache()`, `withConnectRetry`), types `UserRow` | `lib/admin-users.ts` | — | **✅ Done 2026-09-22** — `tsc --noEmit` pass, `next build` pass, no N+1 | 
+| 2 | Rate limits — add `admin-users` + `admin-users-detail` scopes | `config/rate-limits.ts` | — | ⬜ Pending |
+| 3 | API `GET /api/admin/users` — Zod→auth→isAdmin→rateLimit→query→200 `{data,total,page,hasMore}` | `app/api/admin/users/route.ts` | 1,2 | ⬜ Pending |
+| 4 | API `GET /api/admin/users/[id]` — single user + enrollments/feedback counts | `app/api/admin/users/[id]/route.ts` | 1,2 | ⬜ Pending |
+| 5 | Page `app/admin/users/page.tsx` Server — parse `searchParams`, call lib, handle empty/error/skeleton | `app/admin/users/page.tsx` | 1,3 | ⬜ Pending |
+| 6 | `UsersTable.tsx` Client — table, debounced search, sort select, pagination (reuse `FeedbackTable.tsx` URL pattern) | `app/admin/users/_components/UsersTable.tsx` | 3,5 | ⬜ Pending |
+| 7 | `UserDetailDialog.tsx` Client — Dialog, lazy tabs Enrollments (progress bar) + Feedback, reuses `fetchEnrollments` | `app/admin/users/_components/UserDetailDialog.tsx` | 4,5 | ⬜ Pending |
+| 8 | Sidebar + header polish — add Users link, badge `totalUsers` optional | `app/admin/_components/AdminSidebar.tsx`, `app/admin/_components/AdminHeader.tsx` | 5 | ⬜ Pending |
+| 9 | Self-review + harden — `npm run typecheck`, `npm run build`, ENGINEERING checklist | — | 1-8 | ⬜ Pending |
+| 10 | **Phase 2 (deferred)** Migration `created_at` + `is_banned` + indexes | `config/schema.tsx`, `drizzle/*` | 1-9 | ⬜ Deferred |
+| 11 | **Phase 2 (deferred)** `PATCH ban/points` | `app/api/admin/users/[id]/route.ts` | 10 | ⬜ Deferred |
+
+### Changelog
+
+*   **2026-09-22 Task 1 Done:** Created `lib/admin-users.ts:1` — `PAGE_SIZE=20`, `ADMIN_USERS_MAX_PAGE=500`, `AdminUsersSort`, `AdminUserRow/Detail`, `clampAdminUsersPage`, `escapeLike` + `truncateSearch`, `getUsersPaginated` (count+rows `Promise.all`, `q≥2` OR `like(name/email)`, `subscription` filter, whitelisted sorts `newest→desc(id)` / `points→desc(points)` / `name→asc(name)`, batched `inArray` counts for `enrollmentsCount`/`feedbackCount`), `getUserWithStats` (single + 2 counts). Verified `npm run typecheck` ✅, `npm run build` ✅ (16.7s, 33/33 pages). Uncommitted per Human Verification Gate.
+*   **2026-09-22 Task 1 Fix (strict review):** `lib/admin-users.ts:1` — Removed `eq(id,id)` placeholder hack → direct `or(like…)` push with `SQL<unknown>[]` typing, renamed `PAGE_SIZE`→`ADMIN_USERS_PAGE_SIZE`, deduplicated `AdminUserRow/Detail` via `AdminUserBase`, explicit `select({id,…})` projection (avoids `SELECT *` + large `skills JSON` overhead), `sort` whitelisted defensively, `getUserWithStats` guards `!Number.isFinite(id) || id<1`, removed raw `q` from error log (PII), dropped unused `sql` import. Re-verified `tsc --noEmit` ✅, `build` ✅.
+
+**Order:** data → rate → APIs → pages → UI leaves → polish → review → (deferred) migration → mutations.
+
+**Human Verification Gate (Highest Priority):** After Task 9, STOP. No `git commit` by agent. Report: what changed, how to verify (`npm run dev` → `/admin` as admin shows Users link → `/admin/users` paginated 20 → `?q=` search → click row → dialog with enrollments → test non-admin `/admin/users` → 302/403). Wait for manual test + your commit before any review agent. Phase 2 runs only after your approval.
+
+---
+
+## 5. Open Questions Resolved
+
+*   Route group: `app/admin/` (already exists, not `(routes)/admin`) — keep consistent with `app/admin/layout.tsx`, `app/admin/feedback/*`.
+*   Detail UX: **Dialog first** (fastest, mirrors `FeedbackDetailDialog.tsx`). Full `/admin/users/[id]` page added only if shareable deep-link required.
+*   Export/bulk/charts/hard-delete: **Deferred** — free-tier unsafe, see Excluded table.
+*   Ban implementation: **DB flag first**, Clerk ban optional later (saves API quota).
+
+---
+
+## 6. Verification Script
+
+```bash
+npm run typecheck
+npm run build
+npm run dev
+# As admin: /admin → Users link visible → /admin/users → 20 rows, pagination → ?q=jack → filtered → click row → dialog tabs
+# As non-admin: /admin/users → redirect / (layout.tsx:15)
+# Curl: curl /api/admin/users → 401 anon, 403 non-admin, 200 admin, 429 after 20/min
+# Dark mode + mobile 375px: table scrolls, no overflow
+```
+
+---
+
+> This spec keeps Users expansion **under ~15 RU/page** and **<5KB JSON/page** — survives 50M RU and 100GB on free tier. Ship Phase 1, verify, then decide Phase 2 ban/points.
