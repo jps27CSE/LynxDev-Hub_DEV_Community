@@ -1,9 +1,9 @@
 # Admin Users Section — Finalized Feature Spec (Free-Tier Safe)
 
 > **Date:** 2026-09-22
-> **Status:** Task 1 — Done (Build Mode, uncommitted)
+> **Status:** Task 2 — Done (Build Mode, uncommitted)
 > **Scope:** Expand `Admin Panel > Users` — list usernames + safe admin actions
-> **Progress:** ✅ Task 1 `lib/admin-users.ts` complete 2026-09-22 — Tasks 2-11 pending
+> **Progress:** ✅ Task 1 `lib/admin-users.ts` + Task 2 rate limits complete 2026-09-22 — Tasks 3-11 pending
 > **Stack:** Next.js 16 App Router (Server Components default), Clerk `auth()`, Drizzle + TiDB MySQL (pool `connectionLimit:5`), Tailwind v4 + shadcn/ui, Vercel Hobby Free, TiDB Cloud Starter Free
 > **Constraint:** Zero cost forever — every query paginated (20), rate-limited, batched. No feature may exhaust 50M RU/month or 100GB bandwidth.
 
@@ -157,7 +157,7 @@ Errors: `{error:string, details?:unknown}` — never leak internals. `withReques
 | # | Task | Files | Depends | Status | Verify |
 |---|------|-------|---------|--------|--------|
 | 1 | Data layer `lib/admin-users.ts` — `getUsersPaginated`, `getUserWithStats` (pure Drizzle, batched, `cache()`, `withConnectRetry`), types `UserRow` | `lib/admin-users.ts` | — | **✅ Done 2026-09-22** — `tsc --noEmit` pass, `next build` pass, no N+1 | 
-| 2 | Rate limits — add `admin-users` + `admin-users-detail` scopes | `config/rate-limits.ts` | — | ⬜ Pending |
+| 2 | Rate limits — add `admin-users` + `admin-users-detail` scopes | `config/rate-limits.ts` | — | **✅ Done 2026-09-22** — `admin-users 20/min`, `admin-users-detail 30/min`, scopes `lib/db-rate-limit.ts:12` |
 | 3 | API `GET /api/admin/users` — Zod→auth→isAdmin→rateLimit→query→200 `{data,total,page,hasMore}` | `app/api/admin/users/route.ts` | 1,2 | ⬜ Pending |
 | 4 | API `GET /api/admin/users/[id]` — single user + enrollments/feedback counts | `app/api/admin/users/[id]/route.ts` | 1,2 | ⬜ Pending |
 | 5 | Page `app/admin/users/page.tsx` Server — parse `searchParams`, call lib, handle empty/error/skeleton | `app/admin/users/page.tsx` | 1,3 | ⬜ Pending |
@@ -171,6 +171,8 @@ Errors: `{error:string, details?:unknown}` — never leak internals. `withReques
 ### Changelog
 
 *   **2026-09-22 Task 1 Done:** Created `lib/admin-users.ts:1` — `PAGE_SIZE=20`, `ADMIN_USERS_MAX_PAGE=500`, `AdminUsersSort`, `AdminUserRow/Detail`, `clampAdminUsersPage`, `escapeLike` + `truncateSearch`, `getUsersPaginated` (count+rows `Promise.all`, `q≥2` OR `like(name/email)`, `subscription` filter, whitelisted sorts `newest→desc(id)` / `points→desc(points)` / `name→asc(name)`, batched `inArray` counts for `enrollmentsCount`/`feedbackCount`), `getUserWithStats` (single + 2 counts). Verified `npm run typecheck` ✅, `npm run build` ✅ (16.7s, 33/33 pages). Uncommitted per Human Verification Gate.
+*   **2026-09-22 Task 2 Done:** Added `config/rate-limits.ts:93` scopes `GET /api/admin/users 20/min`, `GET /api/admin/users/[id] 30/min` + `lib/db-rate-limit.ts:13` `RateLimitScope` `admin-users|admin-users-detail`. Verified `tsc --noEmit` ✅, `build` ✅.
+*   **2026-09-22 Task 2 Fix:** Renamed phantom `"/api/admin/users/detail"` → `"/api/admin/users/[id]"` (matches `app/api/admin/users/[id]/route.ts:*`) and added `PATCH /api/admin/users/[id] 10/min` for Phase 2 ban/points, so `getRateLimitConfig:108` exact match works and `enforceDbRateLimit(...,"/api/admin/users/[id]")` hits intended limit (was falling to default 20/min).
 *   **2026-09-22 Task 1 Fix (strict review):** `lib/admin-users.ts:1` — Removed `eq(id,id)` placeholder hack → direct `or(like…)` push with `SQL<unknown>[]` typing, renamed `PAGE_SIZE`→`ADMIN_USERS_PAGE_SIZE`, deduplicated `AdminUserRow/Detail` via `AdminUserBase`, explicit `select({id,…})` projection (avoids `SELECT *` + large `skills JSON` overhead), `sort` whitelisted defensively, `getUserWithStats` guards `!Number.isFinite(id) || id<1`, removed raw `q` from error log (PII), dropped unused `sql` import. Re-verified `tsc --noEmit` ✅, `build` ✅.
 
 **Order:** data → rate → APIs → pages → UI leaves → polish → review → (deferred) migration → mutations.

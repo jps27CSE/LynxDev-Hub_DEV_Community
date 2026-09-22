@@ -18,7 +18,9 @@ export type RateLimitScope =
   | "feedback-create"
   | "feedback-list"
   | "admin-feedback"
-  | "admin-overview";
+  | "admin-overview"
+  | "admin-users"
+  | "admin-users-detail";
 
 export type DbRateLimitResult = {
   success: boolean;
