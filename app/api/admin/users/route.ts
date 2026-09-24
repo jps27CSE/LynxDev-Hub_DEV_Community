@@ -9,7 +9,7 @@ import {
 } from "@/lib/api-error";
 import {
   getUsersPaginated,
-  clampAdminUsersPage,
+  MAX_SEARCH_LENGTH,
   ADMIN_USERS_MAX_PAGE,
 } from "@/lib/admin-users";
 import { isAdmin } from "@/lib/admin-auth";
@@ -17,14 +17,31 @@ import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 import { withRequestLog } from "@/lib/request-log";
 
 const AdminUsersQuerySchema = z.object({
-  q: z.string().max(100).optional(),
+  q: z.string().max(MAX_SEARCH_LENGTH).optional(),
   sort: z.enum(["newest", "points", "name"]).default("newest"),
   subscription: z.string().max(50).optional(),
   page: z.coerce.number().int().min(1).max(ADMIN_USERS_MAX_PAGE).default(1),
 });
 
+function emptyToUndefined(v: string | null): string | undefined {
+  if (v === null) return undefined;
+  const t = v.trim();
+  return t === "" ? undefined : t;
+}
+
 export async function GET(req: NextRequest) {
   return withRequestLog("GET /api/admin/users", async () => {
+    // Validate first — avoids burning rate-limit quota on 400s
+    const params = req.nextUrl.searchParams;
+    const parsed = AdminUsersQuerySchema.safeParse({
+      q: emptyToUndefined(params.get("q")),
+      sort: emptyToUndefined(params.get("sort")),
+      subscription: emptyToUndefined(params.get("subscription")),
+      page: emptyToUndefined(params.get("page")),
+    });
+
+    if (!parsed.success) return validationError(parsed.error);
+
     const { userId } = await auth();
     if (!userId) return unauthorized();
 
@@ -32,42 +49,24 @@ export async function GET(req: NextRequest) {
     if (!admin) return forbidden();
 
     try {
-      const limited = await enforceDbRateLimit(
+      const rateLimitedResponse = await enforceDbRateLimit(
         userId,
         "admin-users",
         "/api/admin/users",
         "GET",
       );
-      if (limited) return limited;
+      if (rateLimitedResponse) return rateLimitedResponse;
     } catch {
       return serverError("Failed to check rate limit");
     }
 
-    const params = req.nextUrl.searchParams;
-    const parsed = AdminUsersQuerySchema.safeParse({
-      q: params.get("q") ?? undefined,
-      sort: params.get("sort") ?? undefined,
-      subscription: params.get("subscription") ?? undefined,
-      page: params.get("page") ?? undefined,
-    });
+    const { q, sort, subscription, page } = parsed.data;
 
-    if (!parsed.success) return validationError(parsed.error);
-
-    const { q, sort, subscription } = parsed.data;
-    const page = clampAdminUsersPage(parsed.data.page);
-
-    const { data, total, hasMore } = await getUsersPaginated({
-      q,
-      sort,
-      subscription,
-      page,
-    });
-
-    return NextResponse.json({
-      data,
-      total,
-      page,
-      hasMore,
-    });
+    try {
+      const { data, total, hasMore } = await getUsersPaginated(q, sort, subscription, page);
+      return NextResponse.json({ data, total, page, hasMore });
+    } catch {
+      return serverError("Failed to fetch users");
+    }
   });
 }

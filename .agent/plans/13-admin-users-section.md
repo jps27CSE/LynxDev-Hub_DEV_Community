@@ -1,9 +1,9 @@
 # Admin Users Section — Finalized Feature Spec (Free-Tier Safe)
 
 > **Date:** 2026-09-22
-> **Status:** Task 4 — Done (Build Mode, uncommitted)
+> **Status:** Task 5 — Done (Build Mode, uncommitted) — Strict Review Fix applied 2026-09-24
 > **Scope:** Expand `Admin Panel > Users` — list usernames + safe admin actions
-> **Progress:** ✅ Tasks 1-4 complete 2026-09-22/23 — Tasks 5-11 pending
+> **Progress:** ✅ Tasks 1-5 complete 2026-09-22/24 — Tasks 6-11 pending
 > **Stack:** Next.js 16 App Router (Server Components default), Clerk `auth()`, Drizzle + TiDB MySQL (pool `connectionLimit:5`), Tailwind v4 + shadcn/ui, Vercel Hobby Free, TiDB Cloud Starter Free
 > **Constraint:** Zero cost forever — every query paginated (20), rate-limited, batched. No feature may exhaust 50M RU/month or 100GB bandwidth.
 
@@ -79,13 +79,14 @@ CREATE INDEX users_points_idx ON users(points);
 app/admin/layout.tsx                          # existing guard — isAdmin() check, no change
 app/admin/_components/AdminSidebar.tsx        # +Users link (Users icon)
 app/admin/page.tsx                            # existing OverviewStats — no change (reuse for strip)
-app/admin/users/page.tsx                      # NEW Server Component — data boundary, parse searchParams, call lib
+app/admin/users/page.tsx                      # NEW Server Component — data boundary, parse searchParams, call lib (Task 5 Done 2026-09-24)
+app/admin/users/loading.tsx                   # NEW Skeleton — table placeholder for Suspense (Task 5 Strict Fix)
 app/admin/users/_components/UsersTable.tsx    # NEW Client — search input (debounced 300ms), sort/filter, table, pagination
 app/admin/users/_components/UserDetailDialog.tsx # NEW Client — Dialog, lazy tabs (Enrollments, Feedback)
 # Optional alt: app/admin/users/[id]/page.tsx — full page detail if deep-link needed (pick dialog first)
-app/api/admin/users/route.ts                  # NEW GET — Zod q/page/sort→auth→isAdmin→rateLimit→Drizzle
-app/api/admin/users/[id]/route.ts             # NEW GET single + PATCH (Phase 2: ban/points) — Zod→auth→isAdmin→rateLimit
-lib/admin-users.ts                            # NEW data layer — getUsersPaginated(opts), getUserWithStats(id)
+app/api/admin/users/route.ts                  # NEW GET — Zod→auth→isAdmin→rateLimit→Drizzle (Strict Fix: validate before rateLimit)
+app/api/admin/users/[id]/route.ts             # NEW GET single + PATCH (Phase 2: ban/points) — Zod→auth→isAdmin→rateLimit (Strict Fix: params first)
+lib/admin-users.ts                            # NEW data layer — getUsersPaginated(q,sort,subscription,page), getUserWithStats(id) (Strict Fix: lean list projection, no clerk_id leak)
 config/rate-limits.ts                         # +2 scopes: admin-users 20/min, admin-users-detail 30/min
 drizzle/0010_*.sql                            # Phase 2 only: created_at, is_banned, indexes
 ```
@@ -99,12 +100,12 @@ drizzle/0010_*.sql                            # Phase 2 only: created_at, is_ban
 ### Data Flow
 
 ```
-List:  page.tsx --searchParams--> getUsersPaginated({q, sort, page, limit:20})
-       → Drizzle .select({id,name,email,points,subscription}).from(usersTable)
+List:  page.tsx --searchParams--> getUsersPaginated(q, sort, subscription, page) primitive args (React.cache dedup-safe)
+       → Drizzle .select({id,name,email,points,subscription}).from(usersTable) — lean list, no clerk_id/bio/skills leak
          .where(and(like?name/email, eq?subscription)).orderBy(...).limit(20).offset(...)
-       → props → UsersTable (client filters via ?q= → server refetch)
+       → props → UsersTable (client filters via ?q= → server refetch) + loading.tsx skeleton while Suspense
 
-Detail: row click → Dialog → GET /api/admin/users/[id]
+Detail: row click → Dialog → GET /api/admin/users/[id] (detail keeps clerk_id/bio/skills)
         → Promise.all([getUserById, fetchEnrollments(userId), getFeedbackByUserId])
         → batched, inArray where needed, tabs lazy
 ```
@@ -119,15 +120,17 @@ Detail: row click → Dialog → GET /api/admin/users/[id]
 
 ```
 GET /api/admin/users?q=&sort=newest|points|name&page=1
-  1. Zod: q ≤100, page 1..500, sort enum
+  1. Zod: q ≤100 (empty→undefined), page 1..500, sort enum (Strict Fix: validate before auth to save quota)
   2. auth() → 401
   3. isAdmin() → 403
   4. enforceDbRateLimit("admin-users", "/api/admin/users", "GET") 20/min → 429 Retry-After
-  5. Drizzle query (limit 20, escapeLike, truncateSearch)
-  6. → {data: UserRow[], total, page, hasMore} 200
+  5. getUsersPaginated(q,sort,subscription,page) → Drizzle lean list {id,name,email,points,subscription} limit 20, escapeLike(truncateSearch(q))
+  6. → {data: AdminUserRow[], total, page, hasMore} 200; throw → 500
 
 GET /api/admin/users/[id]
-  → single user + counts (enrollments, feedback) — 30/min
+  1. Zod id ^\d+$ → 400 (validate before auth)
+  2. auth→401, isAdmin→403, rateLimit 30/min → 429
+  3. getUserWithStats(id) → {id,clerk_id,name,email,bio,skills,points,subscription,enrollmentsCount,feedbackCount} 200 / 404 / 500
 
 PATCH /api/admin/users/[id]/ban          (Phase 2) — {is_banned, reason?} 10/min
 PATCH /api/admin/users/[id]/points       (Phase 2) — {delta, reason} 10/min
@@ -160,7 +163,7 @@ Errors: `{error:string, details?:unknown}` — never leak internals. `withReques
 | 2 | Rate limits — add `admin-users` + `admin-users-detail` scopes | `config/rate-limits.ts` | — | **✅ Done 2026-09-22** — `admin-users 20/min`, `admin-users-detail 30/min`, scopes `lib/db-rate-limit.ts:12` |
 | 3 | API `GET /api/admin/users` — Zod→auth→isAdmin→rateLimit→query→200 `{data,total,page,hasMore}` | `app/api/admin/users/route.ts` | 1,2 | **✅ Done 2026-09-23** — `c78fa5f`, `tsc` ✅, `build` ✅ (`ƒ /api/admin/users`) |
 | 4 | API `GET /api/admin/users/[id]` — single user + enrollments/feedback counts | `app/api/admin/users/[id]/route.ts` | 1,2 | **✅ Done 2026-09-23** — `tsc` ✅, `build` ✅ (`ƒ /api/admin/users/[id]`) |
-| 5 | Page `app/admin/users/page.tsx` Server — parse `searchParams`, call lib, handle empty/error/skeleton | `app/admin/users/page.tsx` | 1,3 | ⬜ Pending |
+| 5 | Page `app/admin/users/page.tsx` Server — parse `searchParams`, call lib, handle empty/error/skeleton | `app/admin/users/page.tsx` + `app/admin/users/loading.tsx` | 1,3 | **✅ Done 2026-09-24** — Server `force-dynamic`, `buildUsersHref` keeps `subscription`+`q`+`sort`+`page`, `PaginationLink` span when disabled, `ADMIN_USERS_PAGE_SIZE`/`MAX_SEARCH_LENGTH` shared, error UI on throw, `loading.tsx` skeleton; `tsc` ✅ `build` ✅ (`ƒ /admin/users`) |
 | 6 | `UsersTable.tsx` Client — table, debounced search, sort select, pagination (reuse `FeedbackTable.tsx` URL pattern) | `app/admin/users/_components/UsersTable.tsx` | 3,5 | ⬜ Pending |
 | 7 | `UserDetailDialog.tsx` Client — Dialog, lazy tabs Enrollments (progress bar) + Feedback, reuses `fetchEnrollments` | `app/admin/users/_components/UserDetailDialog.tsx` | 4,5 | ⬜ Pending |
 | 8 | Sidebar + header polish — add Users link, badge `totalUsers` optional | `app/admin/_components/AdminSidebar.tsx`, `app/admin/_components/AdminHeader.tsx` | 5 | ⬜ Pending |
@@ -176,6 +179,8 @@ Errors: `{error:string, details?:unknown}` — never leak internals. `withReques
 *   **2026-09-23 Task 3 Done:** Created `app/api/admin/users/route.ts` — Zod query schema (`q≤100`, `sort` enum, `subscription≤50`, `page` coerced `1..ADMIN_USERS_MAX_PAGE`), `auth()`→401 → `isAdmin()`→403 → `enforceDbRateLimit("admin-users")`→429 → `getUsersPaginated` → 200 `{data,total,page,hasMore}`. Mirrors `admin/feedback/route.ts` guard order + `interview/questions/route.ts` Zod-query pattern. Self-review: no bugs/security/perf issues; fixed magic-number `.max(500)` → `ADMIN_USERS_MAX_PAGE` import + hoisted double `clampAdminUsersPage`. Verified `tsc --noEmit` ✅, `build` ✅ (`ƒ /api/admin/users` registered; 3 stale `.next` validator errors cleared by fresh build). Committed `c78fa5f`.
 *   **2026-09-23 Task 4 Done:** Created `app/api/admin/users/[id]/route.ts` — Next.js 16 `params: Promise<{id}>`, Zod `^\d+$` id → 400, `auth()`→401 → `isAdmin()`→403 → `enforceDbRateLimit("admin-users-detail", 30/min)`→429 → `getUserWithStats(id)` → 404 `notFound("User")` / 200 user JSON. Mirrors `admin/feedback/[id]/route.ts`. Self-review: no bugs/security/perf issues; micro-fix `Number(rawId)` → `Number(idParsed.data.id)`. Verified `tsc --noEmit` ✅, `build` ✅ (`ƒ /api/admin/users/[id]`). Uncommitted.
 *   **2026-09-22 Task 1 Fix (strict review):** `lib/admin-users.ts:1` — Removed `eq(id,id)` placeholder hack → direct `or(like…)` push with `SQL<unknown>[]` typing, renamed `PAGE_SIZE`→`ADMIN_USERS_PAGE_SIZE`, deduplicated `AdminUserRow/Detail` via `AdminUserBase`, explicit `select({id,…})` projection (avoids `SELECT *` + large `skills JSON` overhead), `sort` whitelisted defensively, `getUserWithStats` guards `!Number.isFinite(id) || id<1`, removed raw `q` from error log (PII), dropped unused `sql` import. Re-verified `tsc --noEmit` ✅, `build` ✅.
+*   **2026-09-24 Task 5 Done:** Created `app/admin/users/page.tsx:1` — Server `force-dynamic`, `searchParams: Promise<{q,sort,page,subscription}>`, `MAX_SEARCH_LENGTH`/`ADMIN_USERS_PAGE_SIZE` shared, `parseAdminUsersSort` via `ADMIN_USERS_SORTS`, `clampAdminUsersPage`, `buildUsersHref` keeps `q/sort/subscription/page`, `PaginationLink` span-disabled (a11y), `ADMIN_USERS_PAGE_SIZE` not magic `20`, `try/catch` error UI ("Failed to load"), lean table columns `Name·Email·Points·Enrollments#·Feedback#·Subscription` with `Badge`, `getUsersPaginated` lean list. Created `app/admin/users/loading.tsx:1` skeleton (`Skeleton` 5 rows). Verified `tsc --noEmit` ✅ `build` ✅ (`ƒ /admin/users`, 34/34 pages).
+*   **2026-09-24 Strict Review Fix (Tasks 1,3,4,5):** `lib/admin-users.ts:1` — list `select` drops `clerk_id/bio/skills` leak (detail keeps them), split `AdminUserRow` (list fields) vs `AdminUserDetail` (detail fields) via `AdminUserListFields`/`DetailFields`, `ADMIN_USERS_SORTS` + `parseAdminUsersSort` DRY, `truncateSearch→escapeLike` order fix (no cut `\%`), primitive `cache(q,sort,subscription,page)` args (object ref bust dedup), `catch` now `throw` (API/page map to 500/error UI). `app/api/admin/users/route.ts:1` — `Zod` validate before `enforceDbRateLimit` (saves quota on 400), `emptyToUndefined` for `?q=&sort=&page=` (empty → default not 400), `rateLimitedResponse` rename, `throw` mapped to 500. `app/api/admin/users/[id]/route.ts:1` — validate `rawId` before `auth`/`isAdmin`, rename `AdminUserIdParamsSchema`, wrap `getUserWithStats` in `try/catch`. `app/admin/users/page.tsx:1` — `buildUsersHref` keeps `subscription`, `PaginationLink`, `ADMIN_USERS_PAGE_SIZE` reuse. Re-verified `tsc --noEmit` ✅ `build` ✅ 25.1s. Uncommitted per Human Verification Gate.
 
 **Order:** data → rate → APIs → pages → UI leaves → polish → review → (deferred) migration → mutations.
 

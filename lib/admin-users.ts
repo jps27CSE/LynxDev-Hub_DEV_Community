@@ -8,29 +8,43 @@ import { withConnectRetry } from "@/lib/db-retry";
 
 const log = createLogger("admin-users");
 
-const ADMIN_USERS_PAGE_SIZE = 20;
-const MAX_SEARCH_LENGTH = 100;
+export const ADMIN_USERS_PAGE_SIZE = 20;
+export const MAX_SEARCH_LENGTH = 100;
 export const ADMIN_USERS_MAX_PAGE = 500;
 
 export type AdminUsersSort = "newest" | "points" | "name";
 
-type AdminUserBase = {
+export const ADMIN_USERS_SORTS: readonly AdminUsersSort[] = ["newest", "points", "name"] as const;
+
+function isAdminUsersSort(v: string | undefined): v is AdminUsersSort {
+  return v === "points" || v === "name" || v === "newest";
+}
+
+export function parseAdminUsersSort(raw: string | undefined): AdminUsersSort {
+  if (isAdminUsersSort(raw)) return raw;
+  return "newest";
+}
+
+type AdminUserListFields = {
   id: number;
-  clerk_id: string | null;
   name: string;
   email: string;
-  bio: string | null;
-  skills: unknown;
   points: number | null;
   subscription: string | null;
 };
 
-export type AdminUserRow = AdminUserBase & {
+type AdminUserDetailFields = AdminUserListFields & {
+  clerk_id: string | null;
+  bio: string | null;
+  skills: unknown;
+};
+
+export type AdminUserRow = AdminUserListFields & {
   enrollmentsCount: number;
   feedbackCount: number;
 };
 
-export type AdminUserDetail = AdminUserBase & {
+export type AdminUserDetail = AdminUserDetailFields & {
   enrollmentsCount: number;
   feedbackCount: number;
 };
@@ -56,25 +70,29 @@ function truncateSearch(input: string): string {
  * batched count + inArray enrichment (no N+1).
  * Pending migration columns (created_at, is_banned) not referenced — zero migration cost.
  * Cost: 4 queries per page (count + rows in parallel, then 2 enrichments) — ~20-30 RU.
+ * Note: list projection omits clerk_id/bio/skills to avoid leaking internals and
+ * to keep payload small (those fields are only in getUserWithStats).
+ * Uses primitive args for React.cache() — object arg would bust dedup by reference.
  */
 export const getUsersPaginated = cache(
-  async (opts: {
-    q?: string;
-    sort?: AdminUsersSort;
-    subscription?: string;
-    page?: number;
-  }): Promise<{ data: AdminUserRow[]; total: number; hasMore: boolean }> => {
+  async (
+    q?: string,
+    sort?: AdminUsersSort,
+    subscription?: string,
+    page?: number,
+  ): Promise<{ data: AdminUserRow[]; total: number; hasMore: boolean }> => {
     try {
       return await withConnectRetry(async () => {
-        const p = clampAdminUsersPage(opts.page ?? 1);
+        const p = clampAdminUsersPage(page ?? 1);
         const offset = (p - 1) * ADMIN_USERS_PAGE_SIZE;
-        const sort: AdminUsersSort =
-          opts.sort === "points" || opts.sort === "name" ? opts.sort : "newest";
+        const normalizedSort: AdminUsersSort =
+          sort === "points" || sort === "name" ? sort : "newest";
 
         const conditions: SQL<unknown>[] = [];
 
-        if (opts.q && opts.q.trim().length >= 2) {
-          const safe = truncateSearch(escapeLike(opts.q.trim()));
+        if (q && q.trim().length >= 2) {
+          const raw = truncateSearch(q.trim());
+          const safe = escapeLike(raw);
           const orCondition = or(
             like(usersTable.name, `%${safe}%`),
             like(usersTable.email, `%${safe}%`),
@@ -82,16 +100,16 @@ export const getUsersPaginated = cache(
           if (orCondition) conditions.push(orCondition);
         }
 
-        if (opts.subscription) {
-          conditions.push(eq(usersTable.subscription, opts.subscription));
+        if (subscription) {
+          conditions.push(eq(usersTable.subscription, subscription));
         }
 
         const where = conditions.length > 0 ? and(...conditions) : undefined;
 
         const orderBy =
-          sort === "points"
+          normalizedSort === "points"
             ? [desc(usersTable.points), desc(usersTable.id)]
-            : sort === "name"
+            : normalizedSort === "name"
               ? [asc(usersTable.name), desc(usersTable.id)]
               : [desc(usersTable.id)];
 
@@ -100,11 +118,8 @@ export const getUsersPaginated = cache(
           db
             .select({
               id: usersTable.id,
-              clerk_id: usersTable.clerk_id,
               name: usersTable.name,
               email: usersTable.email,
-              bio: usersTable.bio,
-              skills: usersTable.skills,
               points: usersTable.points,
               subscription: usersTable.subscription,
             })
@@ -151,11 +166,8 @@ export const getUsersPaginated = cache(
 
         const data: AdminUserRow[] = rows.map((r) => ({
           id: r.id,
-          clerk_id: r.clerk_id,
           name: r.name,
           email: r.email,
-          bio: r.bio,
-          skills: r.skills,
           points: r.points,
           subscription: r.subscription,
           enrollmentsCount: enrollMap.get(r.id) ?? 0,
@@ -166,17 +178,17 @@ export const getUsersPaginated = cache(
       });
     } catch (error) {
       log.error("getUsersPaginated failed", error, {
-        sort: opts.sort,
-        page: opts.page,
+        sort,
+        page,
       });
-      return { data: [], total: 0, hasMore: false };
+      throw error;
     }
   },
 );
 
 /**
  * Admin: single user with counts. Returns null if not found.
- * Graceful degradation — returns null on DB failure after retry.
+ * Throws on DB failure after retry (caller maps to 500).
  */
 export const getUserWithStats = cache(
   async (id: number): Promise<AdminUserDetail | null> => {
@@ -233,9 +245,7 @@ export const getUserWithStats = cache(
       });
     } catch (error) {
       log.error("getUserWithStats failed", error, { id });
-      return null;
+      throw error;
     }
   },
 );
-
-
