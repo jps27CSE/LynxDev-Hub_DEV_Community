@@ -6,15 +6,22 @@ import type { SQL } from "drizzle-orm";
 import { createLogger } from "@/lib/logger";
 import { withConnectRetry } from "@/lib/db-retry";
 
+import type { AdminUsersSort } from "./admin-users-constants";
+import {
+  ADMIN_USERS_PAGE_SIZE,
+  MAX_SEARCH_LENGTH,
+  ADMIN_USERS_MAX_PAGE,
+} from "./admin-users-constants";
+
+export {
+  ADMIN_USERS_PAGE_SIZE,
+  MAX_SEARCH_LENGTH,
+  ADMIN_USERS_MAX_PAGE,
+  ADMIN_USERS_SORTS,
+} from "./admin-users-constants";
+export type { AdminUsersSort } from "./admin-users-constants";
+
 const log = createLogger("admin-users");
-
-export const ADMIN_USERS_PAGE_SIZE = 20;
-export const MAX_SEARCH_LENGTH = 100;
-export const ADMIN_USERS_MAX_PAGE = 500;
-
-export type AdminUsersSort = "newest" | "points" | "name";
-
-export const ADMIN_USERS_SORTS: readonly AdminUsersSort[] = ["newest", "points", "name"] as const;
 
 function isAdminUsersSort(v: string | undefined): v is AdminUsersSort {
   return v === "points" || v === "name" || v === "newest";
