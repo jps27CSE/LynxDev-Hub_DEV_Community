@@ -23,8 +23,9 @@ import {
 } from "@/components/ui/select";
 import type { AdminUserRow, AdminUsersSort } from "@/lib/admin-users";
 import { ADMIN_USERS_PAGE_SIZE, ADMIN_USERS_SORTS } from "@/lib/admin-users-constants";
+import UserDetailDialog from "./UserDetailDialog";
 
-type Props = {
+type UsersTableProps = {
   data: AdminUserRow[];
   total: number;
   hasMore: boolean;
@@ -34,6 +35,8 @@ type Props = {
   currentSubscription?: string;
 };
 
+const SEARCH_DEBOUNCE_MS = 300;
+
 export default function UsersTable({
   data,
   total,
@@ -42,25 +45,29 @@ export default function UsersTable({
   currentSort,
   currentPage,
   currentSubscription,
-}: Props) {
+}: UsersTableProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [searchInput, setSearchInput] = useState(currentQ);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   // Keep input in sync when navigating via back/forward or sort change
   useEffect(() => {
     setSearchInput(currentQ);
   }, [currentQ]);
 
-  const buildHref = useCallback(
-    (overrides: Partial<{ q: string; sort: AdminUsersSort; page: number }>) => {
+  const buildUsersHref = useCallback(
+    (overrides: Partial<{ q: string; sort: AdminUsersSort; page: number; subscription: string }>) => {
       const q = overrides.q !== undefined ? overrides.q : currentQ;
       const sort = overrides.sort !== undefined ? overrides.sort : currentSort;
       const page = overrides.page !== undefined ? overrides.page : currentPage;
+      const subscription =
+        overrides.subscription !== undefined ? overrides.subscription : currentSubscription;
       const sp = new URLSearchParams();
       if (q) sp.set("q", q);
       if (sort !== "newest") sp.set("sort", sort);
-      if (currentSubscription) sp.set("subscription", currentSubscription);
+      if (subscription) sp.set("subscription", subscription);
       if (page > 1) sp.set("page", String(page));
       const qs = sp.toString();
       return qs ? `/admin/users?${qs}` : "/admin/users";
@@ -68,7 +75,7 @@ export default function UsersTable({
     [currentQ, currentSort, currentPage, currentSubscription],
   );
 
-  const pushHref = useCallback(
+  const pushUsersHref = useCallback(
     (href: string) => {
       startTransition(() => {
         router.push(href);
@@ -77,20 +84,20 @@ export default function UsersTable({
     [router],
   );
 
-  // Debounced 300ms sync of search input → URL
+  // Debounced sync of search input → URL (skip 1-char to avoid URL lie vs server q>=2)
   useEffect(() => {
     const trimmed = searchInput.trim();
-    // Avoid pushing if same as current (prevents loop on mount)
     if (trimmed === currentQ) return;
+    if (trimmed.length === 1) return;
     const timer = setTimeout(() => {
-      pushHref(buildHref({ q: trimmed, page: 1 }));
-    }, 300);
+      pushUsersHref(buildUsersHref({ q: trimmed, page: 1 }));
+    }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [searchInput, currentQ, buildHref, pushHref]);
+  }, [searchInput, currentQ, buildUsersHref, pushUsersHref]);
 
-  function handleSortChange(v: string) {
-    if (v !== "newest" && v !== "points" && v !== "name") return;
-    pushHref(buildHref({ sort: v as AdminUsersSort, page: 1 }));
+  function onSortChange(v: string) {
+    if (!ADMIN_USERS_SORTS.includes(v as AdminUsersSort)) return;
+    pushUsersHref(buildUsersHref({ sort: v as AdminUsersSort, page: 1 }));
   }
 
   return (
@@ -110,7 +117,7 @@ export default function UsersTable({
 
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground hidden sm:inline">Sort:</span>
-          <Select value={currentSort} onValueChange={handleSortChange}>
+          <Select value={currentSort} onValueChange={onSortChange}>
             <SelectTrigger className="w-[140px] h-9">
               <SelectValue />
             </SelectTrigger>
@@ -148,7 +155,24 @@ export default function UsersTable({
                 </TableRow>
               ) : (
                 data.map((u) => (
-                  <TableRow key={u.id} className="hover:bg-muted/50">
+                  <TableRow
+                    key={u.id}
+                    className="hover:bg-muted/50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`View ${u.name}`}
+                    onClick={() => {
+                      setSelectedUserId(u.id);
+                      setDialogOpen(true);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelectedUserId(u.id);
+                        setDialogOpen(true);
+                      }
+                    }}
+                  >
                     <TableCell className="font-medium max-w-[180px] truncate">{u.name}</TableCell>
                     <TableCell className="text-muted-foreground max-w-[220px] truncate text-xs sm:text-sm">
                       {u.email}
@@ -193,7 +217,7 @@ export default function UsersTable({
             variant="outline"
             size="sm"
             disabled={currentPage <= 1 || isPending}
-            onClick={() => pushHref(buildHref({ page: currentPage - 1 }))}
+            onClick={() => pushUsersHref(buildUsersHref({ page: currentPage - 1 }))}
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
@@ -204,12 +228,21 @@ export default function UsersTable({
             variant="outline"
             size="sm"
             disabled={!hasMore || isPending}
-            onClick={() => pushHref(buildHref({ page: currentPage + 1 }))}
+            onClick={() => pushUsersHref(buildUsersHref({ page: currentPage + 1 }))}
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
       </div>
+
+      <UserDetailDialog
+        userId={selectedUserId}
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setSelectedUserId(null);
+        }}
+      />
     </div>
   );
 }
