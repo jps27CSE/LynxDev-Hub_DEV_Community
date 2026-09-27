@@ -1,9 +1,9 @@
 # Admin Users Section — Finalized Feature Spec (Free-Tier Safe)
 
 > **Date:** 2026-09-22
-> **Status:** Task 7 — Done (Build Mode, uncommitted) — Strict Review Fix applied 2026-09-24
+> **Status:** Task 8 — Done (Build Mode, uncommitted) — Users link + badge added 2026-09-24
 > **Scope:** Expand `Admin Panel > Users` — list usernames + safe admin actions
-> **Progress:** ✅ Tasks 1-7 complete 2026-09-22/24 — Tasks 8-11 pending
+> **Progress:** ✅ Tasks 1-8 complete 2026-09-22/24 — Tasks 9-11 pending
 > **Stack:** Next.js 16 App Router (Server Components default), Clerk `auth()`, Drizzle + TiDB MySQL (pool `connectionLimit:5`), Tailwind v4 + shadcn/ui, Vercel Hobby Free, TiDB Cloud Starter Free
 > **Constraint:** Zero cost forever — every query paginated (20), rate-limited, batched. No feature may exhaust 50M RU/month or 100GB bandwidth.
 
@@ -166,7 +166,7 @@ Errors: `{error:string, details?:unknown}` — never leak internals. `withReques
 | 5 | Page `app/admin/users/page.tsx` Server — parse `searchParams`, call lib, handle empty/error/skeleton | `app/admin/users/page.tsx` + `app/admin/users/loading.tsx` | 1,3 | **✅ Done 2026-09-24** — Server `force-dynamic`, `buildUsersHref` keeps `subscription`+`q`+`sort`+`page`, `PaginationLink` span when disabled, `ADMIN_USERS_PAGE_SIZE`/`MAX_SEARCH_LENGTH` shared, error UI on throw, `loading.tsx` skeleton; `tsc` ✅ `build` ✅ (`ƒ /admin/users`) |
 | 6 | `UsersTable.tsx` Client — table, debounced search, sort select, pagination (reuse `FeedbackTable.tsx` URL pattern) | `app/admin/users/_components/UsersTable.tsx` + `lib/admin-users-constants.ts` + `app/admin/users/page.tsx` (refactor to delegate) | 3,5 | **✅ Done 2026-09-24** — `"use client"` debounced 300ms `Input`, `Select` whitelisted `ADMIN_USERS_SORTS`, `Table` lean `AdminUserRow` (type-only import), `Button` pagination `hasMore`, `useTransition` pending dim, `tsc` ✅ `build` ✅ (`ƒ /admin/users` 34/34) — fixed `tls`/`node:async_hooks` client bundling via constants split |
 | 7 | `UserDetailDialog.tsx` Client — Dialog, lazy tabs Enrollments (progress bar) + Feedback, reuses `fetchEnrollments` | `app/admin/users/_components/UserDetailDialog.tsx` + `app/admin/users/_components/UsersTable.tsx` (row click wiring) | 4,5 | **✅ Done 2026-09-24** — `Dialog`+`Tabs`+`Badge`+`Skeleton`+`User` avatar fallback, `fetch(/api/admin/users/[id])` `30/min`, `tsc` ✅ `build` ✅ (`ƒ /admin/users` 34/34) — fixed in Strict Review Fix below |
-| 8 | Sidebar + header polish — add Users link, badge `totalUsers` optional | `app/admin/_components/AdminSidebar.tsx`, `app/admin/_components/AdminHeader.tsx` | 5 | ⬜ Pending |
+| 8 | Sidebar + header polish — add Users link, badge `totalUsers` optional | `app/admin/_components/AdminSidebar.tsx`, `app/admin/_components/AdminHeader.tsx` | 5 | **✅ Done 2026-09-24** — `Users` icon + `/admin/users` link in sidebar, `totalUsers` badge in header; `tsc` ✅ `build` ✅ (`ƒ /admin/users` 34/34) |
 | 9 | Self-review + harden — `npm run typecheck`, `npm run build`, ENGINEERING checklist | — | 1-8 | ⬜ Pending |
 | 10 | **Phase 2 (deferred)** Migration `created_at` + `is_banned` + indexes | `config/schema.tsx`, `drizzle/*` | 1-9 | ⬜ Deferred |
 | 11 | **Phase 2 (deferred)** `PATCH ban/points` | `app/api/admin/users/[id]/route.ts` | 10 | ⬜ Deferred |

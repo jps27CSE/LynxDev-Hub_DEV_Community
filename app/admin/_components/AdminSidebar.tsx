@@ -7,6 +7,7 @@ import {
   MessageSquare,
   ArrowLeft,
   ShieldCheck,
+  Users,
   LogOut,
 } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
@@ -14,6 +15,7 @@ import { SignOutButton } from "@clerk/nextjs";
 const adminLinks = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
   { label: "Feedback", href: "/admin/feedback", icon: MessageSquare },
+  { label: "Users", href: "/admin/users", icon: Users },
 ];
 
 export default function AdminSidebar() {
