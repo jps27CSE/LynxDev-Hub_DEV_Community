@@ -116,7 +116,7 @@ export default function UserDetailDialog({ userId, open, onOpenChange }: UserDet
           </DialogTitle>
           <DialogDescription className="text-left">
             {loading && !user ? (
-              <Skeleton className="h-4 w-48" />
+              <span className="bg-accent animate-pulse rounded-md h-4 w-48" />
             ) : error ? (
               <span className="text-destructive">{error}</span>
             ) : user ? (
