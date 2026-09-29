@@ -16,7 +16,7 @@ export default async function AdminPage() {
   const overview = await getAdminOverview();
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-6 sm:space-y-8 pt-6 sm:pt-8">
       <OverviewStats stats={overview} />
       <QuickActions openTickets={overview.openTickets} />
     </div>
