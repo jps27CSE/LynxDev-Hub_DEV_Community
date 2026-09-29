@@ -33,20 +33,20 @@ export default function AdminHeader({ name }: { name: string }) {
         </p>
 
         <div className="flex items-center gap-4 mt-3 sm:mt-4">
-<div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
-              <ShieldCheck className="w-3.5 h-3.5 text-red-500" />
-              <span>Admin</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
-              <Badge variant="secondary" className="text-xs">
-                <Users className="w-3.5 h-3.5" />
-                0
-              </Badge>
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
-              <Clock className="w-3.5 h-3.5" />
-              <span>Last login: just now</span>
-            </div>
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
+            <ShieldCheck className="w-3.5 h-3.5 text-red-500" />
+            <span>Admin</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
+            <Badge variant="secondary" className="text-xs">
+              <Users className="w-3.5 h-3.5" />
+              0
+            </Badge>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Last login: just now</span>
+          </div>
         </div>
       </div>
     </div>

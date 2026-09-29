@@ -7,7 +7,10 @@ import {
   MAX_SEARCH_LENGTH,
   parseAdminUsersSort,
 } from "@/lib/admin-users";
+import { getUserByClerkId } from "@/lib/enroll-data";
+import { auth } from "@clerk/nextjs/server";
 import UsersTable from "./_components/UsersTable";
+import AdminPageWrapper from "../_components/AdminPageWrapper";
 
 export const metadata: Metadata = {
   title: "Manage Users",
@@ -15,6 +18,13 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
+
+async function getAdminName(): Promise<string> {
+  const { userId } = await auth();
+  if (!userId) return "Admin";
+  const user = await getUserByClerkId(userId);
+  return user?.name ?? "Admin";
+}
 
 export default async function AdminUsersPage({
   searchParams,
@@ -34,6 +44,8 @@ export default async function AdminUsersPage({
       ? params.subscription.trim().slice(0, 50)
       : undefined;
 
+  const adminName = await getAdminName();
+
   let data: Awaited<ReturnType<typeof getUsersPaginated>>["data"] = [];
   let total = 0;
   let hasMore = false;
@@ -48,37 +60,20 @@ export default async function AdminUsersPage({
     fetchError = true;
   }
 
-  if (fetchError) {
-    return (
-      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight">Users</h1>
-          <p className="text-muted-foreground text-sm">Manage LynxDEV users.</p>
-        </div>
-        <div className="rounded-lg border bg-card p-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            Failed to load users. TiDB may be waking. Please retry.
-          </p>
-          <Link
-            href="/admin/users"
-            className="inline-flex mt-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            Retry
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">Users</h1>
-        <p className="text-muted-foreground text-sm">
-          Search by name or email, sort, and inspect user activity. Paginated {ADMIN_USERS_PAGE_SIZE} per page.
-        </p>
-      </div>
-
+  const content = fetchError ? (
+    <div className="rounded-lg border bg-card p-8 text-center">
+      <p className="text-sm text-muted-foreground">
+        Failed to load users. TiDB may be waking. Please retry.
+      </p>
+      <Link
+        href="/admin/users"
+        className="inline-flex mt-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+      >
+        Retry
+      </Link>
+    </div>
+  ) : (
+    <>
       {/* Stat strip — light, no extra queries */}
       <div className="flex items-center gap-4 text-sm">
         <span className="text-muted-foreground">
@@ -90,7 +85,7 @@ export default async function AdminUsersPage({
         </span>
         {q && (
           <span className="text-muted-foreground">
-            Search: <span className="font-medium text-foreground">&quot;{q}&quot;</span>
+            Search: <span className="font-medium text-foreground">"{q}"</span>
           </span>
         )}
       </div>
@@ -104,6 +99,15 @@ export default async function AdminUsersPage({
         currentPage={page}
         currentSubscription={subscription}
       />
-    </div>
+    </>
+  );
+
+  return (
+    <AdminPageWrapper
+      title="Users"
+      description={`Search by name or email, sort, and inspect user activity. Paginated ${ADMIN_USERS_PAGE_SIZE} per page.`}
+    >
+      {content}
+    </AdminPageWrapper>
   );
 }

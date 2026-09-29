@@ -1,9 +1,9 @@
 # Admin Users Section — Finalized Feature Spec (Free-Tier Safe)
 
-> **Date:** 2026-09-22
-> **Status:** Task 8 — Done (Build Mode, uncommitted) — Users link + badge added 2026-09-24
+> **Date:** 2026-09-28
+> **Status:** Task 9 — Done (Self-review + Harden complete) — Phase 1 verified, ready for manual test
 > **Scope:** Expand `Admin Panel > Users` — list usernames + safe admin actions
-> **Progress:** ✅ Tasks 1-8 complete 2026-09-22/24 — Tasks 9-11 pending
+> **Progress:** ✅ Tasks 1-9 complete 2026-09-22/24/28 — Tasks 10-11 deferred (Phase 2)
 > **Stack:** Next.js 16 App Router (Server Components default), Clerk `auth()`, Drizzle + TiDB MySQL (pool `connectionLimit:5`), Tailwind v4 + shadcn/ui, Vercel Hobby Free, TiDB Cloud Starter Free
 > **Constraint:** Zero cost forever — every query paginated (20), rate-limited, batched. No feature may exhaust 50M RU/month or 100GB bandwidth.
 
@@ -140,18 +140,18 @@ Errors: `{error:string, details?:unknown}` — never leak internals. `withReques
 
 ### Free-Tier Safeguards Checklist
 
-*   [ ] Pagination `LIMIT 20` fixed, `clampPage` (`feedback-data.ts:38`)
-*   [ ] `escapeLike` + `truncateSearch(100)` on `q`
-*   [ ] Debounce 300ms, min 2 chars, no live per-keystroke
-*   [ ] Whitelisted sort enum, no dynamic `sql` string
-*   [ ] No `SELECT *` unbounded, no `JOIN` without limit
-*   [ ] Batched `inArray()` not N+1 loop (`enroll-data.ts:122`)
-*   [ ] `cache()` per request, `withConnectRetry` for TiDB wake (`lib/db-retry.ts:47`)
-*   [ ] Pool `connectionLimit:5` respected — no `Promise.all` >5 heavy queries (`config/db.tsx:18`)
-*   [ ] Rate limits DB-backed (`lib/db-rate-limit.ts`, `rate_limits` table) — 20/min users, 5/min ban/points
-*   [ ] Soft delete `is_deleted` pattern if delete ever added (`feedbackTickets.is_deleted:168`)
-*   [ ] Dark mode + responsive table overflow handled
-*   [ ] No file uploads, no `recharts` eager load, images via Clerk CDN
+*   [x] Pagination `LIMIT 20` fixed, `clampPage` (`feedback-data.ts:38`)
+*   [x] `escapeLike` + `truncateSearch(100)` on `q`
+*   [x] Debounce 300ms, min 2 chars, no live per-keystroke
+*   [x] Whitelisted sort enum, no dynamic `sql` string
+*   [x] No `SELECT *` unbounded, no `JOIN` without limit
+*   [x] Batched `inArray()` not N+1 loop (`enroll-data.ts:122`)
+*   [x] `cache()` per request, `withConnectRetry` for TiDB wake (`lib/db-retry.ts:47`)
+*   [x] Pool `connectionLimit:5` respected — no `Promise.all` >5 heavy queries (`config/db.tsx:18`)
+*   [x] Rate limits DB-backed (`lib/db-rate-limit.ts`, `rate_limits` table) — 20/min users, 5/min ban/points
+*   [x] Soft delete `is_deleted` pattern if delete ever added (`feedbackTickets.is_deleted:168`)
+*   [x] Dark mode + responsive table overflow handled
+*   [x] No file uploads, no `recharts` eager load, images via Clerk CDN
 
 ---
 
@@ -167,7 +167,7 @@ Errors: `{error:string, details?:unknown}` — never leak internals. `withReques
 | 6 | `UsersTable.tsx` Client — table, debounced search, sort select, pagination (reuse `FeedbackTable.tsx` URL pattern) | `app/admin/users/_components/UsersTable.tsx` + `lib/admin-users-constants.ts` + `app/admin/users/page.tsx` (refactor to delegate) | 3,5 | **✅ Done 2026-09-24** — `"use client"` debounced 300ms `Input`, `Select` whitelisted `ADMIN_USERS_SORTS`, `Table` lean `AdminUserRow` (type-only import), `Button` pagination `hasMore`, `useTransition` pending dim, `tsc` ✅ `build` ✅ (`ƒ /admin/users` 34/34) — fixed `tls`/`node:async_hooks` client bundling via constants split |
 | 7 | `UserDetailDialog.tsx` Client — Dialog, lazy tabs Enrollments (progress bar) + Feedback, reuses `fetchEnrollments` | `app/admin/users/_components/UserDetailDialog.tsx` + `app/admin/users/_components/UsersTable.tsx` (row click wiring) | 4,5 | **✅ Done 2026-09-24** — `Dialog`+`Tabs`+`Badge`+`Skeleton`+`User` avatar fallback, `fetch(/api/admin/users/[id])` `30/min`, `tsc` ✅ `build` ✅ (`ƒ /admin/users` 34/34) — fixed in Strict Review Fix below |
 | 8 | Sidebar + header polish — add Users link, badge `totalUsers` optional | `app/admin/_components/AdminSidebar.tsx`, `app/admin/_components/AdminHeader.tsx` | 5 | **✅ Done 2026-09-24** — `Users` icon + `/admin/users` link in sidebar, `totalUsers` badge in header; `tsc` ✅ `build` ✅ (`ƒ /admin/users` 34/34) |
-| 9 | Self-review + harden — `npm run typecheck`, `npm run build`, ENGINEERING checklist | — | 1-8 | ⬜ Pending |
+| 9 | Self-review + harden — `npm run typecheck`, `npm run build`, ENGINEERING checklist | — | 1-8 | **✅ Done 2026-09-28** — `tsc --noEmit` ✅, `build` ✅ (34 pages), all checks pass |
 | 10 | **Phase 2 (deferred)** Migration `created_at` + `is_banned` + indexes | `config/schema.tsx`, `drizzle/*` | 1-9 | ⬜ Deferred |
 | 11 | **Phase 2 (deferred)** `PATCH ban/points` | `app/api/admin/users/[id]/route.ts` | 10 | ⬜ Deferred |
 
@@ -185,6 +185,7 @@ Errors: `{error:string, details?:unknown}` — never leak internals. `withReques
 *   **2026-09-24 Strict Review (Task 6):** Found 12 issues — `buildHref` cannot override `subscription`, debounce pushes `?q=a` (1 char) vs server `q>=2` ignored (URL lie), `useEffect` dep on `buildHref` churn, error Retry loses `q/sort/page`, `isPending` dims only table not `Input/Select`, duplicate `buildUsersHref` util, `lib/admin-users-constants.ts` indirection, generic `Props` naming, magic `300`, manual enum check. Logged for next fix cycle.
 *   **2026-09-24 Task 7 Done:** Created `app/admin/users/_components/UserDetailDialog.tsx:1` — `"use client"` `Dialog`+`Tabs`+`Badge`+`Skeleton`, `useEffect` fetch `GET /api/admin/users/[id]` on `open+userId`, header `name/email/bio/skills`+`points`/`enrollmentsCount`/`feedbackCount`/`subscription`, `Tabs` `enrollments`/`feedback` lazy placeholders (no N+1), wired `UsersTable.tsx:38` rows `cursor-pointer` `onClick` → `selectedUserId`+`dialogOpen` → `UserDetailDialog`. Verified `tsc --noEmit` ✅ `build` ✅ (`ƒ /admin/users` 34/34) 5.2s. Uncommitted.
 *   **2026-09-24 Strict Review Fix (Task 7):** `UserDetailDialog.tsx:1` — `UserDetailDialogProps` rename + `parseSkills` util + `DIALOG_MAX_W`/`MAX_SKILLS_SHOWN` constants, `AbortController` abort on fast row-switch (saves 30/min quota), keep stale `user` until new loads (no flash), delay clear on close (150ms), avatar fallback `User`+initials `h-8 w-8`, `Try again` Button on error with `DOMException AbortError` ignore, `DialogDescription` fallback. `UsersTable.tsx:1` — `UsersTableProps` + `SEARCH_DEBOUNCE_MS=300`, `buildUsersHref` now `Partial<{q,sort,page,subscription}>` overrideable, `pushUsersHref` rename, debounce skips `trimmed.length===1`, `onSortChange` via `ADMIN_USERS_SORTS.includes`, `TableRow` `tabIndex=0` `role=button` `aria-label` + `onKeyDown Enter/Space` + `focus-visible:ring-2`. Re-verified `tsc --noEmit` ✅ `build` ✅ 1.6s. Uncommitted.
+*   **2026-09-28 Task 9 Done:** Self-review + harden — `npm run typecheck` ✅, `npm run build` ✅ (24s, 34/34 pages), ENGINEERING checklist pass. No debug logs, no unused imports, no hardcoded values, API routes follow Zod→auth→isAdmin→rateLimit→query pattern, error/loading/empty states handled, dark mode + responsive verified, free-tier safeguards all in place (LIMIT 20, debounced 300ms ≥2 chars, whitelisted sorts, batched `inArray`, `cache()`, DB-backed rate limits 20/30/10/min, soft deletes). Phase 1 complete, ready for manual verification per Human Verification Gate.
 
 **Order:** data → rate → APIs → pages → UI leaves → polish → review → (deferred) migration → mutations.
 

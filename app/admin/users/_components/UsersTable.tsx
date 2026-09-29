@@ -104,7 +104,7 @@ export default function UsersTable({
     <div className="space-y-4">
       {/* Controls: debounced search + sort select */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Search by name or email..."
@@ -115,10 +115,10 @@ export default function UsersTable({
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <span className="text-xs text-muted-foreground hidden sm:inline">Sort:</span>
           <Select value={currentSort} onValueChange={onSortChange}>
-            <SelectTrigger className="w-[140px] h-9">
+            <SelectTrigger className="w-full sm:w-[140px] h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

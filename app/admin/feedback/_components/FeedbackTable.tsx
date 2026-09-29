@@ -91,7 +91,7 @@ export default function FeedbackTable({
           value={currentStatus}
           onValueChange={(v) => updateParams(v, 1)}
         >
-          <TabsList>
+          <TabsList className="w-full sm:w-auto">
             {STATUS_TABS.map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value}>
                 {tab.label}
@@ -100,12 +100,12 @@ export default function FeedbackTable({
           </TabsList>
         </Tabs>
 
-        <form onSubmit={handleSearch} className="flex items-center gap-2">
+        <form onSubmit={handleSearch} className="flex items-center gap-2 w-full sm:w-auto">
           <Input
             placeholder="Search tickets..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-64"
+            className="w-full sm:w-64"
           />
           <Button type="submit" variant="outline" size="icon">
             <Search className="w-4 h-4" />
@@ -113,8 +113,9 @@ export default function FeedbackTable({
         </form>
       </div>
 
-      <div className="rounded-lg border">
-        <Table>
+      <div className="rounded-lg border bg-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Title</TableHead>
@@ -169,6 +170,7 @@ export default function FeedbackTable({
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       <div className="flex items-center justify-between">
