@@ -4,7 +4,6 @@ import { getAdminOverview } from "@/lib/feedback-data";
 import { getUserByClerkId } from "@/lib/enroll-data";
 import OverviewStats from "./_components/OverviewStats";
 import QuickActions from "./_components/QuickActions";
-import AdminHeader from "./_components/AdminHeader";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -14,14 +13,10 @@ export const metadata: Metadata = {
 
 export default async function AdminPage() {
   const { userId } = await auth();
-  const [overview, user] = await Promise.all([
-    getAdminOverview(),
-    userId ? getUserByClerkId(userId) : null,
-  ]);
+  const overview = await getAdminOverview();
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <AdminHeader name={user?.name ?? "Admin"} />
+    <div className="space-y-6 sm:space-y-8 pt-6 sm:pt-8">
       <OverviewStats stats={overview} />
       <QuickActions openTickets={overview.openTickets} />
     </div>

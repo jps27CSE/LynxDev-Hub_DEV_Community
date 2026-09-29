@@ -1,7 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin-auth";
-import AdminSidebar from "./_components/AdminSidebar";
+import { getUserByClerkId } from "@/lib/enroll-data";
+import AdminShell from "./_components/AdminShell";
 
 export default async function AdminLayout({
   children,
@@ -14,12 +15,8 @@ export default async function AdminLayout({
   const admin = await isAdmin(userId);
   if (!admin) redirect("/");
 
-  return (
-    <div className="min-h-screen bg-[#05060a]">
-      <AdminSidebar />
-      <div className="ml-64">
-        <main className="min-h-screen p-4 sm:p-6 lg:p-8">{children}</main>
-      </div>
-    </div>
-  );
+  const user = await getUserByClerkId(userId);
+  const adminName = user?.name ?? "Admin";
+
+  return <AdminShell adminName={adminName}>{children}</AdminShell>;
 }

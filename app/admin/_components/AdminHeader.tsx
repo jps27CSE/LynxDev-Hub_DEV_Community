@@ -1,6 +1,7 @@
 "use client";
 
-import { ShieldCheck, Clock } from "lucide-react";
+import { ShieldCheck, Clock, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const timeGreeting = () => {
   const hour = new Date().getHours();
@@ -35,6 +36,12 @@ export default function AdminHeader({ name }: { name: string }) {
           <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
             <ShieldCheck className="w-3.5 h-3.5 text-red-500" />
             <span>Admin</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
+            <Badge variant="secondary" className="text-xs">
+              <Users className="w-3.5 h-3.5" />
+              0
+            </Badge>
           </div>
           <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
             <Clock className="w-3.5 h-3.5" />

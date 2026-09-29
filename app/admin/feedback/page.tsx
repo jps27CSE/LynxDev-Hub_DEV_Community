@@ -1,12 +1,21 @@
 import type { Metadata } from "next";
 import { getAllFeedback, clampPage } from "@/lib/feedback-data";
+import { getUserByClerkId } from "@/lib/enroll-data";
+import { auth } from "@clerk/nextjs/server";
 import FeedbackTable from "./_components/FeedbackTable";
+import AdminPageWrapper from "../_components/AdminPageWrapper";
 
 export const metadata: Metadata = {
   title: "Manage Feedback",
-  description:
-    "View, respond to, and manage user feedback tickets on LynxDEV.",
+  description: "View, respond to, and manage user feedback tickets on LynxDEV.",
 };
+
+async function getAdminName(): Promise<string> {
+  const { userId } = await auth();
+  if (!userId) return "Admin";
+  const user = await getUserByClerkId(userId);
+  return user?.name ?? "Admin";
+}
 
 export default async function AdminFeedbackPage({
   searchParams,
@@ -22,6 +31,8 @@ export default async function AdminFeedbackPage({
       ? parseInt(rawPage, 10)
       : 1;
 
+  const adminName = await getAdminName();
+
   const { data, total, hasMore } = await getAllFeedback({
     status: status || undefined,
     q: q || undefined,
@@ -29,13 +40,10 @@ export default async function AdminFeedbackPage({
   });
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Feedback Tickets</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          View and manage user feedback
-        </p>
-      </div>
+    <AdminPageWrapper
+      title="Feedback Tickets"
+      description="View and manage user feedback"
+    >
       <FeedbackTable
         initialData={data}
         total={total}
@@ -44,6 +52,6 @@ export default async function AdminFeedbackPage({
         currentPage={clampPage(page)}
         currentQ={q}
       />
-    </div>
+    </AdminPageWrapper>
   );
 }

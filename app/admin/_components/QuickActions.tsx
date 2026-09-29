@@ -43,7 +43,7 @@ export default function QuickActions({ openTickets }: { openTickets: number }) {
   ];
 
   return (
-    <div>
+    <div className="px-3 sm:px-4 lg:px-8">
       <h2 className="text-sm font-semibold text-muted-foreground mb-3">
         Quick Actions
       </h2>

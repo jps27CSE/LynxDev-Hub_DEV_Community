@@ -86,6 +86,21 @@ const routes: { pattern: string; method: string; config: RateLimitConfig }[] = [
     method: "GET",
     config: { limit: 30, windowMs: WINDOW_1M },
   },
+  {
+    pattern: "/api/admin/users",
+    method: "GET",
+    config: { limit: 20, windowMs: WINDOW_1M },
+  },
+  {
+    pattern: "/api/admin/users/[id]",
+    method: "GET",
+    config: { limit: 30, windowMs: WINDOW_1M },
+  },
+  {
+    pattern: "/api/admin/users/[id]",
+    method: "PATCH",
+    config: { limit: 10, windowMs: WINDOW_1M },
+  },
 ];
 
 const defaultConfig: RateLimitConfig = { limit: 20, windowMs: WINDOW_1M };
