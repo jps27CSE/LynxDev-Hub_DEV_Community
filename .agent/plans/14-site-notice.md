@@ -26,14 +26,14 @@ The obvious implementation is a `"use client"` component that fetches `/api/site
 | | ❌ Client fetch on mount | ✅ Cached read in root layout |
 |---|---|---|
 | Vercel function invocations | **+1 per page load** (~135K/mo at 500 users) | **+0** — folded into the page render that already counts |
-| TiDB queries | **+1 per page load** | **1 per 60s per region** |
+| TiDB queries | **+1 per page load** | **1 per hour per region** |
 | Added RU/month | ~0.7–1.4M | **~20K (0.04% of the 50M budget)** |
 | Client waterfall | JS → fetch → render on every page | none |
 | Stale-on-toggle | n/a | solved by `revalidateTag` |
 
 The numbers come from the traffic model in `docs/production-review-500-users.md:277-296` (~4,500 page loads/day at 500 users) and the RU budget of 50M/month (`production-review-500-users.md:17`).
 
-**Chosen approach:** read the singleton row in the **root layout** (`app/layout.tsx`), wrapped in the existing `createContentCache({ tag: "site-status", ttl: 60 })` helper (`lib/content-cache.ts:22`), and pass a plain object of primitives down to a `"use client"` component.
+**Chosen approach:** read the singleton row in the **root layout** (`app/layout.tsx`), wrapped in the existing `createContentCache({ tag: "site-notice", ttl: 3600 })` helper (`lib/content-cache.ts:22`), and pass a plain object of primitives down to a `"use client"` component.
 
 This also fixes the **first `revalidateTag` call site in the codebase** — `lib/content-cache.ts:16` reserves the tag for "a future admin revalidate endpoint". The admin PATCH route becomes that endpoint, making the toggle instant.
 
@@ -67,7 +67,7 @@ This also fixes the **first `revalidateTag` call site in the codebase** — `lib
 | **S-05** | **`expires_at` auto-expiry** | Optional timestamp. The **real risk in a bare on/off toggle**: admin enables it during seeding, forgets, and now every user sees a maintenance modal forever. Self-expiry removes that failure mode. | One nullable column, one comparison in the cached fn. |
 | **S-06** | **Session dismissal** | `sessionStorage` keyed by the notice's `updated_at`. Dismiss → gone for the rest of the tab session. Edit the message → version bumps → re-shows immediately, even mid-session. | Free. `sessionStorage`, **not** `localStorage` — key must not collide with `lynxdev_app_version` (`VersionUpdateNotification.tsx:8`). |
 | **S-07** | **`/admin` auto-exempt** | `usePathname()` → return `null` under `/admin`. | Zero cost. Prevents locking the admin out of the panel that disables the notice. |
-| **S-08** | **Instant toggle via `revalidateTag`** | PATCH route calls `revalidateTag("site-status")`. The 60s TTL is a **backstop**, not the mechanism — if tag revalidation ever fails silently, the notice self-corrects within a minute instead of being stuck. | ~5 RU per admin save. |
+| **S-08** | **Instant toggle via `revalidateTag`** | PATCH route calls `revalidateTag(SITE_NOTICE_CACHE_TAG)`. The 1h TTL is a **backstop**, not the mechanism — if tag revalidation ever fails silently, the notice self-corrects within an hour instead of being stuck. **Revised from 60s after measurement — see §11.** | ~5 RU per admin save. |
 | **S-09** | **Env kill switch** | `SITE_NOTICE_DISABLED=true` suppresses the notice at the data layer. Bail-out for the day admin access is lost. Parsed case-insensitively — a bail-out that silently fails on a typo is worse than no bail-out. | 3 lines, zero cost. |
 
 ### ❌ EXCLUDED (YAGNI / free-tier gate)
@@ -118,12 +118,12 @@ export const siteNotices = mysqlTable("site_notices", {
 ```
 SITE_NOTICE_SINGLETON_ID = 1
 SITE_NOTICE_CACHE_TAG    = "site-status"
-SITE_NOTICE_CACHE_TTL    = 60
+SITE_NOTICE_CACHE_TTL    = 3600
 ```
 
 | Export | Cached? | Purpose |
 |---|---|---|
-| `getActiveSiteNotice(): Promise<ActiveSiteNotice \| null>` | `unstable_cache`, 60s, tag `site-notice` | The public read. Returns `null` when: env kill switch on, no row, `is_enabled = false`, or `expires_at <= now`. |
+| `getActiveSiteNotice(): Promise<ActiveSiteNotice \| null>` | `unstable_cache`, 3600s, tag `site-notice` | The public read. Returns `null` when: env kill switch on, no row, `is_enabled = false`, or `expires_at <= now`. |
 | `resolveActiveNotice(row, now?): ActiveSiteNotice \| null` | n/a — **pure** | The eligibility + projection logic, split out of the I/O path so the expiry boundary and disabled/expired cases are testable without a Next request context. |
 | `getSiteNoticeRecord(): Promise<SiteNoticeRecord \| null>` | `cache()` only, per-request | Raw row for the admin form, so the admin can see and edit an expired or disabled notice. |
 | `updateSiteNotice(input, updatedBy): Promise<SiteNoticeRecord>` | n/a | `INSERT ... ON DUPLICATE KEY UPDATE` on `id = 1`. Idempotent — never needs a "does the row exist" pre-check. |
@@ -155,7 +155,7 @@ Handler order follows the canonical `app/api/enroll/route.ts` pattern:
 5. `req.json()` in a nested try → `badJson()`
 6. Zod `safeParse` → `validationError()`
 7. `updateSiteNotice(...)`
-8. `revalidateTag("site-status")`
+8. `revalidateTag(SITE_NOTICE_CACHE_TAG)`
 9. `NextResponse.json(record)` — bare payload, matching `app/api/admin/feedback/[id]/route.ts:59`
 
 **No `GET` route.** The admin page is a Server Component and reads `getSiteNoticeRecord()` directly. The form PATCHes, then calls `router.refresh()`. A GET endpoint would be a second code path for the same data with no consumer.
@@ -228,8 +228,8 @@ dismiss (banner ×  or  modal OK / Esc / X)
 
 | Trade-off | Decision | Rationale |
 |---|---|---|
-| **Root layout leaves the static shell** | Accept, measure TTFB | `unstable_cache` absorbs the DB cost entirely (1 query / 60s / region). **Unverified assumption:** that `ClerkProvider` already makes the root layout request-scoped. No build output existed to check, and this is load-bearing for the trade-off — treat it as a hypothesis, not a citation, and confirm in `npm run build`. If TTFB regresses, the fallback is mounting under `(routes)/layout.tsx` — which costs `/`, `/whats-new`, and `/sign-in` coverage. Report the measurement; do not silently swap the mount point. |
-| **TTL 60 instead of `false`** | Accept the 1-min window | `createContentCache` supports `ttl: false` (invalidate only by version bump). Using it here means a failed `revalidateTag` silently strands the notice forever. 60s is a self-healing backstop behind an instant `revalidateTag`. |
+| **Root layout leaves the static shell** | Accept — **measured, no regression** | Resolved in §11. `unstable_cache` absorbs the DB cost. TTFB warm 4-50ms across `/`, `/whats-new`, `/courses`. No mount-point change needed. |
+| **TTL 3600 instead of `false`** | Accept the 1-hour window | `createContentCache` supports `ttl: false` (invalidate only by version bump), which would be free. Rejected: a failed `revalidateTag` would strand the notice until the next deploy. 1h is a self-healing backstop behind an instant `revalidateTag`, and keeps the ISR cost near baseline (§11). |
 | **`sessionStorage` is per-tab** | Accept, document | 3 tabs open = 3 modals. For a maintenance notice this is defensible — each tab is a separate browsing context. `localStorage` would be 1 modal ever, which is wrong for a real outage. |
 | **1 new table** | Accept | The only alternative to a table is a static `config/` constant, which requires a redeploy — exactly what the admin toggle exists to avoid. 13/20 tables. |
 | **Client component in the tree** | Accept | Unavoidable: dismissal needs `sessionStorage` + `usePathname`. It is mounted once, in the root layout, and returns `null` when there is no notice — so it adds no render cost to the common case. |
@@ -314,3 +314,180 @@ Findings raised by the post-implementation review and their resolution:
 | 9 | **P3** | `updated_at` has 1-second precision, so same-second saves share a version. | **Documented** in §5. Accepted; not worth a `timestamp(3)` migration. |
 
 Open, carried to later tasks: the `format:check` failure (above), the `Sidebar.tsx` Admin link, and the `feature-tracker` staleness.
+
+---
+
+## 16. Measurement Log — Tasks 3/4 (root layout mount)
+
+Everything below was measured on this machine against the live TiDB instance, not
+inferred. Two findings changed the design.
+
+### 16.1 The 60s TTL silently re-rendered 7 routes 1440x/day
+
+`unstable_cache({ revalidate: N })` does not just bound one function call — it
+propagates up and becomes the **enclosing route's ISR window**, set to the minimum
+across the whole tree. So the ttl chosen in Task 2 was also choosing how often
+`/problems`, `/profile` and three other fully static pages re-render.
+
+Built the tree twice, with and without the layout read, and diffed the route table:
+
+| Route | Baseline | TTL 60 | Extra renders/day |
+|---|---|---|---|
+| `/_not-found` | static | 1m | +1,440 |
+| `/interview` | 1h | 1m | +1,416 |
+| `/interview/customize` | 1h | 1m | +1,416 |
+| `/interview/stack` | static | 1m | +1,440 |
+| `/problems` | static | 1m | +1,440 |
+| `/profile` | static | 1m | +1,440 |
+| `/whats-new` | static | 1m | +1,440 |
+
+That is ~257k extra page regenerations/month against a 1M/month Vercel Hobby
+function budget — roughly 26% spent on revalidation before a single real visitor,
+and each regeneration re-runs that page's own queries against a 1,100 RU/hour
+TiDB tier. Four routes that previously never re-rendered at all were the worst
+offenders, because "static" has the most to lose.
+
+**Fix: `SITE_NOTICE_CACHE_TTL = 3600`.** Re-measured — `/interview` and
+`/interview/customize` return to their native 1h, and the five static routes move
+to 1h, costing 5 x 24/day = ~3,600/month, about 0.36% of budget.
+
+`ttl: false` would cost nothing, but a failed `revalidateTag` would then strand
+the notice until the next deploy. 0.36% is a fair price for a bounded worst
+case, and admin saves still invalidate instantly.
+
+**Lesson worth carrying:** a cache TTL in a *layout* is a routing decision, not
+a caching decision. Always diff the build route table when adding one.
+
+### 16.2 The notice is JS-only — no SSR markup
+
+The `ready` gate (storage is read in an effect, so SSR cannot know whether the
+user already dismissed this version) means the component returns `null` during
+SSR. Verified: the notice ships only inside the RSC flight payload as component
+props; `role="status"` is absent from the server HTML.
+
+**Accepted, deliberately.** The upgrade is a pre-paint inline script that reads
+`sessionStorage` and sets `display:none` before first paint — the classic
+no-flash pattern. Rejected for now because it adds an inline script, an
+id/CSS contract and a hydration-order dependency, and because this app is
+unusable without JS regardless (editor, dashboard, community all hydrate). A
+maintenance notice that only works with JS has no value on a page that needs JS
+to function. Revisit only if a genuinely no-JS route (e.g. a static status page)
+ever needs it.
+
+### 16.3 Security check passed
+
+`updated_by` held `"user_test"` in the row. The served HTML for `/` contains the
+title and message and **does not** contain `updated_by`. The allowlist projection
+holds. Banner chunk is 29.7 KB with no trace of `mysql2`, `drizzle`, or
+`config/db` — `import type` is fully erased by SWC, so the root-layout read does
+not pull the driver into the client bundle.
+
+### 16.4 Bug found for Task 5: Drizzle silently drops `undefined`
+
+`updateSiteNotice(input, updatedBy)` takes **camelCase** `UpdateSiteNoticeInput`
+with `expiresAt: Date | null`. Passing snake_case keys instead does not throw —
+Drizzle omits `undefined` keys from the `SET` clause, so the update appears to
+succeed while silently persisting the old values. Observed live: `is_enabled`
+stayed `false` and `expires_at` stayed `null` while `title`/`severity` updated.
+
+**Consequence for Task 5:** the Zod schema must map to exactly
+`UpdateSiteNoticeInput` — same keys, same casing, every field present. A
+`passthrough()` or a renamed field produces a save that looks successful and
+changes nothing. Consider asserting the parsed shape against the type.
+
+Also noted: `updatedBy` is typed `string` but the column is nullable, so
+seeding a system-originated notice needs a cast. The API route always has a Clerk
+userId, so this is cosmetic — but `string | null` is the honest signature.
+
+### 16.5 Verification method gotcha
+
+Static routes (`/whats-new`) are prerendered at build time and served from disk
+with a 1h window, so they will not reflect a notice enabled after the build
+until the window expires. And unauthenticated `/courses` 307-redirects to
+`/sign-in`. Both made early `curl` checks look like failures when the feature
+was working. Verify against `/` (dynamic, public, 200) and clear
+`.next/cache/fetch-cache` after changing notice state locally.
+
+---
+
+## 17. Review Log — Tasks 3/4
+
+A strict self-review of the component and the layout mount. Five findings, all
+fixed in the same pass. Recorded because two of them are the kind of thing that
+looks correct until someone reads it under a narrow viewport.
+
+| # | Sev | Finding | Resolution |
+|---|-----|---------|------------|
+| 1 | **P1** | Banner covered the mobile sidebar toggle | `top-0` -> `top-16 lg:top-0` |
+| 2 | P2 | `{ Icon: typeof Info }` was a type lie | `LucideIcon` |
+| 3 | P2 | `updatedBy: string` but column nullable | `string \| null` |
+| 4 | P3 | Comment said "four" fields, there are five | Corrected |
+| 5 | P3 | Tailwind class order slip on the message `<p>` | Reordered |
+
+### 17.1 P1 — the banner made mobile navigation impossible
+
+`AppShell.tsx:48` renders the sidebar toggle as `lg:hidden fixed top-3 left-3
+z-30 w-9 h-9`. The banner was `fixed inset-x-0 top-0 z-40 p-3` with an inner
+`pointer-events-auto mx-auto max-w-3xl`.
+
+Below `sm` the inner box spans the full viewport width, so it sat **on top of**
+the 36px toggle — same 12px origin, banner winning on `z-40`, and its
+`pointer-events-auto` swallowing the click. With any notice showing, the sidebar
+could not be opened on a phone. Desktop was unaffected because the toggle is
+`lg:hidden`.
+
+Fix: `top-16 lg:top-0`. The toggle only exists below `lg`, so the banner clears
+it (bottom edge 48px vs banner start 64px — 16px of clearance) and returns to
+`top-0` on desktop where nothing is in the way. One class, no `AppShell` edit,
+mount point unchanged.
+
+**Lesson:** any new `fixed top-*` overlay has to be checked against every other
+`fixed` element, not just its own z-index. `z-40` beating `z-30` is only half the
+question — the other half is whether they overlap in space. `HelpButton`
+(`bottom-5 right-5`) and `Sidebar` (`top-0 left-0`, x <= 256) were both checked
+and are clear.
+
+*Known cosmetic limit, not fixed:* the banner is centred on the **viewport**, not
+the content column, so at 1024-1280px with the sidebar expanded its left edge
+sits under the sidebar (which wins at `z-50`). Inherent to a centred floating
+banner; would need a content-width-aware offset to solve.
+
+### 17.2 P2 — `typeof Info` was a type lie
+
+`severityConfig` declared `{ Icon: typeof Info }`, so every icon was typed as the
+`Info` component. It typechecks only because all lucide icons share one
+`ForwardRefExoticComponent` signature. Replaced with the exported `LucideIcon`.
+
+### 17.3 P2 — `updatedBy` signature lied about the column
+
+`updateSiteNotice(input, updatedBy: string)` against a nullable `updated_by`
+column. Seeding a system-originated notice needed `null as unknown as string` —
+a cast that existed only to satisfy a wrong signature. Now `string | null`. The
+API route always has a Clerk userId, so this changes no caller, but the function
+no longer forces a lie.
+
+### 17.4 P3 — stale comment in my own code
+
+The `ActiveSiteNotice` doc comment read "an allowlist of **four** primitive
+fields" while the type has **five**. It predated adding `version` and was never
+updated. Bad because the number is the whole point of the comment: it is what a
+future reader checks before adding a sixth field, and a wrong count there is how
+`updated_by` eventually leaks.
+
+### 17.5 Nits
+
+Tailwind class order on the message `<p>` (`whitespace-pre-line` before
+`text-muted-foreground`) broke the alphabetical ordering used elsewhere in the
+file. Prettier did not catch it — the tailwind plugin is not enforcing order on
+this file — so it was fixed by hand.
+
+The dismissal effect also depended on `[notice]`, a fresh object on every Server
+Component layout render, so `sessionStorage` was re-read on every client-side
+navigation. Now keyed on `notice?.version`, which is the actual trigger and
+matches the intent.
+
+### 17.6 Re-verified after the fixes
+
+Typecheck and Prettier clean. `npm run build` route table byte-identical to
+before the fixes. Banner chunk still 29.7 KB with no `mysql2`, `drizzle` or
+`config/db` trace.

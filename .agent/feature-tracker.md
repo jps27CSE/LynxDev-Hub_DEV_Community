@@ -50,7 +50,7 @@
 | 4.4 | Resume analyzer | Pending | Low | Ephemeral AI analysis |
 | 4.5 | Notifications | Pending | Low | Comment replies, reminders |
 | 4.6 | Admin tools | Done | Low | Control panel at `/admin` — Overview, Feedback (`.agent/plans/12-admin-module.md`), Users (`.agent/plans/13-admin-users-section.md`). Env allowlist auth via `lib/admin-auth.ts` (`ADMIN_EMAILS` / `ADMIN_CLERK_IDS`), fail-closed, layout guard + per-handler `isAdmin()`. |
-| 4.7 | Site notice banner | In Progress | Medium | Admin-toggled global maintenance/warning notice — banner or modal, severity levels, auto-expiry. `.agent/plans/14-site-notice.md`. Tasks 1-2 done (schema + data layer); 3-9 pending. |
+| 4.7 | Site notice banner | In Progress | Medium | Admin-toggled global maintenance/warning notice — banner or modal, severity levels, auto-expiry. `.agent/plans/14-site-notice.md`. Tasks 1-4 done (schema, data layer, banner component, root-layout mount), reviewed and fixed — plan §17. TTL corrected 60s → 1h after measuring ISR cost (§16.1). Tasks 5-9 pending. |
 
 ## Phase 5 — Mock Interview + Skills Roadmap
 
@@ -85,7 +85,7 @@
 | I.4 | Rate limiting on all API routes | ✅ Done | **DB-backed, handler-level** via `lib/db-rate-limit.ts` + `config/rate-limits.ts` + `rate_limits` table (`config/schema.tsx`). Global across serverless instances, fail-closed, atomic upsert. Limits: 10 req/min `generate`, 5 req/min `mentor/chat`, 5 req/min `enroll`, 10 req/min `progress`, 10 req/min `user-sync`, 20/min default. Edge proxy stays auth-only — no DB, no rate limiting (`proxy.ts`). |
 | I.5 | TiDB connection pool config | ✅ Done | `config/db.tsx` — explicit `connectionLimit: 5`, `queueLimit: 25`, `connectTimeout: 15s`, `acquireTimeout: 15s`, `idleTimeout: 300s` (5 min), keep-alive enabled. Replaces untuned mysql2 defaults. `connectTimeout` covers TiDB serverless scale-to-zero cold start; `withConnectRetry` (`lib/db-retry.ts`) retries once on transient connect failures. |
 | I.6 | Empty catch blocks log errors | ✅ Done | All 14 empty catches across `lib/course-data.ts`, `lib/problem-data.ts`, `lib/interview-data.ts` now log via `console.error("[module] fn:", error)`. |
-| I.7 | Cross-request content cache | ✅ Done | `lib/content-cache.ts` — `createContentCache({ tag, version, ttl })` wrapper over `unstable_cache`. Reused by `lib/site-notice.ts` (tag `site-notice`, 60s). `revalidateTag` is now called from the first admin write endpoint — see 4.7. |
+| I.7 | Cross-request content cache | ✅ Done | `lib/content-cache.ts` — `createContentCache({ tag, version, ttl })` wrapper over `unstable_cache`. Reused by `lib/site-notice.ts` (tag `site-notice`, **1h**). `revalidateTag` is now called from the first admin write endpoint — see 4.7. |
 
 ## Free Tier Checklist
 
@@ -102,3 +102,6 @@
 - `npm run format:check` fails on **45 files** repo-wide — pre-existing, not from any recent task. `npx prettier --write .` clears it, but that is a repo-wide diff that should be its own commit, not smuggled into a feature. Of the files this feature touches, only `config/schema.tsx` is listed, and only for the pre-existing `feedback_user_idx` line (84 chars) at `:171` — the new `siteNotices` block is prettier-clean.
 - The main app sidebar (`app/(routes)/_components/Sidebar.tsx:20-26`) has no Admin link, so `/admin` is reachable only by typing the URL.
 - `db.execute()` returns a `[rows, fields]` tuple on this stack, not rows. Use the Drizzle query builder (`db.select().from(...)`) as every other `lib/*` file does — a raw-SQL helper that treats the result as rows reads the field-metadata array instead.
+- The site notice renders only after hydration, not in SSR HTML — the dismissal check reads `sessionStorage` in an effect, so SSR must render `null`. Accepted: every interactive page on this app needs JS anyway. See plan §16.2 for the no-flash upgrade path if a no-JS route ever needs it.
+- A cache TTL set inside a layout becomes that route's ISR window, not just a cache lifetime. `unstable_cache({ revalidate })` propagates to the enclosing route. Measured: a 60s notice TTL turned 4 fully static routes into per-minute revalidation, ~26% of the Vercel Hobby function budget. Always diff the `npm run build` route table when adding a layout-level cache. See plan §16.1.
+- Any new `fixed top-*` overlay must be checked against every other `fixed` element, not just its own z-index. The site notice banner at `z-40` covered the `z-30` mobile sidebar toggle because they occupied the same 12px origin — it made phone navigation impossible. Overlap in space, not just stacking order, is the failure mode. See plan §17.1.
