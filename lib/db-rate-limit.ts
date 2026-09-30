@@ -20,7 +20,8 @@ export type RateLimitScope =
   | "admin-feedback"
   | "admin-overview"
   | "admin-users"
-  | "admin-users-detail";
+  | "admin-users-detail"
+  | "admin-site-notice";
 
 export type DbRateLimitResult = {
   success: boolean;

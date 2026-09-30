@@ -491,3 +491,288 @@ matches the intent.
 Typecheck and Prettier clean. `npm run build` route table byte-identical to
 before the fixes. Banner chunk still 29.7 KB with no `mysql2`, `drizzle` or
 `config/db` trace.
+
+---
+
+## 18. Task 5 Notes — `PATCH /api/admin/site-notice`
+
+### 18.1 `revalidateTag` needs a profile in Next 16
+
+The plan's snippet was `revalidateTag(SITE_NOTICE_CACHE_TAG)`. That does not
+compile — Next 16 requires a second argument:
+
+```ts
+revalidateTag(tag: string, profile: string | CacheLifeConfig): undefined
+```
+
+Used `{ expire: 0 }` rather than a named profile. `CacheLifeConfig` is
+`{ expire?: number }`, and `expire: 0` means "already expired", giving
+read-your-own-writes: the admin's next read is a cache miss. A named profile
+such as `"max"` would also work but leaves the semantics implicit.
+
+`updateTag(tag)` is the stronger primitive but is **Server-Action-only** — its
+own doc comment says so — so it is not available from a Route Handler. If this
+write ever moves to a Server Action, prefer `updateTag`.
+
+### 18.2 The proxy masks every unauthenticated response code
+
+`proxy.ts` calls `auth.protect()` for every route outside
+`/sign-in(.*)`, `/`, `/whats-new`, `/api/health(.*)`. So an unsigned `PATCH` to
+this endpoint returns **307 to /sign-in**, not the handler's 401. Same for a
+`GET`, which would otherwise be 405.
+
+The handler's `auth()` / `isAdmin()` checks are therefore defense-in-depth rather
+than the first line of defence. Kept anyway — required by the project standard,
+and the proxy must not become the only gate on a write endpoint.
+
+Consequence: the 200 / 403 / 400 branches cannot be exercised without a real
+signed-in admin session. See 18.4.
+
+### 18.3 Validation and mapping verified
+
+Ran the schema through 8 cases; the parse results are the 400 path:
+
+| Case | Result |
+|---|---|
+| valid full body | pass |
+| `expiresAt: null` | pass |
+| `expiresAt: "2026-09-30T06:22"` (`datetime-local`) | **reject** |
+| missing `severity` | **reject** |
+| `severity: "urgent"` | **reject** |
+| `title: "   "` (whitespace only) | **reject** |
+| `title` 121 chars (column is `varchar(120)`) | **reject** |
+| `isEnabled: "true"` (string) | **reject** |
+
+Then the full post-auth path: parse -> map -> `updateSiteNotice` -> read back.
+All six keys present, no `undefined` anywhere (the 16.4 silent-drop condition),
+`expiresAt` a real `Date`, read-back matched exactly.
+
+Note `datetime-local` is rejected on purpose. The Task 6 client must send
+`new Date(localValue).toISOString()`, or every expiry save 400s.
+
+### 18.4 Not verified — needs a signed-in admin session
+
+`ADMIN_EMAILS` / `ADMIN_CLERK_IDS` are set in `.env`, so `isAdmin` will resolve
+for a real session, but a Clerk cookie cannot be forged locally. Untested:
+
+- 200 on a valid admin PATCH
+- 403 for a signed-in non-admin
+- 429 after 10 saves in a minute
+- that `revalidateTag(..., { expire: 0 })` actually invalidates at runtime
+
+That last one is the one to watch. The call is typechecked, but nothing in this
+environment proves the cache is really dropped — and if it silently does
+nothing, the admin saves and the banner does not move for up to an hour, with no
+error to explain it. Test it by saving in the admin form and reloading `/`
+without a redeploy.
+
+---
+
+## 19. Review Log — Task 5
+
+Three findings, all fixed. No security or performance defects.
+
+| # | Sev | Finding | Resolution |
+|---|-----|---------|------------|
+| 1 | **P2** | Write failure reason discarded | `log.error` with the error in both catches |
+| 2 | **P2** | `revalidateTag` unguarded after a committed write | Own `try`, logs and continues |
+| 3 | P3 | Value + type imports split across two statements | Merged |
+
+### 19.1 The swallowed error was hiding a real diagnostic
+
+Both `catch` blocks discarded the error and returned a bare 500.
+`withRequestLog` does record the 500 *status*, so the failure was visible, but
+not the reason.
+
+Proved the gap by forcing a real one — a 121-char `title` against a
+`varchar(120)`:
+
+```
+cause: Error: Data too long for column 'title' at row 1
+  code: 'ER_DATA_TOO_LONG'  errno: 1406  sqlState: '22001'
+  at updateSiteNotice (lib/site-notice.ts:190:15)
+```
+
+That is what the log line now carries. Before, it was a 500 and a shrug.
+
+> **Corrected in §20.** The three diagnostic fields above are on the error's
+> `cause`, and the production branch of the logger dropped `cause` entirely —
+> so in production this log line did **not** carry them. It also inlined the
+> bound parameters four times over. `lib/logger.ts` was fixed; the claim is only
+> true now.
+
+Two things this also settled:
+
+1. **MySQL is in strict mode.** The over-length value was *rejected*, not
+   silently truncated, and the `ON DUPLICATE KEY UPDATE` rolled back cleanly
+   (`updated_at` unchanged afterwards). So Zod's `.max(120)` is real defence in
+   depth against the column, not just a cosmetic bound.
+2. **`lib/site-notice.ts` logs success but never failure.** `log.info` on the
+   happy path, `log.error` only inside `fetchRow`. An `updateSiteNotice` throw
+   had no trace at all. The route now covers that.
+
+Note the three existing `app/api/admin/*` routes all swallow the same way, and
+`lib/` already had the right pattern (`admin-users.ts:254`). This is a new
+instance of a codebase habit, not a novel mistake — fixed here, not refactored
+across the others, since that would be an unrelated diff.
+
+### 19.2 A committed write must not report failure
+
+`revalidateTag` ran after the upsert, outside any `try`. If it threw, the
+exception escaped `withRequestLog` (which is `try/finally`, no `catch`) and the
+admin got a 500 — **with the row already written.**
+
+The natural client response is to retry, and a retry bumps `updated_at` again,
+which **re-announces the notice to every user who had already dismissed it**.
+Small chance, bad outcome: a self-inflicted site-wide notification.
+
+Now wrapped separately, logging and returning 200 on failure. The write did
+succeed, so reporting success is the truth, and the 1h TTL is precisely the
+backstop for a missed invalidation — the two decisions now line up instead of
+contradicting each other.
+
+### 19.3 Not fixed, deliberately
+
+`const admin = await isAdmin(userId)` names a boolean like an entity. Three
+sibling admin routes do the same; `isAdmin` itself is well named. Diverging one
+route for style costs more in consistency than it returns. Left alone, recorded
+here so the choice is deliberate.
+
+## 20. Review Log — `lib/logger.ts` error serialization
+
+Surfaced by reviewing my own §19.1 fix. **The claim in §19.1 was wrong, and
+wrong only in production** — which is the branch that actually ships.
+
+### 20.1 The correction
+
+§19.1 stated the new `log.error` carries `code: 'ER_DATA_TOO_LONG'`. I verified
+that in **dev**, where `emit` hands the raw error object to `console.error` and
+every own property prints. I never checked the production branch, which
+serializes first:
+
+```ts
+// before
+function serializeError(err) {
+  if (err instanceof Error) {
+    return { name: err.name, message: err.message, stack: err.stack };
+  }
+  return err;
+}
+```
+
+`cause` is never touched. On a Drizzle error that is the worst of both worlds at
+once:
+
+- `message` **and** `stack` both inline the **bound parameter values**, and an
+  `ON DUPLICATE KEY UPDATE` repeats them — so the full `title` (120) +
+  `message` (2000) and the admin's `updated_by` Clerk ID were written **four
+  times per failed save**.
+- `cause` — where `code` / `errno` / `sqlState` actually live — was **dropped**.
+
+The log line carried the payload four times and the diagnosis zero times.
+Measured on a real forced `ER_DATA_TOO_LONG`, production serialization, before
+the fix:
+
+```
+{"error":{"name":"Error",
+  "message":"Failed query: insert into `site_notices` (…) values (?, ?, …)
+              on duplicate key update …\nparams: 1,false,info,banner,yyy…(121),m,,
+              false,info,banner,yyy…(121),m,,",
+  "stack":"Error: Failed query: …\nparams: 1,false,info,banner,yyy…(121),…
+              at MySql2PreparedQuery.queryWithCache (…/session.ts:79:11) …"}}
+```
+
+### 20.2 Why it was still worth fixing now
+
+Severity for *this* endpoint is genuinely low, and the plan should say so rather
+than inflate it:
+
+- the notice is public by definition — it is rendered to every visitor;
+- the Clerk ID in `updated_by` belongs to the admin making the request;
+- **no secret reaches a log line on this path.** Checked: `withConnectRetry`
+  logs only `extractCode(error)`, and mysql2 connection errors carry
+  host/port and sometimes a username, never the password.
+
+The risk is the **pattern**, not this endpoint. §19.1 recommended `log.error` as
+*the* correct response to a swallowed failure, and there are **43 `log.error`
+call sites** in the repo. Copied to a route handling profile edits, feedback
+tickets, or user sync, the same serialization puts real user PII into Vercel
+logs four times over, unredacted — while still hiding the error code that would
+tell you what broke.
+
+### 20.3 The fix — `lib/logger.ts` only, no call-site changes
+
+Root cause is shared infrastructure, so that is where it was fixed. Three parts:
+
+1. **Walk `cause`**, bounded by `MAX_CAUSE_DEPTH = 3`, emitting
+   `[cause chain truncated]` at the limit. A self-referential `cause` chain
+   would otherwise hang the logger on a log call.
+2. **Redact bound params** from `message` and `stack` while **keeping the query
+   shape** — *which* statement failed is the diagnostic; the values are the leak.
+3. **Surface `code` / `errno` / `sqlState` / `sqlMessage`** off the cause, since
+   those are the fields that identify a database failure.
+
+After, same forced failure:
+
+```
+message      : Failed query: insert into `site_notices` (…) values (?, ?, …)
+               params: [redacted]
+code         : ER_DATA_TOO_LONG
+sqlState     : 22001
+sqlMessage   : Data too long for column 'title' at row 1
+stack frames : 6 preserved
+leaks title  : false
+log bytes    : 2520
+```
+
+Payload gone, code present, query still identifiable. §19.1's claim is now
+actually true rather than accidentally true in dev.
+
+**No call site needed changing.** `log.error(msg, err, ctx)` has the same
+signature and the same dev behaviour — dev still receives the raw error object
+with everything on it, which is the right local-debugging experience. Only the
+production serialization got safer, so all 43 sites improve for free.
+
+### 20.4 The multi-line trap — why redaction cannot be line-based
+
+The obvious implementation is `text.replace(/^params: .*$/gm, ...)`. **It is
+wrong for this feature.** The notice `message` is admin-authored and multi-line
+*by design* — `SiteNoticeBanner` renders it with `whitespace-pre-line`. A newline
+inside a bound param value breaks the line anchor, and every line after the
+first leaks:
+
+```
+params: 1,Heads up
+SECOND LINE OF THE NOTICE,second-leak
+```
+
+Hence the lookahead instead of an anchor:
+
+```ts
+const SQL_PARAMS = /params: [\s\S]*?(?=\n\s+at\s|$)/g;
+```
+
+Lazy match terminating at either a stack frame (`\n    at `) or end of string.
+One pattern covers params in `message`, params in `stack`, and params containing
+newlines. Verified against a deliberately two-line secret in a param value: fully
+redacted.
+
+**Accepted cost:** a param value containing the literal text `\n    at ` would be
+under-redacted for that fragment. The regex fails toward a *longer* log line,
+never a shorter one, which is the correct direction for a redaction rule.
+
+### 20.5 Verified
+
+| Case | Result |
+|------|--------|
+| Real Drizzle `ER_DATA_TOO_LONG` | params redacted, `code` + `sqlState` + `sqlMessage` present, 6 frames kept |
+| Param value containing a newline | fully redacted, no second-line leak |
+| Params in `stack` only | redacted; `at foo` / `at bar` frames after it **survive** |
+| Plain `Error`, no `cause` | unchanged, `cause` omitted rather than `undefined` |
+| Circular `cause` chain (a→b→c→d→a) | terminates at 4 levels, no hang |
+| Non-`Error` thrown | passed through unchanged, as before |
+| Live DB row after forced failure | `updated_at` unchanged — the upsert still rolls back cleanly |
+
+`npm run typecheck` and Prettier both clean across `lib/logger.ts`,
+`app/api/admin/site-notice/route.ts`, `config/rate-limits.ts`,
+`lib/db-rate-limit.ts`.
