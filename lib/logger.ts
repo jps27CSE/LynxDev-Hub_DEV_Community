@@ -44,11 +44,44 @@ function emit(
   }
 }
 
-function serializeError(err: unknown): unknown {
-  if (err instanceof Error) {
-    return { name: err.name, message: err.message, stack: err.stack };
+const MAX_CAUSE_DEPTH = 3;
+
+/**
+ * Drizzle interpolates bound parameters into the error message, and an
+ * ON DUPLICATE KEY UPDATE repeats them — so one failed write can inline a
+ * row's contents several times over. Keep the query shape, drop the values.
+ * Matches to the end of the message, or up to the first stack frame.
+ */
+const SQL_PARAMS = /params: [\s\S]*?(?=\n\s+at\s|$)/g;
+
+/** Driver-level fields that identify the failure; they sit on `cause`. */
+const DIAGNOSTIC_KEYS = ["code", "errno", "sqlState", "sqlMessage"] as const;
+
+function redactParams(text: string): string {
+  return text.replace(SQL_PARAMS, "params: [redacted]");
+}
+
+function serializeError(err: unknown, depth = 0): unknown {
+  if (!(err instanceof Error)) return err;
+  if (depth >= MAX_CAUSE_DEPTH) {
+    return { name: err.name, message: "[cause chain truncated]" };
   }
-  return err;
+
+  const serialized: Record<string, unknown> = {
+    name: err.name,
+    message: redactParams(err.message),
+  };
+  if (err.stack) serialized.stack = redactParams(err.stack);
+
+  for (const key of DIAGNOSTIC_KEYS) {
+    const value = (err as unknown as Record<string, unknown>)[key];
+    if (value !== undefined) serialized[key] = value;
+  }
+  if (err.cause !== undefined) {
+    serialized.cause = serializeError(err.cause, depth + 1);
+  }
+
+  return serialized;
 }
 
 const SLOW_DB_THRESHOLD_MS = 250;
