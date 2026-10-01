@@ -18,6 +18,7 @@ import {
   updateSiteNotice,
   type UpdateSiteNoticeInput,
 } from "@/lib/site-notice";
+import { getUserLabelByClerkId } from "@/lib/user-lookup";
 import {
   SITE_NOTICE_DISPLAYS,
   SITE_NOTICE_MESSAGE_MAX,
@@ -107,6 +108,12 @@ export async function PATCH(req: NextRequest) {
       log.error("cache invalidation failed", error, { userId });
     }
 
-    return NextResponse.json(record);
+    // updatedByLabel is display-only and safe to omit on failure — the client
+    // falls back to the raw id. Kept out of lib/site-notice.ts so the shared
+    // read path (and the public banner's allowlist projection) never carries
+    // a field only one admin screen uses.
+    const updatedByLabel = await getUserLabelByClerkId(userId);
+
+    return NextResponse.json({ ...record, updatedByLabel });
   });
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getSiteNoticeRecord } from "@/lib/site-notice";
+import { getUserLabelByClerkId } from "@/lib/user-lookup";
 import AdminPageWrapper from "../_components/AdminPageWrapper";
 import SiteNoticeForm, {
   UNSEEDED_SITE_NOTICE,
@@ -40,6 +41,13 @@ export default async function AdminSiteNoticePage() {
         expiresAt: record.expiresAt ? record.expiresAt.toISOString() : null,
         updatedAt: record.updatedAt.toISOString(),
         updatedBy: record.updatedBy,
+        // The stored updatedBy stays the raw Clerk id — that is the audit
+        // fact. This is only the caption next to it. A null here (no users row
+        // for that admin, or the lookup failed) falls back to the id, so the
+        // audit line degrades instead of disappearing.
+        updatedByLabel: record.updatedBy
+          ? await getUserLabelByClerkId(record.updatedBy)
+          : null,
       };
     } else {
       // getSiteNoticeRecord returns null on an unseeded table — reachable via

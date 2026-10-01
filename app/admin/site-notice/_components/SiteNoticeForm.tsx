@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,12 @@ export type SiteNoticeFormValues = {
   expiresAt: string | null;
   updatedAt: string | null;
   updatedBy: string | null;
+  /**
+   * Display caption for `updatedBy`, resolved server-side. Null when the admin
+   * has no `users` row or the lookup failed, in which case the raw id is shown
+   * instead — a raw id is ugly, but it is still an honest audit trail.
+   */
+  updatedByLabel: string | null;
 };
 
 /**
@@ -60,6 +66,7 @@ export const UNSEEDED_SITE_NOTICE: SiteNoticeFormValues = {
   expiresAt: null,
   updatedAt: null,
   updatedBy: null,
+  updatedByLabel: null,
 };
 
 /**
@@ -100,11 +107,28 @@ export default function SiteNoticeForm({
     display: initial.display,
     title: initial.title,
     message: initial.message,
-    expiresLocal: isoToDatetimeLocal(initial.expiresAt),
+    // Deliberately "" rather than isoToDatetimeLocal(initial.expiresAt). That
+    // helper reads local wall time, and a useState initialiser runs during
+    // SSR, so it would put the UTC wall time in the server HTML and the
+    // admin's real wall time in theirs — a value React then patches under the
+    // admin's hands. The server cannot know the admin's timezone, so it must
+    // not guess one. Populated after mount below.
+    expiresLocal: "",
   });
+  // One-shot, so it cannot clobber an edit made between mount and effect.
+  const expiryHydrated = useRef(false);
+  useEffect(() => {
+    if (expiryHydrated.current) return;
+    expiryHydrated.current = true;
+    setForm((prev) => ({
+      ...prev,
+      expiresLocal: isoToDatetimeLocal(initial.expiresAt),
+    }));
+  }, [initial.expiresAt]);
   const [audit, setAudit] = useState({
     updatedAt: initial.updatedAt,
     updatedBy: initial.updatedBy,
+    updatedByLabel: initial.updatedByLabel,
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -214,7 +238,11 @@ export default function SiteNoticeForm({
         message: saved.message,
         expiresLocal: isoToDatetimeLocal(saved.expiresAt),
       });
-      setAudit({ updatedAt: saved.updatedAt, updatedBy: saved.updatedBy });
+      setAudit({
+        updatedAt: saved.updatedAt,
+        updatedBy: saved.updatedBy,
+        updatedByLabel: saved.updatedByLabel,
+      });
       router.refresh();
     } catch {
       setError(
@@ -228,10 +256,19 @@ export default function SiteNoticeForm({
   // Memoised so typing a message does not re-run Intl formatting on every
   // keystroke, and so the same label renders identically on the server and the
   // client (both call the same formatter with an explicit locale).
-  const timeZone = useMemo(
-    () => Intl.DateTimeFormat().resolvedOptions().timeZone,
-    [],
-  );
+  // Browser timezone, sampled client-only. resolvedOptions().timeZone is
+  // "UTC" on Vercel and the user's real zone in the browser, so rendering it
+  // during SSR is a guaranteed mismatch — and because React 19 derives useId
+  // from tree position, the divergent text shifts every generated id below it,
+  // surfacing as bogus aria-controls diffs on the Selects far above.
+  // Memoising does NOT help: useMemo still runs on both sides. Same reasoning
+  // as clockNowMs and SiteNoticeBanner's sessionStorage read — null until the
+  // first effect. Note this only reproduces in production; dev is usually UTC
+  // to UTC, which is exactly why it hides locally.
+  const [timeZone, setTimeZone] = useState<string | null>(null);
+  useEffect(() => {
+    setTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }, []);
 
   const expiresUtcLabel = useMemo(
     () =>
@@ -245,15 +282,21 @@ export default function SiteNoticeForm({
     [resolvedExpiry],
   );
 
+  // Gated on timeZone for the same reason as above: toLocaleString with no
+  // timeZone resolves in the ambient zone, so SSR says "UTC" and the client
+  // says its own. Rendering it only once timeZone is known (client-only) means
+  // the first client render matches the server's empty string and the label
+  // fills in on the next one.
   const lastSavedLabel = useMemo(
     () =>
-      audit.updatedAt === null
+      audit.updatedAt === null || timeZone === null
         ? null
         : new Date(audit.updatedAt).toLocaleString("en-US", {
+            timeZone,
             dateStyle: "medium",
             timeStyle: "short",
           }),
-    [audit.updatedAt],
+    [audit.updatedAt, timeZone],
   );
 
   return (
@@ -444,8 +487,8 @@ export default function SiteNoticeForm({
           )}
           <div className="space-y-1 text-xs text-muted-foreground">
             <p>
-              Leave empty for no expiry. Interpreted in your local time zone (
-              {timeZone}).
+              Leave empty for no expiry. Interpreted in your local time zone
+              {timeZone ? ` (${timeZone})` : ""}.
             </p>
             {resolvedExpiry && (
               <p
@@ -475,18 +518,32 @@ export default function SiteNoticeForm({
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-muted-foreground">
-          {lastSavedLabel ? (
+          {/* Keyed on updatedAt, not on lastSavedLabel. lastSavedLabel is null until
+            the client-only timezone is known, and branching on it here would
+            flash "Never saved" for a notice that was in fact saved — a lie
+            that is worse than a one-frame gap. */}
+          {audit.updatedAt === null ? (
+            <>Never saved</>
+          ) : lastSavedLabel === null ? (
+            // Timezone not sampled yet. Reserve the line so the layout does
+            // not jump when the real label lands one render later.
+            <span className="opacity-0">Last saved —</span>
+          ) : (
             <>
               Last saved {lastSavedLabel}
               {audit.updatedBy && (
                 <>
                   {" "}
-                  by <span className="font-mono">{audit.updatedBy}</span>
+                  by{" "}
+                  {/* Prefer the resolved name. The id stays in the DOM as the
+                      title so a collision or a renamed account is still
+                      traceable to a single row. */}
+                  <span title={audit.updatedBy}>
+                    {audit.updatedByLabel ?? audit.updatedBy}
+                  </span>
                 </>
               )}
             </>
-          ) : (
-            "Never saved"
           )}
         </p>
         <Button type="submit" disabled={!canSubmit} className="sm:w-48">
