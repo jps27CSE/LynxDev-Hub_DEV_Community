@@ -21,10 +21,17 @@ export default async function AdminPage() {
     : "Admin";
 
   return (
-    <div className="space-y-6 sm:space-y-8 pt-6 sm:pt-8">
+    <>
+      {/* Outside the padded container on purpose. While this lived in
+          AdminShell it sat flush at the top of the admin shell with no page
+          padding above it; moving it inside `pt-6 sm:pt-8` added a gap that
+          was never there before. Sub-pages keep their own `py-*` from
+          AdminPageWrapper — this card is not that shape. */}
       <AdminHeader name={adminName} />
-      <OverviewStats stats={overview} />
-      <QuickActions openTickets={overview.openTickets} />
-    </div>
+      <div className="space-y-6 sm:space-y-8 pt-6 sm:pt-8">
+        <OverviewStats stats={overview} />
+        <QuickActions openTickets={overview.openTickets} />
+      </div>
+    </>
   );
 }

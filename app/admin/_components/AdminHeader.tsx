@@ -23,7 +23,7 @@ export default function AdminHeader({ name }: { name: string }) {
     setGreeting(greetingFor(new Date().getHours()));
   }, []);
   return (
-    <div className="relative w-full rounded-xl sm:rounded-2xl border border-border/50 bg-gradient-to-br from-red-500/5 via-background to-orange-500/5 p-4 sm:p-6 lg:p-8 overflow-hidden">
+    <div className="relative w-full rounded-b-xl sm:rounded-b-2xl border border-border/50 bg-gradient-to-br from-red-500/5 via-background to-orange-500/5 p-4 sm:p-6 lg:p-8 overflow-hidden">
       <div className="absolute inset-0 bg-grid-paper pointer-events-none" />
 
       <div className="relative">
