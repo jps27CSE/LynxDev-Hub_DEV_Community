@@ -14,7 +14,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import type { ActiveSiteNotice, SiteNoticeSeverity } from "@/lib/site-notice";
+import type { ActiveSiteNotice } from "@/lib/site-notice";
+import type { SiteNoticeSeverity } from "@/config/site-notice";
 
 const STORAGE_KEY = "lynxdev_site_notice_ack";
 

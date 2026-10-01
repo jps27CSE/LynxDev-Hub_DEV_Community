@@ -265,7 +265,7 @@ Each task is independently testable. **Implement one at a time; stop and hand of
 | **3** | Global component | `components/SiteNoticeBanner.tsx` | Not yet visible — no mount point yet |
 | **4** | Root layout mount | `app/layout.tsx` | Visit `/dashboard` with a seeded enabled row; banner/modal appears |
 | **5** | API route + rate limit | `app/api/admin/site-notice/route.ts`, `config/rate-limits.ts`, `lib/db-rate-limit.ts` | `curl` PATCH as admin (200) and as non-admin (403), unsigned (401), bad body (400) |
-| **6** | Admin page + form | `app/admin/site-notice/page.tsx`, `_components/SiteNoticeForm.tsx` | Toggle + save from the UI; the notice updates everywhere |
+| **6** | Admin page + form | `app/admin/site-notice/page.tsx`, `_components/SiteNoticeForm.tsx`, `config/site-notice.ts` | Toggle + save from the UI; the notice updates everywhere. **Done — plan §21** |
 | **7** | Nav wiring | `AdminSidebar.tsx`, `QuickActions.tsx` | Link present and active-state correct; Settings card no longer disabled |
 | **8** | Docs | `.env.example`, `.agent/feature-tracker.md` | `SITE_NOTICE_DISABLED` documented; 4.6 no longer claims admin is unbuilt |
 | **9** | Self-review + hand off | — | `npm run typecheck`, `npm run format:check`, then the manual test script below |
@@ -776,3 +776,159 @@ never a shorter one, which is the correct direction for a redaction rule.
 `npm run typecheck` and Prettier both clean across `lib/logger.ts`,
 `app/api/admin/site-notice/route.ts`, `config/rate-limits.ts`,
 `lib/db-rate-limit.ts`.
+
+## 21. Task 6 Notes — admin page + form
+
+`app/admin/site-notice/page.tsx` (Server Component) +
+`_components/SiteNoticeForm.tsx` (`"use client"`). This is what makes the
+notice usable at all — through Task 5 the only way to change the row was by
+hand in the DB.
+
+### 21.1 The form calls the endpoint, not a server action
+
+The page could have written via a server action calling `updateSiteNotice`
+directly, which would have skipped the HTTP round trip and needed no client
+component at all. It went with `fetch` against the PATCH endpoint instead:
+
+- **One source of validation.** The Zod schema lives in the route. A server
+  action would either duplicate it or need the schema extracted to a third
+  module. Duplicating validation is how "the form accepted it but the API
+  rejected it" bugs are born.
+- **Rate limiting applies.** `enforceDbRateLimit` returns a `NextResponse`,
+  which is awkward to surface from a server action. Going through the endpoint
+  means the documented 10 req/min is actually enforced on this path.
+- **It exercises the code that was already reviewed and committed.** A server
+  action would be a second, unreviewed write path sitting next to the first.
+
+Cost: one HTTP round trip on a form save that is already behind a button
+press and a 1s spinner. Negligible. Recorded because the trade-off was real,
+not because it was close.
+
+### 21.2 `force-dynamic` on the page
+
+Not for data freshness — the PATCH calls `revalidateTag`, and `force-dynamic`
+sidesteps cache semantics entirely for an edit surface. If an admin saves,
+navigates back, and sees stale fields, the reasonable conclusion is "the save
+failed". That is a worse outcome than one extra query on a page almost nobody
+loads. Admin traffic is negligible, so caching buys nothing worth the risk.
+
+### 21.3 The build-breaker this task walked into
+
+The first draft of the form imported **values** from `@/lib/site-notice`:
+
+```ts
+import {
+  SITE_NOTICE_DISPLAYS,
+  SITE_NOTICE_SEVERITIES,   // <- values, not types
+  type SiteNoticeDisplay,
+  type SiteNoticeSeverity,
+} from "@/lib/site-notice";
+```
+
+`tsc` passed. `next build` did not:
+
+```
+Module not found: Can't resolve 'net'
+  mysql2 -> config/db -> lib/site-notice -> SiteNoticeForm.tsx [Client Component Browser]
+```
+
+`lib/site-notice.ts` imports `config/db`, so importing any **value** from it
+in a `"use client"` file drags mysql2 and the Node `net`/`tls`/`timers`
+builtins into the browser bundle. Type-only imports are erased and stay safe,
+which is why `SiteNoticeBanner`'s existing `import type { ... }` never tripped
+this.
+
+This is the same leak the Known Debt entry about the banner chunk guards
+against, reached from the opposite direction: not a stray spread, just the
+wrong kind of import.
+
+**Fix:** vocabulary moved to `config/site-notice.ts`, which has zero imports.
+`lib/site-notice.ts` now `import`s it rather than re-exporting — a re-export
+would have left the trap armed for the next client component. Verified the
+form's client chunk contains zero driver symbols.
+
+General rule: **if a module reaches `config/db`, a client component may only
+ever `import type` from it.** Values go in `config/`.
+
+### 21.4 Two hydration/detail bugs caught in self-review
+
+**The "in the past" hint went stale.** It sampled the clock once in an effect,
+so a form left open past the expiry kept reporting "future" indefinitely. Now
+a 30s interval re-samples, cleared on unmount.
+
+**The first fix for it was itself a hydration bug.** `expiryInPast` originally
+called `Date.now()` during render. That runs on the server for SSR *and* again
+on the client — an expiry landing inside the gap makes the two disagree and
+React complains. The fix is the same pattern `SiteNoticeBanner` already uses for
+`sessionStorage`: a client-only clock that is `null` until the first effect.
+
+### 21.5 An unparsable expiry used to silently clear itself
+
+`resolvedExpiry` went `null` both for an empty field *and* for garbage the
+browser couldn't parse. Empty is legitimately "no expiry", so the submit path
+serialized `expiresAt: null` — meaning a fat-fingered `datetime-local` value
+**silently wiped an expiry the admin believed they had set**, and the save
+succeeded.
+
+Split into `parsedExpiry` (raw `Date`, possibly Invalid) and `resolvedExpiry`
+(valid or `null`), with `expiryInvalid` distinguishing the two cases. Garbage
+now shows an error and blocks the save. Verified:
+
+```
+input=""                 invalid=false  payload=null              <- cleared, intended
+input="2026-10-05T14:30" invalid=false  payload=2026-10-05T08:30:00.000Z
+input="abc"              invalid=true   <- was silently null before
+input="2026-10-05T"      invalid=true   <- partial typing caught too
+```
+
+### 21.6 Error surfacing, deliberately not copied
+
+The mutation shape was copied from `FeedbackDetailDialog.handleSave`, but its
+error handling was not. That component does `if (res.ok) { ... }` and nothing
+else, so a failed save is indistinguishable from no-op. This form reads
+`{ error }` from every response shape and appends `Retry-After` on a 429.
+
+### 21.7 Column widths were three copies of the same number
+
+`120` and `2000` appeared in the form's `maxLength`, in the route's Zod schema,
+and in the `varchar` width. Now `SITE_NOTICE_TITLE_MAX` /
+`SITE_NOTICE_MESSAGE_MAX` in `config/site-notice.ts` feed all three, including
+`config/schema.tsx`. `drizzle-kit generate` confirms **no schema change** — the
+constant is structurally identical to the literal it replaced.
+
+### 21.8 Timezone handling
+
+`datetime-local` is a local wall time; the API wants full ISO with an offset.
+The conversion is mandatory, not stylistic — verified that
+`new Date(local).toISOString()` passes the schema and a raw `datetime-local`
+value is rejected.
+
+The form shows the resolved UTC value and warns when it is in the past, because
+"2026-10-05 14:30" is ambiguous without knowing the admin's zone. Round-trip
+is stable across six timezones including UTC+14 and UTC−11;
+`Pacific/Midway` correctly renders the *previous* day, so the local-date math
+crosses date boundaries and not just time-of-day.
+
+### 21.9 Not fixed, deliberately
+
+| Item | Why left |
+|------|----------|
+| `maxLength` counts raw, Zod counts trimmed | A 120-char title plus trailing spaces passes `maxLength` and fails the API. Fixing means counting `trim().length` and adding slack to `maxLength`, which then makes the counter and the limit visibly disagree. Real edge case, needs a decision rather than a guess. |
+| Clock does not re-sample on tab focus | The 30s interval covers it, but a backgrounded tab throttles timers so the hint can lag up to a minute on refocus. A `visibilitychange` listener is more machinery than a warning label warrants. |
+| Rate-limit message not localised to the field | Server-side rate limiting is the correct enforcement point; the client hint is a nicety. |
+
+### 21.10 Verified
+
+- Form payload accepted by the route's schema in all 5 shapes — with expiry,
+  null expiry, whitespace-padded fields, multi-line message, 120-char boundary.
+  All 3 negative cases the UI must block are rejected.
+- `config/schema.tsx` edit briefly nested an `import {` inside another while
+  adding the constant. Caught by `npm run typecheck`, fixed, `drizzle-orm`
+  import kept first. Noted because it is what the gates are for.
+- typecheck, Prettier, build all clean; `/admin/site-notice` registers dynamic;
+  client chunk free of mysql2/Drizzle symbols.
+
+**Not verified — needs a signed-in admin:** the live cache invalidation
+(`revalidateTag(..., { expire: 0 })` actually busting the banner without a
+redeploy), the `/admin` exemption, and mobile layout. There is also still no
+nav link to this page — Task 7.

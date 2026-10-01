@@ -10,6 +10,7 @@ import {
   uniqueIndex,
   varchar,
 } from "drizzle-orm/mysql-core";
+import { SITE_NOTICE_TITLE_MAX } from "@/config/site-notice";
 
 export const usersTable = mysqlTable("users", {
   id: int().primaryKey().autoincrement(),
@@ -178,7 +179,9 @@ export const siteNotices = mysqlTable("site_notices", {
   is_enabled: boolean("is_enabled").notNull().default(false),
   severity: varchar({ length: 10 }).notNull().default("info"),
   display: varchar({ length: 10 }).notNull().default("banner"),
-  title: varchar({ length: 120 }).notNull().default("Heads up"),
+  title: varchar({ length: SITE_NOTICE_TITLE_MAX })
+    .notNull()
+    .default("Heads up"),
   message: text().notNull(),
   expires_at: timestamp("expires_at"),
   updated_at: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),

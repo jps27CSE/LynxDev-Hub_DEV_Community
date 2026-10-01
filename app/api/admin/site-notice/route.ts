@@ -15,11 +15,15 @@ import { withRequestLog } from "@/lib/request-log";
 import { createLogger } from "@/lib/logger";
 import {
   SITE_NOTICE_CACHE_TAG,
-  SITE_NOTICE_DISPLAYS,
-  SITE_NOTICE_SEVERITIES,
   updateSiteNotice,
   type UpdateSiteNoticeInput,
 } from "@/lib/site-notice";
+import {
+  SITE_NOTICE_DISPLAYS,
+  SITE_NOTICE_MESSAGE_MAX,
+  SITE_NOTICE_SEVERITIES,
+  SITE_NOTICE_TITLE_MAX,
+} from "@/config/site-notice";
 
 const log = createLogger("admin-site-notice");
 
@@ -38,8 +42,8 @@ const SiteNoticeSchema = z.object({
   isEnabled: z.boolean(),
   severity: z.enum(SITE_NOTICE_SEVERITIES),
   display: z.enum(SITE_NOTICE_DISPLAYS),
-  title: z.string().trim().min(1).max(120),
-  message: z.string().trim().min(1).max(2000),
+  title: z.string().trim().min(1).max(SITE_NOTICE_TITLE_MAX),
+  message: z.string().trim().min(1).max(SITE_NOTICE_MESSAGE_MAX),
   expiresAt: z.iso.datetime({ offset: true }).nullable(),
 });
 

@@ -32,11 +32,16 @@ const withNoticeCache = createContentCache({
   ttl: SITE_NOTICE_CACHE_TTL,
 });
 
-export const SITE_NOTICE_SEVERITIES = ["info", "warning", "critical"] as const;
-export const SITE_NOTICE_DISPLAYS = ["banner", "modal"] as const;
-
-export type SiteNoticeSeverity = (typeof SITE_NOTICE_SEVERITIES)[number];
-export type SiteNoticeDisplay = (typeof SITE_NOTICE_DISPLAYS)[number];
+// Vocabulary lives in config/site-notice.ts so client components can import it
+// without pulling config/db -> mysql2 into the browser bundle. Imported, not
+// re-exported: re-exporting would leave the same trap armed for the next
+// client component that reaches for a value from this module.
+import {
+  SITE_NOTICE_SEVERITIES,
+  SITE_NOTICE_DISPLAYS,
+  type SiteNoticeSeverity,
+  type SiteNoticeDisplay,
+} from "@/config/site-notice";
 
 /**
  * Public projection. Deliberately an allowlist of five primitive fields —
