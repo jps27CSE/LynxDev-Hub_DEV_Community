@@ -1,16 +1,27 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ShieldCheck, Clock, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-const timeGreeting = () => {
-  const hour = new Date().getHours();
+function greetingFor(hour: number) {
   if (hour < 12) return "Good morning";
   if (hour < 18) return "Good afternoon";
   return "Good evening";
-};
+}
 
 export default function AdminHeader({ name }: { name: string }) {
+  // Sampled client-only, and null until the first effect. Calling
+  // new Date().getHours() during render runs on the server for SSR too, in
+  // UTC, and then again in the browser in the user's local zone — so for much
+  // of the day the server renders "Good morning" and the client corrects it to
+  // "Good afternoon". Same class as the site notice timezone bug: reading the
+  // clock during render is a hydration mismatch. Falls back to a neutral
+  // greeting for one frame rather than guessing wrong.
+  const [greeting, setGreeting] = useState<string | null>(null);
+  useEffect(() => {
+    setGreeting(greetingFor(new Date().getHours()));
+  }, []);
   return (
     <div className="relative w-full rounded-xl sm:rounded-2xl border border-border/50 bg-gradient-to-br from-red-500/5 via-background to-orange-500/5 p-4 sm:p-6 lg:p-8 overflow-hidden">
       <div className="absolute inset-0 bg-grid-paper pointer-events-none" />
@@ -22,7 +33,7 @@ export default function AdminHeader({ name }: { name: string }) {
         </div>
 
         <h1 className="text-lg sm:text-2xl lg:text-3xl font-display font-bold tracking-tight leading-snug sm:leading-tight">
-          {timeGreeting()},{" "}
+          {greeting ?? "Welcome back"},{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">
             {name}
           </span>
@@ -39,8 +50,7 @@ export default function AdminHeader({ name }: { name: string }) {
           </div>
           <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
             <Badge variant="secondary" className="text-xs">
-              <Users className="w-3.5 h-3.5" />
-              0
+              <Users className="w-3.5 h-3.5" />0
             </Badge>
           </div>
           <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
