@@ -3,14 +3,16 @@
 import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
-import AdminHeader from "./AdminHeader";
 
 type AdminShellProps = {
   children: React.ReactNode;
-  adminName: string;
 };
 
-export default function AdminShell({ children, adminName }: AdminShellProps) {
+// Deliberately renders no greeting header. It used to sit above `children`,
+// so the "Good afternoon, Admin" card showed on every admin tab — Feedback,
+// Users and Site Notice included — where it was pure repetition. It now
+// belongs to the Overview page it actually describes.
+export default function AdminShell({ children }: AdminShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -57,7 +59,6 @@ export default function AdminShell({ children, adminName }: AdminShellProps) {
           sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
         }`}
       >
-        <AdminHeader name={adminName} />
         <main className="flex-1 flex flex-col min-w-0 w-full overflow-hidden">
           {children}
         </main>

@@ -1,7 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin-auth";
-import { getUserByClerkId } from "@/lib/enroll-data";
 import AdminShell from "./_components/AdminShell";
 
 export default async function AdminLayout({
@@ -15,8 +14,7 @@ export default async function AdminLayout({
   const admin = await isAdmin(userId);
   if (!admin) redirect("/");
 
-  const user = await getUserByClerkId(userId);
-  const adminName = user?.name ?? "Admin";
-
-  return <AdminShell adminName={adminName}>{children}</AdminShell>;
+  // No admin-name lookup here. It existed only to feed the greeting header,
+  // which moved to the Overview page.
+  return <AdminShell>{children}</AdminShell>;
 }

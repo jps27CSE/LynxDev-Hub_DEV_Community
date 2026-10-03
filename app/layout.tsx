@@ -5,6 +5,8 @@ import Provider from "@/app/provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SiteNoticeBanner } from "@/components/SiteNoticeBanner";
+import { getActiveSiteNotice } from "@/lib/site-notice";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,11 +58,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const notice = await getActiveSiteNotice();
+
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning className="dark">
@@ -76,6 +80,7 @@ export default function RootLayout({
           >
             {children}
           </Provider>
+          <SiteNoticeBanner notice={notice} />
           <Analytics />
           <SpeedInsights />
         </body>

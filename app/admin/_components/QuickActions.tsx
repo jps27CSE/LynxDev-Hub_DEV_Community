@@ -32,13 +32,12 @@ export default function QuickActions({ openTickets }: { openTickets: number }) {
     },
     {
       label: "Settings",
-      description: "Admin configuration and preferences",
+      description: "Publish a site-wide notice for all users",
       icon: Settings,
-      href: "/admin",
+      href: "/admin/site-notice",
       color: "text-amber-500",
       bg: "bg-amber-500/10",
       ring: "ring-amber-500/20",
-      disabled: true,
     },
   ];
 

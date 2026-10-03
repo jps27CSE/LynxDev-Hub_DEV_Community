@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Megaphone,
 } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
 
@@ -19,6 +20,7 @@ const adminLinks = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
   { label: "Feedback", href: "/admin/feedback", icon: MessageSquare },
   { label: "Users", href: "/admin/users", icon: Users },
+  { label: "Site Notice", href: "/admin/site-notice", icon: Megaphone },
 ];
 
 type AdminSidebarProps = {
