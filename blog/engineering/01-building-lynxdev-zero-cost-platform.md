@@ -1,73 +1,120 @@
 ---
-title: "Building LynxDEV: A Zero-Cost Developer Learning Platform"
+title: "Designing a Clean, Scalable Architecture for Learning Platforms"
 date: "2025-10-12"
 author: "LynxDEV Engineering"
-description: "How we built a zero-cost developer learning platform on Next.js 16, TiDB, Clerk, and Mistral running entirely on free tiers."
-slug: "building-lynxdev-zero-cost-platform"
-tags: ["architecture", "nextjs", "free-tier", "performance", "security", "drizzle", "clerk"]
+description: "Lessons learned in building a maintainable Next.js architecture with clear separation of concerns, caching strategies, and performance optimizations."
+slug: "designing-scalable-architecture"
+tags: ["architecture", "nextjs", "performance", "caching", "scalability"]
 ---
 
-# Building LynxDEV: A Zero-Cost Developer Learning Platform
+# Designing a Clean, Scalable Architecture for Learning Platforms
 
 *Published: October 2025 | Author: LynxDEV Engineering*
 
-## The Problem
+## The Architecture Mindset
 
-We set out to build LynxDEV - a complete developer learning platform with courses, DSA practice, interview prep, AI mentorship, and community features. The constraint was simple: **run everything for $0/month** on free-tier infrastructure, without sacrificing performance or user experience for 500+ concurrent users.
+Building a learning platform comes with unique challenges: content-heavy pages, interactive editors, real-time progress tracking, and a need for snappy performance. The key is striking a balance between simplicity and scalability while keeping the codebase maintainable.
 
-This is the story of how we architected, implemented, and hardened LynxDEV to achieve that goal.
+Our approach prioritizes clarity over cleverness, with a strong emphasis on type safety and predictable data flow.
 
-## Constraints
+## Core Principles
 
-From day one, our design decisions were driven by hard free-tier limits:
+1. **Server-first by default** - Leverage React Server Components for data fetching and static content. Only reach for client components when you need interactivity, browser APIs, or state management tied to user actions.
+2. **Separation of concerns** - Keep data access in `lib/`, schema and types in `config/`, and UI logic in components. This makes the codebase easy to navigate and test.
+3. **Explicit data boundaries** - Pass data down from Server Components as props to Client Components. Avoid mixing server-only code with client bundles.
+4. **Performance-conscious caching** - Use Next.js' built-in caching mechanisms strategically. Cache stable content while keeping user-specific data fresh.
+5. **Type-safe throughout** - Drizzle ORM paired with Zod validation ensures end-to-end type safety from database to API to UI.
 
-| Service | Free Tier Limit | Impact |
-|---|---|---|
-| [Vercel Hobby](https://vercel.com/pricing) | 1M function invocations/month, 100GB bandwidth, 4 CPU-hours/month, 60s timeout | CPU time is the tightest bottleneck - estimated ~7 CPU-hours needed at scale without optimization |
-| [TiDB Cloud Starter](https://tidbcloud.com/pricing) | 50M Request Units (RUs)/month, 400 concurrent connections, 5GiB storage | RUs become the limiting factor for DB-heavy operations |
-| [Mistral AI](https://mistral.ai/technology) | 1 request/minute (free tier) | Critical bottleneck for AI mentor - only 1 user can chat per minute without queuing |
-| [Clerk Hobby](https://clerk.com/pricing) | 50K Monthly Retained Users | More than enough for our needs |
+## Application Structure
 
-The key insight: **not all limits are equal**. Mistral's 1 RPM hits first, followed by TiDB RUs and Vercel CPU time. Every architectural decision had to account for these constraints.
+We organize the codebase around feature domains rather than technical layers. This colocation makes it easier to reason about each feature in isolation.
 
-## Design Principles
+```
+app/
+├── (auth)/      # Authentication routes
+├── (routes)/    # Protected application routes
+└── api/         # API endpoints
 
-We adopted five core principles:
+lib/             # Data access, utilities, business logic
+config/          # Database schema, constants, types
+components/      # Reusable UI components
+hooks/           # Custom React hooks
+context/         # React context providers
+```
 
-1. **Server Components first** - Minimize client JavaScript. Only use `"use client"` for hooks, browser APIs, or interactivity.
-2. **Cache aggressively** - Static seed content (courses, chapters, problems, interview questions) should be cached across requests using Next.js `unstable_cache`.
-3. **Batch everything** - Avoid N+1 queries. Use `inArray()` and eager loading patterns.
-4. **Fail-closed with observability** - Rate limits throw on failure, errors are logged, and every API request emits telemetry.
-5. **Free-tier paranoia** - Every new feature is evaluated against RU cost, CPU time, and AI spend before implementation.
+## Data Layer Design
 
-## Architecture Overview
+### Schema & Migrations
 
-LynxDEV is built on a modern, server-first stack:
+We use Drizzle ORM with MySQL for type safety and a clean migration workflow. The schema is defined in a single source of truth, with relations explicitly modeled. This keeps our queries predictable and maintainable.
 
-| Layer | Technology | Rationale |
-|---|---|---|
-| Framework | [Next.js 16 (App Router)](https://nextjs.org/) | Server Components, built-in caching, zero-config on Vercel |
-| Authentication | [Clerk](https://clerk.com/) | Local JWT verification with `auth()` (no external HTTP calls per render), free tier is generous |
-| Database | [TiDB Cloud (MySQL)](https://tidbcloud.com/) + [Drizzle ORM](https://orm.drizzle.team/) | MySQL-compatible, serverless, and Drizzle provides type-safe queries with good performance |
-| Styling | [Tailwind v4](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) | Zero runtime CSS, accessible components, dark mode by default |
-| AI | [Mistral AI](https://mistral.ai/) | High quality, streaming support, with retry/backoff for resilience |
-| Hosting | [Vercel](https://vercel.com/) | Edge runtime, great DX, free tier matches our constraints |
-| Code Execution | [Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) | Sandboxed JavaScript execution in the browser (no server-side code execution costs) |
+### Query Patterns
 
-## System Architecture at a Glance
+- **Batch queries**: When fetching related data for multiple entities, we batch with `inArray()` to avoid N+1 problems.
+- **Request deduplication**: React's `cache()` prevents duplicate queries within the same render pass.
+- **Prepared, explicit queries**: We favor explicit Drizzle query builders over raw SQL unless there's a clear performance justification.
+- **Consistent error handling**: Database access is wrapped with proper error handling and logging.
 
-![System Architecture Overview](/blog/architecture/system-design.jpg)
+## Caching Strategy
 
-Our architecture balances serverless scalability with free-tier constraints. Every request flows through Clerk's auth middleware, hits our Next.js App Router handlers, and uses batched Drizzle queries against TiDB with aggressive caching.
+Not all data is created equal. We apply different caching strategies based on staleness tolerance:
 
-## Performance Architecture
+- **Static content**: Course outlines, problem statements, and learning materials are stable. We cache them across requests using Next.js `unstable_cache` with explicit tags for invalidation.
+- **User-specific data**: Progress, enrollments, and profile information are fetched per request and never cross-request cached to ensure freshness.
+- **Build-time generation**: Content pages that don't depend on user state can be statically generated at build time for instant loads.
 
-![Code Architecture](/blog/architecture/code-architecture.jpg)
+The key is being intentional - cache what is stable, never cache what is personalized.
 
-We push as much work as possible to build time and server-side rendering. Static seed content is cached indefinitely with version-based invalidation, while user-specific data is fetched on-demand with request-level deduplication.
+## API Design
 
-## Infrastructure Design
+Our API routes follow a consistent, predictable pattern:
 
-![Server Architecture](/blog/architecture/server-architecture.jpg)
+1. **Validate input** with Zod schemas
+2. **Authenticate** the request
+3. **Authorize** based on permissions
+4. **Execute** the business logic
+5. **Return** consistent, typed responses
 
-Running entirely on free tiers means designing for cold starts, connection pooling, and RU conservation. Our tuned MySQL pool and retry logic ensure resilience even with TiDB serverless scale-to-zero behavior.
+This keeps handlers focused and makes error cases easy to handle uniformly across the app.
+
+## Frontend Architecture
+
+### Component Hierarchy
+
+We default to Server Components for all data fetching. Client Components are introduced only at the leaf level where interactivity is required - think forms, editors, modals, and stateful UI.
+
+This minimizes the client bundle size and improves initial load performance.
+
+### Styling Approach
+
+With Tailwind CSS v4 and shadcn/ui, we maintain a consistent design system. The component library provides accessible primitives, while Tailwind keeps styling co-located with markup. We stick to a dark theme for a focused learning experience.
+
+### Code Editor Integration
+
+For interactive coding exercises, we use Monaco Editor with lazy loading. JavaScript code execution happens in a sandboxed Web Worker to isolate execution from the main thread and prevent blocking the UI. HTML/CSS previews run in sandboxed iframes for safe rendering.
+
+## Performance Considerations
+
+- **Code splitting**: Dynamic imports for heavy components like the code editor keep initial bundles small.
+- **Image optimization**: Next.js Image component with proper sizing and lazy loading.
+- **Minimal client JS**: Keeping interactive islands small means faster Time to Interactive.
+- **Efficient queries**: Batching and indexing ensure database round-trips stay minimal.
+
+## Testing Philosophy
+
+While a full test suite is planned for future iterations, we prioritize:
+
+- **Type correctness**: Strict TypeScript catches many issues at compile time
+- **Manual verification**: Thorough testing of critical flows in development
+- **Code reviews**: Careful review of data access patterns and client/server boundaries
+
+## Lessons Learned
+
+- **Server Components are a game changer** - Moving data fetching to the server eliminates most loading states and hydration issues.
+- **Explicit boundaries prevent bugs** - Clearly marking client components and avoiding server-only imports in client code prevents accidental bloat and runtime errors.
+- **Consistency beats perfection** - Following established patterns across the codebase is more valuable than optimizing one-off cases.
+- **Type safety pays off** - The combination of Drizzle + Zod catches mismatches before they reach production.
+
+## Looking Forward
+
+As the platform grows, we're focused on maintaining this architectural discipline. The emphasis remains on clarity, performance, and developer experience - ensuring the codebase stays approachable as we add more features.
