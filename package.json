@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "check:blog-toc": "tsx scripts/check-blog-toc.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -51,6 +52,7 @@
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "embla-carousel-react": "^8.6.0",
+    "gray-matter": "^4.0.3",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.562.0",
     "mysql2": "^3.23.1",
