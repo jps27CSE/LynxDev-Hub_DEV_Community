@@ -53,3 +53,21 @@ LynxDEV is built on a modern, server-first stack:
 | AI | [Mistral AI](https://mistral.ai/) | High quality, streaming support, with retry/backoff for resilience |
 | Hosting | [Vercel](https://vercel.com/) | Edge runtime, great DX, free tier matches our constraints |
 | Code Execution | [Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) | Sandboxed JavaScript execution in the browser (no server-side code execution costs) |
+
+## System Architecture at a Glance
+
+![System Architecture Overview](/blog/architecture/system-design.jpg)
+
+Our architecture balances serverless scalability with free-tier constraints. Every request flows through Clerk's auth middleware, hits our Next.js App Router handlers, and uses batched Drizzle queries against TiDB with aggressive caching.
+
+## Performance Architecture
+
+![Code Architecture](/blog/architecture/code-architecture.jpg)
+
+We push as much work as possible to build time and server-side rendering. Static seed content is cached indefinitely with version-based invalidation, while user-specific data is fetched on-demand with request-level deduplication.
+
+## Infrastructure Design
+
+![Server Architecture](/blog/architecture/server-architecture.jpg)
+
+Running entirely on free tiers means designing for cold starts, connection pooling, and RU conservation. Our tuned MySQL pool and retry logic ensure resilience even with TiDB serverless scale-to-zero behavior.

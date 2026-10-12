@@ -46,7 +46,7 @@ export default async function BlogPostPage({ params }: Props) {
       <div className="absolute inset-0 bg-grid-paper" />
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-3xl" />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="pt-8">
           <Link href="/blog">
             <Button variant="ghost" className="gap-2">
@@ -90,13 +90,22 @@ export default async function BlogPostPage({ params }: Props) {
             )}
           </header>
 
-          <div className="prose prose-invert prose-lg max-w-none prose-headings:font-display prose-headings:tracking-tight prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline prose-code:text-cyan-300 prose-code:before:content-[''] prose-code:after:content-[''] prose-pre:bg-[#0f1117] prose-pre:border prose-pre:border-border/50">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeHighlight]}
-            >
-              {post.content}
-            </ReactMarkdown>
+          <div className="relative rounded-2xl border border-border/50 bg-card/30 backdrop-blur p-6 sm:p-8 lg:p-10">
+            <div className="prose prose-invert prose-base sm:prose-lg max-w-none prose-headings:font-display prose-headings:tracking-tight prose-headings:scroll-mt-24 prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline prose-code:text-cyan-300 prose-code:bg-muted/40 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-[''] prose-code:after:content-[''] prose-pre:bg-[#0f1117]/90 prose-pre:border prose-pre:border-border/50 prose-pre:shadow-xl prose-img:rounded-xl prose-img:border prose-img:border-border/50 prose-table:text-sm prose-th:bg-muted/40 prose-th:border-border/50 prose-td:border-border/50 prose-blockquote:border-l-cyan-400/50 prose-blockquote:bg-cyan-400/5 prose-blockquote:py-2">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeHighlight]}
+                components={{
+                  img: ({ node, ...props }) => (
+                    <div className="my-8">
+                      <img {...props} className="w-full h-auto rounded-xl border border-border/50" loading="lazy" />
+                    </div>
+                  ),
+                }}
+              >
+                {post.content}
+              </ReactMarkdown>
+            </div>
           </div>
         </article>
       </div>
