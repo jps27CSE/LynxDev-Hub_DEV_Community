@@ -46,7 +46,7 @@ export default async function BlogPostPage({ params }: Props) {
       <div className="absolute inset-0 bg-grid-paper" />
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-3xl" />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="pt-8">
           <Link href="/blog">
             <Button variant="ghost" className="gap-2">
@@ -57,11 +57,11 @@ export default async function BlogPostPage({ params }: Props) {
         </div>
 
         <article className="py-10 sm:py-14">
-          <header className="mb-12 border-b border-border/20 pb-8">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-display font-bold tracking-tight leading-[1.12] text-balance">
+          <header className="mb-10">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold tracking-tight leading-[1.15] text-balance">
               {post.title}
             </h1>
-            <div className="mt-8 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-4 h-4" />
                 {new Date(post.date).toLocaleDateString("en-US", {
@@ -76,11 +76,11 @@ export default async function BlogPostPage({ params }: Props) {
               </div>
             </div>
             {post.tags.length > 0 && (
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 {post.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-border/50 bg-muted/40 text-xs font-medium text-muted-foreground"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-border/40 bg-muted/30 text-xs text-muted-foreground"
                   >
                     <Tag className="w-3 h-3" />
                     {tag}
@@ -91,7 +91,7 @@ export default async function BlogPostPage({ params }: Props) {
           </header>
 
           <div className="mt-8">
-            <div className="prose prose-invert prose-base sm:prose-lg lg:prose-xl max-w-none prose-headings:font-display prose-headings:tracking-tight prose-headings:scroll-mt-24 prose-headings:mt-12 prose-headings:mb-6 prose-h1:mt-0 prose-p:leading-loose prose-p:text-foreground/95 prose-p:my-6 prose-li:leading-loose prose-li:text-foreground/95 prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline prose-strong:text-foreground prose-code:text-cyan-300 prose-code:bg-muted/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-[''] prose-code:after:content-[''] prose-pre:bg-[#0a0c14]/98 prose-pre:border prose-pre:border-border/60 prose-pre:shadow-2xl prose-pre:rounded-xl prose-pre:my-8 prose-img:rounded-xl prose-img:border prose-img:border-border/50 prose-img:my-10 prose-hr:my-10 prose-hr:border-border/40 prose-table:text-sm prose-th:bg-muted/50 prose-th:border-border/60 prose-td:border-border/50 prose-blockquote:border-l-cyan-400/70 prose-blockquote:bg-cyan-400/5 prose-blockquote:py-4 prose-blockquote:px-8 prose-blockquote:not-italic prose-blockquote:text-foreground/95 prose-blockquote:my-8">
+            <div className="prose prose-invert prose-base sm:prose-lg max-w-none prose-headings:font-display prose-headings:tracking-tight prose-headings:scroll-mt-24 prose-headings:mt-10 prose-headings:mb-4 prose-h1:text-4xl sm:prose-h1:text-5xl prose-h1:mt-0 prose-h1:mb-6 prose-h2:text-3xl prose-h3:text-2xl prose-p:leading-relaxed prose-p:text-foreground/90 prose-p:my-6 prose-li:leading-relaxed prose-li:text-foreground/90 prose-a:text-cyan-400 prose-a:underline-offset-2 hover:prose-a:text-cyan-300 prose-strong:text-foreground prose-code:text-cyan-300 prose-code:bg-muted/60 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-[''] prose-code:after:content-[''] prose-pre:bg-[#0a0c14]/98 prose-pre:border prose-pre:border-border/60 prose-pre:shadow-lg prose-pre:rounded-lg prose-pre:my-8 prose-pre:p-4 prose-img:rounded-lg prose-img:my-8 prose-hr:my-12 prose-hr:border-border/40 prose-table:text-sm prose-th:bg-muted/50 prose-th:border-border/50 prose-td:border-border/50 prose-blockquote:border-l-cyan-400/60 prose-blockquote:bg-cyan-400/5 prose-blockquote:py-3 prose-blockquote:px-6 prose-blockquote:not-italic prose-blockquote:text-foreground/90 prose-blockquote:my-6">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeHighlight]}
