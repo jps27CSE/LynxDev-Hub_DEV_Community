@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getAllCourses } from "@/lib/course-data";
 import { getAllCategories } from "@/lib/interview-data";
 import { TOP_PROBLEMS } from "@/config/problems/top-problems";
+import { getSortedPosts } from "@/config/blog";
 
 const BASE_URL = "https://lynxdev.io";
 
@@ -15,7 +16,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/mentor`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE_URL}/feedback`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/whats-new`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
+    { url: `${BASE_URL}/blog`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
   ];
+
+  // Blog posts are public and indexable, so each one belongs in the sitemap.
+  // `lastModified` is the post's own date rather than `new Date()` — a page that
+  // has not been edited should not tell crawlers it changed today.
+  const blogPages: MetadataRoute.Sitemap = getSortedPosts().map((post) => ({
+    url: `${BASE_URL}/blog/${post.slug}`,
+    lastModified: new Date(post.date),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
 
   const [courses, categories] = await Promise.all([
     getAllCourses(),
@@ -43,5 +55,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...coursePages, ...categoryPages, ...problemPages];
+  return [
+    ...staticPages,
+    ...coursePages,
+    ...categoryPages,
+    ...problemPages,
+    ...blogPages,
+  ];
 }
