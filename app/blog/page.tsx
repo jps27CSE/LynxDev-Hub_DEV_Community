@@ -18,7 +18,7 @@ export default async function BlogPage() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-fuchsia-500/5 rounded-full blur-3xl" />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="pt-8">
           <Link href="/">
             <Button variant="ghost" className="gap-2">
