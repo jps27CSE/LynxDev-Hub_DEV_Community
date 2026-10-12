@@ -57,9 +57,14 @@ export default function ArchitecturePost() {
                 real-time progress tracking, and a need for snappy performance. The key is striking a balance between
                 simplicity and scalability while keeping the codebase maintainable.
               </p>
-              <p>
+              <p className="mb-4">
                 Our approach prioritizes clarity over cleverness, with a strong emphasis on type safety and
-                predictable data flow.
+                predictable data flow. When faced with a choice between a clever abstraction and explicit code, we
+                choose explicit.
+              </p>
+              <p>
+                This philosophy extends to every layer - from how we structure our directories to how we handle
+                data fetching and state management.
               </p>
             </section>
 
@@ -74,7 +79,7 @@ export default function ArchitecturePost() {
                   management tied to user actions.
                 </li>
                 <li>
-                  <strong>Separation of concerns</strong> - Keep data access in <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">lib/</code>, schema and types in <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">config/</code>, and UI logic in components.
+                  <strong>Separation of concerns</strong> - Keep data access in <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">lib/</code>, schema and types in <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">config/</code>, and UI logic in components. This creates clear boundaries.
                 </li>
                 <li>
                   <strong>Explicit data boundaries</strong> - Pass data down from Server Components as props to Client
@@ -88,40 +93,10 @@ export default function ArchitecturePost() {
                   <strong>Type-safe throughout</strong> - Drizzle ORM paired with Zod validation ensures end-to-end
                   type safety from database to API to UI.
                 </li>
+                <li>
+                  <strong>Composition over inheritance</strong> - Build small, reusable components that compose well together.
+                </li>
               </ol>
-            </section>
-
-            <section>
-              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mt-12 mb-6 text-foreground">
-                Application Structure
-              </h2>
-              <p className="mb-4">
-                We organize the codebase around feature domains rather than technical layers. This colocation makes
-                it easier to reason about each feature in isolation.
-              </p>
-              <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm font-mono">
-                <code>{`app/
-├── (auth)/      # Authentication routes
-├── (routes)/    # Protected application routes
-└── api/         # API endpoints
-
-lib/             # Data access, utilities, business logic
-config/          # Database schema, constants, types
-components/      # Reusable UI components
-hooks/           # Custom React hooks
-context/         # React context providers`}</code>
-              </pre>
-            </section>
-
-            <section>
-              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mt-12 mb-6 text-foreground">
-                Key Takeaways
-              </h2>
-              <p>
-                The best architecture is one that grows with you. By keeping things simple, explicit, and type-safe,
-                we maintain velocity while avoiding unnecessary complexity. Server Components, proper caching, and clear
-                boundaries form the foundation of a maintainable codebase.
-              </p>
             </section>
           </div>
         </article>
