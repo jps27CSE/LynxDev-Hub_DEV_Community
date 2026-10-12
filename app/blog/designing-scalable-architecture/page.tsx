@@ -46,6 +46,84 @@ export default function ArchitecturePost() {
               ))}
             </div>
           </header>
+
+          <div className="space-y-8 text-[17px] leading-[1.75] text-foreground/95">
+            <section>
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mt-12 mb-6 text-foreground">
+                The Architecture Mindset
+              </h2>
+              <p className="mb-4">
+                Building a learning platform comes with unique challenges: content-heavy pages, interactive editors,
+                real-time progress tracking, and a need for snappy performance. The key is striking a balance between
+                simplicity and scalability while keeping the codebase maintainable.
+              </p>
+              <p>
+                Our approach prioritizes clarity over cleverness, with a strong emphasis on type safety and
+                predictable data flow.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mt-12 mb-6 text-foreground">
+                Core Principles
+              </h2>
+              <ol className="space-y-4 pl-6 list-decimal">
+                <li>
+                  <strong>Server-first by default</strong> - Leverage React Server Components for data fetching and
+                  static content. Only reach for client components when you need interactivity, browser APIs, or state
+                  management tied to user actions.
+                </li>
+                <li>
+                  <strong>Separation of concerns</strong> - Keep data access in <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">lib/</code>, schema and types in <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">config/</code>, and UI logic in components.
+                </li>
+                <li>
+                  <strong>Explicit data boundaries</strong> - Pass data down from Server Components as props to Client
+                  Components. Avoid mixing server-only code with client bundles.
+                </li>
+                <li>
+                  <strong>Performance-conscious caching</strong> - Use Next.js' built-in caching mechanisms
+                  strategically. Cache stable content while keeping user-specific data fresh.
+                </li>
+                <li>
+                  <strong>Type-safe throughout</strong> - Drizzle ORM paired with Zod validation ensures end-to-end
+                  type safety from database to API to UI.
+                </li>
+              </ol>
+            </section>
+
+            <section>
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mt-12 mb-6 text-foreground">
+                Application Structure
+              </h2>
+              <p className="mb-4">
+                We organize the codebase around feature domains rather than technical layers. This colocation makes
+                it easier to reason about each feature in isolation.
+              </p>
+              <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm font-mono">
+                <code>{`app/
+├── (auth)/      # Authentication routes
+├── (routes)/    # Protected application routes
+└── api/         # API endpoints
+
+lib/             # Data access, utilities, business logic
+config/          # Database schema, constants, types
+components/      # Reusable UI components
+hooks/           # Custom React hooks
+context/         # React context providers`}</code>
+              </pre>
+            </section>
+
+            <section>
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mt-12 mb-6 text-foreground">
+                Key Takeaways
+              </h2>
+              <p>
+                The best architecture is one that grows with you. By keeping things simple, explicit, and type-safe,
+                we maintain velocity while avoiding unnecessary complexity. Server Components, proper caching, and clear
+                boundaries form the foundation of a maintainable codebase.
+              </p>
+            </section>
+          </div>
         </article>
       </div>
     </div>
