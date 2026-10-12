@@ -3,6 +3,7 @@ import { VersionBadge } from "@/components/VersionBadge";
 
 const footerLinks = [
   { label: "Courses", href: "/courses" },
+  { label: "Blog", href: "/blog" },
   { label: "What's New", href: "/whats-new" },
 ];
 
