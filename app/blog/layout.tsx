@@ -3,7 +3,7 @@ import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
 
 export const metadata: Metadata = {
-  title: "Engineering Blog — LynxDEV",
+  title: { absolute: "Engineering Blog | LynxDEV" },
   description: "Technical deep-dives into building LynxDEV: architecture, performance, and engineering decisions for a zero-cost platform.",
 };
 

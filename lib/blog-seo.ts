@@ -21,15 +21,19 @@ const BASE_URL = "https://lynxdev.io";
  *  - `twitter:card` was `summary_large_image` with no image at all, which is a
  *    mismatch — a large card with nothing to show degrades to a bare text chip.
  *
- * `title` is set as an absolute string rather than a template so the browser
- * title and `og:title` cannot drift apart via the root template.
+ * `title` uses `{ absolute }` rather than a plain string. A string title is a
+ * *template input* — the root layout's `template: "%s | LynxDEV"` still gets
+ * appended to it, which produced a visibly doubled
+ * `Engineering Blog | LynxDEV | LynxDEV` on the index. `absolute` opts out of
+ * every ancestor template, so the browser title and `og:title` cannot drift
+ * apart via template composition either.
  */
 export function buildPostMetadata(post: PostMeta): Metadata {
   const url = `${BASE_URL}/blog/${post.slug}`;
   const image = `${BASE_URL}/blog/${post.slug}/opengraph-image`;
 
   return {
-    title: `${post.title} | ${SITE_NAME}`,
+    title: { absolute: `${post.title} | ${SITE_NAME}` },
     description: post.description,
     keywords: post.tags,
     authors: [{ name: post.author }],
@@ -58,7 +62,7 @@ export function buildBlogIndexMetadata(): Metadata {
   const url = `${BASE_URL}/blog`;
 
   return {
-    title: `Engineering Blog | ${SITE_NAME}`,
+    title: { absolute: `Engineering Blog | ${SITE_NAME}` },
     description:
       "Deep dives on the architecture, caching, security and performance decisions behind LynxDEV — written by the engineers building it.",
     alternates: { canonical: url },
@@ -119,7 +123,11 @@ export function buildPostJsonLd(post: PostMeta): string {
     image: `${BASE_URL}/blog/${post.slug}/opengraph-image`,
     keywords: post.tags.join(", "),
     inLanguage: "en-US",
-    isPartOf: { "@type": "Blog", name: `${SITE_NAME} Engineering Blog`, url: `${BASE_URL}/blog` },
+    isPartOf: {
+      "@type": "Blog",
+      name: `${SITE_NAME} Engineering Blog`,
+      url: `${BASE_URL}/blog`,
+    },
   });
 }
 
