@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Tag, User } from "lucide-react";
+import { ArrowLeft, Calendar, Tag, User, ArrowRight } from "lucide-react";
 import { TableOfContents, type TocItem } from "./TableOfContents";
-import type { PostMeta } from "@/config/blog";
+import { getSortedPosts, type PostMeta } from "@/config/blog";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -10,6 +10,73 @@ function formatDate(iso: string): string {
     month: "long",
     day: "numeric",
   });
+}
+
+/**
+ * Neighbours in reverse-chronological order, so "newer" reads right and
+ * "older" reads left — the same direction as the archive the reader came from.
+ *
+ * Returns empty slots at the ends rather than hiding them, because a row that
+ * exists on every post but renders a label on 4 of 5 is calmer than a row that
+ * appears and disappears.
+ */
+function getNeighbours(slug: string): {
+  newer: PostMeta | null;
+  older: PostMeta | null;
+} {
+  const posts = getSortedPosts();
+  const index = posts.findIndex((post) => post.slug === slug);
+  if (index === -1) return { newer: null, older: null };
+
+  return {
+    newer: index > 0 ? posts[index - 1] : null,
+    older: index < posts.length - 1 ? posts[index + 1] : null,
+  };
+}
+
+function PostLink({
+  post,
+  direction,
+}: {
+  post: PostMeta | null;
+  direction: "newer" | "older";
+}) {
+  const isNewer = direction === "newer";
+
+  if (!post) {
+    return (
+      <div className="hidden sm:block" aria-hidden>
+        <span className="text-xs uppercase tracking-wider text-muted-foreground/40">
+          {isNewer ? "Newer" : "Older"}
+        </span>
+        <p className="mt-1.5 text-sm text-muted-foreground/30">—</p>
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={`/blog/${post.slug}`}
+      rel={isNewer ? "next" : "prev"}
+      className={`group block min-w-0 ${isNewer ? "text-right" : "text-left"}`}
+    >
+      <span className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground/70 transition-colors group-hover:text-cyan-400">
+        {!isNewer && (
+          <ArrowLeft className="size-3 transition-transform group-hover:-translate-x-0.5" />
+        )}
+        {isNewer ? "Newer" : "Older"}
+        {isNewer && (
+          <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+        )}
+      </span>
+      <span className="mt-1.5 block truncate text-sm font-medium text-foreground transition-colors group-hover:text-cyan-300">
+        {post.title}
+      </span>
+      <span className="mt-0.5 block text-xs text-muted-foreground/70">
+        {formatDate(post.date)}
+      </span>
+    </Link>
+  );
 }
 
 /**
@@ -46,6 +113,8 @@ export function BlogLayout({
   toc?: TocItem[];
   children: ReactNode;
 }) {
+  const neighbours = getNeighbours(meta.slug);
+
   return (
     <div className="min-h-screen">
       <div className="mx-auto w-full max-w-[720px] px-5 py-8 sm:px-8 sm:py-10 lg:max-w-[1040px]">
@@ -115,6 +184,17 @@ export function BlogLayout({
                 Back to all posts
               </Link>
             </div>
+
+            {/* Prev/next row. `border-t` above it is the article's own rule; this
+                adds the second column without a second divider on mobile, where
+                the two links stack instead. */}
+            <nav
+              aria-label="Post navigation"
+              className="mt-10 grid gap-6 border-t border-border/30 pt-7 sm:grid-cols-2"
+            >
+              <PostLink post={neighbours.older} direction="older" />
+              <PostLink post={neighbours.newer} direction="newer" />
+            </nav>
           </div>
 
           {/* `self-stretch` is load-bearing, not cosmetic. `position: sticky`
