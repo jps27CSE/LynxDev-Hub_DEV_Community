@@ -1,9 +1,19 @@
 import { ImageResponse } from "next/og";
-import { getPost } from "@/config/blog";
+import { getPost, getSortedPosts } from "@/config/blog";
 
 export const alt = "LynxDEV Engineering Blog post";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+/**
+ * The five post slugs are known at build time, so prerender them. Without this
+ * the route stays `ƒ` and satori re-renders on every origin hit — measured at
+ * 560-870ms of pure CPU per request, which is ~24,000 renders to exhaust the
+ * whole 4 CPU-hour Vercel Hobby budget. Unauthenticated, un-rate-limited.
+ */
+export function generateStaticParams() {
+  return getSortedPosts().map((post) => ({ slug: post.slug }));
+}
 
 /**
  * Per-post Open Graph card.
