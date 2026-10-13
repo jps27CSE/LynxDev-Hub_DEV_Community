@@ -155,13 +155,17 @@ Verified after deletion:
 
 Note: `rm -rf .next/types` + `next typegen` is required afterwards — the generated route validator holds a reference to the deleted `page.js` and `tsc` fails until regenerated.
 
-### ✅ Fix 3 — Collapse the triplicated slug — APPLIED AND VERIFIED
+### ✅ Fix 3 — Enforce slug consistency — APPLIED AND VERIFIED
+
+> **Title corrected 2026-10-13.** This was originally titled "Collapse the triplicated slug". That overclaimed: the fix **enforces** consistency, it does not collapse anything. The slug is still declared in three places — the directory name, `const SLUG` in the page, and `config.slug`. What changed is that a mismatch is now a build failure instead of a silently invisible post.
 
 The slug exists in three places per post: directory name, `const SLUG` in the page, and `config.slug`. `check:blog-toc` now asserts `page.tsx`'s `SLUG` against `config.slug`, using the directory name as the reference the URL actually resolves to.
 
 This matters because `getPost(SLUG)!` is a non-null assertion: a typo'd slug makes the lookup miss while the page still renders — invisible from the index, sitemap and TOC, but building successfully.
 
 Regression-tested by injecting a typo (`server-client-boundary-TYPO`), which produced a targeted `FAIL` and exit 1.
+
+**Actually collapsing to a single source** remains possible — `generateStaticParams` per post directory, or generating `page.tsx` from `config/blog.ts` — but it would trade a build-time check for a generation step, which is not obviously a net win at five posts.
 
 ### ✅ Fix 4 — Title template double-application — APPLIED AND VERIFIED
 
@@ -183,7 +187,27 @@ Fix: `title: { absolute: ... }` in `lib/blog-seo.ts` and `app/blog/layout.tsx`, 
 
 ---
 
-## 8. Post-fix verification
+## 8. Post-review pass (2026-10-13)
+
+A second read of the finished module found five items the review had not looked at. All are now applied.
+
+| # | Item | Status | Result |
+|---|---|---|---|
+| 1 | `CodeBlock` statically imported `EditorDialog`, dragging the whole editor island into the chunk every article executed | ✅ Fixed | `next/dynamic` + `ssr: false`. Marginal blog JS **+36.3 KB → +28.1 KB**; editor chunks now absent from the blog HTML entirely |
+| 2 | 387 KB of orphaned images under `public/blog/architecture/`, referenced by nothing | ✅ Removed | Left over from the markdown-to-component migration; deleted |
+| 3 | No RSS/Atom feed | ✅ Added | `app/blog/feed.xml/route.ts`, advertised via `<link rel="alternate">` in the blog layout |
+| 4 | No prev/next post navigation | ✅ Added | `BlogLayout` resolves neighbours from `config/blog.ts` in reverse-chronological order |
+| 5 | Fix 3 was titled "Collapse the triplicated slug" but only *enforced* consistency | ✅ Corrected | Title and §0 status row now say what the fix actually does |
+
+### On item 1 — the measured saving is smaller than predicted
+
+The §7 note predicted ~10-15 KB. Actual: **8.2 KB**. The reason is `runJavaScript`, which stays a static import because the inline **Run** button is a primary action on the blog and must work without a second round-trip. Only the dialog path — `EditorDialog`, `EditorToolbar`, `OutputPane`, `useCodeEditor` — was deferred.
+
+`CodeBlock` is shared with `components/markdown-answer.tsx`, which backs interview answers and problem statements. Those are also read-only contexts, so the change is correct for them too — but it is a shared component and that path was not re-measured here.
+
+---
+
+## 9. Post-fix verification
 
 Everything asserted in §7, re-run after all four fixes were applied together.
 
