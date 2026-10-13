@@ -52,6 +52,44 @@ function findPostDirs(): string[] {
     .sort();
 }
 
+// ---- slug integrity ---------------------------------------------------------
+
+/**
+ * The slug exists in three places per post: the directory name, the `SLUG`
+ * const inside the page, and `config.slug`. The directory name is the one place
+ * that cannot drift from the URL that actually works, so the other two are
+ * asserted against it rather than against each other.
+ *
+ * A mismatch is not cosmetic. `getPost(SLUG)!` is a non-null assertion, so a
+ * typo'd `config.slug` makes the post fail its lookup — and because the page
+ * renders regardless, the post stays invisible from the index, the sitemap and
+ * the TOC while still building successfully.
+ */
+function checkSlugIntegrity(): void {
+  for (const post of POSTS) {
+    const pagePath = path.join(APP_BLOG_DIR, post.slug, "page.tsx");
+
+    if (!fs.existsSync(pagePath)) continue; // already reported as a missing dir
+
+    const source = fs.readFileSync(pagePath, "utf-8");
+    const declared = source.match(/const SLUG = "([^"]+)"/);
+
+    if (!declared) {
+      fail(
+        `FAIL ${post.slug}: page.tsx has no \`const SLUG = "..."\` declaration.`,
+      );
+      continue;
+    }
+
+    if (declared[1] !== post.slug) {
+      fail(
+        `FAIL ${post.slug}: page.tsx declares SLUG="${declared[1]}" but config says ` +
+          `"${post.slug}". getPost() would miss and the post would render empty.`,
+      );
+    }
+  }
+}
+
 // ---- config -> HTML ---------------------------------------------------------
 
 for (const post of POSTS) {
@@ -70,7 +108,9 @@ for (const post of POSTS) {
   const broken = post.toc.filter((entry) => !headingIds.has(entry.id));
 
   if (broken.length > 0) {
-    fail(`FAIL ${post.slug}: ${broken.length} TOC id(s) have no matching heading:`);
+    fail(
+      `FAIL ${post.slug}: ${broken.length} TOC id(s) have no matching heading:`,
+    );
     for (const entry of broken) {
       console.error(`     - ${entry.id}  ("${entry.title}")`);
     }
@@ -112,6 +152,10 @@ if (missingDir.length > 0) {
       `app/blog/: ${missingDir.join(", ")}. Remove the entry or add the page.`,
   );
 }
+
+// ---- slug integrity ---------------------------------------------------------
+
+checkSlugIntegrity();
 
 // ---- report -----------------------------------------------------------------
 
