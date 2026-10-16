@@ -8,13 +8,17 @@ const navLinks = [
   { label: "courses", href: "/courses" },
   { label: "interview", href: "/interview" },
   { label: "problems", href: "/problems" },
+  { label: "blog", href: "/blog" },
 ];
 
 function Header() {
   const { user } = useUser();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/5 bg-[#05060a]/80 backdrop-blur-xl supports-[backdrop-filter]:bg-[#05060a]/60">
+    <header
+      data-site-header
+      className="sticky top-0 z-50 border-b border-white/5 bg-[#05060a]/80 backdrop-blur-xl supports-[backdrop-filter]:bg-[#05060a]/60"
+    >
       <div className="pointer-events-none absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-fuchsia-400/50" />
       <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2.5 group">

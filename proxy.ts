@@ -5,10 +5,27 @@ import {
   type NextRequest,
 } from "next/server";
 
+/**
+ * Routes reachable without a session.
+ *
+ * `/blog(.*)` is public: an engineering blog is content meant to be indexed and
+ * shared, so gating it behind auth would defeat the point — and the pages call
+ * no `auth()` of their own, so there is no per-user data to protect. The layout
+ * still renders `Header`, which reads Clerk client state and shows either the
+ * sign-in prompt or the dashboard link depending on the visitor.
+ *
+ * `/robots.txt` and `/sitemap.xml` were previously *not* listed here, so
+ * `auth.protect()` 307'd crawlers to the sign-in page instead of serving them
+ * the file. An unreadable sitemap removes the whole site from the discovery
+ * path this blog depends on, so both are public by necessity.
+ */
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/",
   "/whats-new",
+  "/blog(.*)",
+  "/robots.txt",
+  "/sitemap.xml",
   "/api/health(.*)",
 ]);
 

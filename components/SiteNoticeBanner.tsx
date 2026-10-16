@@ -19,6 +19,60 @@ import type { SiteNoticeSeverity } from "@/config/site-notice";
 
 const STORAGE_KEY = "lynxdev_site_notice_ack";
 
+/**
+ * Top-anchored chrome the banner has to sit below: the sticky public header
+ * and the mobile sidebar toggle. Measured instead of hardcoded, because the
+ * correct offset is route-dependent — home and /blog have a 65px header,
+ * (auth) has none, and the toggle only exists below `lg`. A magic number here
+ * silently reintroduces the overlap that `lg:top-0` caused on the header pages.
+ */
+const CHROME_SELECTORS = [
+  "header[data-site-header]",
+  'button[aria-label="Toggle sidebar"]',
+];
+
+function measureTopChrome(): number {
+  let bottom = 0;
+
+  for (const selector of CHROME_SELECTORS) {
+    for (const el of document.querySelectorAll(selector)) {
+      const { height, bottom: edge } = el.getBoundingClientRect();
+      // Chrome hidden by `display:none` (the toggle from `lg` up) reports a
+      // zero rect and must not contribute an offset.
+      if (height === 0) continue;
+      bottom = Math.max(bottom, edge);
+    }
+  }
+
+  return bottom;
+}
+
+function useTopChromeOffset(pathname: string): number {
+  const [offset, setOffset] = useState(0);
+
+  useEffect(() => {
+    const update = () => setOffset(measureTopChrome());
+    update();
+
+    // Re-measure on resize: chrome can cross a breakpoint or swap fonts, and a
+    // mount-time value would then be stale. ResizeObserver covers a height
+    // change, the listener covers a breakpoint crossing that reveals or hides
+    // an element outright.
+    const observer = new ResizeObserver(update);
+    for (const selector of CHROME_SELECTORS) {
+      document.querySelectorAll(selector).forEach((el) => observer.observe(el));
+    }
+    window.addEventListener("resize", update);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [pathname]);
+
+  return offset;
+}
+
 const severityConfig = {
   info: {
     Icon: Info,
@@ -57,6 +111,7 @@ export function SiteNoticeBanner({
   const [ready, setReady] = useState(false);
   const [visible, setVisible] = useState(false);
   const version = notice?.version;
+  const topChromeOffset = useTopChromeOffset(pathname);
 
   useEffect(() => {
     if (!version) return;
@@ -109,7 +164,10 @@ export function SiteNoticeBanner({
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-16 z-40 p-3 sm:p-4 lg:top-0">
+    <div
+      className="pointer-events-none fixed inset-x-0 z-40 p-3 sm:p-4"
+      style={{ top: topChromeOffset }}
+    >
       <div
         role="status"
         className={cn(

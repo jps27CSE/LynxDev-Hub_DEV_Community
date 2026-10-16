@@ -8,6 +8,12 @@ export type WhatsNewFeature = {
 
 export type WhatsNewData = {
   version: string;
+  /**
+   * Version fragment highlighted in the headline. Optional — defaults to the
+   * major.minor of `version`. Set it explicitly so the gradient stays correct
+   * if the headline wording changes.
+   */
+  highlight?: string;
   headline: string;
   summary: string;
   features: WhatsNewFeature[];
@@ -16,14 +22,15 @@ export type WhatsNewData = {
 
 export const WHATS_NEW: WhatsNewData = {
   version: APP_VERSION,
-  headline: "LynxDEV 1.0 is here",
+  highlight: "1.1",
+  headline: "LynxDEV 1.1 is here",
   summary:
-    "Our first major release — interactive courses, a browser code editor, 220+ DSA problems, and 900+ interview questions. Handcrafted, zero-cost, all in one place.",
+    "The interview prep rebuild — 1,000+ questions across 38 chapters, including two new chapters on production incidents and distributed systems. Everything stays free.",
   features: [
     {
       title: "Interactive Courses",
       description:
-        "Hands-on courses with real exercises and an embedded editor per chapter — structured learning, not just videos.",
+        "Three courses, 42 chapters, real exercises and an embedded editor per chapter — structured learning, not just videos.",
       icon: "BookOpen",
     },
     {
@@ -41,13 +48,15 @@ export const WHATS_NEW: WhatsNewData = {
     {
       title: "Interview Prep",
       description:
-        "Practice with 900+ categorized questions and tag-based customization, built around real-world interview chapters.",
+        "1,000+ questions across 38 chapters — now including Production Engineering and Distributed Systems in Production, built around real incidents.",
       icon: "Target",
     },
   ],
   fixesSummary: [
-    "Faster page loads and a smoother experience across the platform",
-    "More reliable progress saving in courses and problems",
-    "General stability improvements throughout the app",
+    "New chapter: Production Engineering & Incident Patterns — 28 real production failures, from SELECT * to connection-pool exhaustion to a nightly memory leak",
+    "New chapter: Distributed Systems in Production — 26 questions on idempotency, sagas, cache stampedes, Kafka partitions and replication lag",
+    "New TypeScript chapter — 40 junior-level questions, shared by Software Engineer and Frontend Engineer with a single source of truth",
+    "Interview bank rebuilt to 1,000+ questions; Software Engineer now has 11 chapters",
+    "Ten new question tags — http-methods, two-pointers, sliding-window, hash-map, in-place, bit-manipulation, linked-list, interval-merging, cherry-pick, force-push — so tag-based practice can actually reach algorithm questions",
   ],
 };

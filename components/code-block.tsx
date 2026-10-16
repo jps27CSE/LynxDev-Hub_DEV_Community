@@ -1,6 +1,7 @@
 "use client";
 
 import { isValidElement, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   Check,
   Copy,
@@ -10,7 +11,26 @@ import {
   XCircle,
 } from "lucide-react";
 import { runJavaScript, type RunResult } from "@/lib/editor";
-import { EditorDialog } from "@/components/editor/EditorDialog";
+
+/**
+ * The editor is loaded on first click, not with the page.
+ *
+ * `CodeBlock` is a read-only renderer — it backs the engineering blog and the
+ * interview/problem markdown answers — and in every one of those contexts the
+ * "Open in Editor" button is a secondary affordance most readers never press.
+ * A static import pulled the whole editor island (`EditorDialog`,
+ * `EditorToolbar`, `OutputPane`, `useCodeEditor`, `runJavaScript`) into the
+ * chunk every article executed.
+ *
+ * `next/dynamic` splits it out. `ssr: false` is correct: the dialog is only
+ * ever opened by a click, so there is nothing to render on the server, and
+ * omitting it would make the client chunk load during hydration instead of on
+ * interaction.
+ */
+const EditorDialog = dynamic(
+  () => import("@/components/editor/EditorDialog").then((m) => m.EditorDialog),
+  { ssr: false },
+);
 
 function extractText(node: React.ReactNode): string {
   if (node == null || typeof node === "boolean") return "";

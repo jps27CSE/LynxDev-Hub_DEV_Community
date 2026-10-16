@@ -22,7 +22,7 @@ const platformPoints: {
 }[] = [
   {
     icon: BookOpen,
-    text: "3+ interactive courses with an embedded editor per chapter",
+    text: "3 courses, 42 chapters with an embedded editor per chapter",
     accent: "text-cyan-400",
   },
   {
@@ -37,7 +37,7 @@ const platformPoints: {
   },
   {
     icon: Target,
-    text: "900+ interview questions, tag-based prep",
+    text: "1,000+ interview questions, tag-based prep",
     accent: "text-lime-400",
   },
 ];
