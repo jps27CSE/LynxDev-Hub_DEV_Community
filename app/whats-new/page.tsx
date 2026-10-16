@@ -48,6 +48,12 @@ const accentMap: Record<string, { accent: string; glow: string }> = {
 export default function WhatsNewPage() {
   const { version, headline, summary, features, fixesSummary } = WHATS_NEW;
 
+  // The headline highlight is version-derived, never a hardcoded literal. A
+  // headline that does not contain the highlight must not silently drop text.
+  const highlight =
+    WHATS_NEW.highlight ?? version.split(".").slice(0, 2).join(".");
+  const [before, after = ""] = headline.split(highlight);
+
   return (
     <>
       <div className="relative overflow-hidden border-b border-border/40">
@@ -70,11 +76,11 @@ export default function WhatsNewPage() {
                 v{version} — Latest release
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight leading-[1.1]">
-                {headline.split("1.0")[0]}
+                {before}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-emerald-500/60">
-                  1.0
+                  {highlight}
                 </span>
-                {headline.split("1.0")[1]}
+                {after}
               </h1>
               <p className="mt-4 text-lg text-muted-foreground max-w-xl leading-relaxed">
                 {summary}
@@ -162,7 +168,12 @@ export default function WhatsNewPage() {
               <ArrowRight className="w-4 h-4" />
             </Link>
           </Button>
-          <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="w-full sm:w-auto"
+          >
             <Link href="/">Back to Home</Link>
           </Button>
         </div>

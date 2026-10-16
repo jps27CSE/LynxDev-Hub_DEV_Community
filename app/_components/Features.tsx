@@ -46,7 +46,7 @@ const features: Feature[] = [
   {
     title: "Interview Prep",
     description:
-      "Practice with 900+ categorized questions and tag-based customization, built around real-world interview chapters.",
+      "Practice with 1,000+ categorized questions across 38 chapters, with tag-based customization built around real-world interview chapters.",
     icon: Target,
     accent: "text-lime-400",
     glow: "bg-lime-400/10 shadow-[0_0_20px_rgba(163,230,53,0.2)]",
