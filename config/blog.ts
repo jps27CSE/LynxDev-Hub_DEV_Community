@@ -27,7 +27,7 @@ export const POSTS: PostMeta[] = [
   {
     slug: "designing-scalable-architecture",
     title: "Designing a Clean, Scalable Architecture for Learning Platforms",
-    date: "2026-10-12",
+    date: "2026-10-08",
     readTime: "13 min read",
     author: "LynxDEV Engineering",
     description:
@@ -48,7 +48,7 @@ export const POSTS: PostMeta[] = [
   {
     slug: "caching-strategies-nextjs-app-router",
     title: "Caching in Next.js: The Four Layers, and How to Choose",
-    date: "2026-10-14",
+    date: "2026-10-10",
     readTime: "14 min read",
     author: "LynxDEV Engineering",
     description:
@@ -121,7 +121,7 @@ export const POSTS: PostMeta[] = [
   {
     slug: "server-client-boundary",
     title: "The Server/Client Boundary Is a Type Error You Cannot See",
-    date: "2026-10-16",
+    date: "2026-10-12",
     readTime: "9 min read",
     author: "LynxDEV Engineering",
     description:
@@ -139,7 +139,7 @@ export const POSTS: PostMeta[] = [
   {
     slug: "rate-limiting-on-serverless",
     title: "Rate Limiting That Survives Serverless",
-    date: "2026-10-18",
+    date: "2026-10-14",
     readTime: "10 min read",
     author: "LynxDEV Engineering",
     description:
@@ -159,7 +159,7 @@ export const POSTS: PostMeta[] = [
   {
     slug: "sandboxed-code-execution",
     title: "Running Untrusted Code in the Browser Without a Server",
-    date: "2026-10-20",
+    date: "2026-10-16",
     readTime: "10 min read",
     author: "LynxDEV Engineering",
     description:
