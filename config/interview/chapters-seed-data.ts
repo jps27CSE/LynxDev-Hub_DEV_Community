@@ -1945,6 +1945,179 @@ Access-Control-Allow-Methods: GET, POST
         ],
       },
     },
+    {
+      title: "TypeScript",
+      content: {
+        overview:
+          "TypeScript is a statically typed superset of JavaScript that compiles down to plain JavaScript. For junior interviews it is not a deep type-system topic — it is a fundamentals topic. Interviewers want to know that you can read and write basic annotations, that you understand inference versus annotation, that you know what an interface is and how it differs from a type alias, and above all that you understand why overusing `any` defeats the purpose of using TypeScript at all. They also expect one small hands-on exercise: type a function, fix a type error, or convert a plain JavaScript function to TypeScript. The theory questions are paired with a short coding task far more often than people expect.",
+        realLifeScenario:
+          "Your team ships a React checkout form. A developer writes `handleSubmit(data: any)` because typing the payload properly was taking too long. Two weeks later a customer-facing bug appears: the API renamed `cardNumber` to `card_number`, and because the value was `any` the compiler stayed silent. The failure surfaced in production, the fix took half a day to trace, and it was a two-character rename that no test caught. Meanwhile the same team shipped a `formatCurrency` helper correctly typed as `(amountInCents: number, locale: string): string`. When the currency requirement changed from cents to a `Decimal` object, the compiler flagged all 14 call sites before anyone opened the editor. Both decisions were made in the same week. TypeScript is not about writing more type syntax — it is about which parts of your codebase you choose to keep honest.",
+        explanation: `## Why the fundamentals are the whole interview
+
+The junior TypeScript bar is narrower than the internet suggests. Advanced utility types, conditional types, decorators, namespaces and type-level programming are **out of scope** at this level — recognise them by name, do not memorise them. What comes up consistently is a short, testable set of fundamentals.
+
+## The one mental model that explains everything
+
+**TypeScript is a compile-time-only layer. Types are erased before the code runs.**
+
+\`\`\`typescript
+function add(a: number, b: number) { return a + b; }
+
+add(2, 3);   // 5
+add("2", 3); // compile error — and if you force it through, JS returns 23
+\`\`\`
+
+\`\`\`javascript
+// the emitted JavaScript — no trace of the types
+function add(a, b) { return a + b; }
+\`\`\`
+
+Everything else follows from this. A type is a **claim about a value**, not a **check of one**. That single fact is the answer to "does TypeScript make my app safe?" — no, it catches mistakes in code you wrote; it does not validate data you received.
+
+## Annotate boundaries, infer locals
+
+Inference works far more often than juniors assume:
+
+\`\`\`typescript
+let count = 0;         // inferred as number
+const mode = "dark";  // inferred as the literal "dark"
+\`\`\`
+
+You must annotate only where the compiler has nothing to infer from:
+- function **parameters** (never inferred)
+- empty collections: \`const items: string[] = [];\`
+- variables with no initial value: \`let user: User;\`
+- **public** return types, so an implementation change cannot silently alter the API
+
+## \`any\` is contagious, \`unknown\` is the fix
+
+\`\`\`typescript
+let a: any = "hello";
+a.toFixed();  // allowed — checking is off
+a.whatever(); // allowed — no such property exists
+
+let u: unknown = "hello";
+u.toUpperCase(); // Error: 'u' is of type 'unknown'
+
+if (typeof u === "string") {
+  u.toUpperCase(); // OK — narrowed
+}
+\`\`\`
+
+\`any\` is contagious because anything derived from it silently becomes \`any\` — one careless annotation can disable checking for an entire module. **Demonstrating why you avoid \`any\` unprompted is one of the highest-value things you can say at this level**, because it shows understanding rather than memorisation.
+
+## Interface vs type alias
+
+For a plain object shape they are interchangeable. The differences that matter:
+
+| | \`interface\` | \`type\` |
+|---|---|---|
+| Declaration merging | Yes | No — redeclaring is an error |
+| Extension | \`extends\`, clear conflict errors | \`&\`, silently collapses conflicts to \`never\` |
+| Unions, tuples, primitives | No | Yes |
+
+\`\`\`typescript
+interface User { name: string; }
+interface User { age: number; } // merged: User has name AND age
+
+type Id = string | number; // only a type alias can be a union
+\`\`\`
+
+**Convention:** \`interface\` for object shapes and class contracts, \`type\` for unions, intersections and computed types.
+
+## Narrowing is what makes unions usable
+
+\`\`\`typescript
+function print(value: string | number) {
+  if (typeof value === "string") {
+    value.toUpperCase(); // narrowed to string
+  } else {
+    value.toFixed(2);    // narrowed to number
+  }
+}
+\`\`\`
+
+Without narrowing, a union only exposes members common to all of them — which makes it nearly opaque. This is the mechanism behind discriminated unions, type guards and control-flow analysis, and it is the practical reason to reach for a union over \`any\`.
+
+## The boundary is where real typing happens
+
+Since types are erased, anything from outside your program must be validated at runtime. Type it \`unknown\`, narrow it, and derive the real type from a schema rather than writing it twice:
+
+\`\`\`typescript
+const raw: unknown = await res.json();
+if (Array.isArray(raw)) {
+  // narrowed
+}
+\`\`\`
+
+## What the interviewer is actually scoring
+
+- Can you write a parameter and return annotation without hesitating?
+- Do you know the difference between an annotation and a cast?
+- Can you say why \`strict\` catches real bugs, rather than just naming flags?
+- Do you volunteer the runtime-vs-compile-time boundary?
+
+That last one is the tell. Most candidates recite the type list. The candidate who says "types are erased, so an API response is \`unknown\` until validated" is demonstrating comprehension.`,
+        keyPoints: [
+          "Types are erased at compile time — a type is a claim about a value, not a runtime check on it",
+          "Infer locals, annotate boundaries: parameters, empty collections, and public return types",
+          "any disables checking and is contagious; unknown accepts anything but must be narrowed before use",
+          "interface for extendable object shapes, type for unions, intersections, tuples and computed types",
+          "Type narrowing (typeof, instanceof, in, type guards) is what makes union types usable",
+          "strict / strictNullChecks eliminate the entire class of 'cannot read property of undefined' bugs",
+          "Data from outside your program — API, JSON.parse, form input — is unknown and needs runtime validation",
+        ],
+        tips: [
+          "Be ready to actually write code: type a small function, fix a type error, or convert plain JavaScript to TypeScript. Junior rounds pair theory with a short exercise far more often than expected.",
+          "Answer the any question unprompted and explain the contagion — it is the single highest-value thing you can demonstrate at this level",
+          "Know what is out of scope (conditional types, mapped types, decorators, satisfies) well enough to name it, and say so honestly rather than guessing",
+          "Point out that `const x: Config = {...}` still widens — use `as const` or `satisfies` when you need the literal type preserved",
+          "Practise spotting and fixing compiler errors rather than only reading correct code; reading errors fluently is what the exercise is testing",
+        ],
+        sampleQuestions: [
+          "What is TypeScript and how is it different from JavaScript?",
+          "Does TypeScript check types at runtime?",
+          "What are the basic data types in TypeScript?",
+          "What is type inference in TypeScript?",
+          "What are type annotations in TypeScript?",
+          "What is the `any` type and why should it be avoided?",
+          "What is the difference between `any` and `unknown`?",
+          "What is an interface in TypeScript?",
+          "What is the difference between an interface and a type alias?",
+          "What is a type alias in TypeScript?",
+          "What are union types in TypeScript?",
+          "What are intersection types in TypeScript?",
+          "What are tuples in TypeScript?",
+          "What is the difference between an array and a tuple in TypeScript?",
+          "What are enums in TypeScript?",
+          "What is the difference between `null` and `undefined` in TypeScript?",
+          "What does the `void` type represent in TypeScript?",
+          "What is the `never` type in TypeScript?",
+          "How do you declare optional properties in a TypeScript interface?",
+          "What does the `readonly` modifier do in TypeScript?",
+          "What is a type assertion in TypeScript?",
+          "How do you type an array in TypeScript?",
+          "How do you make a function parameter optional in TypeScript?",
+          "Why annotate a function's return type in TypeScript?",
+          "What is `tsconfig.json` and why does it matter?",
+          'What does "strict": true enable in TypeScript?',
+          "What is `strictNullChecks` in TypeScript?",
+          "Why can't TypeScript stop bad data coming from an API or user input?",
+          "What are type guards in TypeScript?",
+          "What is type narrowing in TypeScript?",
+          "What are generics in TypeScript?",
+          "What is a generic constraint in TypeScript?",
+          "What are utility types in TypeScript? Name a few common ones.",
+          "What does the `keyof` operator do in TypeScript?",
+          "What is a discriminated union in TypeScript?",
+          "What is structural typing in TypeScript?",
+          "What is a type predicate in TypeScript?",
+          "What is function overloading in TypeScript?",
+          "What does `as const` do in TypeScript?",
+          "What is a `.d.ts` declaration file in TypeScript?",
+        ],
+      },
+    },
   ],
   "backend-engineer": [
     {
@@ -3323,5 +3496,6 @@ export const crossCategoryChapters: Record<
     { title: "Caching Strategies", order_index: 16 },
     { title: "Node.js & Express.js", order_index: 17 },
     { title: "Spring Boot & Java Ecosystem", order_index: 18 },
+    { title: "TypeScript", order_index: 19 },
   ],
 };

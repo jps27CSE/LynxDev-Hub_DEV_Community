@@ -18372,6 +18372,1249 @@ source.addEventListener("custom", (event) => console.log(event.data));
       tags: ["browser-apis", "sse", "real-time"],
       is_top50: false,
     },
+    {
+      question: "What is TypeScript and how is it different from JavaScript?",
+      answer: `TypeScript is a statically typed **superset** of JavaScript, developed by Microsoft. You annotate your code, the compiler checks it, then it erases the types and emits plain JavaScript that runs anywhere JavaScript runs.
+
+\`\`\`typescript
+const add = (a: number, b: number): number => a + b;
+add(1, 2);      // OK
+add("1", 2);    // Compile error: Argument of type 'string'
+\`\`\`
+
+\`\`\`javascript
+// emitted JavaScript — the types are gone
+const add = (a, b) => a + b;
+\`\`\`
+
+Key differences from JavaScript:
+- **Checked at compile time**, so typos and wrong argument types fail before the code runs
+- **Gradual** — add types file by file; \`allowJs\` lets you mix plain JS in
+- **Better editor support** — IntelliSense, safe rename and inline docs come from the types
+- **Erasable** — zero trace of your types survives compilation, so runtime behaviour is unchanged`,
+      difficulty: "easy",
+      tags: ["typescript", "type-system"],
+      is_top50: true,
+    },
+    {
+      question: "Does TypeScript check types at runtime?",
+      answer: `**No — types are compile-time only.** The compiler removes every type before emitting JavaScript, so the output has no idea a type ever existed.
+
+\`\`\`typescript
+function add(a: number, b: number) { return a + b; }
+console.log(add(2, 3)); // 5
+// @ts-expect-error — a string is not a number
+console.log(add("2", 3)); // 23 — JavaScript happily concatenated at runtime
+\`\`\`
+
+This is why data crossing a boundary (an API response, \`JSON.parse\`, user input, a form field) must be **validated at runtime**. TypeScript can only prove things about values already inside your program.
+
+The correct pattern is to type the boundary as \`unknown\` and then narrow it:
+
+\`\`\`typescript
+const raw: unknown = await res.json();
+if (typeof raw === "object" && raw !== null && "id" in raw) {
+  // raw is narrowed here
+}
+\`\`\``,
+      difficulty: "easy",
+      tags: ["typescript", "type-system"],
+      is_top50: false,
+    },
+    {
+      question: "What are the basic data types in TypeScript?",
+      answer: `Primitives: \`string\`, \`number\`, \`boolean\`, \`bigint\`, \`symbol\`, \`null\`, \`undefined\`. Plus \`void\`, \`never\`, \`any\` and \`unknown\` as special types.
+
+Two things juniors routinely get wrong:
+- There is **one** \`number\` type — no separate \`int\` or \`float\`.
+- The uppercase \`String\`, \`Number\` and \`Boolean\` are the *wrapper object* types, not what you want. Always use lowercase.
+
+\`\`\`typescript
+let name: string = "Ada"; // ok
+let total: number = 42;   // ok
+let count: int = 42;      // Error: 'int' is not a type
+let label: String = "hi"; // compiles, but almost never what you want
+\`\`\`
+
+Derived types: arrays (\`string[]\` or \`Array<string>\`), tuples (\`[string, number]\`), object types, functions and classes.`,
+      difficulty: "easy",
+      tags: ["typescript", "type-system"],
+      is_top50: false,
+    },
+    {
+      question: "What is type inference in TypeScript?",
+      answer: `Type inference is the compiler working out the type you did not write.
+
+\`\`\`typescript
+let count = 0;         // inferred as number
+const mode = "dark";  // inferred as the literal type "dark"
+const items = ["a"];  // inferred as string[]
+\`\`\`
+
+Inference also flows from return statements, so a function with no return annotation still gets a return type.
+
+**Where you must annotate** — anywhere the compiler has nothing to infer from:
+- Function **parameters** (never inferred)
+- Empty collections: \`const items: string[] = [];\`
+- Variables declared with no initial value: \`let user: User;\`
+- Public function **return** types, so a changed implementation cannot silently change the API
+
+The practical rule: **annotate boundaries, infer locals.**`,
+      difficulty: "easy",
+      tags: ["typescript", "type-inference"],
+      is_top50: false,
+    },
+    {
+      question: "What are type annotations in TypeScript?",
+      answer: `A type annotation is an explicit type you write for a variable, parameter, property or return value — written as \`name: Type\`.
+
+\`\`\`typescript
+function greet(name: string, age: number): string {
+  return \`\${name} is \${age}\`;
+}
+\`\`\`
+
+Annotations make a codebase self-documenting and catch refactor breakage. If you change \`greet\` to return \`void\`, every call site that used the result becomes a compile error instead of silently yielding \`undefined\` at runtime.
+
+Contrast with a cast, which asserts rather than checks:
+
+\`\`\`typescript
+const n = "5" as unknown as number; // assertion — no checking, just trust me
+const m: number = "5";            // annotation — the compiler flags this
+\`\`\`
+
+Do not annotate a variable at initialisation if inference already gives you exactly what you want; that adds noise without adding safety.`,
+      difficulty: "easy",
+      tags: ["typescript", "type-annotations"],
+      is_top50: false,
+    },
+    {
+      question: "What is the `any` type and why should it be avoided?",
+      answer: `\`any\` is the escape hatch that switches type checking **off** for a value. Any property access, any call, any assignment compiles.
+
+\`\`\`typescript
+let a: any = "hello";
+a.toFixed();  // no error — even though a is a string
+a.whatever(); // no error — a has no such property, who cares
+\`\`\`
+
+Two problems:
+1. **It defeats the point.** The bug you added TypeScript to catch now sails through.
+2. **It is contagious.** Anything derived from an \`any\` silently becomes \`any\`, so one careless annotation can disable checking for a whole module.
+
+Legitimate uses, all temporary: migrating a JavaScript codebase one file at a time; untyped third-party libraries with no available typings; a genuine escape hatch while you investigate.
+
+If a value's type is genuinely **unknown**, use \`unknown\` instead — it accepts anything but forbids use until you narrow it.`,
+      difficulty: "easy",
+      tags: ["typescript", "type-system"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between `any` and `unknown`?",
+      answer: `Both accept any value. The difference is what happens next.
+
+- \`any\` also disables checking, so every operation on it compiles.
+- \`unknown\` allows **nothing** until you narrow it. You must prove what it is before using it.
+
+\`\`\`typescript
+let a: any = "hello";
+a.toFixed(); // allowed — checking is off
+
+let u: unknown = "hello";
+u.toUpperCase(); // Error: 'u' is of type 'unknown'
+
+if (typeof u === "string") {
+  u.toUpperCase(); // OK — narrowed to string
+}
+\`\`\`
+
+**Rule of thumb:** use \`unknown\` for anything coming from outside your code (API responses, \`JSON.parse\`, form input, URL params). Use \`any\` only as a deliberate, short-lived migration step.
+
+In practice \`unknown\` is the correct default and \`any\` is the bug.`,
+      difficulty: "easy",
+      tags: ["typescript", "type-system"],
+      is_top50: true,
+    },
+    {
+      question: "What is an interface in TypeScript?",
+      answer: `An \`interface\` describes the **shape** of an object. It is a contract: any value with the right properties is assignable, no name required.
+
+\`\`\`typescript
+interface User {
+  id: number;
+  name: string;
+  email?: string;         // optional
+  readonly createdAt: Date;
+}
+
+const u: User = { id: 1, name: "Ada", createdAt: new Date() };
+\`\`\`
+
+Interfaces can \`extend\` other interfaces, and a class can \`implements\` one:
+
+\`\`\`typescript
+interface Admin extends User { permissions: string[]; }
+
+class RealUser implements User {
+  constructor(public id: number, public name: string, public createdAt: Date) {}
+}
+\`\`\`
+
+Interfaces only describe. They hold no values and emit no JavaScript — the shape exists purely for the compiler and your editor.`,
+      difficulty: "easy",
+      tags: ["typescript", "interfaces"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between an interface and a type alias?",
+      answer: `For a plain object shape they are nearly interchangeable. The differences that matter:
+
+| | \`interface\` | \`type\` |
+|---|---|---|
+| Declaration merging | Yes — declaring it twice combines them | No — redeclaring is an error |
+| \`extends\` | Yes, with clear conflict errors | Uses \`&\`, which can silently produce \`never\` |
+| Unions, tuples, primitives | No | Yes |
+| Mapped / conditional types | No | Yes |
+
+\`\`\`typescript
+// Only a type alias can be a union
+type Id = string | number;
+type Pair = [string, number];
+
+// Interfaces merge — this is how libraries augment types
+interface User { name: string; }
+interface User { age: number; } // User now has name AND age
+
+// Extension
+interface Admin extends User { role: "admin"; }
+type Admin2 = User & { role: "admin" };
+\`\`\`
+
+**Convention:** use \`interface\` for object shapes and class contracts, \`type\` for unions, intersections, tuples and anything computed.`,
+      difficulty: "easy",
+      tags: ["typescript", "interfaces", "type-aliases"],
+      is_top50: true,
+    },
+    {
+      question: "What is a type alias in TypeScript?",
+      answer: `A \`type\` alias gives a name to a type, exactly like \`interface\` does for object shapes — but it can name *anything*.
+
+\`\`\`typescript
+type Id = string | number;               // union
+type Point = [number, number];          // tuple
+type Nullable<T> = T | null;            // generic
+type User = { id: number; name: string };// object shape
+type Age = number;                      // even a primitive
+\`\`\`
+
+The real difference is capability: an \`interface\` can only describe object shapes and can be re-opened and merged. A \`type\` can represent unions, tuples, primitives and type-level logic, but redeclaring the same alias is a compile error.
+
+One practical downside: error messages use the **underlying** structure for a \`type\`, not the alias name, so a bad \`type Status = "a" | "b"\` surfaces as \`Type '"a" | "b"' is not assignable\`. An \`interface\` error shows the name.`,
+      difficulty: "easy",
+      tags: ["typescript", "type-aliases"],
+      is_top50: false,
+    },
+    {
+      question: "What are union types in TypeScript?",
+      answer: `A union type says a value can be **one of** several types. Written with \`|\`.
+
+\`\`\`typescript
+type Id = string | number;
+
+let id: Id = "abc"; // ok
+id = 42;             // ok
+id = true;           // Error: 'boolean' is not assignable to 'Id'
+\`\`\`
+
+The important consequence: you can only access properties that **every** member has.
+
+\`\`\`typescript
+function printId(id: Id) {
+  console.log(id.toString()); // ok — both string and number have toString
+  console.log(id.length);     // Error: Property 'length' does not exist on type 'Id'
+}
+\`\`\`
+
+To reach a member-specific property you must **narrow** first — with \`typeof\`, \`instanceof\`, the \`in\` operator, or by checking a shared discriminant.
+
+Unions are how you make illegal states unrepresentable: a value that is \`{ ok: true, data: T } | { ok: false, error: E }\` cannot be both successful and failed at once.`,
+      difficulty: "easy",
+      tags: ["typescript", "union-types"],
+      is_top50: false,
+    },
+    {
+      question: "What are intersection types in TypeScript?",
+      answer: `An intersection type says a value must satisfy **both** types at once. Written with \`&\`.
+
+\`\`\`typescript
+type Timestamped = { createdAt: Date };
+type Post = { title: string } & Timestamped;
+
+const p: Post = { title: "Hello", createdAt: new Date() };
+p.title;     // ok
+p.createdAt; // ok — every member of every intersected type is accessible
+\`\`\`
+
+Intersections compose without nesting and are the \`type\`-alias equivalent of \`interface extends\`:
+
+\`\`\`typescript
+interface A { a: string; }
+interface B { b: number; }
+type AB = A & B;
+
+interface C extends A, B {} // equivalent
+\`\`\`
+
+**Watch out:** intersecting conflicting property types does not error — it collapses to \`never\`, which then fails to assign anything:
+
+\`\`\`typescript
+type Broken = { id: string } & { id: number };
+const b: Broken = { id: 1 }; // Error — 'id' is 'string & number' = never
+\`\`\`
+
+Use intersections to combine independent shapes; use unions when a value is one shape *or* another.`,
+      difficulty: "medium",
+      tags: ["typescript", "union-types"],
+      is_top50: false,
+    },
+    {
+      question: "What are tuples in TypeScript?",
+      answer: `A tuple is a **fixed-length, fixed-order** array where each position can have its own type.
+
+\`\`\`typescript
+const entry: [string, number] = ["age", 42];
+entry[0]; // string
+entry[1]; // number
+\`\`\`
+
+It is the right choice when **position carries meaning** and the shape is small and fixed — coordinate pairs, key/value pairs, \`[error, value]\` results:
+
+\`\`\`typescript
+type Result = [Error | null, string | null];
+
+function tryParse(input: string): Result {
+  try {
+    return [null, input.trim()];
+  } catch (err) {
+    return [err as Error, null];
+  }
+}
+\`\`\`
+
+Optional positions use \`?\`, and labels make long tuples readable:
+
+\`\`\`typescript
+type Point = [x: number, y: number, label?: string];
+\`\`\`
+
+Rule of thumb: past two or three fields, switch to an object — \`{ x, y }\` is far clearer than \`[x, y]\`.`,
+      difficulty: "easy",
+      tags: ["typescript", "tuples"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is the difference between an array and a tuple in TypeScript?",
+      answer: `An array holds a **variable** number of values that are all the same type. A tuple holds a **fixed** number of positions, each with its own type.
+
+\`\`\`typescript
+const scores: number[] = [90, 85, 72];    // any length, all numbers
+const pair: [string, number] = ["Ada", 36]; // exactly 2, different types
+
+pair.push("extra"); // Error: Target requires 2 element(s) but source may have more
+scores[99] = 100;   // fine — arrays grow
+\`\`\`
+
+| | Array | Tuple |
+|---|---|---|
+| Length | Variable | Fixed |
+| Element types | One type for all | One type per position |
+| push / pop | Yes | Not allowed |
+| Destructuring | Loses precision | \`const [name, age] = pair\` gives \`string\` and \`number\` |
+| Reads as | A collection | A small record |
+
+Use a tuple when the **positions are self-documenting** (\`[key, value]\`, \`[lat, lng]\`, \`[error, data]\`). Use an object once there are more than two or three fields.`,
+      difficulty: "easy",
+      tags: ["typescript", "tuples", "arrays"],
+      is_top50: false,
+    },
+    {
+      question: "What are enums in TypeScript?",
+      answer: `An \`enum\` gives a set of related constants readable names, so you stop scattering raw strings or numbers through your code.
+
+\`\`\`typescript
+enum OrderStatus {
+  Pending = "PENDING",
+  Shipped = "SHIPPED",
+  Delivered = "DELIVERED",
+  Cancelled = "CANCELLED",
+}
+
+const s: OrderStatus = OrderStatus.Pending;
+\`\`\`
+
+**String vs numeric:** a numeric enum is bidirectional — \`OrderStatus[0]\` is \`"Pending"\`, which is handy for reverse lookups but means the compiled output contains a mapping object that bloats your bundle. A string enum emits only the forward mapping.
+
+\`const enum\` is compile-time only (inlined at build, no runtime object), but it is incompatible with \`isolatedModules\` and cannot cross declaration-file boundaries.
+
+**Many style guides now advise against enums**, preferring a string-literal union plus \`as const\`:
+
+\`\`\`typescript
+type OrderStatus = "pending" | "shipped" | "delivered";
+const STATUSES = ["pending", "shipped", "delivered"] as const;
+\`\`\`
+
+Same safety, no emitted code, and \`STATUSES\` is iterable. Enums are fine when you also want the runtime object.`,
+      difficulty: "easy",
+      tags: ["typescript", "enums"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is the difference between `null` and `undefined` in TypeScript?",
+      answer: `Both represent "no value", but they mean different things:
+
+- \`undefined\` — **nothing was assigned.** A variable declared with no value, a missing object property, a misspelled property name.
+- \`null\` — **deliberately empty.** The value exists and is explicitly empty — no user selected, no result found.
+
+\`\`\`typescript
+let a: string;              // undefined
+let b: string | null = null; // explicitly null
+\`\`\`
+
+They behave the same under loose comparison (\`null == undefined\` is \`true\`) but differ under \`===\`, and \`typeof null\` is \`"object"\` — a long-standing JavaScript bug.
+
+The practical difference shows up in optional properties. \`?\` means \`T | undefined\`:
+
+\`\`\`typescript
+interface User { nickname?: string; }
+
+const a: User = {};               // ok — key absent
+const b: User = { nickname: null }; // Error — null is not assignable to string | undefined
+\`\`\`
+
+**Practical rule:** use \`undefined\` for "not provided" and omit the key. Reserve \`null\` for cases where the emptiness is meaningful and shared across an API boundary. Be consistent — mixing them is a reliable source of \`===\` bugs.`,
+      difficulty: "easy",
+      tags: ["typescript", "type-system"],
+      is_top50: false,
+    },
+    {
+      question: "What does the `void` type represent in TypeScript?",
+      answer: `\`void\` is the return type of a function that completes normally but produces no useful value.
+
+\`\`\`typescript
+function log(message: string): void {
+  console.log(message);
+}
+
+const result = log("hello"); // result is undefined
+\`\`\`
+
+A second use is on **parameters** — a callback that receives a value it must not return: \`arr.forEach((item) => console.log(item))\`. The arrow returns \`console.log\`'s \`void\`, and that is accepted.
+
+**\`void\` vs \`undefined\` vs \`never\`:**
+
+| Type | Means |
+|---|---|
+| \`void\` | Returns normally, no meaningful value |
+| \`undefined\` | The value *is* \`undefined\` — a specific value you can assign to |
+| \`never\` | Cannot return at all — always throws or loops forever |
+
+A function typed \`void\` **may** still return something; the annotation only stops callers from relying on it. A function typed \`never\` must not return normally.`,
+      difficulty: "easy",
+      tags: ["typescript", "type-system"],
+      is_top50: false,
+    },
+    {
+      question: "What is the `never` type in TypeScript?",
+      answer: `\`never\` is the type of something that **cannot happen**. It is the bottom type: every value is assignable to \`never\`, and no value is assignable *from* it.
+
+\`\`\`typescript
+function fail(message: string): never {
+  throw new Error(message); // never returns, so it can be typed never
+}
+
+function loopForever(): never {
+  while (true) {}
+}
+\`\`\`
+
+The practical junior win is **exhaustiveness checking**. Declare a helper accepting only \`never\`, then call it in the default branch of a switch. If you later add a variant to a union, the compiler errors at every unhandled branch instead of silently falling through:
+
+\`\`\`typescript
+function assertNever(value: never): never {
+  throw new Error("Unexpected: " + value);
+}
+
+type Shape = { kind: "circle"; r: number } | { kind: "square"; s: number };
+
+function area(shape: Shape) {
+  switch (shape.kind) {
+    case "circle": return Math.PI * shape.r ** 2;
+    case "square": return shape.s ** 2;
+    default: return assertNever(shape); // Error the day you add a third shape
+  }
+}
+\`\`\`
+
+\`never\` also appears implicitly: a variable narrowed to \`never\` means every branch was handled, and \`string & number\` collapses to \`never\`.`,
+      difficulty: "medium",
+      tags: ["typescript", "type-system"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How do you declare optional properties in a TypeScript interface?",
+      answer: `Add a \`?\` after the property name. The property may be absent, and its type becomes \`T | undefined\`.
+
+\`\`\`typescript
+interface User {
+  id: number;
+  name: string;
+  email?: string;
+  age?: number;
+}
+
+const u: User = { id: 1, name: "Ada" };   // ok — both optional keys omitted
+console.log(u.email?.length);              // undefined, no crash
+console.log(u.email.length);               // Error: possibly undefined
+\`\`\`
+
+Two ways to read an optional property:
+- **\`?.\`** — optional chaining, short-circuits to \`undefined\` if the object or property is missing
+- **\`??\`** — nullish coalescing, falls back when the left side is \`null\` or \`undefined\` (unlike \`||\`, which also falls back on \`0\`, \`""\` and \`false\`)
+
+\`\`\`typescript
+const page = u.age ?? 0;  // 0 when age is missing — and correct when age is 0
+const page2 = u.age || 1; // 1 when age is 0 too — usually a bug
+\`\`\`
+
+A required property that may still be \`null\` needs an explicit union: \`email: string | null\` means "always present, sometimes empty", which is different from "may be absent".`,
+      difficulty: "easy",
+      tags: ["typescript", "interfaces"],
+      is_top50: false,
+    },
+    {
+      question: "What does the `readonly` modifier do in TypeScript?",
+      answer: `\`readonly\` marks a property that cannot be reassigned after initialisation. It is a **compile-time** restriction only.
+
+\`\`\`typescript
+interface Config {
+  readonly version: string;
+  readonly tags: string[];
+}
+
+const c: Config = { version: "1.0", tags: [] };
+c.version = "2.0"; // Error: Cannot assign to 'version' because it is a read-only property
+c.tags.push("new");// allowed — readonly is shallow, the array is still mutable
+\`\`\`
+
+On an **array type** it makes the array itself immutable:
+
+\`\`\`typescript
+const coords: readonly [number, number] = [1, 2];
+coords[0] = 5;  // Error
+coords.push(3); // Error
+\`\`\`
+
+\`as const\` applies \`readonly\` across a whole object literal at once — useful for configuration maps:
+
+\`\`\`typescript
+const ROUTES = {
+  home: "/",
+  settings: "/settings",
+} as const;
+\`\`\`
+
+Use \`readonly\` for values that should never change after setup (config, IDs, constants, props arrays, function default parameters). It costs nothing at runtime and documents intent.`,
+      difficulty: "easy",
+      tags: ["typescript", "readonly"],
+      is_top50: false,
+    },
+    {
+      question: "What is a type assertion in TypeScript?",
+      answer: `A type assertion tells the compiler to **trust** you and treat a value as some other type. Syntax is \`value as Type\`, or the older \`<Type>value\`.
+
+\`\`\`typescript
+const el = document.getElementById("root") as HTMLDivElement;
+el.classList.add("active");
+
+const value = JSON.parse(text) as User[]; // assertion — not a check
+\`\`\`
+
+**Assertions are not validation.** Nothing is verified; if you are wrong, the bug moves to runtime, silently.
+
+\`\`\`typescript
+const n = "5" as unknown as number;
+console.log(n * 2); // NaN — no compile error, no warning
+\`\`\`
+
+Two rules for using one responsibly:
+1. **Only when you know better than the compiler** — an external value you have already validated, or a safe widening (\`as const\`, \`as HTMLDivElement\` after a null check).
+2. **Only widen; never narrow across an unrelated type.** Going \`unknown\` → \`User\` via \`as\` skips the check entirely — that is what Zod or a hand-written type guard is for.
+
+If you reach for \`as\` because a type is annoying, the correct move is usually \`unknown\` plus narrowing, or fixing the underlying type. Every \`as\` is a place a bug can hide.`,
+      difficulty: "medium",
+      tags: ["typescript", "type-assertion"],
+      is_top50: false,
+    },
+    {
+      question: "How do you type an array in TypeScript?",
+      answer: `Two equivalent forms:
+
+\`\`\`typescript
+const names: string[] = ["Ada", "Lin"];
+const scores: Array<number> = [90, 85]; // bracket form, useful for unions
+\`\`\`
+
+An array type means a **variable-length** list where every element is the same type. Because the element type is fixed, the array methods are typed correctly:
+
+\`\`\`typescript
+names.map((n) => n.length);   // number[]
+names.filter((n) => n.length > 3); // string[]
+const first: string | undefined = names[0];
+\`\`\`
+
+Points juniors get wrong:
+- **\`string[]\` and \`Array<string>\` are identical.** Prefer the bracket form; use \`Array<T>\` when the element type is a union or intersection, because \`(string | number)[]\` needs parentheses while \`Array<string | number>\` does not.
+- **Arrays are not tuples.** \`[string, number]\` is a fixed pair; \`(string | number)[]\` is any-length.
+- **\`arr[i]\` is \`T\`, not \`T | undefined\`** — unless you enable \`noUncheckedIndexedAccess\`, which adds that safety. Without it, reading past the end gives \`undefined\` at runtime with no compile error.`,
+      difficulty: "easy",
+      tags: ["typescript", "arrays"],
+      is_top50: false,
+    },
+    {
+      question: "How do you make a function parameter optional in TypeScript?",
+      answer: `Put a \`?\` after the parameter name. TypeScript automatically adds \`| undefined\` to its type.
+
+\`\`\`typescript
+function greet(name: string, greeting?: string) {
+  return (greeting ?? "Hello") + ", " + name;
+}
+
+greet("Ada");            // ok — greeting omitted
+greet("Ada", "Hi");      // ok
+greet("Ada", undefined); // ok — same as omitting it
+\`\`\`
+
+The rule that catches people out: **an optional parameter cannot be followed by a required one.** Callers pass arguments positionally, so there would be no way to skip it.
+
+\`\`\`typescript
+function bad(a?: string, b: number) {} // Error: A required parameter cannot follow an optional parameter
+\`\`\`
+
+Workarounds: make \`b\` optional too, reorder, or give it a default — which also makes it optional at the call site and is usually cleanest:
+
+\`\`\`typescript
+function greet(name: string, greeting = "Hello") {
+  return greeting + ", " + name;
+}
+\`\`\``,
+      difficulty: "easy",
+      tags: ["typescript", "functions"],
+      is_top50: false,
+    },
+    {
+      question: "Why annotate a function's return type in TypeScript?",
+      answer: `Because it makes the function's **contract explicit and stable**, independent of its implementation.
+
+\`\`\`typescript
+function getIds(users: User[]) {
+  return users.map((u) => u.id);
+} // inferred: number[]
+
+function getIds(users: User[]): number[] {
+  return users.map((u) => u.id);
+} // explicit — same today
+\`\`\`
+
+Today they agree. The value appears when the body changes:
+
+\`\`\`typescript
+function getIds(users: User[]) {
+  if (users.length === 0) return; // returns undefined on an empty array
+  return users.map((u) => u.id);
+} // inferred: number[] | undefined — every caller must now handle undefined
+\`\`\`
+
+With the annotation \`: number[]\`, that is a **compile error at the return statement**, so it cannot ship. The annotation is a check on the implementation, not just documentation.
+
+Annotate return types for exported or public functions, and anything whose callers rely on the shape. Let inference handle small private helpers — \`const total = items.length\` needs no annotation.`,
+      difficulty: "easy",
+      tags: ["typescript", "type-annotations", "functions"],
+      is_top50: false,
+    },
+    {
+      question: "What is `tsconfig.json` and why does it matter?",
+      answer: `\`tsconfig.json\` is TypeScript's configuration file. It sits at the project root and tells the compiler what to check and what to emit.
+
+The options you will be asked about:
+
+| Option | What it does |
+|---|---|
+| \`target\` | Which JavaScript version the output uses (\`ES2020\`, \`ESNext\`) |
+| \`module\` | Output module format (\`esnext\`, \`nodenext\`) |
+| \`moduleResolution\` | How imports are resolved (\`bundler\` for Vite / Next) |
+| \`lib\` | Which standard library definitions to include |
+| \`strict\` | Master switch for the strict family of checks |
+| \`noUncheckedIndexedAccess\` | Makes \`arr[i]\` include \`undefined\` |
+| \`jsx\` | How JSX is transformed (\`preserve\` for React 19) |
+| \`paths\` | Import aliases for the type checker |
+| \`skipLibCheck\` | Skip type-checking \`.d.ts\` files — big speed win |
+| \`incremental\` | Cache results between builds |
+
+A typical modern web config:
+
+\`\`\`json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "ES2022"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "noEmit": true
+  },
+  "include": ["src"]
+}
+\`\`\`
+
+Two things juniors miss: \`tsc\` (type check) and your build tool (\`next build\`, \`vite build\`) are **separate** steps — a successful build does not mean types were checked unless the build runs \`tsc\`. And \`paths\` aliases only work if your bundler or Node resolves them too, because TypeScript rewrites nothing at runtime.`,
+      difficulty: "easy",
+      tags: ["typescript", "tsconfig"],
+      is_top50: false,
+    },
+    {
+      question: 'What does "strict": true enable in TypeScript?',
+      answer: `\`"strict": true\` is a master switch that turns on a family of individual checks:
+
+| Flag | Catches |
+|---|---|
+| \`noImplicitAny\` | Function parameters with no type and no inference |
+| \`strictNullChecks\` | Assigning \`null\`/\`undefined\` to a type that excludes them |
+| \`strictFunctionTypes\` | Unsound function parameter variance |
+| \`strictBindCallApply\` | Bad arguments to \`bind\`/\`call\`/\`apply\` |
+| \`strictPropertyInitialization\` | Class properties not set in the constructor |
+| \`noImplicitThis\` | Untyped \`this\` |
+| \`useUnknownInCatchVariables\` | \`catch (e)\` gives \`e: unknown\`, forcing a check |
+| \`strictBuiltinIteratorReturn\` | Correct iterator return types |
+
+**Turn it on and leave it on.** Enabling it later is a separate project: it surfaces errors across the whole codebase at once, and the temptation is always to fall back to \`any\` rather than fix the root cause.
+
+The cost is real but bounded — most new code is written correctly under \`strict\` anyway, and the errors it surfaces are real bugs. \`strictNullChecks\` alone eliminates the entire class of "cannot read property of undefined" errors.
+
+Note that \`strict\` only affects **type checking**. It emits no different JavaScript and adds no runtime cost.`,
+      difficulty: "medium",
+      tags: ["typescript", "tsconfig", "strict-mode"],
+      is_top50: false,
+    },
+    {
+      question: "What is `strictNullChecks` in TypeScript?",
+      answer: `\`strictNullChecks\` removes \`null\` and \`undefined\` from every type unless you explicitly include them. This is the single most valuable flag in the config.
+
+\`\`\`typescript
+function len(name: string) {
+  return name.length;
+}
+
+len(null);      // Without strictNullChecks: compiles. Crashes at runtime.
+len(undefined); // Without strictNullChecks: compiles. Crashes at runtime.
+\`\`\`
+
+With it on, the compiler forces you to decide what "missing" means:
+
+\`\`\`typescript
+function len(name: string | null) {
+  if (name === null) return 0; // handled
+  return name.length;
+}
+
+// or
+return name?.length ?? 0;
+\`\`\`
+
+It also changes optional properties and index access:
+
+\`\`\`typescript
+interface User { nickname?: string; }
+const u: User = {};
+u.nickname.length;    // Error: 'u.nickname' is possibly 'undefined'
+
+const first = users[0]; // Error under noUncheckedIndexedAccess: possibly 'undefined'
+\`\`\`
+
+Most of the "cannot read property of undefined/null" bugs you have debugged were never writable in the first place. That is the whole point.`,
+      difficulty: "medium",
+      tags: ["typescript", "strict-mode"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Why can't TypeScript stop bad data coming from an API or user input?",
+      answer: `Because **types are erased**. TypeScript only checks values already inside your program — it has no idea what an HTTP response will contain.
+
+\`\`\`typescript
+const res = await fetch("/api/users");
+const users = await res.json(); // any — the compiler has no idea what this is
+
+users.forEach((u: User) => u.name); // compiles, explodes at runtime
+\`\`\`
+
+A type annotation is a **claim about a value**, not a **check of one**. Nothing verifies the claim, so anything crossing a boundary — network, file system, \`localStorage\`, URL params, form input, \`postMessage\` — must be validated at runtime.
+
+The pattern:
+
+\`\`\`typescript
+const raw: unknown = await res.json(); // honest: we don't know yet
+if (Array.isArray(raw)) {
+  // raw is narrowed to any[]
+}
+\`\`\`
+
+For anything non-trivial use a schema validator (Zod, Valibot) and **derive** the type from the schema, so there is one source of truth rather than a type and a validator that can drift apart:
+
+\`\`\`typescript
+const UserSchema = z.object({ id: z.number(), name: z.string() });
+type User = z.infer<typeof UserSchema>; // inferred, never hand-written twice
+\`\`\`
+
+This is also the interview answer to "does TypeScript make my app safe?" — no. It catches mistakes in code you wrote; it does not validate data you received.`,
+      difficulty: "medium",
+      tags: ["typescript", "type-system"],
+      is_top50: false,
+    },
+    {
+      question: "What are type guards in TypeScript?",
+      answer: `A type guard is a function whose return type is \`value is Type\`. When it returns \`true\`, the compiler narrows the variable to \`Type\` for the rest of that branch.
+
+\`\`\`typescript
+interface Cat { meow(): void; }
+
+function isCat(value: unknown): value is Cat {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "meow" in value &&
+    typeof value.meow === "function"
+  );
+}
+
+function speak(value: unknown) {
+  if (isCat(value)) {
+    value.meow(); // value is Cat here
+  }
+}
+\`\`\`
+
+The \`is\` keyword does the real work — it tells the compiler that \`true\` implies the type. The compiler **trusts** your implementation completely, so a guard that returns \`true\` incorrectly introduces a lie it cannot detect. Write the body as if nothing were checked.
+
+You need custom guards when the built-in checks cannot help: \`typeof\` handles primitives, \`instanceof\` handles classes, \`in\` handles property existence. None of those validate a plain object's shape.
+
+A related form, the **assertion function**, narrows by throwing instead of returning \`false\`:
+
+\`\`\`typescript
+function assertCat(value: unknown): asserts value is Cat {
+  if (!isCat(value)) throw new Error("Not a cat");
+}
+\`\`\``,
+      difficulty: "medium",
+      tags: ["typescript", "type-guards", "type-narrowing"],
+      is_top50: false,
+    },
+    {
+      question: "What is type narrowing in TypeScript?",
+      answer: `Type narrowing is the compiler refining a type inside a branch, based on checks it understands. It happens automatically — you rarely write it by hand.
+
+\`\`\`typescript
+function print(value: string | number) {
+  if (typeof value === "string") {
+    value.toUpperCase(); // narrowed to string
+  } else {
+    value.toFixed(2);    // narrowed to number
+  }
+}
+\`\`\`
+
+The compiler understands \`typeof\`, \`instanceof\`, the \`in\` operator, equality checks, truthiness, \`switch\` on a discriminant, and user-defined type guards. It also narrows **control flow** — after an early \`return\` or \`throw\`, the remaining code no longer has to consider the discarded case:
+
+\`\`\`typescript
+function getPort(url: string) {
+  if (!url.startsWith("http")) return null;
+  return new URL(url).port; // url is a string here
+}
+\`\`\`
+
+Narrowing is what makes unions usable. Without it a \`string | number\` is nearly opaque — you could only call methods both members share. With it, each branch gets full access to its own type's members.`,
+      difficulty: "medium",
+      tags: ["typescript", "type-narrowing"],
+      is_top50: false,
+    },
+    {
+      question: "What are generics in TypeScript?",
+      answer: `Generics let one function, class or type work with many types while **preserving the link** between input and output.
+
+\`\`\`typescript
+function identity<T>(value: T): T {
+  return value;
+}
+
+identity("hello"); // T inferred as string
+identity(42);       // T inferred as number
+\`\`\`
+
+The alternative is losing safety:
+
+\`\`\`typescript
+function identityAny(value: any) { return value; }
+identityAny(42).toUpperCase(); // compiles, crashes at runtime
+\`\`\`
+
+\`T\` is **inferred** from the arguments in most cases, so you rarely write it explicitly. The payoff shows in reusable helpers:
+
+\`\`\`typescript
+function first<T>(items: T[]): T | undefined {
+  return items[0];
+}
+
+const n = first([10, 20]);   // number | undefined
+const s = first(["a", "b"]); // string | undefined
+\`\`\`
+
+You also use generics for typed containers and API wrappers:
+
+\`\`\`typescript
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+}
+\`\`\`
+
+**Junior guidance:** reach for a generic when the *structure* is the same but the *type* varies, and you want the type preserved. If a generic needs three type parameters and a conditional type to express itself, you have probably gone past what the problem needed.`,
+      difficulty: "medium",
+      tags: ["typescript", "generics"],
+      is_top50: false,
+    },
+    {
+      question: "What is a generic constraint in TypeScript?",
+      answer: `A constraint restricts what a type parameter can be, using \`extends\`. Without one, \`T\` can be anything — including primitives with no \`.length\`, which would be a compile error inside the function.
+
+\`\`\`typescript
+function first<T>(items: T[]): T | undefined {
+  return items[0];
+}
+
+function longest<T extends { length: number }>(a: T, b: T): T {
+  return a.length >= b.length ? a : b;
+}
+
+longest("abc", "de"); // ok — string has length
+longest(1, 2);       // Error: 'number' does not satisfy '{ length: number }'
+\`\`\`
+
+Inside the body the compiler knows \`T\` has \`length\`, so \`a.length\` is allowed.
+
+Two more things constraints give you:
+- **Access to the constrained type's members** — \`T extends HTMLElement\` lets you call \`element.focus()\`
+- **A meaningful \`keyof\`** — \`function pluck<T, K extends keyof T>(obj: T, key: K): T[K]\` only accepts keys that actually exist on \`T\`, so a typo is a compile error
+
+You can also supply a **default**:
+
+\`\`\`typescript
+interface ApiResponse<T = unknown> {
+  data: T;
+  status: number;
+}
+\`\`\``,
+      difficulty: "medium",
+      tags: ["typescript", "generics"],
+      is_top50: false,
+    },
+    {
+      question: "What are utility types in TypeScript? Name a few common ones.",
+      answer: `Utility types are built-in generic types that transform other types. They save writing the same mapped/conditional boilerplate repeatedly.
+
+| Utility | Result |
+|---|---|
+| \`Partial<T>\` | every property optional |
+| \`Required<T>\` | every property required (removes \`?\` and \`?\`) |
+| \`Readonly<T>\` | every property \`readonly\` |
+| \`Pick<T, K>\` | only the listed properties |
+| \`Omit<T, K>\` | everything except the listed properties |
+| \`Record<K, V>\` | an object with keys \`K\` and values \`V\` |
+| \`Exclude<U, X>\` | removes union members |
+| \`Extract<U, X>\` | keeps only matching union members |
+| \`NonNullable<T>\` | \`T\` without \`null\`/\`undefined\` |
+| \`ReturnType<F>\` | a function's return type |
+| \`Parameters<F>\` | a function's parameter types |
+| \`Awaited<T>\` | the value a promise resolves to |
+
+\`\`\`typescript
+interface User { id: number; name: string; email?: string; }
+
+function save(payload: Partial<User>) {}        // all fields optional — for updates
+const publicView: Pick<User, "id" | "name"> = { id: 1, name: "Ada" };
+const byId: Record<string, User> = {};
+\`\`\`
+
+The most common real uses: \`Partial<T>\` for update endpoints, \`Pick<T, ...>\` to shape API responses, and \`Record<K, V>\` for maps and config objects.`,
+      difficulty: "medium",
+      tags: ["typescript", "utility-types"],
+      is_top50: false,
+    },
+    {
+      question: "What does the `keyof` operator do in TypeScript?",
+      answer: `\`keyof\` produces the union of a type's property names.
+
+\`\`\`typescript
+interface User {
+  id: number;
+  name: string;
+  email?: string;
+}
+
+type UserKeys = keyof User; // "id" | "name" | "email"
+\`\`\`
+
+Its main use is constraining a generic so you cannot pass a key that does not exist:
+
+\`\`\`typescript
+function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
+  return obj[key];
+}
+
+getProperty(user, "name");  // string
+getProperty(user, "email"); // string | undefined
+getProperty(user, "nmae");  // Error: Argument of type '"nmae"' is not assignable to 'keyof User'
+\`\`\`
+
+Note the return type is \`T[K]\`, not \`any\` — the result is typed based on which key you passed. That is why \`K\` is constrained with \`extends keyof T\`; without it \`K\` would just be \`string\` and the return would collapse to \`any\`.
+
+Pair it with \`typeof\` on a value to derive the union of its keys:
+
+\`\`\`typescript
+const colors = { red: "#f00", green: "#0f0" };
+type ColorName = keyof typeof colors; // "red" | "green"
+\`\`\``,
+      difficulty: "medium",
+      tags: ["typescript", "type-operators"],
+      is_top50: false,
+    },
+    {
+      question: "What is a discriminated union in TypeScript?",
+      answer: `A discriminated union is a union of object types that all share a property with **literal** type values — the *discriminant*. Checking it narrows the value to exactly one member.
+
+\`\`\`typescript
+type Result<T> =
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: Error };
+
+function render(r: Result<User>) {
+  switch (r.status) {
+    case "loading": return "Loading...";
+    case "success": return r.data.name; // r.data exists only here
+    case "error":   return r.error.message;
+  }
+}
+\`\`\`
+
+Why it beats optional properties. The naive version:
+
+\`\`\`typescript
+interface ResultShape {
+  loading: boolean;
+  data?: User;  // allows loading: true AND data set
+  error?: Error; // allows both data and error
+}
+\`\`\`
+
+That permits states which make no sense. The discriminated union makes them **unrepresentable** — and adding a fourth variant turns every unhandled branch into a compile error, which you can enforce with an \`assertNever\` helper.
+
+It is also the standard way to type async state, API responses, React \`useReducer\` actions, and design-system components that are "either a link or a button, never both".`,
+      difficulty: "medium",
+      tags: ["typescript", "union-types", "type-narrowing"],
+      is_top50: false,
+    },
+    {
+      question: "What is structural typing in TypeScript?",
+      answer: `TypeScript compares types by their **shape**, not their name. Any object with the required properties is assignable, whether or not it was ever declared with that type.
+
+\`\`\`typescript
+interface Point { x: number; y: number; }
+
+function show(p: Point) { return \`(\${p.x}, \${p.y})\`; }
+
+const pixel = { x: 3, y: 4, color: "red" }; // never declared as a Point
+show(pixel);                               // ok — it has the right shape
+
+class Vector {
+  constructor(public x: number, public y: number) {}
+}
+show(new Vector(1, 2)); // also ok
+\`\`\`
+
+This is why TypeScript sits comfortably in a duck-typed language — it does not force nominal inheritance the way Java or C# do.
+
+One trap: passing an object **literal** directly triggers excess property checking, but assigning to a variable first does not:
+
+\`\`\`typescript
+show({ x: 3, y: 4, color: "red" }); // Error: 'color' does not exist on type 'Point'
+\`\`\`
+
+**When structural typing is too loose:** if two things are both strings but must not be mixed — a \`UserId\` and an \`OrderId\` — use a branded type:
+
+\`\`\`typescript
+type UserId = string & { readonly __brand: "UserId" };
+\`\`\``,
+      difficulty: "medium",
+      tags: ["typescript", "type-system"],
+      is_top50: false,
+    },
+    {
+      question: "What is a type predicate in TypeScript?",
+      answer: `A type predicate is the \`x is T\` form of a type guard's return type. It lets a plain boolean function narrow a type in the caller.
+
+\`\`\`typescript
+function isString(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+const data: unknown = await res.json();
+if (isString(data)) {
+  data.toUpperCase(); // data is string
+}
+\`\`\`
+
+Without the \`is\` annotation the function still works at runtime, but the compiler learns nothing:
+
+\`\`\`typescript
+function isStringPlain(value: unknown): boolean {
+  return typeof value === "string";
+}
+// after a plain boolean check, data is still unknown
+\`\`\`
+
+The common shape is an assertion function, which narrows by throwing:
+
+\`\`\`typescript
+function assertString(value: unknown): asserts value is string {
+  if (typeof value !== "string") throw new Error("Expected a string");
+}
+\`\`\`
+
+Same caution as any guard: the compiler trusts the implementation. A predicate that returns \`true\` for the wrong values produces a type error the compiler cannot catch — which is why guards usually take \`unknown\` and genuinely check.`,
+      difficulty: "medium",
+      tags: ["typescript", "type-guards"],
+      is_top50: false,
+    },
+    {
+      question: "What is function overloading in TypeScript?",
+      answer: `Overloading gives one function several call signatures with different parameter types, followed by a single implementation.
+
+\`\`\`typescript
+function parse(value: string): number;
+function parse(value: string[]): number[];
+function parse(value: string | string[]): number | number[] {
+  return Array.isArray(value) ? value.map(Number) : Number(value);
+}
+
+const one = parse("4");        // number
+const many = parse(["1", "2"]); // number[]
+\`\`\`
+
+Callers only see the overload signatures — the implementation signature is not part of the public API. That is what gives each call a precise return type instead of a union.
+
+**Prefer a union parameter when the return type does not depend on the input type:**
+
+\`\`\`typescript
+// simpler, and no overloads needed
+function parse(value: string | string[]): number | number[] { /* ... */ }
+\`\`\`
+
+Overloads earn their keep when the input type determines the output type — that relationship is exactly what a single signature cannot express. They also carry a cost: more code, worse inferred error messages, and order matters (signatures must sit adjacent to the implementation). Reserve them for that case.`,
+      difficulty: "hard",
+      tags: ["typescript", "functions"],
+      is_top50: false,
+    },
+    {
+      question: "What does `as const` do in TypeScript?",
+      answer: `\`as const\` tells the compiler to infer the **narrowest possible** type — literal types instead of widened ones, and \`readonly\` everywhere.
+
+\`\`\`typescript
+const status = "pending";         // inferred as string
+const status2 = "pending" as const; // inferred as the literal "pending"
+\`\`\`
+
+It becomes essential for arrays and objects, where plain inference widens to \`string[]\`:
+
+\`\`\`typescript
+const actions = ["add", "remove"];           // string[] — anything can be pushed
+const actions2 = ["add", "remove"] as const; // readonly ["add", "remove"]
+
+type Action = (typeof actions2)[number]; // "add" | "remove"
+\`\`\`
+
+Without \`as const\` that union is impossible to write, so you end up with \`string\` and no safety at all.
+
+\`satisfies\` closes the remaining gap on objects:
+
+\`\`\`typescript
+interface Config {
+  theme: "light" | "dark";
+  retries: number;
+}
+
+const config = {
+  theme: "light",
+  retries: 3,
+} satisfies Config; // checked against Config...
+
+const theme: "light" | "dark" = config.theme; // ...and still "light"
+\`\`\`
+
+Compare:
+- \`const x: Config = {...}\` — annotates, so \`x.theme\` widens to \`"light" | "dark"\`
+- \`const x = {...} as Config\` — asserts, skipping the check entirely
+- \`satisfies\` — **checks** conformance and **keeps** the inferred literal type
+
+A type annotation on a \`const\` does *not* prevent widening. That is the gap \`as const\` and \`satisfies\` fill.`,
+      difficulty: "medium",
+      tags: ["typescript", "readonly"],
+      is_top50: false,
+    },
+    {
+      question: "What is a `.d.ts` declaration file in TypeScript?",
+      answer: `A \`.d.ts\` declaration file contains **types only** — it describes code that already exists, without providing an implementation. It emits nothing.
+
+\`\`\`typescript
+// types/globals.d.ts
+declare const APP_VERSION: string;
+declare module "legacy-lib" {
+  export function doThing(input: string): Promise<number>;
+}
+\`\`\`
+
+Three common uses:
+
+1. **Typing a JavaScript library with no typings** — either an existing \`@types/{package}\` or your own declaration.
+2. **Describing globals** — augmenting \`Window\`, declaring environment variables, adding properties to \`Express.Request\`. Declaration merging is why you can extend an existing interface simply by re-declaring it.
+3. **Emitting types for your own code** — set \`declaration: true\` and \`tsc\` generates \`.d.ts\` files for consumers.
+
+\`declare\` means "this exists, trust me" and never emits code:
+
+\`\`\`typescript
+declare const VERSION: string; // compiles to nothing
+\`\`\`
+
+Two flags matter in practice: \`declaration\` to generate them, and \`skipLibCheck\` to stop \`tsc\` from type-checking them. The latter is a significant build-speed win and belongs in almost every modern \`tsconfig\`.`,
+      difficulty: "medium",
+      tags: ["typescript", "tsconfig"],
+      is_top50: false,
+    },
   ],
   "backend-engineer": [
     {
