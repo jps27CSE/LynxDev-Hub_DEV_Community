@@ -992,6 +992,7096 @@ export const questionsData: Record<
       tags: ["networking", "ports"],
       is_top50: true,
     },
+    // ──────── Problem-Solving & Coding Strategies ────────
+    {
+      question:
+        "Check whether two strings are anagrams of each other — frequency counting with a character map in O(n)",
+      answer: `Two strings are anagrams when they contain the same characters with the same frequencies — order does not matter.
+
+The naive approach is to sort both strings and compare, which is O(n log n). You can do better in O(n):
+
+\`\`\`javascript
+function isAnagram(a, b) {
+  if (a.length !== b.length) return false;
+
+  const counts = new Map();
+  for (const ch of a) {
+    counts.set(ch, (counts.get(ch) || 0) + 1);
+  }
+  for (const ch of b) {
+    const remaining = (counts.get(ch) || 0) - 1;
+    if (remaining < 0) return false;
+    counts.set(ch, remaining);
+  }
+  return true;
+}
+\`\`\`
+
+The length check is the cheapest early exit and eliminates most mismatches instantly. Then count every character in the first string, and decrement as you walk the second — a negative count means a character is missing or over-supplied.
+
+**Complexity:** O(n) time, O(k) space where k is the character count.
+
+**The case-insensitive variant** is the common trap: normalise first, or "Listen" and "Silent" fail because of case and spaces.
+
+**When a hash map is the wrong tool:** if the character set is fixed and small (lowercase English), a plain array of 26 counters is faster and allocates less than a Map.`,
+      difficulty: "easy",
+      tags: ["algorithms", "problem-solving", "strings", "hash-map"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Find the missing number in an array containing every number from 0 to n-1 — sum formula or XOR in one pass",
+      answer: `You are given n numbers, and every number from 0 to n-1 appears exactly once except one. Find the missing number.
+
+**Formula approach (one line):** the sum of 0..n-1 is n(n-1)/2. Subtract the actual array sum and the difference is the missing number.
+
+\`\`\`javascript
+function missingNumber(nums) {
+  const n = nums.length;
+  const expected = (n * (n - 1)) / 2;
+  const actual = nums.reduce((sum, x) => sum + x, 0);
+  return expected - actual;
+}
+\`\`\`
+
+O(n) time, O(1) space. Simple, but it fails on very large n where n(n-1) exceeds JavaScript's safe integer range.
+
+**XOR approach (no overflow):** XOR is commutative and associative, and x XOR x = 0. XORing every index 0..n-1 together with every array element cancels all the numbers that are present, leaving exactly the missing one.
+
+\`\`\`javascript
+function missingNumberXor(nums) {
+  let result = nums.length;
+  for (let i = 0; i < nums.length; i++) {
+    result ^= i ^ nums[i];
+  }
+  return result;
+}
+\`\`\`
+
+O(n) time, O(1) space, no overflow. The trade-off is that it reads as clever rather than obvious — in an interview, say the XOR version *after* the sum version and explain why you switched.`,
+      difficulty: "easy",
+      tags: ["algorithms", "problem-solving", "arrays", "bit-manipulation"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Determine whether an array contains duplicate values — a Set gives O(n) instead of O(n²)",
+      answer: `Checking every pair is O(n²) — for 100,000 elements that is ~5 billion comparisons. A Set gives O(n).
+
+\`\`\`javascript
+function containsDuplicate(nums) {
+  return new Set(nums).size !== nums.length;
+}
+\`\`\`
+
+If the Set ends up smaller than the array, something was inserted twice. That is the whole solution.
+
+**Why the set works:** \`Set\` uses a hash table internally, so \`has\`/\`add\` are O(1) on average. The comparison is just "did the size grow?".
+
+**Space complexity matters here.** You are trading O(n) extra memory for O(n) time. If the input is already sorted, you can do it in O(1) space instead — compare each element to its neighbour:
+
+\`\`\`javascript
+function containsDuplicateSorted(nums) {
+  for (let i = 1; i < nums.length; i++) {
+    if (nums[i] === nums[i - 1]) return true;
+  }
+  return false;
+}
+\`\`\`
+
+**The trade-off to state in an interview:** sorting costs O(n log n) time and mutates the input, so for large unsorted arrays the Set is faster overall, but for already-sorted data the scan wins on space.`,
+      difficulty: "easy",
+      tags: ["algorithms", "problem-solving", "arrays", "hash-map"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Validate balanced parentheses using a stack — push on an opening bracket, pop and match on a closing one",
+      answer: `A stack is the natural fit because brackets must close in the reverse order they opened — last opened, first closed.
+
+\`\`\`javascript
+function isBalanced(s) {
+  const pairs = { ")": "(", "]": "[", "}": "{" };
+  const stack = [];
+
+  for (const ch of s) {
+    if (ch === "(" || ch === "[" || ch === "{") {
+      stack.push(ch);
+    } else if (pairs[ch]) {
+      // closing bracket — the top of the stack must be its partner
+      if (stack.pop() !== pairs[ch]) return false;
+    }
+  }
+
+  return stack.length === 0;
+}
+\`\`\`
+
+Two conditions must both hold, and beginners usually check only one:
+1. **Every closing bracket matches** what is on top — a mismatch returns false immediately
+2. **The stack is empty at the end** — otherwise an opener was never closed, e.g. \`"((("\`
+
+The final \`stack.length === 0\` check is what catches unclosed brackets. Omitting it makes \`"((("\` incorrectly return true.
+
+**Beyond brackets:** the same stack pattern validates nested structures in general — HTML tags, JSON-ish groupings, and expression parsing all reduce to "does the most recent unclosed thing get closed correctly".
+
+**Related classic problems** that use the same shape: minimum valid parentheses (compute the longest valid substring), and removing invalid parentheses.`,
+      difficulty: "easy",
+      tags: ["algorithms", "problem-solving", "stack", "strings"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Find the single number in an array where every other element appears twice — XOR of all elements",
+      answer: `Every value appears an even number of times except one. XOR it all together.
+
+\`\`\`javascript
+function singleNumber(nums) {
+  let result = 0;
+  for (const n of nums) result ^= n;
+  return result;
+}
+\`\`\`
+
+**Why XOR works** rests on four properties:
+- \`a ^ a = 0\` — a value XORed with itself cancels
+- \`a ^ 0 = a\` — identity
+- \`a ^ b = b ^ a\` — commutative
+- \`(a ^ b) ^ c = a ^ (b ^ c)\` — associative
+
+Because XOR is commutative, the order does not matter. Because it is associative, you can group freely. Every pair of duplicates collapses to 0, and 0 XOR anything is that anything — so only the unpaired value survives.
+
+\`\`\`javascript
+[4, 1, 2, 1, 2].reduce((a, b) => a ^ b, 0); // 4
+\`\`\`
+
+**Complexities:** O(n) time, O(1) space. No extra data structure at all, which is why interviewers like it.
+
+**The extension they like to follow up with:** *if exactly two* values appear once and everything else twice, use \`diff\` and \`diff & -diff\` — the lowest set bit — to isolate one of them in a single pass.`,
+      difficulty: "easy",
+      tags: ["algorithms", "problem-solving", "arrays", "bit-manipulation"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Reverse a string in place using two pointers — O(1) extra space",
+      answer: `Two pointers walking toward each other, swapping as they go, until they meet.
+
+\`\`\`javascript
+function reverseString(s) {
+  const chars = s.split("");
+
+  let left = 0;
+  let right = chars.length - 1;
+
+  while (left < right) {
+    [chars[left], chars[right]] = [chars[right], chars[left]];
+    left++;
+    right--;
+  }
+  return chars.join("");
+}
+\`\`\`
+
+**JavaScript caveat:** strings are immutable, so \`s.split("")\` allocates a new array and the reversal happens on the copy. True in-place reversal needs a mutable structure — a character array in C/Java, or mutating \`chars\` directly.
+
+**When to stop:** \`left < right\`, not \`<=\`. With \`<=\` an odd-length string swaps the middle character with itself, which is harmless, but \`left < right\` states the intent more clearly and skips the redundant swap.
+
+**The two-pointer pattern generalises** to nearly every in-place array problem — removing duplicates, partitioning, rotating, reversing a sub-range. Recognising it is the skill, not memorising the loop.`,
+      difficulty: "easy",
+      tags: ["algorithms", "problem-solving", "strings", "two-pointers"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Remove duplicates from a sorted array in place — a write index tracking the read index",
+      answer: `The sorted precondition is what makes this a single pass: duplicates are always adjacent.
+
+\`\`\`javascript
+function removeDuplicates(nums) {
+  if (nums.length === 0) return 0;
+
+  let write = 0;
+  for (let read = 1; read < nums.length; read++) {
+    if (nums[read] !== nums[write]) {
+      write++;
+      nums[write] = nums[read];
+    }
+  }
+  return write + 1; // new length
+}
+\`\`\`
+
+Two indices walk the same array:
+- \`read\` scans every element
+- \`write\` marks where the next **unique** value should land
+
+When the current value differs from what we last wrote, advance \`write\` and copy. When it matches, skip it — it is a duplicate of something already kept.
+
+Because \`write\` never runs ahead of \`read\`, overwriting is always safe: you only ever write to a position you have already read.
+
+**O(n) time, O(1) space.** On a sorted array this beats building a Set, which would need O(n) extra memory and would not preserve order.
+
+**Without the sorted guarantee** the adjacency trick fails and you need either a Set (O(n) space) or sorting first (O(n log n) time, mutates input).`,
+      difficulty: "easy",
+      tags: ["algorithms", "problem-solving", "arrays", "in-place"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Rotate an array to the right by k positions — the three-reversal trick",
+      answer: `Rotating right by k moves the last k elements to the front. Reversing three times does it in O(n) time and O(1) space.
+
+\`\`\`javascript
+function rotate(nums, k) {
+  const n = nums.length;
+  if (n === 0) return nums;
+  k = ((k % n) + n) % n;   // handle k > n and negative k
+  if (k === 0) return nums;
+
+  reverse(nums, 0, n - 1);      // 1. reverse everything
+  reverse(nums, 0, k - 1);      // 2. reverse the first k
+  reverse(nums, k, n - 1);      // 3. reverse the rest
+  return nums;
+}
+
+function reverse(nums, start, end) {
+  while (start < end) {
+    [nums[start], nums[end]] = [nums[end], nums[start]];
+    start++;
+    end--;
+  }
+}
+\`\`\`
+
+Trace on \`[1,2,3,4,5,6,7]\`, k=3:
+- reverse all → \`[7,6,5,4,3,2,1]\`
+- reverse first 3 → \`[5,6,7,4,3,2,1]\`
+- reverse rest → \`[5,6,7,1,2,3,4]\` ✓
+
+Reversal rotates: a general rotation left by k is "reverse all, reverse the first n-k, reverse the last k".
+
+**The normalisation line matters.** \`k % n\` alone gives a negative result for negative \`k\`, and rotating by more than the array length is legal input. \`((k % n) + n) % n\` handles both in one expression.
+
+**The naive alternative** is \`nums.push(...nums.splice(n - k))\`, which is O(n) space and mutates during a spread — worth knowing, but it is not in-place.`,
+      difficulty: "easy",
+      tags: ["algorithms", "problem-solving", "arrays", "in-place"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Move all zeroes to the end of an array while preserving the order of other elements — one pass, O(n)",
+      answer: `A single pass with a write index: every non-zero element is moved forward, zeroes fill the gaps.
+
+\`\`\`javascript
+function moveZeroes(nums) {
+  let write = 0;
+
+  for (let read = 0; read < nums.length; read++) {
+    if (nums[read] !== 0) {
+      [nums[write], nums[read]] = [nums[read], nums[write]];
+      write++;
+    }
+  }
+  return nums;
+}
+\`\`\`
+
+The **swap** is what preserves relative order — a plain assignment would overwrite a non-zero value that has not been processed yet. Swapping puts that value where \`read\` is, so it still gets evaluated later in the loop.
+
+Trace \`[0,1,0,3,12]\`:
+- read=0: zero, skip
+- read=1: 1 → swap with index 0 → \`[1,0,0,3,12]\`, write=1
+- read=2: zero, skip
+- read=3: 3 → swap with index 1 → \`[1,3,0,0,12]\`, write=2
+- read=4: 12 → swap with index 2 → \`[1,3,12,0,0]\` ✓
+
+**O(n) time, O(1) space.**
+
+**The naive version** — count zeroes, then overwrite from the end — is also O(n) but requires a second pass and is easier to get backwards.`,
+      difficulty: "easy",
+      tags: ["algorithms", "problem-solving", "arrays", "in-place"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Find the first non-repeating character in a string — two passes with a frequency map",
+      answer: `Two passes: count every character, then scan in order for the first with a count of one.
+
+\`\`\`javascript
+function firstUniqueChar(s) {
+  const counts = new Map();
+
+  for (const ch of s) {
+    counts.set(ch, (counts.get(ch) || 0) + 1);
+  }
+
+  for (const ch of s) {
+    if (counts.get(ch) === 1) return ch;
+  }
+  return "";
+}
+\`\`\`
+
+The second pass must preserve **original order** — you cannot return whichever unique character the Map happens to yield first, because Map preserves insertion order, not uniqueness.
+
+**Why two passes and not one:** deciding a character is unique requires knowing about characters that come later, so you cannot finalise anything until you have seen the whole string.
+
+**O(n) time, O(k) space** where k is the number of distinct characters.
+
+**The related variation** — return *all* unique characters in order — uses the same structure and just collects instead of returning early.`,
+      difficulty: "easy",
+      tags: ["algorithms", "problem-solving", "strings", "hash-map"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Find the intersection of two sorted arrays — two pointers advancing the smaller element",
+      answer: `With both arrays sorted, you never need to look backwards. Advance whichever pointer is behind.
+
+\`\`\`javascript
+function intersection(a, b) {
+  const result = [];
+  let i = 0, j = 0;
+
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) {
+      result.push(a[i]);
+      i++;
+      j++;
+    } else if (a[i] < b[j]) {
+      i++;          // a[i] is too small to appear later in b
+    } else {
+      j++;
+    }
+  }
+  return result;
+}
+\`\`\`
+
+**The key insight:** if \`a[i] < b[j]\`, then \`a[i]\` cannot match anything remaining in \`b\` — everything left in \`b\` is at least \`b[j]\`, which is already bigger. So \`a[i]\` is definitively not in the intersection and \`i\` can advance. Symmetrically for \`b[j]\`.
+
+Because duplicates are adjacent in a sorted array, after recording a match you must advance **both** pointers — otherwise the same value gets pushed twice.
+
+**O(m + n) time, O(1) extra space** beyond the output. Sorting first, if needed, costs O(m log m + n log n) and is only worth it when you will run this repeatedly.
+
+The same shape solves "find common elements", "merge k sorted lists", and "median of two sorted arrays".`,
+      difficulty: "easy",
+      tags: ["algorithms", "problem-solving", "arrays", "two-pointers"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Find the length of the longest substring with at most k distinct characters — sliding window with a frequency map",
+      answer: `Maintain a window of at most k distinct characters and grow it as far as it will go.
+
+\`\`\`javascript
+function lengthOfLongestSubstring(s, k) {
+  const counts = new Map();
+  let left = 0;
+  let best = 0;
+
+  for (let right = 0; right < s.length; right++) {
+    const ch = s[right];
+    counts.set(ch, (counts.get(ch) || 0) + 1);
+
+    // window has too many distinct characters — shrink from the left
+    while (counts.size > k) {
+      const leftCh = s[left];
+      counts.set(leftCh, counts.get(leftCh) - 1);
+      if (counts.get(leftCh) === 0) counts.delete(leftCh);
+      left++;
+    }
+
+    best = Math.max(best, right - left + 1);
+  }
+  return best;
+}
+\`\`\`
+
+**The shape to recognise:** expand right, and while the constraint is violated, contract left. Each pointer only ever moves forward, so the total work is O(n) even though there is a nested loop.
+
+\`counts.delete\` on zero matters — leaving a zero-count key would make \`counts.size\` report distinct characters that are no longer present, and the window would shrink forever.
+
+**Complexity:** O(n) time, O(k) space.
+
+**The cousin problem:** the longest substring *without repeating* characters (already in this chapter) is identical except the condition is \`counts.size > 1\` on a single character.`,
+      difficulty: "medium",
+      tags: ["algorithms", "problem-solving", "strings", "sliding-window"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Determine whether an array can be partitioned into two subsets with equal sum — and why greedy fails",
+      answer: `Find a subset whose sum is exactly half the total. If the total is odd, the answer is immediately no.
+
+\`\`\`javascript
+function canPartition(nums) {
+  const total = nums.reduce((sum, n) => sum + n, 0);
+  if (total % 2 !== 0) return false;
+
+  const target = total / 2;
+  // reachable[k] = true if some subset sums to exactly k
+  const reachable = new Set([0]);
+
+  for (const num of nums) {
+    // copy first — mutating while iterating would reuse this element
+    const snapshot = [...reachable];
+    for (const sum of snapshot) {
+      reachable.add(sum + num);
+    }
+    if (reachable.has(target)) return true;
+  }
+
+  return false;
+}
+\`\`\`
+
+This is subset-sum dynamic programming, collapsed to a boolean. \`reachable\` starts as \`{0}\` because the empty subset sums to zero.
+
+**The bug that catches everyone:** iterating \`reachable\` while adding to it. The snapshot copy prevents the same element being used twice — without it, \`num\` would be added to sums that already include \`num\`.
+
+**Why greedy fails:** take \`[1, 5, 11, 5]\`, total 22, target 11. Greedy takes the largest first — 11 — which works here. But \`[1, 2, 3, 8]\` has total 14, target 7; greedy takes 8, overshoots, and fails, while \`1 + 2 + 3 = 7\` works. Greedy commits to the largest value and cannot back out.
+
+**Complexity:** O(n × target) time, O(target) space — which is why this becomes expensive for large numbers, and why it is a genuine dynamic-programming problem rather than a trick.`,
+      difficulty: "medium",
+      tags: ["algorithms", "problem-solving", "arrays", "dynamic-programming"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Sort an array containing only 0s, 1s and 2s in a single pass — Dutch National Flag algorithm",
+      answer: `Three pointers partition the array into four zones in one pass.
+
+\`\`\`javascript
+function sortColors(nums) {
+  let low = 0;        // [0, low)        -> all zeros
+  let mid = 0;        // [low, mid)      -> all ones
+  let high = nums.length - 1; // (high, end] -> all twos
+
+  while (mid <= high) {
+    if (nums[mid] === 0) {
+      [nums[low], nums[mid]] = [nums[mid], nums[low]];
+      low++;
+      mid++;
+    } else if (nums[mid] === 1) {
+      mid++;
+    } else {
+      [nums[mid], nums[high]] = [nums[high], nums[mid]];
+      high--;
+      // do NOT advance mid — the swapped-in element is unprocessed
+    }
+  }
+  return nums;
+}
+\`\`\`
+
+The invariant is the whole idea:
+
+| Range | Contents |
+|---|---|
+| \`[0, low)\` | all zeros |
+| \`[low, mid)\` | all ones |
+| \`[mid, high]\` | unclassified |
+| \`(high, end)\` | all twos |
+
+**The detail everyone gets wrong:** in the \`2\` branch you decrement \`high\` but do **not** increment \`mid\`. The element swapped in from the end has not been inspected yet, so \`mid\` must stay pointing at it. In the \`0\` branch you advance both, because the element you swapped in came from \`mid\` and was already known to be a 1.
+
+Trace \`[2,0,2,1,1,0]\`:
+- mid=0: 2 → swap with high=5 → \`[0,0,2,1,1,2]\`, high=4
+- mid=0: 0 → swap with low=0 → \`[0,0,2,1,1,2]\`, low=1, mid=1
+- mid=1: 0 → swap with low=1 → \`[0,0,2,1,1,2]\`, low=2, mid=2
+- mid=2: 2 → swap with high=4 → \`[0,0,1,1,2,2]\`, high=3
+- mid=2: 1 → mid=3
+- mid=3: 1 → mid=4, stop → \`[0,0,1,1,2,2]\` ✓
+
+**One pass, O(n) time, O(1) space** — versus O(n log n) for a general sort, and it uses that the value range is tiny.`,
+      difficulty: "medium",
+      tags: ["algorithms", "problem-solving", "arrays", "partitioning"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Find a contiguous subarray whose sum equals a target using prefix sums and a hash map — O(n)",
+      answer: `If the sum up to index j minus the sum up to index i equals target, the slice between them sums to target. Track prefix sums and look for the complement.
+
+\`\`\`javascript
+function subarraySum(nums, target) {
+  // prefix sum -> earliest index at which it occurred
+  const seen = new Map([[0, -1]]);
+  let sum = 0;
+
+  for (let i = 0; i < nums.length; i++) {
+    sum += nums[i];
+    const needed = sum - target;
+
+    if (seen.has(needed)) {
+      return [seen.get(needed) + 1, i];
+    }
+    // only record the FIRST occurrence — gives the longest subarray
+    if (!seen.has(sum)) seen.set(sum, i);
+  }
+  return [];
+}
+\`\`\`
+
+**Why seed \`seen\` with \`[0, -1]\`:** if \`target\` is matched at index 0 itself, the subarray starts at 0. Seeding the map with prefix sum 0 at index -1 makes that case fall out without special handling.
+
+**Why \`if (!seen.has(sum))\`:** overwriting would keep only the latest index, which returns the *shortest* matching subarray. Keeping the earliest returns the longest.
+
+**Example:** \`nums = [2, 7, 11, 15]\`, \`target = 9\`
+- i=0: sum=2, need=-7, miss → seen{0:-1, 2:0}
+- i=1: sum=9, need=0, hit at -1 → return \`[0, 1]\` — \`[2,7]\` ✓
+
+**O(n) time, O(n) space.** Works with negative numbers, which rules out the sliding-window approach — a window cannot shrink reliably when values can go both directions.`,
+      difficulty: "medium",
+      tags: ["algorithms", "problem-solving", "arrays", "hash-map"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Merge all overlapping intervals — sort by start, then sweep with a running maximum end",
+      answer: `Sort by start time, then keep a running end that only ever grows.
+
+\`\`\`javascript
+function merge(intervals) {
+  if (intervals.length === 0) return [];
+
+  const sorted = [...intervals].sort((a, b) => a[0] - b[0]);
+  const merged = [sorted[0]];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const last = merged[merged.length - 1];
+    const [start, end] = sorted[i];
+
+    if (start <= last[1]) {
+      last[1] = Math.max(last[1], end);   // overlapping — extend
+    } else {
+      merged.push([start, end]);           // gap — start a new group
+    }
+  }
+  return merged;
+}
+\`\`\`
+
+**The two details that matter:**
+
+1. **\`Math.max\`, not assignment.** On \`[1,4]\` followed by \`[2,5]\`, writing \`last[1] = end\` gives \`[1,5]\` — but \`[1,10]\` followed by \`[2,5]\` would wrongly shrink to \`[1,5]\`. The max keeps the furthest extent.
+2. **\`<= \`, not \`<\`** — \`[1,3]\` and \`[3,5]\` touch and should merge.
+
+**Why sort first:** without it you cannot know whether an interval arriving later starts inside the current group or after a gap. Sorting is what makes a single linear sweep sufficient.
+
+\`[...intervals].sort(...)\` copies first, so the caller's array is not mutated.
+
+**O(n log n) time** for the sort, **O(n) space.**`,
+      difficulty: "medium",
+      tags: ["algorithms", "problem-solving", "arrays", "interval-merging"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Find the k most frequent elements in an array — bucket sort by frequency in O(n)",
+      answer: `Count frequencies, bucket the elements by count, then walk the buckets from highest to lowest.
+
+\`\`\`javascript
+function topKFrequent(nums, k) {
+  const counts = new Map();
+  for (const n of nums) counts.set(n, (counts.get(n) || 0) + 1);
+
+  // bucket[f] = list of values that appear exactly f times
+  const buckets = Array.from({ length: nums.length + 1 }, () => []);
+  for (const [value, freq] of counts) {
+    buckets[freq].push(value);
+  }
+
+  const result = [];
+  for (let freq = buckets.length - 1; freq > 0 && result.length < k; freq--) {
+    for (const value of buckets[freq]) {
+      result.push(value);
+      if (result.length === k) return result;
+    }
+  }
+  return result;
+}
+\`\`\`
+
+**Why this beats sorting:** the number of buckets is at most \`n\`, because no element can appear more than n times. So bucket sort gives O(n) where sorting by frequency would be O(n log n).
+
+**Why iterate frequency descending rather than inserting into a heap:** the bucket approach is simpler and linear. A min-heap of size k is the right answer only when the array is a **stream** and you must keep a running top-k without seeing all the data.
+
+**A subtle boundary:** the loop runs \`freq > 0\` because values appearing zero times do not exist in the array.`,
+      difficulty: "medium",
+      tags: ["algorithms", "problem-solving", "arrays", "hash-map"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Detect a cycle in a linked list using Floyd's slow and fast pointers — O(1) extra space",
+      answer: `Advance two pointers at different speeds. If a cycle exists, the fast one eventually laps the slow one and they meet inside it.
+
+\`\`\`javascript
+function hasCycle(head) {
+  let slow = head;
+  let fast = head;
+
+  while (fast !== null && fast.next !== null) {
+    slow = slow.next;        // 1 step
+    fast = fast.next.next;   // 2 steps
+    if (slow === fast) return true;
+  }
+  return false;
+}
+\`\`\`
+
+**Why the relative speed guarantees a meeting:** in a cycle of length L, the fast pointer closes the gap by one node per iteration. Within at most L iterations it has caught the slow pointer.
+
+**Compare with the Set approach** — \`new Set()\` and check for a repeat is easier to read but needs O(n) space. Floyd's is O(1) space, which is what interviewers are usually testing.
+
+\`fast !== null && fast.next !== null\` handles both list shapes: a list ending at \`null\`, and one ending where \`fast.next\` is null. Missing the second condition throws on an even-length list.
+
+**The follow-up they like:** *given a cycle, find its entry node* — reset one pointer to the head, keep the other at the meeting point, and advance both one step at a time; where they meet is the cycle entry. Same O(1) space idea, one extra move.`,
+      difficulty: "medium",
+      tags: ["algorithms", "problem-solving", "linked-list", "two-pointers"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Find the longest common subsequence of two strings — memoisation on two indices and why greedy fails",
+      answer: `A subsequence keeps order but need not be contiguous. Build the answer from the ends of both strings.
+
+\`\`\`javascript
+function lcs(a, b) {
+  const m = a.length, n = b.length;
+  // dp[i][j] = LCS length of a[i..] and b[j..]
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+
+  for (let i = m - 1; i >= 0; i--) {
+    for (let j = n - 1; j >= 0; j--) {
+      if (a[i] === b[j]) {
+        dp[i][j] = 1 + dp[i + 1][j + 1];
+      } else {
+        dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+      }
+    }
+  }
+  return dp[0][0];
+}
+\`\`\`
+
+**Filling from the end backwards** is what makes the table layout natural: when the characters match, extend the answer for the remaining suffixes; when they do not, take the better of skipping a character from either string.
+
+Trace \`"abcde"\` and \`"ace"\` → \`"ace"\`, length 3.
+
+**Why greedy fails:** greedily matching the first available character can strand you. In \`"ABCBDAB"\` and \`"BDCABA"\`, matching the first B immediately leaves no path to a length-4 subsequence, while the optimal is \`"BCBA"\` or \`"BDAB"\`.
+
+**Complexity:** O(mn) time, O(mn) space. You can cut space to O(min(m,n)) by keeping only one row — but then you get the length, not the actual sequence.
+
+**Contrast with Longest Common Substring**, which *must* be contiguous and uses a running-length table instead of a max.`,
+      difficulty: "hard",
+      tags: ["algorithms", "problem-solving", "dynamic-programming", "strings"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How do you approach an unfamiliar coding problem in an interview — clarify, brute force, then optimise",
+      answer: `The thing being tested is your process, so make the process visible.
+
+**1. Restate the problem.** "So I need to return the indices of two numbers summing to target — do you want indices or values?" Getting this wrong wastes ten minutes.
+
+**2. Clarify constraints before coding.** Ask about empty input, duplicates, negatives, expected size, and whether mutation is allowed. These reveal which edge cases matter and often determine the algorithm.
+
+**3. State the brute force first, with its complexity.** "Nested loops over every pair is O(n²) — correct, and fine for small input." This proves you have a working solution before optimising, and gives you something to fall back on.
+
+**4. Identify the bottleneck, then pick a structure that removes it.** O(n²) becomes O(n) with a hash map. Unsorted input that must be searched becomes O(log n) after sorting. A repeated scan over a window becomes O(1) with prefix sums. Say *why* you are changing it.
+
+**5. Write clean code.** Handle the empty case, use meaningful names, and write tests as you go rather than after.
+
+**6. Test out loud, including the edges.** Empty array, single element, all duplicates, negative numbers. Narrating what each test proves is worth more than silent verification.
+
+**7. Trade off and state the alternative.** "O(n) time but O(n) space; if space is constrained I could sort first for O(1) extra space at O(n log n) time."
+
+**What loses marks:** silent coding for ten minutes, optimising before you have something working, not handling the empty input, and giving no complexity analysis.`,
+      difficulty: "hard",
+      tags: ["algorithms", "problem-solving"],
+      is_top50: false,
+    },
+    // ──────── Version Control & Git ────────
+    {
+      question: "What is Git and what problem does version control solve?",
+      answer: `Git is a **distributed** version control system: every clone is a full repository with the complete history, not just a snapshot.
+
+**What it solves:**
+- **History** — every change is recorded, with who made it and why, and can be reverted
+- **Collaboration** — several people can work on the same codebase without overwriting each other
+- **Braning** — experimental work happens in isolation and merges when ready
+- **Blame** — you can find the commit that introduced a line, and when
+
+**The distributed part is the key distinction.** With a centralised system like Subversion, the server holds the history and you check files out. In Git the history lives on every machine, so commits are local and instant, you can work fully offline, and cloning is the only thing that needs the network.
+
+**What Git is not:** it does not track files one by one — it snapshots the whole project per commit, which is why Git stores content-addressed blobs and deduplicates unchanged files across commits.
+
+**The practical point:** Git is the safety net that makes frequent small commits safe. If you cannot commit freely because you are nervous about history, you will batch changes into large risky commits instead.`,
+      difficulty: "easy",
+      tags: ["git", "version-control"],
+      is_top50: true,
+    },
+    {
+      question: "What is the difference between `git init` and `git clone`?",
+      answer: `\`git init\` creates a **new, empty** repository in the current directory — it turns a folder of files into a Git repository. \`git clone\` **copies an existing** repository, bringing its entire history.
+
+\`\`\`bash
+# start a brand new project
+mkdir my-project && cd my-project
+git init
+
+# work on someone else's project
+git clone https://github.com/user/repo.git
+\`\`\`
+
+| | \`git init\` | \`git clone\` |
+|---|---|---|
+| Starting state | Empty | Copies all history |
+| Remote configured | No — you add one later | Yes, \`origin\` is set automatically |
+| Branches | You create them | All remote branches are fetched |
+
+**After \`git init\` you usually want a remote**, because none exists:
+
+\`\`\`bash
+git init
+git remote add origin https://github.com/user/repo.git
+git branch -M main
+git push -u origin main
+\`\`\`
+
+\`push -u\` sets the upstream so later pushes are just \`git push\` with no arguments.
+
+**The mistake worth naming:** running \`git init\` inside an existing project directory by accident creates a nested repository. Git will treat the inner folder as a submodule-like boundary, and committed files there will not be part of the outer project.`,
+      difficulty: "easy",
+      tags: ["git", "version-control", "branching"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Explain Git's three areas — the working directory, the staging area, and the repository",
+      answer: `Git has three places a change can live. Knowing which one you are in explains every Git command.
+
+| Area | What it is | Inspect with |
+|---|---|---|
+| **Working directory** | Your actual files on disk | \`git status\`, \`git diff\` |
+| **Staging area** (index) | A snapshot of what the next commit will contain | \`git diff --staged\` |
+| **Repository** | Committed history | \`git log\` |
+
+**The flow:**
+
+\`\`\`bash
+git add file.js    # working directory -> staging area
+git commit -m "..."  # staging area -> repository
+\`\`\`
+
+**Why the staging area exists at all:** it lets you commit *some* of your changes and leave the rest out. This is how you keep "fix the tests I broke while refactoring" out of a "add feature X" commit.
+
+\`\`\`bash
+git add src/auth.js    # stage only this
+git commit -m "Add auth"
+\`\`\`
+
+**Selective staging** gives finer control:
+
+\`\`\`bash
+git add -p    # walk through each hunk, choose to stage or skip
+\`\`\`
+
+**Common misunderstandings:**
+- \`git add .\` stages everything, including files you meant to leave alone
+- \`git commit -a\` stages all **tracked** modifications but still misses **new** files — they need \`git add\` explicitly
+- \`git checkout file.js\` discards working-directory changes to that file; \`git restore\` is the modern, clearer command for it
+
+\`git status\` is the fastest way to see which area a change is sitting in.`,
+      difficulty: "easy",
+      tags: ["git", "version-control", "commit"],
+      is_top50: true,
+    },
+    {
+      question: "What is a commit, and what does the commit hash represent?",
+      answer: `A commit is a snapshot of the whole project at a point in time, plus metadata: a pointer to the parent commit, author, timestamp, and message.
+
+**The hash is a content address.** It is computed from the commit's contents *and* its parent hashes, so the hash identifies that exact state in that exact lineage.
+
+\`\`\`bash
+git commit -m "Fix null check in checkout flow"
+
+# hash is 40 hex characters (SHA-1, or 64 with SHA-256)
+git log --oneline
+# 6a98f2c Add rate limiting to mentor route
+\`\`\`
+
+**The consequence beginners miss:** if you change a file's contents, its blob hash changes; if a parent commit changes, every descendant commit's hash changes too. That is why rebasing **rewrites** hashes — the content is identical but the lineage differs, so the identity is different.
+
+**What a commit does *not* do:**
+- It does not only store changed files — it snapshots everything, which is why Git deduplicates efficiently
+- It does not push anything. Commits are local until you \`git push\`
+
+**Best practice for messages:** an imperative subject line under ~72 characters ("Add pagination to search"), then a blank line and a body explaining *why*, not *what* — the diff already shows the what.`,
+      difficulty: "easy",
+      tags: ["git", "version-control", "commit"],
+      is_top50: false,
+    },
+    {
+      question: "What does HEAD mean in Git?",
+      answer: `HEAD is a pointer to the commit you currently have checked out — your "current position" in history.
+
+\`\`\`bash
+git log --oneline -1 HEAD
+git show HEAD
+\`\`\`
+
+**The important subtlety:** HEAD normally points to a **branch**, not directly to a commit. So when you commit, the branch moves and HEAD follows it. That is why new commits keep landing on your current branch without you naming it.
+
+\`\`\`text
+HEAD -> main -> abc1234 (latest commit)
+\`\`\`
+
+**Useful relatives:**
+
+\`\`\`bash
+HEAD          # the commit you are on
+HEAD~1        # one commit before  (HEAD^ is the same thing)
+HEAD~5        # five commits back
+HEAD@{yesterday}  # where HEAD was yesterday — reflog
+\`\`\`
+
+\`HEAD~\` walks *first-parent* history. \`HEAD^\` means "first parent", which differs after a merge commit that has two parents.
+
+**How this connects to reset:** \`git reset --hard HEAD\`, \`git reset --soft HEAD~3\` and so on are all expressed relative to HEAD, which is why the reflog is the safety net — every move of HEAD is recorded, so you can travel back to where you were.`,
+      difficulty: "easy",
+      tags: ["git", "version-control"],
+      is_top50: false,
+    },
+    {
+      question: "How do you create a branch and switch to it?",
+      answer: `\`\`\`bash
+git switch -c feature/checkout     # create and switch (modern)
+git checkout -b feature/checkout   # create and switch (legacy)
+\`\`\`
+
+Without \`-c\`, \`git switch\` moves to an existing branch and \`git checkout\` does too. The \`-b\` flag means "branch".
+
+**Managing branches:**
+
+\`\`\`bash
+git branch                      # list local branches
+git branch -a                   # list all, including remote-tracking
+git branch -d feature/checkout  # delete a merged branch
+git branch -D feature/checkout  # delete even if unmerged
+\`\`\`
+
+\`git switch\` was introduced in Git 2.23 to separate "switch branch" from "restore file", which \`git checkout\` conflated. \`-d\` (safe delete) refuses if the branch is unmerged; \`-D\` force-deletes — use it only when you are certain the work is committed elsewhere.
+
+**Why \`git switch\` is worth preferring:** with \`checkout\`, \`git checkout file.js\` silently discards file changes, and that ambiguity is a genuine source of lost work.
+
+**Branches are just pointers.** Creating one writes a new ref pointing at the current commit — it copies nothing, so it is instant regardless of project size.`,
+      difficulty: "easy",
+      tags: ["git", "version-control", "branching"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between `git fetch` and `git pull`?",
+      answer: `\`git fetch\` **downloads** without changing your working tree. \`git pull\` is \`git fetch\` **plus** integrating the result.
+
+\`\`\`bash
+git fetch origin                  # download only
+git pull origin main              # fetch + merge (or rebase)
+\`\`\`
+
+**Why the distinction matters:** fetch is safe. It updates \`origin/main\` locally and leaves your files untouched, so you can inspect what changed before committing to it. Pull changes your files immediately, which is how people end up with conflicts mid-task.
+
+\`git fetch\` also updates the remote-tracking branches — \`origin/main\`, \`origin/feature/x\` — which is what lets you write \`git diff main origin/main\` to see exactly what upstream has.
+
+**\`git pull\` runs one of two things**, controlled by config or a flag:
+
+\`\`\`bash
+git pull --rebase    # replay your commits on top — linear history
+git pull --no-rebase # merge commit instead
+\`\`\`
+
+Set a default once:
+
+\`\`\`bash
+git config --global pull.rebase true
+\`\`\`
+
+**The habit worth building:** \`git fetch\` first, read the output, then pull. It turns an ambiguous surprise into an informed decision.`,
+      difficulty: "easy",
+      tags: ["git", "version-control", "remote"],
+      is_top50: true,
+    },
+    {
+      question: "What is a remote in Git and how do you configure one?",
+      answer: `A remote is a named reference to another repository — usually the \`origin\` on your hosting provider.
+
+\`\`\`bash
+git remote -v                              # list remotes and URLs
+git remote add origin https://github.com/user/repo.git
+git remote set-url origin https://github.com/user/repo-new.git
+git remote remove upstream
+\`\`\`
+
+**\`origin\` is a convention, not a keyword.** You can add any number of remotes under any name — \`upstream\` is commonly used for the canonical repo when you work on a fork.
+
+\`\`\`bash
+git remote add upstream https://github.com/original/repo.git
+git fetch upstream
+\`\`\`
+
+**Remote-tracking branches** are local records of what a remote had when you last fetched. \`origin/main\` is *your belief* about the remote, and it only updates on fetch or pull. That is why a stale \`origin/main\` is a common source of confusion.
+
+**Renaming the default branch:**
+
+\`\`\`bash
+git branch -M main        # rename locally
+git push -u origin main   # push it and set upstream
+\`\`\`
+
+\`git remote\` manages *references*. Actual data moves through \`git fetch\` and \`git push\`, which is why a remote can exist before it has been contacted.`,
+      difficulty: "easy",
+      tags: ["git", "version-control", "remote"],
+      is_top50: false,
+    },
+    {
+      question: "What is `.gitignore` and how does it work?",
+      answer: `\`.gitignore\` lists patterns Git should not track — build output, dependencies, environment files, editor settings.
+
+\`\`\`gitignore
+node_modules/
+.env
+.env.local
+dist/
+*.log
+.DS_Store
+\`\`\`
+
+**Pattern syntax:**
+
+| Pattern | Matches |
+|---|---|
+| \`node_modules/\` | anything called node_modules, at any depth |
+| \`*.log\` | any file ending in .log |
+| \`/build\` | only build/ at the repo root |
+| \`docs/**/tmp\` | tmp under any docs subdirectory |
+| \`!important.log\` | negation — do track this despite \`*.log\` |
+
+A trailing \`/\` matches directories only. A leading \`/\` anchors to the repository root.
+
+**The most important gotcha:** \`.gitignore\` only affects **untracked** files. If a secret is already committed, adding it to \`.gitignore\` does nothing — Git keeps tracking it. You must remove it from the index:
+
+\`\`\`bash
+git rm --cached .env
+git commit -m "Stop tracking .env"
+\`\`\`
+
+**And that still leaves it in history.** A secret committed once must be purged with \`git filter-repo\` or BFG, then every clone must be refreshed — see the "remove sensitive information from Git history" question in this chapter.
+
+\`node_modules/\` and \`.env\` belong in \`.gitignore\` from the first commit. Recovering a committed secret is far more work than never committing it.`,
+      difficulty: "easy",
+      tags: ["git", "version-control", "security"],
+      is_top50: true,
+    },
+    {
+      question: "What does `git stash` do and when would you use it?",
+      answer: `\`git stash\` saves your uncommitted changes and reverts the working directory to the last commit. Nothing is committed, nothing is lost.
+
+\`\`\`bash
+git stash                # save working-dir changes
+git stash -u             # also save untracked files
+git stash push -m "WIP: half-done feature"
+git stash list           # see what is stashed
+git stash pop            # apply the newest and remove it from the stack
+git stash apply stash@{1}  # apply an older one, keep it on the stack
+git stash drop stash@{0}   # discard it
+git stash clear          # delete all stashes
+\`\`\`
+
+**\`pop\` vs \`apply\`:** \`pop\` removes the stash entry after applying, \`apply\` keeps it. Use \`apply\` when you might want to apply the same changes to a second branch.
+
+**The canonical use case** — an urgent fix lands and you need a clean tree right now:
+
+\`\`\`bash
+git stash push -m "WIP on search"
+git switch main
+git switch -c hotfix/login
+# ... fix, commit, push
+git switch feature/search
+git stash pop
+\`\`\`
+
+**\"Untracked\" vs \"ignored\`.** \`-u\` picks up untracked files; \`-a\` also picks up ignored ones (build output). If you stash without any flag and find a build directory still dirty, you wanted \`-u\`.
+
+**Stashes are local only.** They are not pushed, so they do not sync between machines, and \`git stash list\` on another clone will not show them.
+
+**The honest alternative:** on a feature branch it is often better to make a WIP commit and clean it up later with \`rebase -i\` — it survives a failed stash pop and is visible in the log.`,
+      difficulty: "easy",
+      tags: ["git", "version-control", "stash"],
+      is_top50: true,
+    },
+    {
+      question: "What does `git cherry-pick` do and when would you use it?",
+      answer: `\`git cherry-pick\` applies the **diff of a single commit** onto your current branch, creating a new commit with a different hash.
+
+\`\`\`bash
+git cherry-pick abc1234                   # one commit
+git cherry-pick abc1234 def5678           # several
+git cherry-pick abc1234..def5678          # a range
+git cherry-pick -n abc1234                # stage the changes, no commit
+\`\`\`
+
+**Because it creates a new commit, the hash changes.** The original commit stays where it was — you are copying a change, not moving it.
+
+**The three situations that justify it:**
+
+1. **Backporting a fix.** A bug is fixed on \`main\`, but \`release/2.1\` also needs it:
+
+\`\`\`bash
+git switch release/2.1
+git cherry-pick abc1234
+\`\`\`
+
+2. **Pulling one fix out of a messy feature branch** onto main, without bringing the whole branch.
+
+3. **Recovering a commit made on the wrong branch:**
+
+\`\`\`bash
+git log -1                             # note the hash
+git reset --hard HEAD~1                # remove it from the wrong branch
+git switch correct-branch
+git cherry-pick <hash>
+\`\`\`
+
+**The rule that keeps history clean:** do not cherry-pick repeatedly between the same two branches. Each pick adds a new commit with a different hash, so the branches diverge permanently and every future merge conflicts. If you are moving more than one or two commits, merge or rebase instead.
+
+On conflict, resolve then \`git cherry-pick --continue\`; \`--abort\` to back out.`,
+      difficulty: "easy",
+      tags: ["git", "version-control", "cherry-pick"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is interactive rebase (`git rebase -i`) and what can you do with it?",
+      answer: `Interactive rebase opens an editor listing your recent commits so you can rewrite them before they are shared.
+
+\`\`\`bash
+git rebase -i HEAD~5     # edit the last 5 commits
+\`\`\`
+
+**The commands available per line:**
+
+| Command | Effect |
+|---|---|
+| \`pick\` | keep the commit as-is (the default) |
+| \`reword\` | keep the change, edit the commit message |
+| \`edit\` | stop here so you can amend before continuing |
+| \`squash\` | merge into the previous commit, combine messages |
+| \`fixup\` | merge into the previous commit, discard this message |
+| \`drop\` | remove the commit entirely |
+
+**Typical uses:**
+
+\`\`\`bash
+# squash three commits into one before a PR
+git rebase -i HEAD~3
+# change 'pick' to 'squash'/'fixup' on lines 2 and 3
+
+# tidy up messages before review
+git rebase -i HEAD~4
+# change 'pick' to 'reword'
+
+# drop a commit containing a secret
+git rebase -i HEAD~2
+# change 'pick' to 'drop'
+\`\`\`
+
+**The golden rule: never interactive-rebase commits that already exist outside your clone.** Once pushed to a shared branch, rewriting history breaks every collaborator and any branch based on those commits.
+
+**It rewrites hashes.** The content is unchanged, but because the parent changes, every commit gets a new SHA — so you need \`git push --force-with-lease\` afterwards, which is why it is confined to unpushed work.
+
+On conflict: resolve, then \`git rebase --continue\`, \`--skip\`, or \`--abort\`.`,
+      difficulty: "easy",
+      tags: ["git", "version-control", "rebase"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How do you squash several commits into one before opening a pull request?",
+      answer: `**Locally, with interactive rebase:**
+
+\`\`\`bash
+git rebase -i HEAD~3
+\`\`\`
+
+Change the lines you want merged from \`pick\` to \`squash\` (keeps messages) or \`fixup\` (discards them):
+
+\`\`\`text
+pick abc123 Add search endpoint
+squash def456 Handle empty query
+fixup ghi789 Fix typo in handler
+\`\`\`
+
+Then edit the combined message, save, and force-push:
+
+\`\`\`bash
+git push --force-with-lease
+\`\`\`
+
+**\`--force-with-lease\` over \`--force\`, always.** Plain \`--force\` overwrites the remote unconditionally; \`--force-with-lease\` refuses if someone else pushed in the meantime, which stops you destroying a colleague's work.
+
+**On the hosting platform**, most providers offer **Squash and merge** as a merge option. That combines every commit in the PR into one commit on the target branch — usually the better choice, because it keeps the intermediate commits out of the main branch entirely and needs no force-push.
+
+**The argument against squashing everything:** if the individual commits tell a useful story ("add schema", "add endpoint", "add tests"), keep them. A squashed commit hides the reasoning and makes \`git bisect\` far less useful.
+
+**Practical rule:** squash "fix typo" and "address review comment" style commits; keep genuinely distinct logical steps.`,
+      difficulty: "medium",
+      tags: ["git", "version-control", "squashing"],
+      is_top50: false,
+    },
+    {
+      question: "What does `git push --force` do, and why is it dangerous?",
+      answer: `\`git push --force\` **overwrites** the remote branch's history with whatever you have locally, discarding any commits on the remote that your local branch does not contain.
+
+\`\`\`bash
+git push --force origin main              # overwrite unconditionally
+git push --force-with-lease origin main   # overwrite only if nobody else pushed
+\`\`\`
+
+**Why it is dangerous:** if a teammate pushed commits that you have not fetched, force-push silently deletes them from the remote branch. They still exist in that person's local clone, but for everyone else — CI, deploys, other clones — those commits are gone, and any branch based on them now points at orphaned history.
+
+**The safe default is \`--force-with-lease\`.** It records the remote's expected state when you last fetched; if the remote has moved since, the push is refused and you rebase first. That turns a silent data-loss bug into an ordinary merge conflict.
+
+**Rules of thumb:**
+- **Never** force-push \`main\`, \`master\`, or any shared branch. Most repositories enable branch protection that blocks it outright.
+- Force-push only branches **you** own and that nobody has branched from.
+- Always prefer \`--force-with-lease\` over \`--force\`.
+
+**To fix a push that was rejected**, do not force. Fetch and integrate first:
+
+\`\`\`bash
+git fetch origin
+git rebase origin/main      # or git pull --rebase
+git push
+\`\`\`
+
+If you already force-pushed by mistake, see the reflog and force-push recovery questions in this chapter.`,
+      difficulty: "medium",
+      tags: ["git", "version-control", "force-push"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is the difference between `git reset --soft`, `git reset --mixed` and `git reset --hard`?",
+      answer: `\`git reset\` moves HEAD to a different commit. The three modes differ in what happens to the **staging area** and the **working directory** on the way.
+
+| Mode | Staging area | Working directory | Use for |
+|---|---|---|---|
+| \`--soft\` | untouched | untouched | Rewording the last commit |
+| \`--mixed\` (default) | reset | untouched | Unstage files, keep edits |
+| \`--hard\` | reset | **discarded** | Throw away all local changes |
+
+\`\`\`bash
+git reset --soft HEAD~1     # undo last commit, changes stay staged — amend it
+git reset --mixed HEAD~1    # undo last commit, changes stay unstaged in your files
+git reset --hard HEAD~1     # undo last commit AND destroy the changes
+\`\`\`
+
+**The common uses:**
+
+*Amending a commit you just made* — \`--soft\` or \`--mixed\` then \`git commit --amend\`:
+
+\`\`\`bash
+git commit --amend -m "Better message"
+\`\`\`
+
+*Unstaging without losing work* — \`git reset\` (mixed), which is why "I ran git add too early" has a safe fix:
+
+\`\`\`bash
+git reset file.js        # unstage one file
+git restore file.js      # discard working-dir changes (careful!)
+\`\`\`
+
+**\`--hard\` is the destructive one.** Anything not committed is gone, including untracked-file edits. It also resets untracked files' interaction in ways that surprise people. If you are unsure whether you have uncommitted work, run \`git status\` first.
+
+**Compare \`reset\` with \`revert\`:** reset **rewrites** history (safe on an unpublished branch, destructive on a published one); \`git revert\` creates a **new** commit that undoes a change, so it is safe to push to a shared branch.`,
+      difficulty: "medium",
+      tags: ["git", "version-control", "revert"],
+      is_top50: true,
+    },
+    {
+      question:
+        "What is `git bisect` and how do you use it to find a bad commit?",
+      answer: `\`git bisect\` uses binary search over your commit history to find the commit that introduced a bug.
+
+\`\`\`bash
+git bisect start                  # begin
+git bisect bad                   # current commit is bad
+git bisect good v1.2.0           # a known-good commit
+# git checks out a midpoint and waits for you
+git bisect good                   # tested one -> good
+git bisect bad                    # tested one -> bad
+git bisect reset                  # back to where you started
+\`\`\`
+
+**Why binary search is fast:** if the bug appeared somewhere in 1,000 commits, testing each one takes up to 1,000 steps; bisect needs about **log₂(1000) ≈ 10**.
+
+**Automating it** — if you have a script or test command:
+
+\`\`\`bash
+git bisect start
+git bisect bad
+git bisect good v1.2.0
+git bisect run npm test
+\`\`\`
+
+\`git bisect run\` tests each midpoint automatically and keeps halving until it finds the first bad commit. Exit code 0 = good, non-zero = bad.
+
+**The manual version**, useful when tests are slow or the bug is not deterministic, is the same loop with a human deciding.
+
+**Beyond bugs,** bisect also finds *which commit changed a line*, or which commit a fix belongs to — any good/bad judgement works.
+
+**Prefer \`git log -S\` for some searches.** If you know a string that changed near the regression, \`git log -S"configFlag" --oneline\` finds candidate commits directly, without stepping through history at all.`,
+      difficulty: "medium",
+      tags: ["git", "version-control", "bisect"],
+      is_top50: false,
+    },
+    {
+      question: "What is `git blame` and when is it useful?",
+      answer:
+        '\`git blame\` annotates each line of a file with the commit that last changed it.\n\n```bash\ngit blame src/auth.ts\ngit blame -L 20,40 src/auth.ts    # only lines 20-40\ngit blame -w src/auth.ts           # ignore whitespace-only changes\ngit blame -C src/auth.ts           # follow code moved from another file\ngit blame <commit>..HEAD -- file   # who changed it since that commit\n```\n\n**What it tells you** is not really *who* — it is *which commit*, which is what you actually need:\n\n```text\n^1a2b3c4 (Jane Doe 2026-03-14)  if (!user) return null;\n5d6e7f8 (Sam Smith 2026-04-02)  if (!user?.id) return null;\n```\n\nThen you can inspect the reasoning:\n\n```bash\ngit show 5d6e7f8\ngit log -p -L 30,32:src/auth.ts   # the full history of those lines\n```\n\n**When it is genuinely useful:**\n- "Why is this like this?" before changing unfamiliar code\n- Finding when a regression was introduced on a specific line\n- Identifying the right reviewer for a change\n\n**The caveat worth stating:** blame is not a tool for assigning blame to a person. A line\'s last-touching author is often not who wrote the logic. \`git log\` and the pull request give better intent than \`git blame\` does.\n\n**The pair people forget:** \`git blame\` finds *where*, \`git bisect\` finds *when*.',
+      difficulty: "medium",
+      tags: ["git", "version-control"],
+      is_top50: false,
+    },
+    {
+      question: "What is a detached HEAD and how do you recover from it?",
+      answer: `A detached HEAD is when HEAD points directly at a commit instead of at a branch — usually after checking out a specific commit hash or tag.
+
+\`\`\`bash
+git checkout abc1234      # HEAD now points at that commit, not a branch
+git switch --detach abc1234   # the modern, explicit form
+\`\`\`
+
+**Why it is risky:** nothing references those commits. They are not on any branch, so if you commit and then check out another branch, those commits become unreachable and Git may garbage-collect them.
+
+**The warning is a real trap:**
+
+\`\`\`text
+You are in 'detached HEAD' state.
+You can look around, make experimental changes and commit them,
+and you can discard any commits you make in this state without
+losing any work you have done.
+\`\`\`
+
+**Recovering commits made while detached:**
+
+\`\`\`bash
+git log -1                      # note the hash
+git switch -c saved-work        # create a branch pointing here — commits are saved
+\`\`\`
+
+That single command makes everything safe again. Do it **before** switching away.
+
+**If you already switched away,** use the reflog, which records every position HEAD has held:
+
+\`\`\`bash
+git reflog                  # find the hash
+git switch -c recovered <hash>
+\`\`\`
+
+**Recovering from the specific mistake of checking out a tag:**
+
+\`\`\`bash
+git tag                       # list tags
+git switch -c from-tag v1.2.0  # branch from the tag
+\`\`\`
+
+**How to avoid it:** use \`git switch\` rather than \`git checkout <hash>\` for navigation, and if \`git status\` says detached HEAD, create a branch immediately.`,
+      difficulty: "medium",
+      tags: ["git", "version-control", "branching"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is `git reflog` and how can it recover a commit you thought you lost?",
+      answer: `The reflog is a local record of every position HEAD has held, even for commits that are no longer on any branch. It is why almost nothing is truly lost in Git.
+
+\`\`\`bash
+git reflog                 # full history of HEAD movements
+git reflog show <branch>   # movements of a specific branch
+git reflog --date=local    # human-readable timestamps
+\`\`\`
+
+Output looks like:
+
+\`\`\`text
+a1b2c3d HEAD@{0}: reset: moving to HEAD~1
+5d6e7f8 HEAD@{1}: commit: add retry logic
+\`\`\`
+
+**To recover:**
+
+\`\`\`bash
+git reflog                                   # find the hash you want
+git switch -c recovered 5d6e7f8              # put it back on a branch
+\`\`\`
+
+**This is the safety net for three common mistakes:**
+
+*Lost a commit to \`git reset --hard\`* — the reflog still has it. Reset does not delete commits, it moves the branch pointer; the old commit remains reachable through HEAD's history.
+
+*Force-pushed and clobbered a colleague's branch* — ask them for their reflog. Only they can recover it locally.
+
+*Commits in a detached HEAD that got orphaned* — same deal, they are in the reflog until garbage collection runs.
+
+**The important limit:** the reflog is **local only**. It is not pushed, so it cannot recover a commit that existed solely on someone else's machine and was never pushed anywhere. For that you would need the commit hash from elsewhere — CI logs, a hosting API, or another clone.
+
+**GC caveat:** reflog entries expire (90 days by default for unreachable commits) and \`git gc --prune\` can drop them. Recover promptly rather than treating the reflog as permanent storage.`,
+      difficulty: "hard",
+      tags: ["git", "version-control", "reflog"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How do you recover a branch that a teammate force-pushed away?",
+      answer: `Force-push overwrote the remote branch, but the commits usually still exist somewhere. Work through these in order.
+
+**1. Get the old tip hash.** The remote may keep a reference:
+
+\`\`\`bash
+git fetch origin
+git reflog show origin/main     # if fetch saw the force-push
+\`\`\`
+
+Hosting platforms also record force-pushes — GitHub keeps them in the repository's event log and offers "Restore" on a force-pushed branch, which is by far the easiest path. Check there first.
+
+**2. Ask the person who pushed it.** Their local reflog has the pre-force-push tip:
+
+\`\`\`bash
+# on their machine
+git reflog show main
+git push origin <old-tip-hash>:main
+\`\`\`
+
+**3. Look in CI.** A build or deploy log often contains the commit SHA that was checked out before the force-push. With that hash:
+
+\`\`\`bash
+git fetch origin
+git switch -c recovered <sha>
+git push origin recovered:main
+\`\`\`
+
+**4. Check other clones.** Any other machine that cloned the branch still has the commit:
+
+\`\`\`bash
+git fetch origin
+git branch --contains <sha>
+\`\`\`
+
+**Preventing it next time**, in order of effectiveness:
+- Branch protection on \`main\` so force-push is blocked outright
+- Default \`git push --force-with-lease\` instead of \`--force\`
+- A team convention: never rebase or force-push a shared branch
+
+The reason this is recoverable at all is that Git objects are content-addressed — they are not deleted by moving a pointer, so as long as *one* clone or reflog retains them, the branch can be rebuilt.`,
+      difficulty: "hard",
+      tags: ["git", "version-control", "force-push", "reflog"],
+      is_top50: false,
+    },
+    // ──────── Web Fundamentals ────────
+    {
+      question:
+        "What are the main HTTP methods and when would you use each one?",
+      answer: `The verbs describe intent, and the server decides what happens — a \`POST\` to \`/users\` and a \`PUT\` to \`/users\` hit the same URL but mean different things.
+
+| Method | Purpose | Idempotent | Safe |
+|---|---|---|---|
+| \`GET\` | Retrieve a resource | Yes | Yes |
+| \`HEAD\` | Retrieve headers only | Yes | Yes |
+| \`POST\` | Create a resource or trigger an action | No | No |
+| \`PUT\` | Replace a resource entirely | Yes | No |
+| \`PATCH\` | Partially update a resource | Not guaranteed | No |
+| \`DELETE\` | Remove a resource | Yes | No |
+
+**\`GET\` and \`HEAD\` are safe** — they must not change state. This is why a browser prefetches links, or a search crawler visits every \`GET\` URL, without side effects.
+
+**Idempotent** means repeating the request has the same effect as making it once. \`PUT\` and \`DELETE\` are idempotent: deleting an already-deleted resource should succeed or return 404, but it does not delete twice. \`POST\` is not — sending it twice creates two resources. This matters because clients and networks retry.
+
+\`\`\`bash
+curl -X POST   https://api.example.com/users   -d '{"name":"Ada"}'   # create
+curl -X PUT    https://api.example.com/users/1 -d '{"name":"Ada"}'  # full replace
+curl -X PATCH  https://api.example.com/users/1 -d '{"name":"Ada"}'  # partial update
+curl -X DELETE https://api.example.com/users/1                       # remove
+\`\`\`
+
+**Practical rule:** \`PUT\` requires the full object, \`PATCH\` requires only the fields that change. Sending a partial body to \`PUT\` and having the server null out the omitted fields is a common integration bug.
+
+Avoid \`GET\` for actions — \`GET /delete-user?id=5\` breaks every assumption above, since prefetchers and crawlers will call it.`,
+      difficulty: "easy",
+      tags: ["web", "http", "http-methods"],
+      is_top50: true,
+    },
+    {
+      question: "What is a URL and what are its main parts?",
+      answer: `A URL (Uniform Resource Locator) is an address that tells you **what** resource, **where** it is, and **how** to fetch it.
+
+\`\`\`text
+https://api.example.com:443/v1/users/42?role=admin#profile
+  |     |          |      |     |        |        |
+scheme host     port    path  query   fragment
+\`\`\`
+
+| Part | Purpose |
+|---|---|
+| \`scheme\` | Protocol — \`https\`, \`http\`, \`ftp\`, \`mailto\`. \`https\` is \`http\` over TLS. |
+| \`host\` | Domain name or IP, resolved via DNS to an IP address |
+| \`port\` | Which service on that host. Omitted when it is the default (80 for http, 443 for https). |
+| \`path\` | Which resource on that host |
+| \`query string\` | Extra parameters after \`?\`, as \`key=value&key2=value2\` |
+| \`fragment\` | A location *within* the resource, after \`#\`. **Never sent to the server.** |
+
+**The detail people forget:** the fragment is handled entirely by the browser. \`#profile\` scrolls to an element client-side; the server has no idea it existed. That is why anchors and single-page-app routing can change it without a network request.
+
+**Percent encoding:** reserved characters must be escaped, e.g. a space becomes \`%20\`.
+
+**Relative URLs** let you move a resource without rewriting links:
+
+\`\`\`html
+<img src="../assets/logo.png" />
+fetch("/api/v1/users")
+\`\`\`
+
+**Same-origin** — scheme + host + port all identical — determines what the browser will treat as same-origin, which is exactly the boundary the same-origin policy and CORS enforce.`,
+      difficulty: "easy",
+      tags: ["web", "url", "http"],
+      is_top50: true,
+    },
+    {
+      question: "What is the critical rendering path?",
+      answer: `The critical rendering path is the sequence of steps the browser takes to turn HTML, CSS and JavaScript into the first frame of pixels. Shortening it is what makes a page *feel* fast even before it is fully loaded.
+
+\`\`\`text
+HTML bytes -> DOM tree
+CSS bytes -> CSSOM tree
+DOM + CSSOM -> Render tree -> Layout -> Paint -> Composite
+\`\`\`
+
+**Each stage and what blocks it:**
+
+1. **DOM construction** — streamed and progressive; blocked only by a \`<script>\` before it
+2. **CSSOM construction** — a CSS file is render-blocking because you cannot lay out without knowing the styles
+3. **Render tree** — DOM + CSSOM combined
+4. **Layout** — computes geometry. Blocked by *all* CSS in the initial batch
+5. **Paint** — fill in pixels
+6. **Composite** — assemble layers
+
+**The three things that block it:**
+
+\`\`\`html
+<!-- blocking: nothing renders until this downloads -->
+<link rel="stylesheet" href="app.css" />
+
+<!-- blocking: parsing pauses at this script -->
+<script src="app.js"></script>
+
+<!-- defer: downloads in parallel, runs after HTML is parsed -->
+<script src="app.js" defer></script>
+\`\`\`
+
+\`async\` also downloads in parallel but runs as soon as it arrives — correct for independent analytics scripts, wrong for code that depends on the DOM.
+
+**Practical improvements, in order of impact:**
+- Inline **critical** CSS, load the rest asynchronously
+- \`defer\`/\`async\` every script that is not render-blocking
+- Never put a stylesheet in \`<head>\` that is not needed for first paint
+- Preload fonts, and set \`font-display: swap\`
+
+**The trade-off:** splitting CSS out adds a round trip. It pays off only when the non-critical CSS is genuinely large — which is why this matters for big sites and not for small ones.`,
+      difficulty: "medium",
+      tags: ["web", "performance", "rendering"],
+      is_top50: false,
+    },
+    // ──────── Networking & Distributed Systems (Phase 2 additions) ────────
+    {
+      question: "What is a socket and how does it work?",
+      answer: `A socket is an endpoint for communication — one side of a conversation between two programs. In practice it is an OS object identified by an IP address, a port number and a transport protocol.
+
+\`\`\`javascript
+// TCP socket — reliable, connection-oriented
+import net from "node:net";
+
+const server = net.createServer((socket) => {
+  socket.write("Hello from server\\n");
+  socket.on("data", (chunk) => console.log("received:", chunk.toString()));
+});
+
+server.listen(3000, () => console.log("listening on 3000"));
+\`\`\`
+
+**The two halves.** A TCP connection is a pair of sockets: a client socket and a server socket. The server accepts connections and gets a new socket per client; the client opens one.
+
+\`\`\`text
+server socket <=============== TCP connection =============> client socket
+  127.0.0.1:3000                                              93.184.216.34:51234
+\`\`\`
+
+That is why the *source* port is ephemeral: the client picks a random high port, because the server's port is already known.
+
+**Sockets sit above TCP/UDP.** TCP sockets give you ordered, reliable byte streams; UDP sockets give you datagrams with no connection and no guarantee of delivery or order.
+
+**The file-descriptor cost:** every open socket consumes a file descriptor on the OS, and each is a kernel buffer. Thousands of idle connections will exhaust the process limit (\`ulimit -n\`) long before memory runs out — which is why connection pools and keep-alive matter.`,
+      difficulty: "easy",
+      tags: ["networking", "sockets", "tcp"],
+      is_top50: false,
+    },
+    {
+      question: "What is the difference between latency and throughput?",
+      answer: `**Latency** is the delay for one unit of work. **Throughput** is how much work completes per unit of time.
+
+\`\`\`text
+latency    = time to complete ONE request
+throughput = requests completed PER SECOND
+\`\`\`
+
+They are independent, which is the whole point. A single core doing one thing at a time with zero overhead still has *perfect* latency and terrible throughput. Batch the same work across 10,000 parallel workers and throughput soars while each individual request still takes the same time.
+
+**Where they trade off:**
+
+| Optimising for | Effect on the other |
+|---|---|
+| Batching many requests into one round trip | Greatly improves throughput, slightly worsens the latency of any single request |
+| Keeping connections warm (keep-alive) | Improves both |
+| Adding replicas | Improves throughput, leaves per-request latency unchanged |
+| Overlapping I/O instead of blocking | Improves latency substantially, throughput roughly unchanged |
+
+**The classic example:** a bus that takes 1 hour to travel but carries 50 people has better *throughput* than a car that takes 10 minutes for one. Nobody calls the bus "faster".
+
+**Why this matters when you optimise:** if users complain about the site feeling slow, you are probably being asked about *latency* — time to first byte, time to first paint. If a queue backs up or a batch job overruns, you are looking at *throughput*. Measuring the wrong one sends you down the wrong path.`,
+      difficulty: "easy",
+      tags: ["networking", "latency", "performance"],
+      is_top50: true,
+    },
+    {
+      question:
+        "What are the common causes of network latency and how do you diagnose them?",
+      answer: `Latency accumulates from several independent sources. Knowing which one dominates tells you what to fix.
+
+**The four that matter most:**
+
+1. **Propagation delay** — physics. Distance divided by the speed of light in fibre (~200,000 km/s, roughly two-thirds of vacuum). London to New York is ~5,500 km one way: ~27 ms each way, ~55 ms round trip, before anything else happens. Nothing you do to code changes this.
+2. **Transmission delay** — time to push the bits onto the wire, proportional to size ÷ bandwidth. A 1 MB response on a 10 Mbps link is ~800 ms before it starts arriving.
+3. **Processing delay** — time each hop spends handling the packet.
+4. **Queueing delay** — the wait when the buffer is full. Usually the biggest and most variable component under load, which is why latency spikes rather than degrades smoothly.
+
+**How to diagnose, in order:**
+
+\`\`\`bash
+ping example.com            # baseline RTT
+traceroute example.com      # which hop is slow
+\`\`\`
+
+- High RTT everywhere → propagation, geographic distance
+- One hop with a big jump → that hop's network or its queuing
+- Low ping but slow web → the delay is server-side or in the application, not the network
+- Latency grows with load → queueing; check for N+1 queries and synchronous fan-out
+
+\`\`\`bash
+curl -w "dns:%{time_namelookup} connect:%{time_connect} tls:%{time_appconnect} ttfb:%{time_starttransfer} total:%{time_total}\\n" https://example.com
+\`\`\`
+
+This splits the total into phases and usually identifies the culprit in one line. **If \`ttfb\` dominates, stop looking at the network** — the request is waiting on your server.`,
+      difficulty: "medium",
+      tags: ["networking", "latency", "performance"],
+      is_top50: false,
+    },
+    {
+      question: "What is a network timeout and how should you handle one?",
+      answer: `A timeout is a deadline after which a client or server gives up waiting. Without one, a request that never receives a reply hangs forever, holding a worker, a connection and user patience.
+
+\`\`\`javascript
+const controller = new AbortController();
+const timer = setTimeout(() => controller.abort(), 3000);
+
+try {
+  const res = await fetch("https://api.example.com/users", { signal: controller.signal });
+  const data = await res.json();
+} catch (err) {
+  if (err.name === "AbortError") {
+    console.error("request timed out after 3s");
+  }
+} finally {
+  clearTimeout(timer);
+}
+\`\`\`
+
+**Always pair \`setTimeout\` with \`clearTimeout\` in a \`finally\`.** Skipping it leaks a pending timer per request, which is its own bug.
+
+**Server-side, a timeout also needs a matching database timeout**, or the query keeps running after you have already given up on it.
+
+**Timeouts must be layered.** Database 2 s → service 3 s → API 5 s → browser 10 s. Each layer's budget exceeds the one below it, so the innermost failure surfaces at the right place with a meaningful error, instead of every layer timing out simultaneously and reporting the useless "gateway timeout".
+
+**A timeout is not a retry.** Handling them:
+
+\`\`\`javascript
+async function fetchWithRetry(url, attempts = 3) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await withTimeout(fetch(url), 3000);
+    } catch (err) {
+      if (i === attempts - 1) throw err;
+      await sleep(2 ** i * 100);   // exponential backoff + jitter
+    }
+  }
+}
+\`\`\`
+
+Only retry **idempotent** operations. Retrying a non-idempotent \`POST\` can create duplicate orders. Exponential backoff stops retries from synchronising into a thundering herd that finishes the outage.
+
+**Set a timeout on everything that crosses a network boundary.** No exceptions is the rule worth stating in an interview.`,
+      difficulty: "easy",
+      tags: ["networking", "timeout", "reliability"],
+      is_top50: false,
+    },
+    {
+      question: "What is NAT and why is it needed?",
+      answer: `NAT — Network Address Translation — rewrites the source and destination addresses in packets as they cross a router.
+
+**Why it exists:** IPv4 gives roughly 4.3 billion addresses, and that ran out years ago. NAT lets a whole household or office share **one** public IP. The router keeps a table mapping internal addresses to ports on that single public address.
+
+\`\`\`text
+192.168.0.42:51000  --->  203.0.113.9:40000   (src rewritten on the way out)
+\`\`\`
+
+The port number is the key part. Because the table holds *(private IP, private port) → (public IP, public port)*, many internal hosts can share one public address — different ports keep their conversations apart. This is called **PAT** (port address translation) or "NAT overload", and it is what home routers actually use.
+
+**The consequence for inbound traffic:** if something outside initiates a connection, the router has no existing mapping to send it to, so it cannot know which internal host wanted it. That is why inbound unsolicited traffic is hard — and why you need port forwarding, or a VPN, or the host to reach out first.
+
+**NAT breaks things you should know about:**
+
+- **Peer-to-peer** — both peers are behind NAT and neither can be reached.
+- **Protocols embedding addresses in payloads** — FTP's \`PORT\` command and SIP carry literal IPs that NAT does not rewrite.
+- **Long-lived connections** — mappings expire, so idle connections drop.
+- **Observability** — logs show the shared public IP, not the user.
+
+**NAT is not security.** It is often mistaken for a firewall. Traffic still has to be explicitly permitted, and many routers perform NAT unconditionally. IPv6 removes the need entirely by giving every device a globally routable address.`,
+      difficulty: "easy",
+      tags: ["networking", "nat", "ip"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is connection pooling and keep-alive, and why do they matter for network performance?",
+      answer: `**Keep-alive** lets several requests travel over one TCP connection instead of opening a fresh one each time.
+
+A new connection costs a **three-way handshake** (SYN → SYN-ACK → ACK) plus, for HTTPS, a **TLS handshake** — typically 1–2 round trips before any application data moves. Reusing the connection removes that cost entirely.
+
+\`\`\`text
+without keep-alive:  connect + TLS + request + response   (per request)
+with keep-alive:     request + response                    (reused)
+\`\`\`
+
+HTTP/1.1 keeps connections alive by default and allows several in flight per host. HTTP/2 multiplexes many requests over a **single** connection, which also sidesteps head-of-line blocking.
+
+**A connection pool** keeps a fixed set of connections open and ready, handing one to each request instead of dialling every time.
+
+\`\`\`javascript
+// reuse one agent instead of opening a socket per request
+import https from "node:https";
+const agent = new https.Agent({ keepAlive: true, maxSockets: 10 });
+const res = await fetch("https://api.example.com/users", { dispatcher: agent });
+\`\`\`
+
+**The trade-off:** connections are not free. Each holds a file descriptor and kernel buffers, so an unbounded pool under a traffic spike can exhaust the process limits. Set \`maxSockets\` deliberately.
+
+**Know when to configure it:**
+
+- Outbound calls to a third-party API you do not control → **pool aggressively**
+- Inbound server connections → let Node do it; \`keepAliveTimeout\` defaults to 5 s
+- Serverless functions → usually skip it, the platform reuses or discards the container anyway
+
+**The mistake worth naming:** setting a very long keep-alive timeout on the server. It holds a file descriptor per idle client, so a burst of short requests leaves sockets open long after the work is done.`,
+      difficulty: "medium",
+      tags: ["networking", "tcp", "performance"],
+      is_top50: false,
+    },
+    // ──────── Operating Systems & Concurrency (Phase 2 additions) ────────
+    {
+      question: "What is starvation, and how is it different from deadlock?",
+      answer: `**Starvation** is when a process is perpetually denied the resource it needs while others keep making progress. It is slow, not stopped.
+
+\`\`\`text
+deadlock  — everyone is blocked; nothing moves
+starvation — some run forever; one waits forever
+\`\`\`
+
+**Deadlock implies starvation, but not the reverse.** In a deadlock every process is stuck, so all are starving. In starvation only one is.
+
+| | Deadlock | Starvation |
+|---|---|---|
+| Progress | Nobody progresses | Others progress normally |
+| Cause | Circular wait on held resources | Unfair scheduling or priority |
+| Fix | Break a deadlock condition | Fairness policy |
+
+**The classic case:** a low-priority job keeps getting preempted because short high-priority jobs keep arriving. Each individual decision was reasonable; collectively the low-priority work never runs.
+
+**How starvation is prevented:**
+
+- **Aging** — gradually raise the priority of a waiting process so it eventually wins. The scheduler's implicit promise.
+- **Strict priority scheduling** — which causes starvation outright. A useful contrast for an interview.
+- **Round-robin / fair queues** — every waiting process gets a turn.
+
+\`\`\`text
+P1 ████    P2 ████    P3 ████    P1 ████   → nobody starves
+P_high ████ ████ ████ ████ ████ ████ ████   → P_low never runs
+\`\`\`
+
+**In practice**, starvation also shows up as one tenant's queue never draining under load-shedding, or a lock acquired by a stream of short-lived threads that never yields. The fix is always the same shape: make the scheduler fair, or bound the wait.`,
+      difficulty: "easy",
+      tags: ["operating-systems", "scheduling", "concurrency"],
+      is_top50: false,
+    },
+    {
+      question: "What are zombie and orphan processes?",
+      answer: `Both terms describe what happens to a child process after its parent stops tracking it properly.
+
+**A zombie** is a process that has **finished** but whose entry still exists in the process table because the parent has not called \`wait()\` to collect the exit status. It holds a PID and a table entry, but consumes essentially no CPU or memory.
+
+\`\`\`text
+parent ── creates ──▶ child
+child exits (becomes zombie)
+parent never calls wait()  →  zombie persists
+parent calls wait()       →  zombie is reaped, entry freed
+\`\`\`
+
+Zombies are a **file-descriptor / PID leak**, not a resource problem. The OS cannot delete the entry itself because the exit status must be delivered to the parent.
+
+**An orphan** is a child whose parent **died** while the child was still running. Nothing is wrong with the child — it keeps running normally. The OS simply reparents it, usually to \`init\` (PID 1) or a subreaper, which is then responsible for reaping it.
+
+\`\`\`text
+parent dies
+  ├── child already exited  →  re-parented zombie, init reaps it
+  └── child still running   →  orphan, keeps running, init reaps it on exit
+\`\`\`
+
+**Practical impact.** Zombie accumulation is bounded by the process table size and shows up as "too many open files" or "cannot fork" under load. It is a bug in the parent — usually a server that spawns subprocesses and never awaits them.
+
+\`\`\`python
+# don't just fire and forget
+subprocess.Popen(["ffmpeg", src, dst])
+# collect the status, or reap it explicitly
+subprocess.run(["ffmpeg", src, dst], check=True)
+\`\`\`
+
+**The distinction to state in an interview:** a zombie is dead-but-unreaped (parent's fault); an orphan is alive-but-parentless (the OS handles it).`,
+      difficulty: "easy",
+      tags: ["operating-systems", "process", "concurrency"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What are the main inter-process communication (IPC) mechanisms?",
+      answer: `Processes have separate address spaces, so IPC needs either shared memory or a message-passing channel. The main mechanisms, roughly in order of speed:
+
+**1. Shared memory**
+\`\`\`c
+int shmid = shmget(IPC_PRIVATE, 1024, IPC_CREAT | 0600);
+char *shm = (char *)shmat(shmid, NULL, 0);
+strcpy(shm, "hello");
+\`\`\`
+Fastest — no copying — but **requires your own synchronisation**, because both sides can read and write simultaneously. Synchronisation then costs a mutex, an atomic operation or a semaphore, which must usually be in shared memory too.
+
+**2. Message queues** (\`msgget\`, POSIX \`mq_open\`, or a broker like RabbitMQ)
+The kernel maintains a queue; each process reads and writes entries. The kernel handles locking, so the code is far simpler. Slower than shared memory, and messages have a size limit.
+
+**3. Pipes and named pipes (FIFOs)**
+Byte streams between related processes. Unnamed pipes connect a parent to its children; FIFOs have a filesystem name so unrelated processes can open them. Stream-oriented and unidirectional, and readers block until data arrives.
+
+**4. Sockets** (Unix domain sockets)
+Still the most capable: bidirectional, stream or datagram, and they work between processes on different machines. Local sockets skip the TCP/IP stack entirely, so they are fast.
+
+**Choosing:**
+
+| Need | Use |
+|---|---|
+| Maximum throughput, same machine, you can handle locking | Shared memory |
+| Simple producer/consumer between related processes | Named pipe / queue |
+| Multi-machine, or request/response, or many consumers | Sockets |
+| Durable, replayable, decoupled background work | A real broker (Kafka, RabbitMQ) |
+
+**In Node.js specifically**, the \`worker_threads\` module is the closest analogue to shared memory, and it shares an \`ArrayBuffer\` rather than copying — which is what makes it meaningfully faster than spawning processes for CPU-bound work.`,
+      difficulty: "easy",
+      tags: ["operating-systems", "ipc", "concurrency"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What are the common CPU scheduling algorithms — FCFS, SJF, Round Robin and Priority?",
+      answer: `The scheduler decides which process runs next. The classic algorithms each optimise for something different — and each pays a price.
+
+**FCFS (First Come, First Served)**
+Simple queue, first in first out. Cheap, but suffers the **convoy effect**: one long job at the front delays every short job behind it, so average wait time is high even though some jobs finish fast.
+
+**SJF (Shortest Job First)**
+Always run the job with the shortest remaining burst time. **Provably optimal for average waiting time** — but you cannot actually know how long a job will take without knowing the future. In practice this is approximated by "Shortest Remaining Time First" with a burst-time *estimate* from the job's history.
+
+**Round Robin**
+Each process gets a fixed time quantum, then goes to the back of the queue.
+
+\`\`\`text
+quantum = 10ms:   P1 ██████████ P2 ██████████ P3 ██████████ P1 ██████████
+\`\`\`
+
+**The time-quantum trade-off:** too small and you spend all your time on context switches; too large and it degenerates into FCFS. The usual rule of thumb is 80–95% of jobs should finish within one quantum.
+
+**Priority Scheduling**
+Each process has a priority; the highest runs. Use **aging** to prevent starvation, otherwise low-priority work never runs. **MLFQ** (Multi-Level Feedback Queue) makes this practical by inferring priority from observed behaviour, so you do not need to declare it.
+
+**Which the interview wants:**
+
+| Algorithm | Optimises | Weakness |
+|---|---|---|
+| FCFS | Simplicity | Convoy effect |
+| SJF | Average wait | Needs future knowledge |
+| Round Robin | Fairness, responsiveness | Context-switch overhead |
+| Priority | Importance | Starvation without aging |
+
+Real systems are hybrids: **Linux CFS** gives each task a virtual runtime and runs the least-served one — SJF's fairness idea without needing to know burst times.`,
+      difficulty: "medium",
+      tags: ["operating-systems", "scheduling", "concurrency"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is a critical section and what properties must a correct solution guarantee?",
+      answer: `A **critical section** is a code region that accesses shared mutable state, and must not run in two threads at once.
+
+\`\`\`c
+counter++;                  // read, modify, write — three steps, not one
+\`\`\`
+
+That looks atomic and is not. Two threads can both read \`counter\`, both add 1, and both write — so one increment is silently lost. This is the **lost update** problem, the simplest illustration of a race condition.
+
+**Three properties a correct solution must guarantee:**
+
+1. **Mutual exclusion** — at most one thread is inside the critical section at any moment.
+2. **Progress** — if no thread is in the critical section and some want to enter, one of them eventually does. Without this, a thread could be starved by others.
+3. **Bounded waiting** — a thread requesting entry is granted it within a finite number of steps. This is the formal statement of "no starvation".
+
+**Two is not enough.** Plenty of naive locks provide mutual exclusion and still hang or starve.
+
+**The classic solution** is a mutex around the smallest possible region:
+
+\`\`\`c
+pthread_mutex_lock(&lock);
+counter++;
+pthread_mutex_unlock(&lock);
+\`\`\`
+
+**The engineering judgement the interview is really testing** is scope. Holding a lock for a whole request serialises everything behind it; holding it for the single read-modify-write keeps it fast. Holding multiple locks invites deadlock — the fix is a global lock ordering.
+
+**Atomics** (\`atomic<int>\`, \`compareAndSwap\`) are often better than a mutex for a single counter: no lock, no blocking, and the hardware guarantees the operation is indivisible. Reach for a mutex when you are protecting several variables that must change *together*.
+
+**The diagnostic habit worth stating:** when a concurrency bug appears only under load and never in tests, suspect a critical section that is too large — or too small.`,
+      difficulty: "medium",
+      tags: ["operating-systems", "synchronization", "concurrency"],
+      is_top50: false,
+    },
+    {
+      question: "What is demand paging and how does it work?",
+      answer: `Demand paging loads a page into memory **only when it is actually accessed**, rather than loading the whole program at start.
+
+\`\`\`text
+program start          memory touched           page 3 accessed
+───────────────────────────────────────────────────────────────
+pages 0,1,2,4 in RAM  page 3 not resident  →  page fault
+\`\`\`
+
+**The page fault path**, which is the part to know cold:
+
+1. The program references an address in page 3.
+2. The MMU sees the page-table entry is not marked *present*, and traps to the OS.
+3. The OS validates the address. Invalid → segfault. Valid → keep going.
+4. Find a free frame, or evict one using a replacement policy.
+5. Schedule a disk read for the page.
+6. Update the page table entry to point at the new frame, with the present bit set.
+7. **Restart the faulting instruction.**
+
+Step 7 surprises people. Because the access had not happened when the fault fired, simply re-running it now succeeds. The CPU does not know or care that the instruction was interrupted.
+
+**Major vs minor faults:** a *minor* fault means the page is already in memory and just needs the mapping set up — microseconds. A *major* fault means a real disk read — often 10 ms, roughly **100,000× slower** than a RAM access.
+
+**Why it is a win:** programs rarely use all of their code or data. Loading on demand means far less RAM and faster start-up, at the cost of occasional multi-millisecond stalls.
+
+**Why it can backfire:** the chapter's existing questions on *thrashing* and *virtual memory* are the downside. When working sets exceed available frames, nearly every access faults, and the system spends all its time paging. More RAM, fewer processes, or a working-set policy is the fix — adding more processes makes it worse.
+
+**The performance hinge** is the **TLB**: paging does not mean every access costs an extra lookup, because recent translations are cached.`,
+      difficulty: "medium",
+      tags: ["operating-systems", "memory-management", "virtual-memory"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What are page replacement algorithms — FIFO, LRU and Optimal — and how do they differ?",
+      answer: `When memory is full, the OS must evict a page to make room. Each algorithm picks differently, and the difference shows up as page-fault rate.
+
+**FIFO (First In, First Out)** — evict the oldest-loaded page.
+\`\`\`text
+refs:  1 2 3 4 1 2 5 1 2 3 4 5
+3 frames, FIFO evicts 1, then 2, then 3
+faults: 1 2 3 4 5 5 5 5 5 5 5 5  → 9 faults
+\`\`\`
+Simple, but suffers **Belady's anomaly** — adding a frame can *increase* faults. That is counter-intuitive enough to be a favourite interview question.
+
+**LRU (Least Recently Used)** — evict the page unused for the longest.
+\`\`\`text
+same reference string, 3 frames, LRU
+faults: 1 2 3 4 5 5 5 5 5 5 5 5  → 9 faults
+\`\`\`
+Performs better in practice because of **locality**: what you used recently you are likely to use again.
+
+**The cost problem:** exact LRU needs a timestamp per access. Updating it on every reference makes memory access O(1)-plus-a-write, which is unacceptable. The usual compromise is an approximation using the reference bit in hardware and periodic sweeps.
+
+**Optimal (OPT/MIN)** — evict the page needed farthest in the future. Unimplementable, because it needs knowledge of the future. It exists as a **benchmark**: real algorithms are measured against how close they get to it.
+
+\`\`\`text
+same string, 3 frames, OPT
+faults: 1 2 3 4 5 5 5 5 5 5 5 5  → 7 faults
+\`\`\`
+
+**Clock** is what production systems use: a circular list of page frames with a reference bit. If the victim's bit is set, clear it and move on; if not, evict it. It approximates LRU at O(1) per access and, unlike strict LRU, does not suffer Belady's anomaly.
+
+**What to say in an interview:** name the three, state the Belady anomaly for FIFO, and explain that locality is why LRU-family algorithms win.`,
+      difficulty: "medium",
+      tags: ["operating-systems", "memory-management", "paging"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is the TLB and why does it matter for memory performance?",
+      answer: `The **Translation Lookaside Buffer** is a CPU cache of recent virtual-address → physical-address translations.
+
+Paging means every memory reference needs two steps: look up the page table for the frame number, then access the physical location.
+
+\`\`\`text
+virtual address -> page table lookup -> physical address -> memory
+                     ^ this costs an extra memory access
+\`\`\`
+
+That would make memory access twice as slow. **The TLB removes the penalty.** It is a small, fast, associative cache holding the translations used most recently, so the common case skips the page-table walk entirely.
+
+\`\`\`text
+virtual address -> TLB hit? -> physical address -> memory     (one access)
+                 -> TLB miss -> page table walk -> memory      (two accesses)
+\`\`\`
+
+**The number that shows why this matters:** a page-table walk is itself a memory access, roughly 100+ cycles, versus ~1 cycle for the L1 load it is protecting. A high TLB miss rate can cost 20–30% of application performance.
+
+**Why it misses:**
+
+- **TLB thrashing** — a program touching more distinct pages than the TLB holds, so nearly every access misses. This is exactly the symptom of **thrashing** in the chapter's virtual-memory questions.
+- **Replacing a memory region** — \`fork()\` duplicates the page tables but the child inherits the parent's TLB entries, which may map to the wrong copy.
+- **Memory resizing** — realloc or \`munmap\` invalidates translations.
+
+**Size matters.** A TLB with 64 entries is comfortable for a server process; thousands of concurrent requests can each have a distinct working set.
+
+\`\`\`bash
+# on Linux: TLB and page-fault counters
+perf stat -e dTLB-loads,dTLB-load-misses,page-faults ./your-program
+\`\`\`
+
+If \`dTLB-load-misses\` is high, the fix is usually better locality — smaller working sets, fewer huge sparse allocations, and avoiding rapid alloc/free cycles that reuse the same pages for unrelated purposes.`,
+      difficulty: "medium",
+      tags: ["operating-systems", "memory-management", "paging"],
+      is_top50: false,
+    },
+    // ──────── Data Structures & Algorithms Fundamentals (Phase 3 additions) ────────
+    {
+      question:
+        "What is amortized time complexity and why does array push have it?",
+      answer: `Amortised analysis answers: "what is the average cost per operation over a long run of operations?"
+
+\`Array.prototype.push\` is **O(1) amortised**, not worst-case O(1). Appending is usually O(1) because there is spare capacity — but occasionally the array must grow, and that is O(n).
+
+\`\`\`text
+capacity 4:  push, push, push, push        → 4 x O(1)      = O(1)
+            push                          → REALLOCATE   = O(n)
+capacity 8:  push x4                      → 4 x O(1)      = O(1)
+            push x4, then reallocate       → O(n)         = O(n)
+
+8 pushes = O(n) total  →  O(n)/8 = O(1) per push
+\`\`\`
+
+**Why the amortised cost is O(1):** doubling the capacity means the expensive copy happens at sizes 1, 2, 4, 8, 16… Total copying is 1 + 2 + 4 + 8 … = 2n, spread over n pushes. Geometric growth is what makes it O(1); growing by a fixed amount (\`+1\` each time) would be O(n²).
+
+**The contrast worth naming:** \`unshift\` on an array is O(n) every time — it must shift every element to preserve order. It is O(n²) for n unshifts, and no amortised saving applies, because each individual call is already expensive.
+
+\`\`\`javascript
+const a = [];
+for (let i = 0; i < 1e6; i++) a.push(i);   // O(n) overall — amortised
+\`\`\`
+
+**In an interview**, the distinction matters: \`push\` is safe in a loop, \`unshift\`/\`splice(0, x)\` are not. If you need O(1) prepend, use a deque or a linked list.
+
+Amortised ≠ average. Amortised is a **guarantee over a worst-case sequence** — there is no input that makes n pushes cost more than O(n). Average-case depends on the input distribution.`,
+      difficulty: "easy",
+      tags: ["algorithms", "data-structures", "arrays", "complexity"],
+      is_top50: true,
+    },
+    {
+      question:
+        "What are the time complexities of common operations on arrays, linked lists and hash maps?",
+      answer: `Memorise this table and most DSA complexity questions are answered.
+
+**Arrays (dynamic)**
+
+| Operation | Complexity | Why |
+|---|---|---|
+| Index read | O(1) | address = base + i × size |
+| Push (amortised) | O(1) | occasional resize |
+| Unshift / shift | O(n) | must shift every element |
+| Index write | O(1) | |
+| Slice / concat | O(n) | copies |
+| IndexOf / includes | O(n) | linear scan |
+| Sort | O(n log n) | |
+
+**Linked lists**
+
+| Operation | Complexity | Why |
+|---|---|---|
+| Index read | O(n) | must walk from head |
+| Head insert / delete | O(1) | repoint one pointer |
+| Tail append | O(n) unless you keep a tail pointer → O(1) | walk to the end |
+| Index write | O(n) | must walk first |
+| Search | O(n) | no random access |
+
+**Hash maps**
+
+| Operation | Average | Worst case |
+|---|---|---|
+| Insert / read / delete | O(1) | O(n) if every key collides |
+| Search by key | O(1) | O(n) |
+| Find by value | O(n) | O(n) |
+
+**Three facts that matter more than the table:**
+
+1. **Linked lists rarely beat arrays in practice.** Indexing is O(n) versus O(1), and every node is a separate allocation. Arrays win on real hardware because of CPU cache locality — contiguous memory prefetches beautifully. The linked list's theoretical O(1) insert is only accessible if you already hold the node.
+
+2. **Hash map worst case is O(n).** An adversary who controls the keys can force every one to the same bucket, degrading lookups to a linear scan. Constant-time hashing is a worst-case claim, not an average-case one.
+
+3. **Complexity ignores constants.** \`O(n)\` over an array beats \`O(log n)\` over a tree when n is small, because a tree walk chases pointers and misses cache.
+
+\`\`\`text
+              array      linked list    hash map
+read by index   O(1)          O(n)          n/a
+search          O(n)          O(n)         O(1)
+insert at front O(n)          O(1)         O(1)
+\`\`\``,
+      difficulty: "easy",
+      tags: ["algorithms", "data-structures", "complexity", "arrays"],
+      is_top50: true,
+    },
+    {
+      question:
+        "What is a deque and how does it differ from a stack and a queue?",
+      answer: `A **deque** (double-ended queue) allows insertion and removal at **both** ends.
+
+\`\`\`javascript
+const dq = new Deque();     // not native — this is the concept
+dq.pushBack(1);            // add at the rear
+dq.pushFront(0);           // add at the front
+dq.popBack();              // remove from the rear
+dq.popFront();             // remove from the front
+\`\`\`
+
+| | Restriction | Order |
+|---|---|---|
+| Stack | push and pop at one end only | LIFO |
+| Queue | enqueue at rear, dequeue at front | FIFO |
+| **Deque** | both operations at **both** ends | either |
+
+**A deque is a stack and a queue at the same time.** Use only the front for push/pop and you have a stack; use opposite ends and you have a queue.
+
+**The classic interview problem it solves: sliding-window maximum.**
+
+\`\`\`text
+array:  [1, 3, -1, -3, 5, 3, 6, 7]   window size 3
+\`\`\`
+
+Monotonic deque: push each element, first remove from the back any smaller-or-equal elements (they can never be the max again), then remove from the front anything that has fallen out of the window, then record the front as the window max. Each element enters and leaves once — **O(n)** overall.
+
+**Practical uses:**
+
+- **Job scheduling** with a deadline — new, higher-priority jobs go to the front
+- **Sliding window / monotonic window** algorithms generally
+- **A-steal scheduling** in task queues
+- **Cache eviction** where you can evict from either end
+
+**Implementation note:** \`Array.prototype.shift()\` and \`unshift()\` are O(n) in JavaScript, because elements shift. So a deque backed by a plain array and used as a queue is O(n) per operation, not O(1) — which defeats the point. Use an index-based head pointer, a real double-ended queue, or a linked list.`,
+      difficulty: "easy",
+      tags: ["data-structures", "queue", "stack", "complexity"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is a hash collision and how are hash tables resilient to them?",
+      answer: `A **collision** is when two different keys hash to the same bucket. It is unavoidable: a 32-bit hash over an unbounded key space must collide eventually.
+
+\`\`\`text
+hash("apple") = 3
+hash("banana") = 3     ← collision, both land in bucket 3
+\`\`\`
+
+**Two ways to resolve them:**
+
+**1. Chaining (separate chaining)** — each bucket is a list.
+
+\`\`\`text
+bucket 3 → [ "apple" → 10 ] → [ "banana" → 25 ]
+\`\`\`
+
+Insert and lookup walk the chain. Simple, tolerant of high load factors, needs dynamic allocation.
+
+**2. Open addressing (linear probing)** — the whole table is the storage; on collision, try the next slot.
+
+\`\`\`text
+hash("apple") = 3  → slot 3 taken  → try slot 4  → free, store here
+\`\`\`
+
+\`\`\`javascript
+// linear probing, simplified
+function set(table, key, value) {
+  let i = hash(key) % table.length;
+  while (table[i] !== undefined) {
+    if (table[i].key === key) { table[i].value = value; return; }
+    i = (i + 1) % table.length;   // probe the next slot
+  }
+  table[i] = { key, value };
+}
+\`\`\`
+
+Open addressing needs the table to have **empty slots** — if you fill it past ~70%, probing degrades badly. Chaining tolerates any load factor.
+
+**Two problems worth knowing:**
+
+- **Clustering** — with linear probing, collisions cluster into runs, and each new insertion extends them. Quadratic probing and double hashing reduce this.
+- **Worst case O(n)** — every key in one bucket. Adversarial keys can force it, which is why some runtimes randomise the seed.
+
+**The load factor** (entries ÷ slots) is what you tune: above ~0.7 for open addressing, resize and rehash everything. Resizing is O(n) but happens rarely, so it stays amortised O(1).`,
+      difficulty: "medium",
+      tags: ["data-structures", "hash-map", "complexity"],
+      is_top50: false,
+    },
+    {
+      question: "What is a trie and when is it better than a hash set?",
+      answer: `A **trie** (prefix tree) stores strings in a tree, where each edge is one character and each node represents a prefix.
+
+\`\`\`text
+          root
+        /    |    \\\\
+       c     b     a
+       a     a     p
+       t     n     p
+       |     d     l
+      (cat) (band) (apple)
+\`\`\`
+
+\`\`\`javascript
+// {"cat": 1, "car": 2, "cart": 3}
+trie.cat.value = 1
+\`\`\`
+
+**Where a trie beats a hash set:**
+
+| Operation | Hash set | Trie |
+|---|---|---|
+| Exact lookup | O(L) | O(L) |
+| **Prefix match** ("all keys starting with \`car\`") | **O(N) — scan everything** | **O(L) — just walk the prefix** |
+| Autocomplete | poor | excellent |
+| Memory | compact | heavy (node per character) |
+| Hash-collision risk | yes | none — structure enforces correctness |
+
+Autocomplete is the reason tries exist. With a hash set, "give me every key starting with \`ca\`" means iterating every key and testing each one. With a trie, you walk \`c → a\` and collect everything below — work proportional to the *results*, not the dataset.
+
+\`\`\`javascript
+function autocomplete(trie, prefix) {
+  let node = root(trie);
+  for (const ch of prefix) {
+    if (!node.children[ch]) return [];   // no such prefix
+    node = node.children[ch];
+  }
+  return collect(node);
+}
+\`\`\`
+
+**Where a hash set wins:** space. A trie node per character is expensive — a million-word dictionary can consume far more memory than storing the words in a \`Set\`. And if you only need exact match, a hash set is strictly better.
+
+**Typical use:** IP routing tables, autocomplete, spell-checkers, prefix search in databases, \`grep\`-style matching.
+
+**The alternative worth naming:** a sorted array plus binary search gives prefix queries in O(L + log N) with far less memory. Tries win when prefix queries are frequent.`,
+      difficulty: "medium",
+      tags: ["data-structures", "algorithms", "strings", "searching"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What are the binary tree traversals — inorder, preorder and postorder — and what is each used for?",
+      answer: `The three depth-first traversals differ only in **when** you visit the node relative to its subtrees.
+
+\`\`\`text
+inorder:    left → NODE → right
+preorder:   NODE → left → right
+postorder:  left → right → NODE
+\`\`\`
+
+\`\`\`javascript
+function traverse(node, order, out = []) {
+  if (!node) return out;
+  if (order === "pre")  out.push(node.value);
+  traverse(node.left, order, out);
+  if (order === "in")   out.push(node.value);
+  traverse(node.right, order, out);
+  if (order === "post") out.push(node.value);
+  return out;
+}
+\`\`\`
+
+**What each one gives you:**
+
+| Traversal | Produces | Use it for |
+|---|---|---|
+| **Inorder** | Sorted values — **only on a BST** | Sorted output, finding k-th smallest |
+| **Preorder** | Root-first, mirrors the structure | Serialising / cloning a tree, copying a directory |
+| **Postorder** | Children-first | Deleting a tree (free children before the node), summarising a tree |
+
+**The inorder-sorts-a-BST fact is the most tested.** For a binary search tree, inorder traversal yields values in ascending order — which means sorting is O(n) with no comparison sort at all.
+
+\`\`\`text
+      5
+     / \\
+    3   8
+   / \\    \\
+  1   4    9
+
+inorder: 1, 3, 4, 5, 8, 9     ← sorted, because it is a BST
+\`\`\`
+
+**Postorder for deletion** is the practical one. Deleting root-first while it still has children leaves the children unreachable, so you delete children first. Directory deletion works identically.
+
+**Level-order (BFS) is the fourth traversal** and it is not depth-first:
+
+\`\`\`text
+level-order: 5, 3, 8, 1, 4, 9     ← one level at a time
+\`\`\`
+
+BFS is what you want for the shortest path in an unweighted graph and for anything where depth matters more than ordering.
+
+**The interview trap:** the traversal must produce sorted output. Inorder only guarantees that on a **BST** — on an arbitrary binary tree it produces nothing meaningful.`,
+      difficulty: "medium",
+      tags: ["data-structures", "trees", "recursion", "graph-traversal"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is the difference between recursion and iteration, and when should you use each?",
+      answer: `**Recursion** is a function calling itself on a smaller input until a base case stops it. **Iteration** uses a loop.
+
+\`\`\`javascript
+// recursive factorial
+function fact(n) {
+  if (n <= 1) return 1;      // base case — mandatory
+  return n * fact(n - 1);    // smaller input
+}
+
+// iterative
+function factIter(n) {
+  let result = 1;
+  for (let i = 2; i <= n; i++) result *= i;
+  return result;
+}
+\`\`\`
+
+**Every recursion must have a base case** and must shrink its input each call. Missing either causes infinite recursion, and the failure mode is a stack overflow rather than an infinite loop.
+
+| | Recursion | Iteration |
+|---|---|---|
+| Readability | Matches the definition | Often clearer for linear work |
+| Space | O(depth) call stack | O(1) for simple loops |
+| Overhead | Function-call cost per step | None |
+| Infinite loops | Stack overflow | Hang |
+| Tail calls | Optimised away in some languages | n/a |
+
+**Use recursion when the problem is defined recursively:**
+
+- Trees and graphs — DFS is inherently recursive
+- Divide and conquer — merge sort, quicksort, binary search
+- Backtracking — permutations, N-Queens, sudoku
+- Parsers — expressions, JSON
+
+\`\`\`javascript
+// inherently recursive — hard to express as a loop
+function sumTree(node) {
+  return node ? node.value + sumTree(node.left) + sumTree(node.right) : 0;
+}
+\`\`\`
+
+**Use iteration when** the structure is a flat sequence, recursion would be deep, or you need every microsecond.
+
+**The trap to know:** naive recursion can be dramatically slower. Naive Fibonacci is O(2ⁿ) because it recomputes the same subproblems; adding memoisation makes it O(n), and an explicit loop is usually fastest of all.
+
+\`\`\`javascript
+const fact = (n) => (n <= 1 ? 1 : n * fact(n - 1));   // clear
+const factLoop = (n) => { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; };  // same, faster
+\`\`\`
+
+**In an interview:** recursion for structure, and mention that it can be converted to a stack-based loop if depth becomes a concern.`,
+      difficulty: "easy",
+      tags: ["algorithms", "recursion", "complexity"],
+      is_top50: false,
+    },
+    {
+      question: "What is stack overflow and how do you avoid it?",
+      answer: `A **stack overflow** is exhausting the call stack — each pending function call needs a frame, and there is a hard limit.
+
+\`\`\`javascript
+function recurse(n) { return recurse(n + 1); }   // no base case
+recurse(0);
+// RangeError: Maximum call stack size exceeded
+\`\`\`
+
+Note it is a **\`.RangeError\`**, not a \`ReferenceError\` — the function exists, there are just too many live frames. It is also recoverable: the stack unwinds and the program can carry on if you catch it.
+
+**Cause: unbounded or deep recursion.** Depth comes from recursion depth, and depth often comes from the *shape of the data*.
+
+\`\`\`javascript
+// balanced tree, depth ~log(n)   → 1M nodes is fine
+// linked list 1M deep, or a degenerate
+// "skewed" tree                 → 1M frames, guaranteed overflow
+\`\`\`
+
+**How to avoid it:**
+
+1. **Add or fix the base case.** Most overflows are just missing base cases.
+
+2. **Convert deep recursion to iteration** with an explicit stack:
+
+\`\`\`javascript
+function sumIterative(root) {
+  let sum = 0;
+  const stack = [root];
+  while (stack.length) {
+    const node = stack.pop();
+    if (!node) continue;
+    sum += node.value;
+    stack.push(node.left, node.right);
+  }
+  return sum;
+}
+\`\`\`
+
+The heap-backed \`stack\` array has no per-call frame overhead, so depth is limited by memory instead of a fixed stack size.
+
+3. **Use tail recursion** where the language optimises it — a call in tail position reuses the frame. Most engines do not, so do not rely on it.
+
+4. **Bound the recursion explicitly** with a depth counter when input is untrusted.
+
+\`\`\`javascript
+function safeParse(node, depth = 0) {
+  if (depth > 1000) throw new Error("tree too deep");
+  // ...
+}
+\`\`\`
+
+**Deep structures are a real attack surface.** A malicious or corrupted JSON payload nested thousands of levels deep will overflow the parser's stack. \`JSON.parse\` in V8 throws a \`RangeError\` rather than crashing the process, but many hand-written recursive parsers do not guard this.
+
+**The symptom to recognise:** \`RangeError: Maximum call stack size exceeded\` on input you did not expect to be deep — that is a data-shape problem, not a performance problem.`,
+      difficulty: "easy",
+      tags: ["algorithms", "recursion", "data-structures"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is a directed acyclic graph and why does cycle detection matter?",
+      answer: `A **directed graph** has edges with a direction; a **DAG** is a directed graph with **no cycles** — you can never follow edges and return to where you started.
+
+\`\`\`text
+acyclic:                cyclic:
+  A → B → C               A → B
+  C → D                   B ↖ A    (A→B→A)
+\`\`\`
+
+**Every DAG has at least one node with in-degree 0** (nothing points to it). That fact is the basis of every topological sort.
+
+**Why DAGs matter:**
+
+1. **Topological sort** — a linear ordering where every edge goes forward. Exists only for DAGs. Used for build systems (compile a module after its dependencies), task scheduling, and module import graphs.
+
+2. **No cycle means no deadlock** — in a dependency graph, a cycle is exactly the circular-wait condition.
+
+3. **It is decidable** — unlike general graph problems, many are easier: reachability is linear.
+
+**Cycle detection — the three-colour DFS:**
+
+\`\`\`javascript
+// 0 = unvisited, 1 = in the current DFS path, 2 = fully explored
+function hasCycle(graph) {
+  const state = new Map();
+
+  function dfs(node) {
+    if (state.get(node) === 1) return true;    // hit something on our own path
+    if (state.get(node) === 2) return false;   // already known clean
+
+    state.set(node, 1);
+    for (const next of graph.get(node) ?? []) {
+      if (dfs(next)) return true;
+    }
+    state.set(node, 2);
+    return false;
+  }
+
+  return [...graph.keys()].some(dfs);
+}
+\`\`\`
+
+Colour 1 is the key: reaching a node **currently on your own stack** means the path closes into a cycle. Reaching a colour-2 node just means you already proved that branch is clean.
+
+\`\`\`javascript
+// Kahn's algorithm — topological sort of a DAG
+function topoSort(graph) {
+  const indegree = new Map([...graph.keys()].map(k => [k, 0]));
+  for (const edges of graph.values())
+    for (const e of edges) indegree.set(e, indegree.get(e) + 1);
+
+  const queue = [...indegree].filter(([, d]) => d === 0).map(([k]) => k);
+  const order = [];
+
+  while (queue.length) {
+    const node = queue.shift();
+    order.push(node);
+    for (const next of graph.get(node) ?? []) {
+      indegree.set(next, indegree.get(next) - 1);
+      if (indegree.get(next) === 0) queue.push(next);
+    }
+  }
+
+  // cycle check: if we did not process every node, a cycle exists
+  if (order.length !== graph.size) throw new Error("graph has a cycle");
+  return order;
+}
+\`\`\`
+
+**Time complexity:** O(V + E) — each node and edge visited once.
+
+**Where you meet DAGs:** \`package.json\` dependencies, build pipelines (\`tsc\` must compile a module's imports first), \`git\` commit DAGs, spreadsheet formula evaluation, state machines, task schedulers.`,
+      difficulty: "medium",
+      tags: ["data-structures", "graphs", "graph-traversal", "algorithms"],
+      is_top50: false,
+    },
+    // ──────── System Design & Architecture (Phase 3 additions) ────────
+    {
+      question: "What are the ACID properties and why do they matter?",
+      answer: `ACID is the guarantee set a relational database gives a **transaction** — all four hold or none do.
+
+**A — Atomicity: all or nothing.**
+Either every statement in the transaction lands, or none does. There is no half-applied state. This is what gives you the all-or-nothing transfer: debit and credit both happen, or neither does.
+
+\`\`\`sql
+BEGIN;
+  UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+  UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+COMMIT;   -- both, or on error ROLLBACK undoes both
+\`\`\`
+
+**C — Consistency: the data ends up in a valid state.**
+Not "the database is consistent" in the abstract — that *you* define constraints (foreign keys, \`NOT NULL\`, \`CHECK\`), and the DB guarantees the transaction never leaves them violated. Atomicity and consistency are your responsibility; the DB enforces the rules.
+
+**I — Isolation: concurrent transactions do not interfere.**
+The effect of concurrent transactions equals some serial order. This is the one you choose to give up — isolation levels exist precisely because full isolation is expensive.
+
+**D — Durability: once committed, it survives.**
+A committed transaction is on disk, and a crash, power loss or kill will not lose it. Implemented by write-ahead logging — the log is flushed before the commit is acknowledged.
+
+**Isolation levels, weakest to strongest:**
+
+| Level | Prevents | Cost |
+|---|---|---|
+| Read Uncommitted | nothing | fastest, can read dirty data |
+| Read Committed | dirty reads | **Postgres and MySQL default** |
+| Repeatable Read | non-repeatable reads | MySQL default; can still get phantom reads |
+| Serializable | everything, incl. phantoms | strictest, lowest concurrency |
+
+\`\`\`text
+dirty read       — reads uncommitted data that is later rolled back
+non-repeatable   — re-reads a row and it changed (someone committed)
+phantom read     — the same query returns a NEW extra row (someone inserted)
+\`\`\`
+
+**The trade-off to state in an interview:** every isolation level above Read Committed costs throughput, because the DB must hold locks or maintain multi-version snapshots. Use the strongest level your correctness actually requires.
+
+**Why it matters:** ACID is what makes a database trustworthy for money and inventory. When you deliberately trade it away — Cassandra, DynamoDB, eventually-consistent caches — you are choosing availability and scale over guaranteed correctness, and you must move that responsibility into the application.`,
+      difficulty: "easy",
+      tags: ["system-design", "databases", "architecture"],
+      is_top50: true,
+    },
+    {
+      question: "What is database normalization and what are the normal forms?",
+      answer: `Normalisation organises tables to **reduce redundancy** and make anomalies impossible. Read queries get joins; writes get safer.
+
+**The problem it solves — update, insert and delete anomalies:**
+
+\`\`\`sql
+-- denormalised: course info repeated on every row
+id | student | course      | instructor | instructor_email
+1  | Ada     | TypeScript  | Sam        | sam@x.com
+2  | Lin     | TypeScript  | Sam        | sam@x.com
+3  | Raj     | SQL         | Kim        | kim@x.com
+\`\`\`
+
+Change Sam's email → you must update every row (update anomaly). Enrol a student with no known instructor → you need a NULL or a fake row (insert anomaly). Delete the only course using an instructor → you lose the instructor (delete anomaly).
+
+**Normal forms, each fixing one anomaly:**
+
+**1NF — atomic values.** One value per cell, no arrays or groups.
+
+\`\`\`sql
+-- violates 1NF
+id | name       | courses
+1  | Ada       | TS, SQL
+\`\`\`
+
+**2NF — no partial dependency.** In a composite key, every non-key column depends on the *whole* key. Relevant only when the key is composite.
+
+\`\`\`sql
+-- (student_id, course_id) is the key; instructor depends on course_id only
+-- → partial dependency → violates 2NF
+\`\`\`
+
+**3NF — no transitive dependency.** Non-key columns must not depend on other non-key columns.
+
+\`\`\`sql
+course_id | instructor_id | instructor_email
+-- instructor_email depends on instructor_id, not course_id → violates 3NF
+\`\`\`
+
+**Higher forms (BCNF, 4NF, 5NF)** handle rarer cases. Know they exist; you will rarely be asked to apply them.
+
+**Why stop at 3NF.** Beyond it you gain little and pay on every read.
+
+\`\`\`text
+read-heavy   → denormalise: cache the instructor name on the course row
+write-heavy  → normalise
+\`\`\`
+
+Denormalisation is a legitimate, deliberate trade — not a failure. It duplicates data on purpose to remove joins. The discipline is to know **which** copy is the source of truth and to keep them consistent.
+
+**A practical reflex:** normalise the schema first, then denormalise the two or three queries that actually hurt in production.`,
+      difficulty: "medium",
+      tags: ["databases", "system-design", "architecture", "design-patterns"],
+      is_top50: false,
+    },
+    {
+      question: "What is a read replica and when would you use one?",
+      answer: `A read replica is a **live copy of your primary database** that serves read queries while the primary handles writes.
+
+\`\`\`text
+        writes
+          │
+          ▼
+   ┌─────────────┐   replication
+   │   PRIMARY   │──────────────┐
+   └─────────────┘              ▼
+                      ┌──────────────────┐
+                      │  READ REPLICA    │
+                      └──────────────────┘
+                          ▲     ▲
+                       reads  reads
+\`\`\`
+
+**The main reason to add one:** most applications read far more than they write — content sites can be 100:1 or worse. One primary can only be so fast, but you can add replicas indefinitely to absorb read traffic.
+
+**Other reasons:**
+
+- **Geographic latency** — replicas in each region so users read locally
+- **Analytics and reports** — run heavy aggregate queries on a replica so they cannot slow production
+- **Read-your-own-writes** — not, in fact. A replica is asynchronous and will lag. If a user updates then immediately reads, the replica may not have the change yet.
+
+**The trade-off is replication lag.** Replication is **asynchronous**: the primary acknowledges a write before the replica has it. So a replica is eventually consistent with the primary, and the lag is unbounded in principle and non-zero in practice. If you need to read your own write, route that read to the primary or pin the session.
+
+\`\`\`text
+write to primary ─────► user reads from replica ──► stale data  ✗
+write to primary ─────► user reads from primary ──► correct      ✓
+\`\`\`
+
+**Half of replication is not a backup.** A replica receives every write, so a bad \`DELETE\` replicates everywhere. Replicas give you read scale and failover, not safety. Backups are a separate, slower mechanism.
+
+**A failed primary can be promoted** to become the new primary (failover), which removes a single point of failure — but that makes the architecture **stateful**, so all nodes must coordinate over which one is primary.
+
+**Practical rule:** add a replica when read volume, not write volume, is the bottleneck. If your writes are the problem, replicas do not help — you need indexing, batching, or sharding.`,
+      difficulty: "easy",
+      tags: ["databases", "scaling", "system-design", "distributed-systems"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is eventual consistency and how does it differ from strong consistency?",
+      answer: `**Strong consistency:** after a write completes, every subsequent read returns it. **Eventual consistency:** reads may return stale data, but if you stop writing, all replicas converge within a bounded time.
+
+\`\`\`text
+strong:    write → read                     always sees the write
+eventual:  write → replica lags 200ms ─────► read misses it
+                     ...later...            read sees it
+\`\`\`
+
+**The trade-off is latency versus guarantees.** Strong consistency usually means coordinating across replicas *before* acknowledging the write, which costs a round trip and can block. Eventual consistency lets each replica write independently and converge later.
+
+**Strongly consistent systems:** relational databases with synchronous replication, anything using consensus (etcd, ZooKeeper, Spanner). Banking, inventory, seat booking, anything where showing stale data is unacceptable.
+
+**Eventually consistent systems:** social feeds, likes and view counts, product catalogues, DNS caches, CDNs, multi-region apps.
+
+**The judgement call** is per operation, not per system. A tweet can propagate in a second; a password change cannot. Most real systems are strongly consistent for identity and eventually consistent for everything else — which is why "is our app consistent?" is a better question than "is our database consistent?".
+
+**The pattern that fixes most "bugs" that are actually design:**
+
+\`\`\`javascript
+// Read-your-own-write
+await createPost(data);          // write to primary
+await createPost(data);          // write to primary
+await getFeed();                 // read from replica — may be stale
+\`\`\`
+
+Fixes: read-after-write through the primary, pin the session to one replica, or write to a replica only after it catches up. Most products do the first.
+
+\`\`\`javascript
+// async pattern, most common in practice
+const queue = useQueue();        // write to primary
+const feed  = await getFromReplica();   // may lag — acceptable for a feed
+\`\`\`
+
+**The honest framing for an interview:** eventual consistency is not a compromise you tolerate, it is a decision you make and then engineer around. Name which operations tolerate lag and which do not — that is the actual answer.`,
+      difficulty: "medium",
+      tags: [
+        "distributed-systems",
+        "consistency",
+        "databases",
+        "system-design",
+      ],
+      is_top50: false,
+    },
+    {
+      question: "What is a circuit breaker and when would you use one?",
+      answer: `A circuit breaker wraps a call to a failing dependency and **stops calling it entirely** while it is broken, then probes periodically to see if it recovered.
+
+\`\`\`javascript
+class CircuitBreaker {
+  constructor(failureThreshold = 5, resetTimeout = 30_000) {
+    this.failures = 0;
+    this.threshold = failureThreshold;
+    this.resetTimeout = resetTimeout;
+    this.state = "CLOSED";   // normal
+  }
+
+  async call(fn) {
+    if (this.state === "OPEN") {
+      if (Date.now() - this.openedAt < this.resetTimeout) {
+        throw new Error("circuit open");   // fail fast, do not call downstream
+      }
+      this.state = "HALF_OPEN";           // probe
+    }
+
+    try {
+      const result = await fn();
+      this.failures = 0;
+      this.state = "CLOSED";
+      return result;
+    } catch (err) {
+      if (++this.failures >= this.threshold) {
+        this.state = "OPEN";
+        this.openedAt = Date.now();
+      }
+      throw err;
+    }
+  }
+}
+\`\`\`
+
+**Three states:**
+
+| State | Behaviour |
+|---|---|
+| **Closed** | Normal traffic passes |
+| **Open** | Calls fail immediately without hitting the dependency |
+| **Half-open** | One probe allowed through; success closes it, failure reopens |
+
+**Why fail fast beats retrying.** If a downstream service is down and 100 requests per second each retry with backoff, you are not helping — you keep the failing service down and burn your own capacity on timeouts. An open circuit rejects in microseconds, so your thread pool and event loop stay healthy.
+
+\`\`\`text
+dependency down
+  no breaker:   every request waits 30s to time out  →  threads exhausted
+  with breaker:  every request rejected instantly      →  threads free
+\`\`\`
+
+**It is a social mechanism, not just a technical one.** It stops a cascading failure: service A is slow, service B waits on A, B's threads pile up, B falls over, C falls over. The breaker makes A's failure cheap for everyone.
+
+**Siblings to know:**
+
+- **Retry** — try again, briefly. Use with exponential backoff and jitter, and only for idempotent operations.
+- **Timeout** — the deadline each attempt gets. A breaker without a timeout cannot detect failure.
+- **Bulkhead** — isolate pools per dependency so one failure cannot exhaust shared capacity.
+
+**The order matters:** set a timeout first, retries second, breaker last. A breaker without timeouts will not trip, because calls hang instead of failing.
+
+**Use it** for any remote dependency you do not control. **Avoid it** for local, non-failing calls — it only adds state.`,
+      difficulty: "easy",
+      tags: [
+        "system-design",
+        "distributed-systems",
+        "reliability",
+        "microservices",
+      ],
+      is_top50: false,
+    },
+    // ──────── Object-Oriented Design Patterns (Phase 3 additions) ────────
+    {
+      question: "What is the Adapter pattern and when would you use it?",
+      answer: `Adapter converts the interface of an existing class into one your code expects, so incompatible classes work together without modifying either.
+
+\`\`\`javascript
+// third-party client with an interface you do not control
+class LegacyPaymentClient {
+  chargeCents(amount) { /* ... */ }
+}
+
+// your application expects this
+class PaymentGateway {
+  charge(amountInDollars) { /* ... */ }
+}
+
+// the adapter
+class PaymentAdapter extends PaymentGateway {
+  constructor(private legacy) { super(); }
+
+  charge(amountInDollars) {
+    this.legacy.chargeCents(Math.round(amountInDollars * 100));
+  }
+}
+\`\`\`
+
+**The two varieties:**
+
+- **Object adapter** — wraps the adaptee in a class (above)
+- **Class adapter** — extends the adaptee and converts signatures, possible only when you own the class
+
+**Where adapters genuinely earn their place:**
+
+1. **Third-party libraries** you cannot change — a payment SDK, an SMS gateway, a legacy SOAP service
+2. **Legacy code** with an awkward interface, wrapped once at the boundary so the rest of the codebase never learns what it looks like
+3. **Normalising heterogeneous data** — one method that turns a Stripe charge, a PayPal charge and a bank transfer into a single internal shape
+4. **Test doubles** — wrapping a real object to record calls or inject failures
+
+\`\`\`javascript
+// normalising heterogeneous responses
+function toPaymentResult(response) {
+  switch (response.type) {
+    case "stripe":    return { ok: response.charged, ref: response.id };
+    case "paypal":    return { ok: response.status === "COMPLETED", ref: response.txId };
+    case "manual":    return { ok: false, ref: null };
+    default:          throw new Error("unknown payment type");
+  }
+}
+\`\`\`
+
+**The key discipline:** the adapter lives at the **boundary**. Everything on your side of it works in your vocabulary; everything on theirs keeps its own. That is what stops an external quirk from spreading through the codebase.
+
+**Contrast with Facade** — a Facade simplifies an interface you *own*; an Adapter changes an interface you *do not*.
+
+**The smell:** if you find yourself writing several adapters for the same dependency, the abstraction is probably in the wrong place. Or you may just have a bad dependency.`,
+      difficulty: "easy",
+      tags: ["design-patterns", "oop", "composition"],
+      is_top50: false,
+    },
+    {
+      question: "What is the Builder pattern and what problem does it solve?",
+      answer: `Builder assembles a complex object step by step, so you never call a constructor with twenty arguments — especially not fifteen \`null\`s.
+
+\`\`\`javascript
+class HttpRequest {
+  constructor({ method, url, headers = {}, body = null, timeout = 5000 }) {
+    Object.assign(this, { method, url, headers, body, timeout });
+  }
+}
+
+// without a builder
+new HttpRequest({ method: "POST", url: "/x", null, null, null, null });
+
+// with a builder
+new HttpRequestBuilder()
+  .method("POST")
+  .url("/x")
+  .header("Content-Type", "application/json")
+  .body(payload)
+  .timeout(30_000)
+  .build();
+\`\`\`
+
+**The problem it solves** is the **telescoping constructor**: a class accumulates parameters over time, and every caller must supply all of them positionally even when most are irrelevant.
+
+\`\`\`javascript
+class Pizza {
+  constructor(size, crust, cheese, pepperoni, mushrooms, onions, olives, extraCheese, glutenFree) { }
+}
+\`\`\`
+
+\`new Pizza("L", "thin", "mozzarella", false, false, false, false, false, false)\` is unreadable and easy to get wrong — and swapping \`onions\` with \`olives\` compiles fine.
+
+\`\`\`javascript
+new PizzaBuilder()
+  .size("L")
+  .crust("thin")
+  .cheese("mozzarella")
+  .build();
+\`\`\`
+
+Note how \`glutenFree\` became a fluent **method** rather than a positional boolean. That is the real payoff: options no longer need a parameter slot, so they can be added without breaking callers.
+
+**Variants worth knowing:**
+
+- **Fluent builder** — chainable setters returning \`this\`, with \`build()\` at the end (above)
+- **Director** — a separate object sequences a fixed recipe, removing construction logic from the client
+- **Builder as an object literal** — the modern JavaScript/TypeScript idiom:
+
+\`\`\`typescript
+type Request<T> = { url: string; method: "GET" | "POST"; headers?: Headers; body?: T };
+
+const createRequest = <T>(url: string, method: Request<T>["method"]) => ({
+  url,
+  method,
+  withHeaders: (headers: Headers) => createRequest<T>(url, method),
+  withBody: (body: T) => ({ url, method, body }),
+});
+\`\`\`
+
+That \`withHeaders\` returning a fresh builder is the functional equivalent of \`return this\`, and it is safer because nothing is mutated.
+
+**Contrast:** Factory creates objects by deciding *which* class to instantiate (see the Factory question in this chapter); Builder configures *one* known type.
+
+**Avoid it** for simple objects. For a three-field value, a plain object literal is clearer, and mandatory fields should stay mandatory in the constructor so the Builder cannot \`build()\` an invalid object.`,
+      difficulty: "medium",
+      tags: ["design-patterns", "oop", "composition"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is the Command pattern and how does it differ from Strategy?",
+      answer: `Command wraps a request as an **object**, so it can be stored, queued, logged and undone. Strategy wraps a request as an object only so you can **swap the algorithm**.
+
+\`\`\`javascript
+// Command — a request as an object, with undo
+class TurnLightOn {
+  constructor(light) { this.light = light; }
+
+  execute() { this.light.on(); }
+  undo()   { this.light.off(); }
+}
+
+class TurnLightOff {
+  constructor(light) { this.light = light; }
+
+  execute() { this.light.off(); }
+  undo()   { this.light.on(); }
+}
+
+// queue, log, then run — and reverse to undo
+const history = [];
+for (const cmd of [new TurnLightOn(light), new TurnLightOff(light)]) {
+  history.push(cmd);
+  cmd.execute();
+}
+
+for (const cmd of history.reverse()) cmd.undo();
+\`\`\`
+
+**The Command pattern's distinguishing feature is that a command is a first-class citizen.** Because it is just an object, you can put commands in a queue (job processing), a log (audit trail), a macro (record/replay), or a UI (undo/redo, a command palette). The invoker holds no knowledge of the specific action.
+
+**How they differ:**
+
+| | Command | Strategy |
+|---|---|---|
+| Purpose | Record, queue, undo a request | Swap an algorithm |
+| Has \`undo()\` | Usually yes | No |
+| Who calls it | Many different callers, plus a queue/log | The object whose algorithm varies |
+| Lifetime | Stored and replayed later | Used immediately, discarded |
+| Encapsulates | Receiver + action | Algorithm only |
+
+\`\`\`javascript
+// Strategy — swap the algorithm, invoked immediately
+const sorter = new Report(reportData);
+sorter.setStrategy(new SortByName());
+sorter.run();
+sorter.setStrategy(new SortByDate());
+sorter.run();   // no history, nothing to undo
+\`\`\`
+
+**Both are usually easy to spot:** a type with \`execute()\` that also has \`undo()\` is Command; a type injected to vary a loop's behaviour is Strategy.
+
+**Where Command is genuinely used:** undo/redo stacks, GUI event binding, task queues, throttled command buffers in games, and transaction logs.
+
+**The caution:** if commands never need queuing, logging or undo, Command is indirection for its own sake. A plain function call is simpler.`,
+      difficulty: "medium",
+      tags: ["design-patterns", "oop", "encapsulation"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is the State pattern and how does it avoid a giant conditional?",
+      answer: `State lets an object change behaviour when its internal state changes, by swapping the strategy object that defines its behaviour — instead of branching on state in every method.
+
+**The problem it removes:**
+
+\`\`\`javascript
+class Document {
+  send() {
+    if (this.state === "draft") {
+      // 12 lines for drafts
+    } else if (this.state === "review") {
+      // 15 lines for review
+    } else if (this.state === "published") {
+      // 20 lines for published
+    }
+  }
+
+  withdraw() { /* same three-branch pattern again */ }
+  archive()  { /* and again */ }
+  delete()   { /* and again */ }
+}
+\`\`\`
+
+Every method repeats the same dispatch, and adding a fourth state means editing every method. State explodes.
+
+**With State, each state is its own object:**
+
+\`\`\`javascript
+class Draft {
+  constructor(doc) { this.doc = doc; }
+  publish() { this.doc.transitionTo(new Published(this.doc)); }
+  withdraw() { throw new Error("a draft cannot be withdrawn"); }
+}
+
+class Published {
+  constructor(doc) { this.doc = doc; }
+  withdraw() { this.doc.transitionTo(new Review(this.doc)); }
+  publish()  { /* already published — no-op */ }
+}
+
+class Document {
+  transitionTo(next) { this.state = next; this.stateName = next.constructor.name; }
+
+  send() { this.state.send(); }        // no branching here at all
+  publish() { this.state.publish(); }  // may throw — decided by the state
+}
+\`\`\`
+
+Now \`Document\` never mentions any state by name. Adding \`Archived\` means writing one new class and touching nothing else.
+
+**Each state object answers two questions the caller used to ask implicitly:**
+1. What happens if this method is called now?
+2. Which state do I move to afterwards?
+
+**The pattern in one line:** *turn a switch on state into an object per state.*
+
+**Three patterns collapse into this shape:**
+
+- State — transitions are the point (documents, orders, TCP connections)
+- Strategy — swap freely, no transition (see the Strategy question in this chapter)
+- Workflow — states are the explicit vocabulary
+
+**State does not fit when the "states" are really just a category label** with no behaviour difference. If every branch does the same thing, you have a boolean, not a state machine.
+
+**Where it is the right tool:** order and payment lifecycles, document approval, UI component lifecycle, network protocol handling, game entities. The tell is a growing \`else if\` chain on a single status field.`,
+      difficulty: "medium",
+      tags: ["design-patterns", "oop", "polymorphism", "encapsulation"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is the Proxy pattern and how does it differ from Decorator?",
+      answer: `Proxy presents a stand-in for a real object and controls **access** to it. Decorator attaches **additional behaviour** to an object while keeping the same interface. They look alike in code and differ in intent.
+
+\`\`\`javascript
+// Proxy — control access
+const userProxy = new Proxy(realUser, {
+  get(target, prop) {
+    if (prop === "salary" && !currentUser.isAdmin) {
+      throw new Error("forbidden");
+    }
+    return target[prop];
+  },
+});
+
+userProxy.name;    // ok
+userProxy.salary;  // throws unless admin
+\`\`\`
+
+**Proxy uses:**
+
+1. **Access control** — permissions, authorisation checks
+2. **Lazy loading** — create the expensive object only when first touched
+3. **Remote proxy** — a local stand-in that makes a network object look local
+4. **Logging, caching, rate limiting** — all wrap the same call
+5. **Null-object guard** — a proxy that absorbs calls on a missing object
+
+\`\`\`javascript
+// lazy loading
+const db = new Proxy({}, {
+  get(_, table) {
+    console.log(\`opening \${table}\`);   // only on first touch
+    return openTable(table);
+  },
+});
+\`\`\`
+
+**Decorator adds behaviour instead:**
+
+\`\`\`javascript
+function cached(fn) {
+  const store = new Map();
+  return function (...args) {
+    const key = JSON.stringify(args);
+    if (!store.has(key)) store.set(key, fn.apply(this, args));
+    return store.get(key);
+  };
+}
+\`\`\`
+
+**The distinction that matters:**
+
+| | Proxy | Decorator |
+|---|---|---|
+| Intent | Control **access** to the object | Add **behaviour** to the object |
+| Typical role | Firewall, gatekeeper, stand-in | Wrapping a call or a value |
+| Reference | The proxy *becomes* the real object | A decorator *wraps* an existing object |
+| Nesting | Rarely stacked | Frequently stacked |
+
+\`\`\`javascript
+// stacked decorators — each layer adds a behaviour
+const cachedFn = withLogging(withRetry(withTiming(fn)));
+\`\`\`
+
+**Where JavaScript blurs the line:** the \`Proxy\` constructor is a language feature that intercepts *every* property access — including reads you did not anticipate, which is powerful and easy to get wrong. The *Proxy pattern* is a design idea implemented differently in almost every language.
+
+**Interview framing:** both are structural wrappers around the same interface. Proxy stands in front of something to control it; Decorator wraps something to extend it.`,
+      difficulty: "easy",
+      tags: ["design-patterns", "oop", "composition", "polymorphism"],
+      is_top50: false,
+    },
+    {
+      question: "What is the Template Method pattern?",
+      answer:
+        'Template Method defines an algorithm\'s skeleton in a base class, and lets subclasses override specific steps.\n\n\`\`\`javascript\nclass DataProcessor {\n  // the template — fixed sequence, not meant to be overridden\n  process() {\n    this.read();\n    this.transform();\n    this.write();\n  }\n\n  // subclasses fill these in\n  read()      { throw new Error("read() not implemented"); }\n  transform() { throw new Error("transform() not implemented"); }\n  write()     { throw new Error("write() not implemented"); }\n}\n\nclass CsvProcessor extends DataProcessor {\n  read()      { /* parse csv */ }\n  transform() { /* normalise */ }\n  write()     { /* insert into db */ }\n}\n\`\`\`\n\n**Why use it:** the algorithm\'s *sequence* stays in one place. Every subclass is guaranteed to run the same steps in the same order, so a subclass cannot accidentally skip validation or write before reading.\n\n**The tension:** this is inheritance-based, so it is the weakest of the Gang of Four when you want flexibility. In JavaScript it maps more naturally onto composition:\n\n\`\`\`javascript\nconst processor = {\n  process(data) {\n    this.read(data);\n    this.transform(data);\n    this.write(data);\n  },\n  read() {},\n  transform() {},\n  write() {},\n};\n\`\`\`\n\n**Every framework you use applies this pattern** — a lifecycle with fixed hooks you implement: React component lifecycle, Django management commands, JUnit \`@Before\`/\`@After\`, Express middleware pipelines, Angular lifecycle hooks.\n\n**Where it belongs:** when the sequence is genuinely fixed and only the steps vary.\n\n**Where it does not:** when subclasses need to *reorder or skip* steps — a template method forces the same order, and \`if (skipValidation)\` flags inside the template are a sign the design is wrong. That is the point at which Strategy or the pipeline pattern fits better.\n\n**The related trap:** template methods inherited from a deep hierarchy create invisible coupling — a subclass cannot see why a step runs. Composition with explicit parameters is usually clearer.',
+      difficulty: "easy",
+      tags: ["design-patterns", "oop", "inheritance", "composition"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is the difference between reference equality and value equality?",
+      answer: `Two objects are **referentially equal** when they are the same object in memory. They are **value-equal** when they hold the same data, regardless of identity.\n\n\`\`\`javascript\nconst a = { name: \"Ada\" };\nconst b = { name: \"Ada\" };\n\na === b;              // false — different objects\na.name === b.name;    // true  — same value\n\`\`\`\n\n**How each language decides:**\n\n| Language | \`==\` / \`===\` compares |\n|---|---|\n| Java, C#, Go | **reference** equality |\n| Python | **value** equality (\`is\` is the reference check) |\n| JavaScript | reference for objects, value for primitives |\n| Kotlin, Rust | explicit \`data class\`/\`PartialEq\` for value equality |\n\n**JavaScript is the trap.** \`===\` on two objects is reference equality, so this fails:\n\n\`\`\`javascript\nexpect(user).toEqual({ name: \"Ada\" });     // passes — toEqual is structural\nexpect(user).toBe({ name: \"Ada\" });         // fails — different reference\n\`\`\`\n\n**Why it bites:**\n\n\`\`\`javascript\n// React state updates silently do nothing\na = { count: 0 };\nb = { count: 0 };\na === b;                    // false — but...\n\n// ...the real problem: same reference, changed contents\nconst state = { count: 0 };\nstate.count = 1;           // React sees the same reference, skips the re-render\nsetState({ ...state });    // new reference — now it re-renders\n\`\`\`\n\n**Immutability is the fix.** Treat values as immutable so change always produces a new reference, and reference comparison becomes a correct change detector.\n\n\`\`\`javascript\nconst next = { ...state, count: 1 };   // always a new object\n\`\`\`\n\n**For value equality you must implement it.** Java's \`equals()\` and C#'s \`Equals\` are yours to write — and forgetting to override them is a classic bug, because identity is inherited by default.\n\n\`\`\`java\n// Lombok's @EqualsAndHashCode generates this for you\n@Override\npublic boolean equals(Object o) {\n  if (this == o) return true;\n  if (!(o instanceof Point)) return false;\n  return x == ((Point) o).x && y == ((Point) o).y;\n}\n\`\`\`\n\n**If you override \`equals\`, you must also override \`hashCode\`** — put in a \`HashSet\` and the contract breaks silently.\n\n**Interview framing:** reference equality is identity (\"is this the same thing?"); value equality is sameness of contents (\"do these represent the same thing?"). Immutable data plus a new reference on every change makes the first usable as the second.`,
+      difficulty: "easy",
+      tags: ["oop", "polymorphism", "javascript", "immutability"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is a shallow copy versus a deep copy, and when does it matter?",
+      answer: `A **shallow copy** duplicates the top level only. A **deep copy** recursively duplicates nested references, so nothing is shared.\n\n\`\`\`javascript\nconst original = { name: \"Ada\", tags: [\"admin\", \"dev\"] };\n\nconst shallow = { ...original };          // new object, SAME tags array\nconst deep = structuredClone(original);  // new object, NEW tags array\n\nshallow.tags.push(\"security\");\noriginal.tags;   // [\"admin\", \"dev\", \"security\"]  ← mutated!\n\`\`\`
+
+The spread copies the *reference* to \`tags\`, not the array. Both objects now point at one array — the classic aliasing bug.\n\n**The methods, and their depth:**\n\n| Method | Depth |\n|---|---|\n| \`{ ...obj }\`, \`Object.assign\`, \`Array.prototype.slice\` | shallow |\n| \`Object.keys(...).forEach\` | shallow |\n| \`JSON.parse(JSON.stringify(obj))\` | deep, **lossy** |\n| \`structuredClone\` | deep, correct |\n| spread into a nested literal | shallow |\n\n**\`JSON.parse(JSON.stringify())\` is still common and wrong in subtle ways:**\n\n- \`Date\` becomes a **string**\n- \`Map\`, \`Set\`, \`RegExp\` become \`{}\` or \`\`\n- \`undefined\` properties vanish\n- \`BigInt\` **throws**\n- Circular references throw\n\n\`structuredClone\` handles all of these natively and is the right default.\n\n**Where it actually matters:**\n\n1. **State updates** — mutating a shared reference skips React/MobX re-renders\n2. **Caching** — a shallow copy of a cached object is not a new value\n3. **Undo/redo** — a shallow snapshot cannot restore nested mutations\n4. **Function arguments** — pass a deep copy when the callee might mutate\n\n\`\`\`javascript\nfunction update(config) {\n  config.retries = 5;          // mutates the caller's object\n}\n\nupdate({ ...defaults });       // shallow copy is NOT enough — nested objects are shared\nupdate(structuredClone(defaults));  // safe\n\`\`\`
+
+**The performance trade-off:** deep copying is O(n) in the whole graph, every time. Prefer immutability plus structural sharing — copy only the path that changed.\n\n\`\`\`javascript\n// copy only what changed, share the rest\nconst next = { ...state, user: { ...state.user, name: \"Lin\" } };\n\`\`\n\nThat is O(depth), not O(size) — and it is what libraries like Immer do for you.`,
+      difficulty: "easy",
+      tags: ["oop", "javascript", "immutability", "best-practices"],
+      is_top50: false,
+    },
+    // ──────── System Design & Architecture (Phase 3 top-up) ────────
+    {
+      question: "What is autoscaling and how does it work?",
+      answer: `Autoscaling adds or removes capacity automatically as demand changes, so you stop paying for idle servers and stop falling over under load.
+
+\`\`\`text
+traffic ▲
+       │    ╱╲        scale OUT ──> more instances
+       │   ╱  ╲            │
+       │  ╱    ╲           ▼
+       │ ╱      ╲      ╱‾‾‾‾‾‾╲
+       │╱        ╲____╱       ╲___  scale IN <── fewer instances
+       └──────────────────────────────▶ time
+\`\`\`
+
+**The core feedback loop is a metric plus a target.** CloudWatch, Prometheus or a Datadog agent reports a metric; a controller compares it against a target and adjusts.
+
+| Policy | Scales on | Behaviour |
+|---|---|---|
+| **Target tracking** | A chosen metric, e.g. average CPU | Most common — set "keep CPU at 60%" and it derives the rest |
+| **Step scaling** | A threshold breach | Jump straight to N instances |
+| **Predictive scaling** | Forecast | Scales ahead of known load, e.g. before a sale |
+| **Scheduled scaling** | A clock | Warm up before 9am, shrink overnight |
+
+**The scaling policies worth knowing:**
+
+- **Scale on a business metric, not CPU.** High CPU can mean real load *or* an infinite loop. Queue depth or active requests is usually more meaningful.
+- **Cooldown periods.** Without one, scaling thrashes — scale out, load drops, scale in, load rises again.
+- **Scale-out is always faster than scale-in.** Adding a cold instance takes a minute or two; terminating is instant and safe. Aggressively scale out, conservatively scale in.
+
+**Why the app must be stateless.** If instances hold session state in memory, removing one logs users out and load balancing gets harder. Move session state to Redis or a database first — this is the hard prerequisite, and it is why "make it stateless" precedes "autoscaling it".
+
+**The limits nobody mentions.** Autoscaling cannot help if the bottleneck is a shared resource:
+
+\`\`\`text
+10 app instances → 1 database
+     autoscales fine, DB still saturated
+\`\`\`
+
+More instances make it *worse* — they generate more concurrent connections to the same bottleneck. You must scale the bottleneck too, or add caching. Also, scaling is useless if a cold start takes longer than the spike lasts, and serverless cold starts are exactly this problem.`,
+      difficulty: "easy",
+      tags: ["system-design", "scaling", "architecture", "cloud"],
+      is_top50: false,
+    },
+    {
+      question: "What is high availability and how is it measured?",
+      answer: `**High availability (HA)** is the probability that a system is operational when you need it. It is not a feature you add — it is a number you design toward and measure.
+
+**The headline metric is uptime**, and you should think of it as *allowed downtime per year*:
+
+| Availability | Downtime per year | Realistic for |
+|---|---|---|
+| 99% ("three nines") | 3.65 days | Internal tools |
+| 99.9% ("three and a half") | 8.77 hours | Most SaaS |
+| 99.95% | 4.38 hours | Paid B2B |
+| 99.99% ("four nines") | 52.6 minutes | Payments, trading |
+| 99.999% ("five nines") | 5.26 minutes | Telecom, exchanges |
+
+Note how brutal the jump is: going from 99.9% to 99.99% means cutting downtime by **ten times**, and cost rises far faster than linearly.
+
+\`\`\`text
+error budget = (1 − target) × time in period
+
+99.9% monthly → 43m 12s of allowed failure
+spend it on deploys; exhaust it and freeze releases
+\`\`\`
+
+The **error budget** is the practical framing — it converts an abstract target into a budget a team can spend deliberately.
+
+**What actually raises HA:**
+
+1. **Redundancy** — no single point of failure. Two app nodes, a database primary *and* replica, multiple availability zones
+2. **Health checks plus automatic failover** — detect a dead node and route around it in seconds
+3. **Retries with backoff and jitter** — absorbs a brief blip instead of surfacing it
+4. **Circuit breakers** — see the circuit-breaker question in this chapter
+5. **Graceful degradation** — shed optional features rather than fail entirely
+6. **Multi-AZ / multi-region** — survives a zone or region outage, not just a process crash
+
+**Measuring it honestly:**
+
+\`\`\`bash
+# synthetic: does it work from outside?
+curl -o /dev/null -s -w "%{http_code} %{time_total}\\n" https://api.example.com/health
+\`\`\`
+
+But the **real** metric is user-visible: "what percentage of requests succeeded from a user's point of view?" Measure with a distributed tracing tool or an external ping service. Percentile latency matters too — a system that is fast 95% of the time and times out for 5 seconds 5% of the time has poor availability even if the mean looks fine.
+
+**The interview distinction:** high availability is *uptime*; **reliability** is correctness; **durability** is data surviving a crash. Different failures, different solutions.`,
+      difficulty: "easy",
+      tags: [
+        "system-design",
+        "distributed-systems",
+        "architecture",
+        "reliability",
+      ],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is a service registry and how does service discovery work?",
+      answer: `When your API runs on 12 different addresses that change on every deploy, a **registry** keeps the current list, and **service discovery** is how callers look it up.
+
+\`\`\`text
+service A ── registers ──▶ [ registry / DNS / Consul / Kubernetes ]
+    ▲                              │
+    └────── looks up "orders" ─────┘   → returns healthy instances only
+\`\`\`
+
+**The three patterns:**
+
+**1. Client-side discovery** — the caller queries the registry itself.
+
+\`\`\`javascript
+const registry = await fetch("http://registry.internal/services/orders");
+const instances = (await registry.json()).filter(i => i.healthy);
+// then load balance across them yourself
+\`\`\`
+
+Explicit and simple, but every client needs registry logic, and a registry outage takes the caller down with it.
+
+**2. Server-side discovery** — a load balancer owns the lookup. Clients hit one stable address and never know.
+
+\`\`\`text
+client ──▶ load balancer ──▶ healthy instance
+              │
+              └──▶ registry
+\`\`\`
+
+This is what DNS load balancing and most managed platforms do. Clients stay simple.
+
+**3. Kubernetes-native** — the platform *is* the registry. Each pod registers via DNS, and Services give you a stable virtual IP with automatic load balancing.
+
+\`\`\`bash
+kubectl get services
+kubectl get endpoints orders-svc     # the resolved healthy pods
+\`\`\`
+
+Headless services (\`clusterIP: None\`) skip the virtual IP and return pod IPs directly, which you need when you want to reach an individual pod.
+
+**Health checking is the part that matters.** The registry must actively probe and evict unhealthy instances, or it hands out dead endpoints.
+
+\`\`\`text
+liveness  — is the process alive?     → restart if not
+readiness — can it serve traffic?      → remove from registry if not
+\`\`\`
+
+They are different: a pod that is alive but still warming up should fail readiness and stay out of the registry until ready — not be killed and restarted.
+
+**The failure mode to know:** a stale registry routes to a dead instance and every request fails until the health check catches up. That is why TTLs and short probe intervals matter more than the registry technology.
+
+**Where this fits:** microservices (see the microservice and circuit-breaker questions in this chapter). For a monolith it is pointless — one address, nothing to discover.`,
+      difficulty: "medium",
+      tags: [
+        "system-design",
+        "microservices",
+        "distributed-systems",
+        "architecture",
+      ],
+      is_top50: false,
+    },
+    {
+      question: "What is graceful degradation and why does it matter?",
+      answer: `Graceful degradation is designing a system so that when a dependency fails, it loses features rather than becoming unusable.
+
+\`\`\`text
+full experience:  profile ─┬─ recommendations ─┬─ reviews ─┬─ live chat
+                           │                  │          │
+profile page degraded:     └───── ✓ ──────────┘          ✗ blocked
+                           works, just emptier
+\`\`\`
+
+The failure mode it prevents is the **blank error page**. A user does not care that your recommendations service is down; they care that the page is blank.
+
+**The techniques, roughly in order of preference:**
+
+1. **Timeout with a sensible fallback** — the most important one. A 30-second hang is worse than a fast degraded response:
+
+\`\`\`javascript
+async function getRecommendations(userId) {
+  try {
+    return await withTimeout(recoClient.fetch(userId), 500, []);
+  } catch {
+    return [];              // empty list, page still renders
+  }
+}
+\`\`\`
+
+The timeout value matters more than the fallback. 500ms with empty results beats 30s of nothing.
+
+2. **Stale-while-revalidate** — serve cached data immediately, refresh in the background. The user always sees something.
+
+3. **Feature flags** — switch a feature off at runtime without a deploy. This is the strongest operational tool, because it lets you degrade *instantly* during an incident rather than waiting for a deploy.
+
+4. **Bulkheads** — separate thread pools, connection pools or queues per dependency, so one failure cannot exhaust everything.
+
+5. **Load shedding** — reject excess load deliberately to keep the system responsive. Returning a fast 503 beats queueing requests that will all time out.
+
+\`\`\`text
+no shedding:  1000 requests arrive → 1000 wait → all time out  → total outage
+with shedding: 1000 arrive → 100 served, 900 fast-rejected → 100 succeed
+\`\`\`
+
+6. **Circuit breaker** — stop calling a broken dependency at all (see the circuit-breaker question in this chapter).
+
+**Every remote call needs all three:** a timeout, a fallback, and a way to be switched off. A dependency you cannot degrade against is a dependency that can take you down.
+
+**The honest limit:** some features cannot degrade — a payments flow that cannot reach the processor simply fails. Graceful degradation is about protecting the majority of the experience, not pretending every failure is survivable.`,
+      difficulty: "easy",
+      tags: [
+        "system-design",
+        "reliability",
+        "architecture",
+        "distributed-systems",
+      ],
+      is_top50: false,
+    },
+    // ──────── Object-Oriented Design Patterns (Phase 3 top-up) ────────
+    {
+      question: "What is the Liskov Substitution Principle?",
+      answer: `LSP is the third of the SOLID principles: **objects of a superclass must be replaceable with objects of a subclass without breaking the program.**
+
+\`\`\`text
+If it walks like a duck and quacks like a duck, you should be able to
+substitute it anywhere a duck is expected — including when the type is
+declared as Duck.
+\`\`\`
+
+**The contract has three parts, and a subclass must honour all of them:**
+
+1. **Preconditions** — what callers may pass in. A base method rejecting empty input means subclasses must reject it too.
+2. **Postconditions** — what the method guarantees on return. If the base returns a sorted list, the subclass does not return unsorted.
+3. **Invariants** — what must stay true about the object. If the base guarantees a positive balance, the subclass may not permit zero.
+
+\`\`\`javascript
+class Collection {
+  add(item) {
+    if (arguments.length === 0) throw new Error("item required");  // precondition
+    this.items.push(item);
+    return this.items.length;
+  }
+}
+
+class SortedCollection extends Collection {
+  add(item) {
+    if (this.items.length === 0) {
+      return super.add(item);      // must still reject "no arguments"
+    }
+    throw new Error("use sort() instead");   // ← violates LSP
+  }
+}
+\`\`\`
+
+Here \`SortedCollection\` promises to reject a missing argument, but \`add()\` on an empty collection succeeds. Any caller holding a \`Collection\` and passing nothing will crash.
+
+**The rule of thumb:** if a subclass makes the base class's promises *weaker*, LSP is broken.
+
+\`\`\`javascript
+if (!(other instanceof MyClass)) return "not mine";
+\`\`\`
+
+Every \`instanceof\` check in your code is evidence of an LSP violation somewhere.
+
+**The practical test:** in JavaScript you do not get \`virtual\` methods by default, so LSP is easy to break. \`\`duck typing\` removes the compiler check that would have caught it.
+
+**The tension with the other principles:**
+
+\`\`\`text
+LSP + Open/Closed  → prefer composition and delegation over inheritance
+\`\`\`
+
+Extending a class and overriding a method is the easiest way to violate LSP, which is why design guidance favours delegation:
+
+\`\`\`javascript
+class SortedCollection {
+  constructor() { this.inner = new Collection(); }
+
+  add(item) {
+    this.inner.add(item);
+    this.inner.items.sort();
+    return this.inner.items;
+  }
+}
+\`\`\`
+
+**In an interview:** state the substitutability rule, name the three contract parts, and give the \`instanceof\` symptom — that is the level of detail that shows real understanding rather than having memorised four letters.`,
+      difficulty: "easy",
+      tags: ["oop", "design-patterns", "inheritance", "polymorphism"],
+      is_top50: false,
+    },
+    {
+      question: "What is the Null Object pattern?",
+      answer: `Null Object supplies a harmless do-nothing instance instead of returning \`null\`, so calling code never has to check.
+
+\`\`\`javascript
+// without Null Object — every caller must remember to check
+class Logger {
+  log(msg) {}
+}
+let logger = maybeGetLogger();
+if (logger) logger.log("started");        // forgot this once? null deref
+\`\`\`
+
+\`\`\`javascript
+// with Null Object — the absent case is still a Logger
+class NullLogger extends Logger {
+  log() {}                 // accepts the message, does nothing
+}
+
+class Logger {
+  log(msg) {}
+  static of(name) {
+    return name ? new FileLogger(name) : new NullLogger();
+  }
+}
+\`\`\`
+
+\`\`\`javascript
+function run(name) {
+  const logger = Logger.of(name);   // never null
+  logger.log("starting");
+  logger.log("done");              // no guards needed
+}
+\`\`\`
+
+**The payoff:** the \`if (logger)\` check disappears from every call site. A class with five callers saves five checks, and one fewer place to forget.
+
+**The risk, and it is a real one.** "No-op" silently swallows real errors. \`NullLogger\` must only ever stand in for an *absent optional* logger — never for a failure. If \`Logger.of()\` catches an exception and returns a \`NullLogger\`, you have destroyed the evidence of a genuine failure, and nobody will know the log is missing.
+
+\`\`\`text
+Optional feature off        → NullLogger is correct
+Disk full / permission error → NullLogger hides a real bug  ✗
+\`\`\`
+
+The distinction matters, and stating it is the difference between knowing the pattern and memorising it.
+
+**Related patterns and idioms:**
+
+- **Null Object vs Nullary** — many languages have a \`None\`/\`Optional\`/nullable type built in. Prefer that over inventing a class.
+- **Null Object vs Adapter** — Adapter converts an interface; Null Object *implements* one with no-op behaviour.
+- **Pattern-matching alternative** — in TypeScript, optional chaining and \`??\` often beat allocating a no-op object:
+
+\`\`\`typescript
+logger?.log("started");
+\`\`\`
+
+Use Null Object when the absent object appears in many places, or must be passed to code you cannot change.
+
+**Where it genuinely helps:** optional collaborators such as loggers, caches, mailers and metrics. \`SilentLogSink\`, \`NoOpCache\`, \`NullMailer\` are all Null Objects.`,
+      difficulty: "medium",
+      tags: ["design-patterns", "oop", "polymorphism", "best-practices"],
+      is_top50: false,
+    },
+    // ──────── Production Engineering & Incident Patterns ────────
+    {
+      question:
+        "How do you build a multi-tenant application where each domain serves a different system?",
+      answer: `The same codebase, the same UI shell, a different **tenant** resolved from the hostname. \`abc.com\` mounts an HR product, \`def.com\` mounts an ERP.
+
+**Step 1 — resolve the tenant on the server, before any rendering.** In Next.js this is middleware.
+
+\`\`\`typescript
+// middleware.ts
+import { NextResponse } from "next/server";
+
+const TENANTS = {
+  "abc.com": { slug: "hr",     theme: "indigo" },
+  "def.com": { slug: "erp",    theme: "emerald" },
+  "localhost": { slug: "hr",   theme: "indigo" },
+};
+
+export function middleware(request: NextRequest) {
+  const host = request.headers.get("host")?.split(":")[0] ?? "";
+  const tenant = TENANTS[host];
+
+  if (!tenant) return NextResponse.rewrite(new URL("/404", request.url));
+
+  // pass to server components + client
+  const headers = new Headers(request.headers);
+  headers.set("x-tenant", tenant.slug);
+  return NextResponse.next({ request: { headers } });
+}
+\`\`\`
+
+**Step 2 — read it on the server and pick modules by that tenant.**
+
+\`\`\`typescript
+// app/[...path]/page.tsx
+export default async function Page({ headers }: { headers: Headers }) {
+  const tenant = headers().get("x-tenant");
+
+  const registry = {
+    hr:  () => import("./products/hr/hr-shell"),
+    erp: () => import("./products/erp/erp-shell"),
+  }[tenant!];
+
+  const Shell = (await registry()).default;
+  return <Shell />;
+}
+\`\`\`
+
+\`dynamic\` \`import()\` keeps the other tenant's bundle out of this one — sharing a layout does not mean sharing code.
+
+**Where to draw the line.** Share what is genuinely common; split what differs:
+
+| Share | Split |
+|---|---|
+| Layout, auth, navigation | Feature modules |
+| Design tokens, typography | Business logic |
+| Data fetching and error handling | Domain models and validation |
+
+Duplicating an entire app per tenant is the failure mode to avoid — you end up maintaining six forks of the same HR screen.
+
+**Three things that bite here:**
+
+1. **Caching.** A CDN cached by URL alone will serve the wrong tenant's HTML. Key the cache on \`host\` as well as path.
+2. **Cross-tenant data leaks.** Every query must be scoped by tenant. A missing \`WHERE tenant_id = ?\` is a breach, not a bug.
+3. **Local development.** Add every domain to \`/etc/hosts\` pointing at 127.0.0.1 — you cannot rely on \`localhost\` alone to exercise multi-tenancy.
+
+**Why the server must decide.** The client cannot know the tenant before it loads, and if the client picks, any user can edit the payload. Tenant resolution is a routing concern and belongs in middleware.`,
+      difficulty: "medium",
+      tags: ["architecture", "nextjs", "multi-tenancy", "middleware"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What are interceptors actually used for in real frontend applications?",
+      answer: `An interceptor sits between a call and its destination and can inspect or transform it in both directions. In practice they earn their place in four specific jobs.
+
+**1. Authentication — attach credentials once.**
+\`\`\`typescript
+const api = axios.create({ baseURL: "/api" });
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = \`Bearer \${token}\`;
+  return config;
+});
+\`\`\`
+
+One place adds the header. Every call site stays clean, and a future switch to cookies touches one file.
+
+**2. Error normalisation — one error shape for the whole app.**
+
+\`\`\`typescript
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+
+    if (status === 401) {
+      // refresh the token, then retry the original request once
+      return refreshToken().then(() => api(error.config));
+    }
+    if (status === 403) return Promise.reject(new ForbiddenError());
+    if (!error.response)  return Promise.reject(new NetworkError()); // offline
+
+    return Promise.reject(new ApiError(status, error.response.data));
+  },
+);
+\`\`\`
+
+Without this, every component handles a different error shape and bugs differ per screen.
+
+**3. Loading state and telemetry.**
+
+\`\`\`typescript
+api.interceptors.request.use((config) => {
+  setLoading(true);
+  track("api_start", { url: config.url, t: Date.now() });
+  return config;
+});
+
+api.interceptors.response.use((res) => {
+  track("api_end", { url: res.config.url, ms: Date.now() - res.config.t });
+  setLoading(false);
+  return res;
+});
+\`\`\`
+
+**4. Retry on transient failure** — only for idempotent requests, with a cap.
+
+\`\`\`typescript
+if (config.method === "get" && error.code === "ECONNRESET") {
+  config.retries = (config.retries ?? 0) + 1;
+  if (config.retries > 2) return Promise.reject(error);
+  await delay(200 * 2 ** config.retries);
+  return api(config);
+}
+\`\`\`
+
+**Where clients are the right tool, and where they are not.** Interceptors are excellent for cross-cutting concerns that must apply uniformly. They are the wrong place for business rules — anything that differs per feature belongs in the calling code, not in a layer that sees every request.
+
+**Three traps:**
+
+- **Silent retry storms.** A retry on every 5xx turns a small outage into a large one. Bound it.
+- **Ordering.** Two interceptors on the same hook run in registration order for requests and reverse order for responses. Getting this wrong is a common source of "my response interceptor fires before my request interceptor finished".
+- **Retrying non-idempotent calls.** A retried POST is how a customer gets charged twice. Guard by method, or require an idempotency key.`,
+      difficulty: "medium",
+      tags: ["architecture", "authentication", "api-design", "best-practices"],
+      is_top50: false,
+    },
+    {
+      question: "How do you manage local development and production API URLs?",
+      answer: `The hard requirement: **the base URL must differ per environment, and must not be hardcoded anywhere else in the codebase.**
+
+\`\`\`typescript
+// lib/api-client.ts — the ONLY place a URL appears
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api";
+\`\`\`
+
+\`\`\`bash
+# .env.local          (gitignored)
+NEXT_PUBLIC_API_URL=http://localhost:3000/api
+
+# .env.production
+NEXT_PUBLIC_API_URL=https://api.example.com
+\`\`\`
+
+The \`NEXT_PUBLIC_\` prefix is what makes it readable in the browser bundle — which also means **it is public**. Never put a secret in a \`NEXT_PUBLIC_\` variable.
+
+**Three mistakes that cause production incidents:**
+
+**1. Falling back to localhost in production.**
+
+\`\`\`typescript
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+\`\`\`
+
+If the variable is missing in production, every request silently goes to localhost and the app appears to work. A missing env var should **fail loudly at build time**, not degrade quietly.
+
+\`\`\`typescript
+const url = process.env.NEXT_PUBLIC_API_URL;
+if (!url) throw new Error("NEXT_PUBLIC_API_URL is not set");
+\`\`\`
+
+**2. Hardcoding the host anywhere else** — a \`fetch("/api")\` that happens to work behind a reverse proxy and breaks when the app is served from a CDN subdomain.
+
+**3. Building once and deploying everywhere.** If the URL is baked in at build time, one artefact cannot serve staging and production. Either build per environment, or resolve URLs at runtime in the browser from a \`/config.json\` served by your edge.
+
+**Relative URLs sidestep most of this:**
+
+\`\`\`typescript
+// same-origin — works on localhost, staging and prod unchanged
+const api = axios.create({ baseURL: "/api" });
+\`\`\`
+
+Behind a reverse proxy or CDN this is the most robust option, because there is nothing environment-specific to get wrong.
+
+**Validate it in CI:**
+
+\`\`\`typescript
+// scripts/validate-env.ts
+const required = ["NEXT_PUBLIC_API_URL", "DATABASE_URL"];
+const missing = required.filter((k) => !process.env[k]);
+if (missing.length) {
+  console.error("Missing env vars:", missing.join(", "));
+  process.exit(1);
+}
+\`\`\`
+
+A missing variable should break the pipeline, not the checkout page.`,
+      difficulty: "easy",
+      tags: ["best-practices", "environment", "architecture", "devops"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How do you stop users losing a long form when they refresh the page?",
+      answer: `\`beforeunload\` is the classic answer and a poor one — browsers ignore it for pages without user interaction, show an ugly generic dialog, and it cannot be tested.
+
+**The right approach is to persist the draft, so losing it does not matter.**
+
+\`\`\`typescript
+function useDraftPersistence<T>(key: string, value: T) {
+  useEffect(() => {
+    const id = setTimeout(() => {
+      localStorage.setItem(key, JSON.stringify(value));
+    }, 500);                       // debounce — do not write per keystroke
+    return () => clearTimeout(id);
+  }, [key, value]);
+
+  // restore once, on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(key);
+    if (saved) setValue(JSON.parse(saved));
+  }, []);
+}
+\`\`\`
+
+**Three layers, in order of importance:**
+
+**1. Restore silently.** On mount, hydrate from the draft. The user refreshes and simply gets their data back — no warning needed, because nothing was lost.
+
+**2. Warn only when a draft actually exists.**
+
+\`\`\`typescript
+useEffect(() => {
+  if (!hasUnsavedChanges) return;      // no interaction → browsers ignore the prompt anyway
+  const handler = (e: BeforeUnloadEvent) => {
+    e.preventDefault();
+    e.returnValue = "";               // required for Chrome to show the dialog
+  };
+  window.addEventListener("beforeunload", handler);
+  return () => window.removeEventListener("beforeunload", handler);
+}, [hasUnsavedChanges]);
+\`\`\`
+
+Attach it **conditionally**. Chrome and Firefox suppress the dialog entirely if there was no user interaction, so an always-on handler both does nothing and pollutes your listener list.
+
+**3. Provide an explicit recovery banner**, which is what users actually appreciate:
+
+\`\`\`tsx
+{draft && (
+  <div role="status">
+    We restored an unfinished draft from 12 minutes ago.
+    <button onClick={restore}>Restore</button>
+    <button onClick={discard}>Discard</button>
+  </div>
+)}
+\`\`\`
+
+**Do not fight the back button.** In a SPA, browser navigation away from your route is not a page unload at all. Guard the router:
+
+\`\`\`typescript
+// React Router
+const blocker = useBlocker(({ currentLocation, nextLocation }) =>
+  hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname
+);
+
+useEffect(() => {
+  if (blocker.state === "blocked") {
+    blocker.proceed();
+  }
+}, [blocker]);
+\`\`\`
+
+**Clear the draft on successful submit** — a stale key means a new user inherits the previous user's address and card details.
+
+\`\`\`typescript
+await api.submit(data);
+localStorage.removeItem(key);   // forget me not
+\`\`\`
+
+**Never put secrets in the draft.** A card number in \`localStorage\` survives logout and is readable by any XSS payload. Draft only what you would be willing to see in a shared cache.`,
+      difficulty: "medium",
+      tags: ["forms", "javascript", "ux", "best-practices"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How do you return a user to the same page and scroll position after they open a record?",
+      answer: `Four pieces of state must survive navigation: **the page, the filter, the sort, and the scroll offset.** Forget any one and the user lands somewhere they were not.
+
+**1. Put the list state in the URL, not component state.** The URL is the only state that survives a refresh, a share, and a Back button for free.
+
+\`\`\`typescript
+// /orders?page=5&status=pending&sort=-createdAt
+const [params, setParams] = useSearchParams();
+
+const page   = Number(params.get("page") ?? 1);
+const status = params.get("status") ?? "all";
+\`\`\`
+
+When you navigate to a detail page, carry it along:
+
+\`\`\`typescript
+router.push(\`/orders/\${order.id}?from=\${encodeURIComponent(location.search)}\`);
+\`\`\`
+
+**2. Capture the scroll offset before navigating.**
+
+\`\`\`typescript
+function openOrder(id: string) {
+  sessionStorage.setItem(
+    "orders:listScroll",
+    JSON.stringify({ y: window.scrollY, path: routerPathname }),
+  );
+  router.push(\`/orders/\${id}?from=\${encodeURIComponent(location.search)}\`);
+}
+\`\`\`
+
+**3. Restore it on mount, after the list has actually rendered.**
+
+\`\`\`typescript
+useLayoutEffect(() => {
+  const saved = sessionStorage.getItem("orders:listScroll");
+  if (!saved) return;
+
+  const { y, path } = JSON.parse(saved);
+  if (path !== routerPathname) return;       // stale — user went elsewhere
+  if (!hasLoadedAllPages) return;            // ← the critical detail
+
+  window.scrollTo(0, y);
+}, [routerPathname, hasLoadedAllPages]);
+\`\`\`
+
+**Why \`useLayoutEffect\` and not \`useEffect\`:** the browser restores scroll on its own after paint, and so does React Router. A plain effect runs *before* that restoration and gets overridden. The layout effect runs after the DOM is updated but before paint, so your scroll position wins.
+
+**4. The infinite-scroll trap.** If the user was on page 5 of a lazily loaded list, row 340 may not be in the DOM. Restoring the scroll offset then lands them in the wrong place — or nowhere. You must **load every page up to the target** before restoring:
+
+\`\`\`typescript
+const targetPage = Number(params.get("page") ?? 1);
+const [maxPage, setMaxPage] = useState(1);
+useEffect(() => {
+  if (maxPage < targetPage) setMaxPage((p) => p + 1);   // catch up
+}, [maxPage, targetPage]);
+\`\`\`
+
+This is the step almost every implementation misses, and the reason "Back goes to page 1" persists in most apps.
+
+**Clear the saved scroll on a fresh list load.** A stale entry is why a user sometimes gets yanked to an odd offset on a visit they never left.`,
+      difficulty: "medium",
+      tags: ["react", "routing", "ux", "performance"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How do you call two APIs in parallel, and how do you chain one after another?",
+      answer: `**Parallel when the second does not need the first's result. Sequential when it does.** \`Promise.all\` covers the first case; \`await\` covers the second.
+
+**Parallel:**
+
+\`\`\`typescript
+const [user, orders] = await Promise.all([
+  api.get("/users/42"),
+  api.get("/orders?userId=42"),
+]);
+
+// both in flight simultaneously — total time ≈ the slower one
+\`\`\`
+
+\`Promise.all\` rejects as soon as any input rejects, leaving the others running. For independent requests where you still want the successful results, use \`allSettled\`:
+
+\`\`\`typescript
+const [profile, recommendations, reviews] = await Promise.allSettled([
+  api.get("/users/42"),              // critical
+  api.get("/recommendations"),       // optional
+  api.get("/reviews"),               // optional
+]);
+
+const user = profile.status === "fulfilled" ? profile.value : null;
+const recs = recommendations.status === "fulfilled" ? recommendations.value : [];
+\`\`\`
+
+This is the graceful-degradation pattern: a failing recommendations service must not blank the whole page. See the graceful-degradation question in System Design.
+
+**Sequential, because of a dependency:**
+
+\`\`\`typescript
+const { orderId } = await api.post("/orders", payload);
+const payment  = await api.post(\`/payments\`, { orderId });
+await api.post("/shipments", { orderId, addressId: payment.addressId });
+\`\`\`
+
+**This is slow and it is a design smell.** Three sequential round trips could often be one server endpoint:
+
+\`\`\`typescript
+// one call, one transaction, no intermediate client round trips
+const result = await api.post("/checkout", { cartId, addressId });
+\`\`\`
+
+Move orchestration server-side. Every client-side chain is latency you gave away and a place the flow can break.
+
+**Do not chain for the sake of it — some reads are genuinely dependent:**
+
+\`\`\`typescript
+const orgs  = await api.get("/orgs");
+const teams = await api.get(\`/orgs/\${orgs[0].id}/teams\`);   // needs orgs[0]
+\`\`\`
+
+\`\`\`typescript
+// and some are genuinely independent
+const [stats, activity, billing] = await Promise.all([/* ... */]);
+\`\`\`
+
+**React specifics.** \`useEffect\` with \`async\` leaks and double-fires in StrictMode.
+
+\`\`\`typescript
+useEffect(() => {
+  let cancelled = false;
+
+  (async () => {
+    const data = await load();
+    if (!cancelled) setState(data);      // do not set state after unmount
+  })();
+
+  return () => { cancelled = true; };
+}, []);
+\`\`\`
+
+**Server components remove most of this.** Components that only fetch can \`await\` directly during render — no \`useEffect\`, no waterfall, no client bundle:
+
+\`\`\`typescript
+async function Dashboard() {
+  const [user, orders] = await Promise.all([getUser(), getOrders()]);
+  return <Dashboard user={user} orders={orders} />;
+}
+\`\`\`
+
+**The rule:** batch what is independent, collapse what the server can do in one round trip, and move orchestration out of the client wherever possible.`,
+      difficulty: "medium",
+      tags: ["async", "javascript", "react", "api-design"],
+      is_top50: false,
+    },
+    {
+      question: "How do you render different UI based on a user's role?",
+      answer: `Split it into two separate questions, because they have different answers: **what to render**, and **what to allow**. Only the first belongs here.
+
+**Rendering — use the role from the session, never from a client-side guess.**
+
+\`\`\`tsx
+"use client";
+import { useUser } from "@/hooks/use-user";
+
+function RoleGate({
+  allow,
+  children,
+  fallback = null,
+}: {
+  allow: Role[];          // ["admin", "hr"]
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}) {
+  const user = useUser();
+  if (!user) return fallback;
+
+  return allow.includes(user.role) ? <>{children}</> : <>{fallback}</>;
+}
+\`\`\`
+
+\`\`\`tsx
+<RoleGate allow={["admin"]} fallback={<p>Admins only</p>}>
+  <UserTable />
+</RoleGate>
+\`\`\`
+
+**Server-side authorisation is what actually matters.** The UI hiding a button is a UX convenience; it is not a security control. See the next question.
+
+**Fetch only what the role needs.** Hiding a menu item while still downloading the admin data is theatre.
+
+\`\`\`tsx
+// server component: decide before the data is fetched
+async function Sidebar({ user }: { user: User }) {
+  const links = NAV.filter((l) => l.roles.includes(user.role));
+  return <Nav links={links} />;
+}
+\`\`\`
+
+**Route-level protection** belongs in middleware so unauthorised users never reach the component:
+
+\`\`\`typescript
+export function middleware(request: NextRequest) {
+  const { role } = decodeToken(request.cookies.get("session")?.value);
+  if (request.nextUrl.pathname.startsWith("/admin") && role !== "admin") {
+    return NextResponse.redirect(new URL("/unauthorized", request.url));
+  }
+  return NextResponse.next();
+}
+\`\`\`
+
+**Do not hide *only* — also disable or explain.** A greyed-out button with no explanation is worse UX than hiding it. If the user should know a feature exists but is locked, show it locked with a tooltip explaining what unlocks it.
+
+**The failure to avoid: role checks scattered across components.**
+
+\`\`\`tsx
+{user?.role === "admin" && <DeleteButton />}      // every screen, independently
+\`\`\`
+
+Centralise it. A \`can(user, "delete_order")\` helper or a permission library keeps the rules in one place — and makes them testable and auditable, which scattered checks never are.`,
+      difficulty: "medium",
+      tags: ["authentication", "authorization", "react", "security"],
+      is_top50: false,
+    },
+    {
+      question: "Why must you never rely on the frontend to secure an API?",
+      answer: `**Because the frontend runs on the attacker's machine.** Every check, flag, and hidden button is a suggestion they are free to ignore.
+
+\`\`\`bash
+# hide the admin button in the UI
+curl -X DELETE https://api.example.com/users/42 -H "Authorization: Bearer <user-token>"
+# → 204 No Content   ← the button was hidden; the endpoint was not protected
+\`\`\`
+
+You can inspect the page, edit the bundle, call the endpoint directly, or replay a request the UI never made. Anything the browser can see, an attacker can see — and anything the browser can do, they can do.
+
+**So what is the frontend's role?** Presentation only. Hiding a delete button because an admin cannot use it is correct UX. It is worth approximately zero as a security control.
+
+\`\`\`text
+frontend  →  does the user need to SEE this?
+server    →  is this user ALLOWED to do this?
+\`\`\`
+
+**Where every check must actually live:**
+
+\`\`\`typescript
+// 1. authenticate
+const session = await auth();
+if (!session) throw new Unauthorized();
+
+// 2. authorise — on the server, every time
+if (!can(session.user, "delete_order")) throw new Forbidden();
+
+// 3. scope the data
+const order = await db.orders.findFirst({
+  where: { id, userId: session.user.id },   // ← tenant/user scoping
+});
+if (!order) throw new NotFound();
+\`\`\`
+
+**Two mistakes that survive code review:**
+
+**1. Trusting client-supplied identity.**
+\`\`\`typescript
+// broken
+const userId = req.body.userId;        // the caller chose whose data to read
+
+// correct
+const userId = session.user.id;         // derived from a verified token
+\`\`\`
+
+**2. Authorising but not scoping.** Checking "is this user an admin?" then fetching \`db.orders.findUnique({ where: { id } })\` leaks every order to every admin across tenants, because the check and the query disagree.
+
+**Concrete risks the frontend cannot prevent:**
+
+| Risk | Server-side control |
+|---|---|
+| Hidden admin endpoints | Authorisation on every route |
+| Tampered role in localStorage | Never read role from the client |
+| IDOR — change \`/users/1\` to \`/users/2\` | Scope every query by owner |
+| Mass assignment — post \`{role:"admin"}\` | Explicit field allowlists |
+| Client-side validation bypassed | Validate every input server-side |
+
+**The cost of getting this wrong is not a bug report — it is a breach.** One forgotten \`can()\` call on one route is enough. Audit authorisation per route, not per feature, because routes are where the boundary actually sits.`,
+      difficulty: "easy",
+      tags: ["security", "authentication", "authorization", "api-design"],
+      is_top50: true,
+    },
+    {
+      question:
+        "How do you avoid an extra backend call on every keystroke in a search form?",
+      answer: `The goal is one call for the meaningful query, not one per character. Four techniques, in order of how much they save.
+
+**1. Debounce — do not fire while the user is still typing.**
+\`\`\`typescript
+useEffect(() => {
+  if (query.length < 3) return;         // minimum length
+
+  const timer = setTimeout(() => search(query), 300);   // wait for a pause
+  return () => clearTimeout(timer);     // cancel if they typed again
+}, [query]);
+\`\`\`
+
+300ms is the usual value. Below ~200ms it fires mid-thought; above ~500ms it feels laggy.
+
+**2. Cancel the previous request.**
+\`\`\`typescript
+const controller = new AbortController();
+
+async function search(q: string) {
+  controller.abort();
+  const fresh = new AbortController();
+
+  const res = await fetch(\`/api/search?q=\${encodeURIComponent(q)}\`, {
+    signal: fresh.signal,
+  });
+  if (!res.ok) return;
+
+  setResults(await res.json());
+}
+\`\`\`
+
+**This is the one people forget.** Debouncing alone does not stop an in-flight request from completing after a newer one, so results arrive out of order. Abort the previous one, or ignore responses whose query is not the latest.
+
+**3. Cache results.**
+\`\`\`typescript
+const cache = new Map<string, SearchResult[]>();
+
+async function search(q: string) {
+  if (cache.has(q)) return setResults(cache.get(q)!);
+  // ...fetch, then cache.set(q, data)
+}
+\`\`\`
+
+Going back to a previous query costs nothing.
+
+**4. Filter locally for what you already have.**
+\`\`\`typescript
+// if the user deletes characters, the prior result set often already
+// contains the new one — filter it instead of refetching
+const cached = cache.get(query.slice(0, -1));
+if (cached) return setResults(cached.filter(r => r.name.includes(query)));
+\`\`\`
+
+**Server-side complements:**
+
+\`\`\`sql
+-- prefix search must use a trigram or full-text index;
+-- LIKE 'abc%' can use a B-tree, LIKE '%abc%' cannot
+CREATE INDEX idx_search_trgm ON products USING GIN (name gin_trgm_ops);
+\`\`\`
+
+\`\`\`javascript
+// debounce on the server too — rate limit per IP
+const limiter = rateLimit({ windowMs: 1000, max: 5 });
+app.get("/api/search", limiter, handler);
+\`\`\`
+
+**Pattern worth stealing: load the first page on focus, then filter as the user types.** Most result sets are small enough that one initial query plus client-side filtering beats any debounce strategy — and the field feels instant.
+
+\`\`\`text
+typing 60 wpm ≈ 10 chars/sec
+no debounce: 10 requests/sec per user
+300ms debounce: ~2 requests/sec
+min length 3: ~0.7 requests/sec   ← this one is the biggest single win
+\`\`\`
+
+The minimum-length check looks trivial but eliminates most of the traffic, because most users type more than three characters.`,
+      difficulty: "easy",
+      tags: ["forms", "performance", "async", "best-practices"],
+      is_top50: true,
+    },
+    {
+      question: "Why is `SELECT *` a performance mistake in production?",
+      answer: `\`SELECT *\` fetches every column, transfers it over the network, and deserialises it — even when your code reads one field.
+
+\`\`\`sql
+-- 12 columns, 6 MB table, you use 2
+SELECT * FROM users WHERE email = 'test@gmail.com';
+
+-- ~380 bytes/row returned instead of ~40
+SELECT id, email FROM users WHERE email = 'test@gmail.com';
+\`\`\`
+
+**Four costs, and only the first is usually noticed:**
+
+**1. Network and deserialisation.** The ORM materialises every column into an object. For a million rows that is the entire cost.
+
+**2. It defeats covering indexes.** An index containing exactly the columns you select lets the database answer from the index alone.
+
+\`\`\`sql
+CREATE INDEX idx_users_cover ON users (email, id, created_at);
+-- now this query never touches the table
+SELECT id, created_at FROM users WHERE email = 'test@gmail.com';
+\`\`\`
+
+With \`SELECT *\` you always need the row.
+
+**3. \`BLOB\`/\`TEXT\` columns.** Profiles, images and JSON blobs get shipped on every single query that was only meant to fetch a name.
+
+**4. It silently blocks your schema migration.** Adding a \`TEXT\` column for a migration doubles the size of every query result, for every endpoint, including ones that never reference it.
+
+\`\`\`sql
+ALTER TABLE users ADD COLUMN migration_note TEXT;
+-- now every SELECT * gets twice the payload
+\`\`\`
+
+\`\`\`text
+safe:   SELECT id, email FROM users
+risky:  ALTER TABLE users ADD COLUMN notes TEXT  → with SELECT *, every read doubles
+\`\`\`
+
+**The production story.** A team shipped \`SELECT *\` everywhere. Three months later a migration added a \`TEXT\` column. No individual query changed, no deploy happened, and p99 latency tripled overnight — because every read now shipped twice the data. Nothing in the diff pointed at the cause.
+
+**Rules that follow:**
+
+1. **Name the columns.** Always, in application code.
+2. **\`SELECT *\` is for interactive SQL only** — a REPL, not a repository.
+3. **Watch \`LIMIT\`-less queries.** \`SELECT *\` without \`LIMIT\` on a large table is an outage waiting for a code review.
+4. **Covering indexes are only possible with explicit columns** — the query and the index must agree.
+
+\`\`\`sql
+-- which queries actually select * ?
+SELECT query, calls, mean_exec_time
+FROM pg_stat_statements
+WHERE query LIKE '%SELECT *%'
+ORDER BY mean_exec_time DESC LIMIT 20;
+\`\`\`
+
+That query alone usually pays for the change.`,
+      difficulty: "easy",
+      tags: ["databases", "performance", "sql", "indexing"],
+      is_top50: true,
+    },
+    {
+      question:
+        "Why does `WHERE email = ?` run fast locally but crawl in production?",
+      answer: `Because locally you have **a few thousand rows and no concurrent load**. In production you have 50 million rows, and the same query does a sequential scan.
+
+\`\`\`text
+local:   3,000 rows → full scan takes 4 ms → looks instant
+prod: 50,000,000 rows → full scan reads ~4 GB → seconds → connection pool
+        exhausts → every request queues → the whole app appears down
+\`\`\`
+
+\`\`\`sql
+EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@gmail.com';
+
+-- what you get in production
+Seq Scan on users  (cost=0.00..48210.00 rows=1 width=380)
+  Filter: (email = 'test@gmail.com')
+  Rows Removed by Filter: 49,999,999        ← this is the whole story
+\`\`\`
+
+**Five reasons this happens, in the order to check them:**
+
+**1. The index is missing** — most common by far.
+
+**2. The index exists but the column type does not match.**
+
+\`\`\`sql
+-- column is VARCHAR; you query with a number → cast kills the index
+WHERE user_id = 42        -- user_id is VARCHAR
+
+-- column is VARCHAR(255); you query with >255 chars → truncation, no index
+WHERE name = 'a-really-long-value-exceeding-255-characters...'
+\`\`\`
+
+MySQL and Postgres both need the compared literal to be castable to the column type without a function on the column side.
+
+**3. The query uses a function on the column.**
+
+\`\`\`sql
+WHERE LOWER(email) = 'test@gmail.com'     -- ❌ index unusable
+WHERE email = LOWER('test@gmail.com')     -- ✅ function on the value is fine
+\`\`\`
+
+**4. Leading wildcard.**
+
+\`\`\`sql
+WHERE email = 'test@gmail.com'    -- ✅ can use the index
+WHERE email LIKE '%@gmail.com'    -- ❌ cannot seek
+\`\`\`
+
+\`\`\`sql
+-- fix: trigram / full-text index
+CREATE INDEX idx_email_trgm ON users USING GIN (email gin_trgm_ops);
+\`\`\`
+
+**5. The index exists but the planner ignored it** — usually statistics are stale after a big load.
+
+\`\`\`sql
+ANALYZE users;      -- refresh planner statistics
+\`\`\`
+
+**Verify it worked:**
+
+\`\`\`sql
+EXPLAIN (ANALYZE, BUFFERS) SELECT id, email FROM users WHERE email = 'test@gmail.com';
+-- Index Scan using idx_users_email ...  (actual time=0.031..0.047 rows=1)
+\`\`\`
+
+**And check the query has an \`ANALYZE\`d plan cache.** Postgres caches plans per prepared statement; after adding an index you may need \`DISCARD PLANS\` or a reconnect.
+
+\`\`\`text
+"works locally, slow in prod" is nearly always one of:
+  missing index · type mismatch · function on the column · stale statistics
+\`\`\``,
+      difficulty: "medium",
+      tags: ["databases", "indexing", "performance", "sql"],
+      is_top50: true,
+    },
+    {
+      question: "Why does random indexing slow down inserts?",
+      answer: `Because a **random** primary key scatters every new row across the whole disk, so every insert is a random write instead of a sequential one. Sequential writes are cheap; random writes are not.
+
+\`\`\`text
+sequential key (AUTO_INCREMENT):
+  ████████████░░░░░░░████████████        ← new rows land on the end of the datafile
+
+random key (UUID):
+  ██░░█░░███░░█░░███░░███░░█░░            ← new rows land everywhere
+\`\`\`
+
+**Why random writes are expensive — three stacked effects:**
+
+1. **No sequential locality.** The write head seeks instead of streaming.
+2. **Buffer pool thrashing.** InnoDB loads pages into memory. Random inserts touch many pages at once, evicting useful ones, so a workload that fit in memory suddenly does not.
+3. **Page splits.** A random insert has a 50/50 chance of landing in the wrong page order, forcing InnoDB to split it — allocating a new page and copying rows.
+
+\`\`\`text
+sequential insert:  mostly appends to the last page → few splits
+random insert:      ~50% land mid-file        → constant splitting
+\`\`\`
+
+Random reads from cache are fine. It is random **writes** that hurt.
+
+**The silent cost: auto-increment gaps.** With \`INNODB_AUTOINC_LOCK_MODE=1\` (the MySQL 5.7+ default, "consecutive"), a batch of concurrent inserts gets one contiguous range. A crash mid-batch burns the rest of it.
+
+\`\`\`text
+inserted ids: 1..100   crash at 60
+next insert:   101      → ids 61..100 never used, forever
+\`\`\`
+
+Not corruption, but gaps accumulate fast. Use mode 2 if you need gap-free, accepting the brief serialisation.
+
+**Fixes, in order:**
+
+**1. Cluster on a sequential surrogate key.**
+\`\`\`sql
+CREATE TABLE users (
+  id         BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY CLUSTERED,
+  public_id  CHAR(36) UNIQUE,          -- UUID for the outside world
+  email      VARCHAR(255)
+);
+\`\`\`
+
+Expose the UUID, cluster on the integer. You get opaque public IDs *and* sequential writes.
+
+**2. At scale, shard with a UUIDv7** — time-ordered, so inserts still land at the "end".
+
+**3. Keep the data and index separate.**
+\`\`\`sql
+SET innodb_file_per_table = 1;   -- one table per file, not the shared ibdata1
+\`\`\`
+
+**4. For UUID columns, 16 bytes beat 36.** \`CHAR(16) BINARY\` or \`BINARY(16)\` with UUID_TO_BIN. Random 16-byte values still split pages, but they are half the size of a 36-character string.
+
+\`\`\`text
+36-char CHAR(36):  36 bytes/row, splits pages
+16-byte BINARY(16): 16 bytes/row, half the IO
+\`\`\`
+
+**The counterintuitive result:** \`AUTO_INCREMENT\` inserts are faster than UUID inserts in almost every benchmark — because it is an integer, sequential, and the buffer pool can predict where the write goes.`,
+      difficulty: "medium",
+      tags: ["databases", "indexing", "performance", "sql"],
+      is_top50: false,
+    },
+    {
+      question: "Why is `console.log` dangerous in production?",
+      answer: `Because production logs are usually **retained, shipped, and read by people who were not the author** — and log lines routinely carry data you never meant to expose.
+
+\`\`\`javascript
+// all of these ship user data to your log aggregator
+console.log("user:", user);              // email, phone, address, id
+console.log("req", req.body);           // passwords, card numbers, tokens
+console.log("err", err, { token });     // secrets in every stack trace
+console.log("session", session);        // session id → hijackable
+\`\`\`
+
+**The concrete leaks, in order of severity:**
+
+**1. Credentials.** \`console.log(req.body)\` on a login route writes passwords into a log index, searchable forever, visible to anyone with log access.
+
+**2. Tokens.** Logging an \`Authorization\` header or session cookie produces a credential that is replayable until it expires.
+
+**3. PII.** Names, emails, addresses and payment references are regulated under GDPR and similar laws. Once in a log store, a data breach is no longer an app breach — it is a log breach.
+
+**4. Injection.** User-supplied strings with newlines can **forge log lines**:
+
+\`\`\`
+2026-03-14 10:00:00 INFO  login failed for alice@example.com
+2026-03-14 10:00:00 INFO  login successful for admin   ← attacker-injected
+\`\`\`
+
+This is log injection, and it makes an audit trail worthless because the attacker wrote part of it.
+
+**5. The performance cost.** Synchronous writes to stdout on a busy path are genuinely slow, and in a container the logging agent has to scrape it.
+
+\`\`\`javascript
+for (const order of millionOrders) {
+  console.log(order);          // ← million synchronous writes
+}
+\`\`\`
+
+**The fix — structured, redacted logging, and no raw objects.**
+
+\`\`\`typescript
+logger.info("user.login", {
+  userId: user.id,             // identifiers, never the whole record
+  ip: req.ip,
+  userAgent: req.get("user-agent"),
+});
+\`\`\`
+
+**Redact at the boundary, not per call site:**
+\`\`\`typescript
+const redact = (obj: object) =>
+  Object.fromEntries(
+    Object.entries(obj).map(([k, v]) =>
+      [/password|token|secret|authorization|cvv/i.test(k) ? "[redacted]" : k, v],
+    ),
+  );
+
+app.use((err, req, res, next) => {
+  logger.error({ err, body: redact(req.body) });
+  next(err);
+});
+\`\`\`
+
+**Strip logs from production builds entirely**, rather than trusting developers to remember:
+
+\`\`\`typescript
+if (process.env.NODE_ENV === "development") {
+  // dev-only console wrapper; no-ops in prod
+  const debug = (...args: unknown[]) => {};
+  export { debug as console };
+}
+\`\`\`
+
+**Note that \`console.log\` is not automatically erased by the bundler** — a \`console.log\` in your source reaches production unless you strip it with ESLint \`no-console\`, a build-time dropper, or a wrapper. Verify it in the built output rather than assuming.
+
+\`\`\`bash
+# check the shipped bundle for accidental logging
+grep -ro "console\.\(log\|warn\|error\)" dist/ | wc -l
+\`\`\``,
+      difficulty: "easy",
+      tags: ["security", "best-practices", "observability", "debugging"],
+      is_top50: true,
+    },
+    {
+      question:
+        "Why does the database sit at 30% CPU while the application times out?",
+      answer: `Because the database is **not the bottleneck** — the connection pool is. Your app runs out of connections long before the database runs out of capacity.
+
+\`\`\`text
+app:     100 threads, pool size 10
+DB:      handles 5,000 queries/sec happily, using 30% of 8 cores
+
+10 threads hold the 10 pooled connections
+90 threads block in the pool queue
+→ every request looks like a timeout
+\`\`\`
+
+**The arithmetic that produces it.** Connection time is usually dominated by round-trip time, not by query cost:
+
+\`\`\`text
+throughput per connection = 1 / latency
+with a 2 ms round trip, one connection serves ~500 queries/sec
+
+pool of 20  → ~10,000 queries/sec ceiling
+\`\`\`
+
+Multiply that by the number of app instances and you have your real ceiling — and note it is set by **latency**, not by database CPU.
+
+**The usually-missed cause: long-running queries holding connections.**
+
+\`\`\`text
+a report query that takes 30 s
+holds 1 connection for 30 s
+at 3 req/sec → 90 connections permanently occupied
+pool of 20 → saturated by a single endpoint
+\`\`\`
+
+Check for this first. In MySQL:
+
+\`\`\`sql
+SHOW PROCESSLIST;
+SHOW FULL PROCESSLIST;         -- shows the actual statement
+\`\`\`
+
+\`\`\`sql
+SELECT * FROM information_schema.processlist
+WHERE command != 'Sleep' AND time > 5;
+\`\`\`
+
+\`\`\`sql
+-- queries running over 2 seconds, aggregated
+SELECT digest_text, count_star, avg_timer_wait/1e9 AS avg_ms
+FROM performance_schema.events_statements_summary_by_digest
+ORDER BY avg_timer_wait DESC LIMIT 10;
+\`\`\`
+
+**Fixes, in order of impact:**
+
+1. **Bound every query.** \`SET SESSION max_execution_time = 5000;\` — a runaway query fails fast instead of holding a connection.
+2. **Size the pool from latency**, not from wishful thinking. And give each instance its own pool — it does not multiply across instances.
+3. **Set a connect timeout**, so a saturated pool rejects rather than hangs.
+4. **Separate long-running work.** Reports and exports belong on a replica or a queue, never the primary pool.
+5. **Add a pool-level metric.** Pool utilisation is a *leading* indicator — the earlier warning in your known-debt list.
+
+\`\`\`text
+"DB CPU looks fine" is not "the DB is fine"
+look at: connection wait time, query count, and what holds connections open
+\`\`\`
+
+The insight to say in an interview: **pool utilisation is a better early warning than database CPU**, because the pool saturates long before the database does.`,
+      difficulty: "medium",
+      tags: ["databases", "performance", "connection-pool", "reliability"],
+      is_top50: true,
+    },
+    {
+      question:
+        "Why does importing millions of rows in one transaction lock the tables?",
+      answer: `Because one huge transaction holds every row lock it touches until it commits. Nobody else can write to any of them in the meantime — and if it fails, the rollback has to undo all of it.
+
+\`\`\`sql
+BEGIN;
+  INSERT INTO orders SELECT * FROM staging_orders;   -- 10,000,000 rows
+COMMIT;
+\`\`\`
+
+**What goes wrong while that transaction is open:**
+
+\`\`\`text
+1. Millions of row locks held
+2. undo/redo log grows enormously
+3. anything writing those tables BLOCKS — and then holds its own connection waiting
+4. connection pool saturates behind the blocked writers
+5. readers start timing out
+6. if it fails at 90%, rollback must undo 9,000,000 rows — slowly
+\`\`\`
+
+**The cost is not the INSERT, it is the transaction boundary.** Batched inserts of the same rows complete much faster than one transaction holding all of them.
+
+**Also expensive: \`SELECT COUNT(*)\` before deleting.** On large InnoDB tables a full scan in a transaction holds a read view and prevents purge — the delete that follows can take hours.
+
+**The fix — batch with a controlled transaction per batch:**
+
+\`\`\`javascript
+const BATCH = 1000;
+
+for (let i = 0; i < rows.length; i += BATCH) {
+  const batch = rows.slice(i, i + BATCH);
+  await db.transaction(async (tx) => {
+    await tx.insert(table).values(batch);
+  });
+  process.stdout.write(\`\\r\${i + batch.length}/\${rows.length}\`);
+}
+\`\`\`
+
+\`\`\`text
+one txn of 10M:   hours of locking, all-or-nothing
+batches of 1,000:  each txn is short, locks release immediately
+\`\`\`
+
+**Why batching fixes it:**
+
+- Locks are held for milliseconds instead of hours
+- The undo log stays small and reusable
+- Other traffic interleaves between batches
+- A failure costs you one batch, not the whole import
+
+**Do not wrap the loop in an outer transaction** — that recreates the original problem exactly.
+
+**Other mistakes in this area:**
+
+\`\`\`sql
+-- 1. OFFSET-based paging on a bulk delete: O(n²) as offset grows
+DELETE FROM logs WHERE id > 1000 LIMIT 1000 OFFSET 5000;
+
+-- 2. no index on the join/filter column → each batch re-scans the table
+
+-- 3. committing per row → fsync per row, hours for a million rows
+\`\`\`
+
+**Also separate reads from writes.** Do the delete on a replica where you can, and never run \`SELECT COUNT(*)\` inside the write transaction — get the count separately if you need it.`,
+      difficulty: "medium",
+      tags: ["databases", "transactions", "performance", "indexing"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Why does loading 10 lakh database records crash a Node.js app?",
+      answer: `Because \`SELECT *\` on 1,000,000 rows builds 1,000,000 JavaScript objects in memory, and V8 has a **hard heap ceiling**.
+
+\`\`\`javascript
+const rows = await db.query("SELECT * FROM orders");   // 1,000,000 rows
+\`\`\`
+
+**The memory arithmetic:**
+
+\`\`\`text
+one row as a JS object ≈ 400–800 bytes
+1,000,000 rows        ≈ 400 MB – 800 MB
++ V8 overhead, GC headroom, your other allocations
+
+Node's default old-space limit ≈ 2 GB (depends on available RAM)
+\`\`\`
+
+You do not get a graceful degradation. You get:
+
+\`\`\`text
+FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
+\`\`\`
+
+The process dies. Not a catchable exception — the process is gone.
+
+**Fix 1 — do not fetch it all. This is the real fix.**
+
+\`\`\`sql
+SELECT id, total, status FROM orders ORDER BY created_at LIMIT 100;
+\`\`\`
+
+Every list view in a UI needs a page. There is no UI on earth that shows 1,000,000 rows at once.
+
+**Fix 2 — stream, when the whole set genuinely is needed.**
+
+\`\`\`javascript
+const stream = db.query("SELECT * FROM orders").stream();
+
+for await (const row of stream) {
+  await processRow(row);       // one row in memory at a time
+}
+\`\`\`
+
+Or pipe to a file, a CSV export or a bulk-insert batcher — constant memory regardless of row count.
+
+**Fix 3 — aggregate in the database instead of in Node.**
+
+\`\`\`javascript
+// wrong: 1M rows cross the wire to compute 12 numbers
+const rows = await db.query("SELECT * FROM orders");
+const total = rows.reduce((s, r) => s + r.total, 0);
+
+// right: the DB sums, you receive one row
+const [row] = await db.query("SELECT SUM(total) AS total FROM orders");
+\`\`\`
+
+**Fix 4 — raise the limit only when you must.**
+
+\`\`\`bash
+node --max-old-space-size=4096 app.js   # or NODE_OPTIONS
+\`\`\`
+
+This treats the symptom. It also means one bad query can now consume 4 GB before failing — a bigger blast radius.
+
+**The checks that catch this in review:**
+
+\`\`\`bash
+grep -rn "SELECT \*" --include=*.js --include=*.ts src/
+grep -rn "findMany\|findAll\|\.all()" --include=*.ts src/
+\`\`\`
+
+Any unbounded read in application code is a latent outage. And put a statement timeout on the connection so a runaway read fails in seconds rather than exhausting the heap.`,
+      difficulty: "medium",
+      tags: ["performance", "nodejs", "databases", "memory"],
+      is_top50: true,
+    },
+    {
+      question: "Why does uploading one large file crash the server?",
+      answer: `Because the default upload path buffers the **entire file in memory** before writing it to disk or a store.
+
+\`\`\`javascript
+// the classic mistake
+const file = req.file;                 // whole file in memory
+await fs.writeFile(path, file.buffer);
+\`\`\`
+
+\`\`\`text
+1,000 users upload 20 MB "simultaneously"
+  = 20 GB resident  →  the process OOMs
+\`\`\`
+
+Nothing about that is file-specific. It is that **memory is a shared resource** and uploads are attacker-controlled.
+
+**Fix 1 — stream, never buffer.**
+
+\`\`\`javascript
+import { pipeline } from "node:stream/promises";
+import { createWriteStream } from "node:fs";
+
+app.post("/upload", (req, res) => {
+  pipeline(req, createWriteStream("/tmp/upload"))
+    .then(() => res.sendStatus(201))
+    .catch(() => res.sendStatus(500));
+});
+\`\`\`
+
+Memory is now constant regardless of file size — a 10 GB upload uses the same memory as a 10 KB one.
+
+**Fix 2 — validate before you store anything.**
+
+\`\`\`javascript
+const MAX_BYTES = 10 * 1024 * 1024;
+
+app.post("/upload", (req, res, next) => {
+  const type = req.headers["content-type"] ?? "";
+  if (!type.startsWith("image/")) {
+    return res.status(415).json({ error: "images only" });
+  }
+
+  let bytes = 0;
+  req.on("data", (c) => {
+    bytes += c.length;
+    if (bytes > MAX_BYTES) {
+      req.destroy();                 // stop reading immediately
+      res.status(413).json({ error: "file too large" });
+    }
+  });
+  req.on("end", next);
+  req.pipe(createWriteStream("/tmp/upload"));
+});
+\`\`\`
+
+Three things to get right: check the **declared** type at the edge, enforce the **actual byte count** as you stream (headers lie), and **scan the content** rather than trusting the extension.
+
+**Fix 3 — never process synchronously.** Resizing an image or transcoding video can take tens of seconds.
+
+\`\`\`javascript
+await queue.add("process-upload", { path, mime });
+
+app.post("/upload", async (req, res) => {
+  const path = await streamToDisk(req);
+  await queue.add("process-upload", { path });
+  res.status(202).json({ status: "processing" });   // 202, not 200
+});
+\`\`\`
+
+Return \`202 Accepted\` and let a worker do the work. A request that takes 40 seconds will hit a gateway timeout regardless of how much memory you have.
+
+**Fix 4 — put a hard ceiling at the proxy too.** \`client_max_body_size\`, or the equivalent. Application-level checks are necessary but an attacker can exhaust memory before you evaluate a validation branch.`,
+      difficulty: "medium",
+      tags: ["security", "performance", "file-upload", "nodejs"],
+      is_top50: false,
+    },
+    {
+      question: "How can a missing `WHERE` clause wipe a production database?",
+      answer: `Because \`DELETE\` and \`UPDATE\` without a \`WHERE\` clause apply to **every row**. One omitted predicate is a total data loss event.
+
+\`\`\`sql
+DELETE FROM sessions;
+-- intended: "clear this user's stale sessions"
+-- actual:  every session, every user, gone
+\`\`\`
+
+\`\`\`text
+every database on earth has lost data this way
+it is the single most common self-inflicted production incident
+\`\`\`
+
+**Prevention, in layers:**
+
+**1. Least privilege — the strongest control.** The application user should not be able to delete the table.
+
+\`\`\`sql
+CREATE ROLE app_write;
+GRANT SELECT, INSERT, UPDATE ON orders TO app_write;   -- no DELETE
+\`\`\`
+
+If the app has no DELETE grant, a missing \`WHERE\` cannot destroy anything.
+
+\`\`\`sql
+-- a separate role for maintenance, used deliberately and rarely
+CREATE ROLE app_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_admin;
+\`\`\`
+
+**2. Make the mistake impossible to express.** Require the condition as an argument:
+
+\`\`\`sql
+-- PostgreSQL: a rule that only allows DELETE with a WHERE
+CREATE RULE no_bare_delete AS ON DELETE TO orders
+  WHERE OLD.id IS NULL DO INSTEAD NOTHING;
+\`\`\`
+
+\`\`\`sql
+-- stored procedure instead of raw DELETE
+CREATE PROCEDURE delete_session(user_id bigint, created_before timestamptz)
+LANGUAGE plpgsql AS $body$
+BEGIN
+  DELETE FROM sessions WHERE user_id = $1 AND created_at < $2;
+  RAISE NOTICE 'Deleted % rows', ROW_COUNT();
+END $body$;
+\`\`\`
+
+**3. A dry-run in the same transaction.**
+
+\`\`\`sql
+BEGIN;
+  DELETE FROM sessions WHERE created_at < '2024-01-01';
+  SELECT ROW_COUNT();          -- ← check this BEFORE committing
+ROLLBACK;                      -- always roll back first
+\`\`\`
+
+\`\`\`sql
+-- then, once satisfied
+BEGIN;
+  DELETE FROM sessions WHERE created_at < '2024-01-01';
+COMMIT;
+\`\`\`
+
+**4. Backups, and test that they restore.**
+
+\`\`\`text
+no backup + no restore test = you have no backup
+\`\`\`
+
+\`\`\`sql
+-- point-in-time recovery: you can recover to any second
+SELECT * FROM pg_backup_history LIMIT 5;
+\`\`\`
+
+**5. A CI check that catches the pattern.**
+
+\`\`\`bash
+# flag DELETE/UPDATE without WHERE
+grep -rnE '(DELETE FROM|UPDATE)\s+\w+' --include=*.ts --include=*.sql src/ \
+  | grep -v 'WHERE'
+\`\`\`
+
+**6. Nightly dumps, not just replicas.** As established in the read-replica question — a replica receives every write, so a bad \`DELETE\` propagates to every copy. Replicas are not backups.
+
+**The habit:** write the \`WHERE\` clause first, then choose the verb. The reverse order is how the \`WHERE\` ends up missing.`,
+      difficulty: "easy",
+      tags: ["security", "databases", "best-practices", "sql"],
+      is_top50: true,
+    },
+    {
+      question:
+        "Why does a bot requesting `page=100000` take the database to 100% CPU?",
+      answer: `Because \`OFFSET\` makes the database **produce and then throw away every skipped row**. The deeper the page, the more wasted work.
+
+\`\`\`sql
+SELECT * FROM orders LIMIT 20 OFFSET 2000000;
+\`\`\`
+
+To return 20 rows, the engine must generate 2,000,020 and discard 2,000,000. That is not a slow query — it is **linear in the offset**, and the cost is entirely wasted.
+
+\`\`\`text
+page    rows produced    rows returned
+   1                 20               20
+ 100               1020               20
+1000             20,020               20
+100000        2,000,020               20    ← 100,000× the work for 20 rows
+\`\`\`
+
+A bot looping over pages turns that into a sustained attack:
+
+\`\`\`text
+1 request/sec  →  tolerable
+1000 requests/sec → database at 100% CPU, and you paid for a scan each time
+\`\`\`
+
+**Indexes do not save you.** An index finds the *start* of the range efficiently; the engine still has to walk and discard every skipped entry. \`EXPLAIN\` will show a fast index scan and high rows-discarded — which is exactly why this is missed in review.
+
+**The fix — keyset (cursor) pagination:**
+
+\`\`\`sql
+-- instead of OFFSET, remember the last row you saw
+SELECT * FROM orders
+WHERE (created_at, id) < ('2026-03-01T10:00:00', 4212)
+ORDER BY created_at DESC, id DESC
+LIMIT 20;
+\`\`\`
+
+Every page costs the same, because the database seeks straight to the boundary:
+
+\`\`\`text
+page 1      → seeks, returns 20
+page 1000   → seeks, returns 20      ← identical cost
+page 100000 → seeks, returns 20
+\`\`\`
+
+**The tuple comparison \`(created_at, id)\` is what makes this correct.** The \`id\` tiebreaker matters — without it, rows sharing a \`created_at\` get skipped or repeated across page boundaries.
+
+**Make sure the composite index matches the sort:**
+\`\`\`sql
+CREATE INDEX idx_orders_created_id ON orders (created_at DESC, id DESC);
+\`\`\`
+
+If the index does not match \`ORDER BY\` exactly, you have traded wasted rows for a sort.
+
+**Then cap it at the edge:**
+
+\`\`\`typescript
+const MAX_OFFSET = 10_000;
+
+if (offset > MAX_OFFSET) {
+  throw new BadRequest("offset pagination is not supported past page 500 — use a cursor");
+}
+\`\`\`
+
+\`\`\`sql
+-- MySQL: stop huge offsets dead
+SELECT * FROM orders LIMIT 20 OFFSET 2000000;
+-- Error 1317 (HY000): Query execution was interrupted, maximum statement
+-- execution time exceeded
+\`\`\`
+
+**Offset is not banned.** It is fine for small, stable, admin-facing result sets where a user may jump to page 40 directly. Cursor pagination cannot do that, which is the trade-off.`,
+      difficulty: "medium",
+      tags: ["databases", "performance", "indexing", "sql"],
+      is_top50: true,
+    },
+    {
+      question:
+        "How did a memory leak in a cron job crash production every night?",
+      answer: `Because a long-lived process accumulates memory across runs, and if each run leaks, the process eventually dies. If it is scheduled every hour, "eventually" arrives every night.
+
+\`\`\`javascript
+async function runNightlyJob() {
+  const results = await fetchAllOrders();      // 500,000 rows
+
+  for (const order of results) {
+    await process(order);                     // each call leaks
+  }
+  // results stays reachable for the whole loop → 500k objects retained
+}
+\`\`\`
+
+**The distinctive symptom:** everything looks healthy. CPU is normal, the database is normal, and the logs show the job *succeeding*. Then at 03:14 the process is OOM-killed and everything restarts.
+
+\`\`\`text
+healthy:  CPU 12%, RAM creeping 4.1 → 4.3 → 4.5 GB over 12 hours
+03:14:    FATAL ERROR: Reached heap limit
+03:14:    container restarts, RAM resets to 4.1 GB
+03:14:    ...and the whole cycle repeats
+\`\`\`
+
+**A sawtooth pattern that resets on restart is the fingerprint.** If RAM climbs and then drops exactly when the process restarts, the process is the leak — not a genuine workload increase.
+
+**Common sources:**
+
+**1. Retaining references after the job finishes.**
+\`\`\`javascript
+const cache = new Map();          // module scope — lives for the process lifetime
+
+async function run() {
+  for (const order of await fetchOrders()) {
+    cache.set(order.id, order);    // never evicted
+  }
+}
+\`\`\`
+
+\`\`\`javascript
+// fix: scope the cache to the run
+async function run() {
+  const cache = new Map();        // discarded when run() returns
+}
+\`\`\`
+
+**2. Global arrays and event listeners.**
+\`\`\`javascript
+process.on("data", handler);       // added every run, never removed
+metrics.push(result);             // module-scope array
+\`\`\`
+
+**3. Native handles that survive GC.** A setInterval holding a closure over a large buffer is not collected even when unreferenced.
+
+**4. Buffers over the external-memory limit.** \`Buffer.alloc()\` memory beyond \`buffer.constants.MAX_LENGTH\` lives outside the V8 heap, so \`--max-old-space-size\` does not govern it. It shows up as RSS rather than heapUsed.
+
+**Fixes:**
+
+\`\`\`javascript
+// 1. bound it and alert on the trend
+setInterval(() => {
+  const used = process.memoryUsage().heapUsed / 1024 / 1024;
+  metrics.gauge("process_heap_mb", used);
+  if (used > 700) logger.warn({ heapMb: used }, "heap trending up");
+}, 30_000);
+\`\`\`
+
+\`\`\`javascript
+// 2. stream instead of materialising
+for await (const order of db.query("SELECT * FROM orders").stream()) {
+  await process(order);
+}
+\`\`\`
+
+\`\`\`javascript
+// 3. run it in a process that exits
+if (!process.env.WORKER_ID) {
+  await runNightlyJob();
+  process.exit(0);        // release every leak deterministically
+}
+\`\`\`
+
+**Rule of thumb for scheduled work: if the job runs in a long-lived process, either prove it does not leak or run it as a one-shot process that exits.** Option 3 is why so many cron runners are separate processes.`,
+      difficulty: "medium",
+      tags: ["debugging", "memory", "nodejs", "reliability"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Why does the API time out when the server looks completely healthy?",
+      answer: `Because "the server is running" and "the server is accepting connections" are different things. The process is alive but the accept queue is full, so the kernel completes the TCP handshake and then nobody reads from the socket.
+
+\`\`\`text
+client ──TCP handshake──▶ kernel accept queue   ← fills up
+                           (handshake completes, so no error)
+app      ── never calls accept() ──▶ sits idle
+
+client waits for a response that will never come → timeout
+\`\`\`
+
+**How the queue fills:**
+
+\`\`\`text
+accept backlog exhausted   → SYN queue and accept queue full
+event loop blocked        → accept() never runs
+worker pool exhausted     → connections accepted, never served
+\`\`\`
+
+The middle one is the interesting case: **CPU reads 5%, the health check passes, and nothing works.** Something is blocking the event loop — an unbounded synchronous operation, a synchronous crypto call, or a huge JSON serialise.
+
+\`\`\`javascript
+// this blocks the event loop; every connection stalls behind it
+const rows = await db.query("SELECT * FROM orders");   // sync driver, or sync fs
+JSON.stringify(hugeObject);
+\`\`\`
+
+**Measure the phases rather than guessing:**
+
+\`\`\`bash
+# queue depth — rising accept queue means connections are not being served
+ss -ltn | grep :3000
+netstat -s | grep -i listen      # ListenOverflows, ListenDrops
+\`\`\`
+
+\`\`\`bash
+# event-loop lag — the single most useful metric for a Node service
+# use --trace-event-categories to attribute the blockage
+node --trace-event-categories app.js
+\`\`\`
+
+\`\`\`javascript
+// measure it yourself
+const { monitorEventLoopDelay } = require("node:perf_hooks");
+const h = monitorEventLoopDelay({ resolution: 20 });
+h.enable();
+setInterval(() => console.log("lag p99 ms:", h.percentile(99) / 1e6), 5000);
+\`\`\`
+
+\`\`\`bash
+# if it is nginx in front
+tail -f /var/log/nginx/access.log | awk '{print $NF}' | sort | uniq -c
+# 499 = client gave up, 502/504 = upstream could not cope
+\`\`\`
+
+**Fixes:**
+
+1. **Raise the backlog** — \`listen 511\` in nginx, \`somaxconn\` in sysctl. Buys headroom, not a fix.
+2. **Find the blocking call** and move it off the main thread.
+3. **Set real timeouts** everywhere, so a slow request fails fast instead of holding a connection.
+4. **Set \`timeout\`, \`keepalive_timeout\` and \`client_max_body_size\`** on the proxy — the default 60s \`proxy_read_timeout\` is longer than most client timeouts.
+5. **Rate limit** so a burst cannot fill the queue.
+
+\`\`\`text
+health check green + p99 through the roof = the check is measuring the wrong thing
+\`\`\`
+
+Health checks should test the *dependency path*, not just "is the port open".`,
+      difficulty: "medium",
+      tags: ["networking", "reliability", "nodejs", "performance"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Why did performance get worse after scaling from 2 servers to 50?",
+      answer: `Because the app tier was never the bottleneck. Every additional server multiplied the load on the one shared resource underneath — and multiplied the database queries too.
+
+\`\`\`text
+2 servers   ×  10 queries/request  =  20 queries
+50 servers  ×  10 queries/request  = 500 queries   ← 25× the database load
+\`\`\`
+
+**Scaling out amplifies inefficiency.** Adding capacity when the bottleneck is elsewhere makes the bottleneck worse. This is the most common scaling failure, and it is why "scale up first, then scale out" is the correct order.
+
+**The usual causes, in order of likelihood:**
+
+**1. N+1 queries.** One query for the list, then one per item.
+
+\`\`\`javascript
+const orders = await Order.findMany({ take: 50 });
+for (const o of orders) {
+  o.customer = await Customer.findById(o.customerId);   // 50 more queries
+}
+\`\`\`
+
+At 50 servers that becomes 2,500 queries for one page of 50 rows.
+
+\`\`\`javascript
+// fix: one query
+const orders = await Order.findMany({
+  take: 50,
+  include: { customer: true },
+});
+\`\`\`
+
+**2. No caching.** Every request hits the database. Doubling capacity doubles the query rate.
+
+\`\`\`text
+cache hit rate 0%   → DB sees 100% of traffic
+cache hit rate 95%  → DB sees 5% of traffic
+\`\`\`
+
+**3. Missing indexes.** The queries that always ran were never a problem at 2 servers. At 50 they are.
+
+**4. Connection pool multiplication.** This one is brutal and specific:
+
+\`\`\`text
+pool size 20 × 50 instances = 1,000 concurrent connections
+database max_connections    = 200
+\`\`\`
+
+Now the database is rejecting connections, so requests fail, retries fire, and load goes **up**. You made things worse by scaling out.
+
+\`\`\`text
+fix: pool size 200 / 50 = 4 per instance
+     or put PgBouncer in front
+\`\`\`
+
+**5. Session state in memory.** Sticky sessions mean traffic no longer spreads evenly, and every deploy logs users out.
+
+**The diagnosis order:**
+
+\`\`\`bash
+# 1. database CPU and query count before blaming the app
+SELECT calls, mean_exec_time, rows
+FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 10;
+
+# 2. p99 latency per endpoint — did it get worse?
+# 3. connection count vs max_connections
+SELECT count(*) FROM pg_stat_statements WHERE query LIKE 'SELECT%';
+\`\`\`
+
+\`\`\`sql
+-- 4. find the N+1 directly
+SELECT calls, query FROM pg_stat_statements
+WHERE calls > 1000 ORDER BY calls DESC LIMIT 20;
+\`\`\`
+
+**The lesson worth stating:** scaling out is a *distribution* mechanism, not a performance fix. Find and remove the bottleneck first — then scale. And measure before and after; if p99 did not improve, you scaled the wrong layer.`,
+      difficulty: "medium",
+      tags: ["scalability", "performance", "databases", "system-design"],
+      is_top50: true,
+    },
+    {
+      question: "Why does code that works for 100 users fail with a million?",
+      answer: `Because most code has hidden constants and linear costs. At 100 users the constant is invisible; at a million it *is* the system.
+
+\`\`\`text
+100 users:    O(n) behaviour with small n → fine
+1M users:    the same O(n) behaviour with large n → death
+\`\`\`
+
+**The five that kill you, in the order they usually appear:**
+
+**1. Unbounded reads.**
+\`\`\`javascript
+const all = await db.query("SELECT * FROM users");   // fine at 100, fatal at 1M
+\`\`\`
+
+**2. N+1 queries.** Linear in the page size *and* multiplied by instance count — see the scaling question.
+
+**3. Missing pagination on the read path.** Every request now scans a table a million times larger.
+
+\`\`\`text
+100 rows scanned  = 0.2 ms
+1M rows scanned   = 2 s   → timeouts
+\`\`\`
+
+**4. Queries whose cost is super-linear in data volume**, not in result size. \`SELECT COUNT(*)\` over 50M rows, or a join without an index that degrades as one side grows.
+
+**5. Work done per request that should be per tenant.** A \`for\` loop over all users on every request is 100 iterations at 100 users and a million at a million.
+
+\`\`\`javascript
+// per-request work that should be cached or precomputed
+async function getPermissions() {
+  const users = await db.query("SELECT * FROM users");   // grows forever
+  return buildPermissionMap(users);
+}
+\`\`\`
+
+**The engineering habit that prevents all five: assume 100× from the start.**
+
+\`\`\`text
+"will this still work when this table has 10M rows?"
+"is there a LIMIT on every query?"
+"does this loop scale with the number of users, or with the number of things I am returning?"
+\`\`\`
+
+**Think about it as senior engineers do:**
+
+\`\`\`text
+1. What is the read/write ratio?        (feeds are 100:1, logs 1:100)
+2. What is the growth rate per tenant?  (viral ≠ linear)
+3. What is the single shared resource everything depends on?
+4. What degrades first under 10× load?
+\`\`\`
+
+Question 4 is the one that matters. It is almost never the app tier — it is the database connection pool, a cache, or a third-party API rate limit. And know the **exit**: at some point you cannot add a database index, you have to shard.`,
+      difficulty: "medium",
+      tags: ["scalability", "performance", "system-design", "architecture"],
+      is_top50: false,
+    },
+    {
+      question: "How does one server handle thousands of concurrent users?",
+      answer: `Through **concurrency**, not parallelism. A thousand users do not need a thousand CPUs — they need the server to overlap waiting with working.
+
+\`\`\`text
+thread-per-request: 1000 requests = 1000 threads
+each thread: 1 MB stack + registers + kernel bookkeeping
+             ≈ 1 GB of memory just for stacks
+             + context switching on every switch
+\`\`\`
+
+That works until memory or scheduler overhead becomes the bottleneck. Which is why application servers use **thread pools**.
+
+**The pool reuses a fixed number of threads.**
+
+\`\`\`text
+1000 incoming requests
+   ↓
+acceptor thread  →  work queue  →  pool of 200 threads  →  done, thread returns to pool
+\`\`\`
+
+\`\`\`text
+thread-per-request: create 1000, destroy 1000   → constant churn
+thread pool:         create 200 once, reuse them  → no churn
+\`\`\`
+
+**Three costs this removes:**
+
+1. **Thread creation** — roughly 20–50 µs each, plus kernel allocation
+2. **Stack memory** — bounded by pool size, not request count
+3. **Cache thrashing** — a small working set stays hot
+
+**The trade-off is queueing.** A pool of 200 handling 1,000 requests means 800 wait. That is the correct behaviour *if* waiting is bounded and you reject cleanly once it is not:
+
+\`\`\`java
+server = HttpServer.create(new InetSocketAddress(8080), backlog);
+server.setExecutor(Executors.newFixedThreadPool(200));
+\`\`\`
+
+\`\`\`text
+pool too small   → queue grows → latency climbs → timeouts
+pool too large   → more context switching → CPU wasted, latency worse
+\`\`\`
+
+**Sizing it.** Start at roughly \`cores × (1 + wait/compute)\`, then adjust from measurement. Thread pools are near-linear up to a point, then degrade sharply as context switching dominates.
+
+**The pattern every server follows:**
+
+\`\`\`text
+accept loop        →  hand off
+work queue         →  bounded
+worker pool        →  reuse threads
+timeout per request→  bound the wait
+reject when full   →  fail fast, do not queue without limit
+\`\`\`
+
+**Where the layered model earns its complexity:** a static file request barely uses CPU, a report query uses a lot. One thread type cannot serve both well, so servers layer separate pools — a small pool for I/O-light requests and a larger one for CPU-bound work.`,
+      difficulty: "medium",
+      tags: ["concurrency", "operating-systems", "scalability", "architecture"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How does Node.js handle thousands of concurrent requests on one thread?",
+      answer: `Because JavaScript execution is single-threaded but **I/O is not**. The event loop runs your code; the operating system does the waiting.
+
+\`\`\`text
+call stack        → executes your JS, one at a time
+   ↓ returns
+event loop        → asks "anything finished?"
+   ├─ poll phase      → OS reports ready I/O callbacks
+   ├─ check phase      → setImmediate callbacks
+   └─ close callbacks  → e.g. process.nextTick
+\`\`\`
+
+**The key property:** a slow database call does **not** block. The stack unwinds immediately.
+
+\`\`\`javascript
+// this is fine — all three run concurrently, total time ≈ the slowest
+const [user, orders, prefs] = await Promise.all([
+  getUser(1),
+  getOrders(1),
+  getPreferences(1),
+]);
+
+// this is NOT fine — one slow dependency blocks all three
+const user   = await getUser(1);      // 900 ms
+const orders = await getOrders(1);    //  90 ms
+const prefs  = await getPreferences(1);//  90 ms
+// total = 1080 ms instead of ~900 ms
+\`\`\`
+
+**The real work happens on a thread pool.** Anything that is not JavaScript — file system calls, DNS lookups, crypto, and most database drivers — is handed to **libuv's thread pool** (default 4 threads).
+
+\`\`\`text
+default: 4 UV_THREADPOOL_SIZE
+10,000 concurrent fs.readFile calls → 4 at a time, 6,000 waiting in the queue
+\`\`\`
+
+This is the bottleneck people miss. CPU-heavy JavaScript still blocks, because there is only one thread:
+
+\`\`\`javascript
+// blocks the entire process — every other request waits
+const hash = crypto.createHash("sha256")
+  .update(bcrypt.hashSync(password, 12))   // 250 ms of synchronous work
+  .digest("hex");
+\`\`\`
+
+\`\`\`javascript
+// yield instead
+const hash = await bcrypt.hash(password, 12);   // runs on the thread pool
+\`\`\`
+
+**Diagnosing the loop:**
+
+\`\`\`bash
+# event-loop lag over time — this is the metric that matters
+node --trace-event-categories app.js
+
+# find long synchronous stretches
+node --prof app.js
+node --prof-process isolate-*.log > processed.txt
+\`\`\`
+
+\`\`\`javascript
+// measure it in-process
+const { monitorEventLoopDelay } = require("node:perf_hooks");
+const h = monitorEventLoopDelay({ resolution: 20 });
+h.enable();
+setInterval(() => console.log("p99 lag ms:", h.percentile(99) / 1e6), 5000);
+\`\`\`
+
+**Consequences to design around:**
+
+- Anything blocking the loop blocks *every* request — use a worker thread or move it off-thread
+- Single-threaded does not mean stateless — two async operations interleave, and code between \`await\` points can interleave with other requests
+- \`UV_THREADPOOL_SIZE\` can be raised, but more threads means more memory and worse cache behaviour
+
+\`\`\`text
+Node handles thousands of concurrent requests well because most of the time it is
+waiting, not working. The moment it works, only one request moves at a time.
+\`\`\``,
+      difficulty: "medium",
+      tags: ["nodejs", "concurrency", "event-loop", "javascript"],
+      is_top50: true,
+    },
+    {
+      question:
+        "How do multiple threads updating the same data corrupt application state?",
+      answer: `Because a read-modify-write is three steps, and the operating system can switch threads between any of them.
+
+\`\`\`text
+Thread A                     Thread B
+read   balance = 100         read   balance = 100
+add    → 101                             
+write  balance = 101
+                              add    → 101
+                              write  balance = 101
+\`\`\`
+
+Both increments succeeded. The balance should be 102. This is a **lost update**, and it is the canonical race condition — the increment was applied twice and the net effect was one.
+
+\`\`\`javascript
+balance += 10;        // reads, adds, writes — three operations
+\`\`\`
+
+**Where it shows up in practice:**
+
+\`\`\`javascript
+// 1. lost update
+account.balance -= price;
+
+// 2. check-then-act — two users both pass the check
+if (item.stock > 0) { item.stock--; }
+// both see stock = 1, both sell, stock goes to -1
+
+// 3. duplicate creation
+if (!exists(key)) { create(key); }      // two threads both see "not exists"
+\`\`\`
+
+**The fixes, and what each one costs:**
+
+**1. Atomic operation.**
+\`\`\`sql
+UPDATE accounts SET balance = balance - 5000 WHERE id = 1 AND balance >= 5000;
+\`\`\`
+
+One statement, atomic in the database. No read, no race. **Prefer this for counters and balance changes** — the database is already the right place.
+
+**2. Optimistic concurrency — a version column.**
+
+\`\`\`sql
+UPDATE accounts SET balance = 100, version = version + 1
+WHERE id = 1 AND version = 5;          -- 0 rows updated = someone got there first
+\`\`\`
+
+\`\`\`javascript
+const rows = await db.update(accounts).set({ balance: 100, version: 6 })
+  .where(and(eq(accounts.id, 1), eq(accounts.version, 5)));
+if (rows === 0) throw new Conflict("reload and retry");
+\`\`\`
+
+Fails fast, no waiting. Best when contention is low.
+
+**3. Pessimistic locking.** \`SELECT ... FOR UPDATE\` — see the next question.
+
+**4. Serialise in the application.** A mutex or an in-process queue per key:
+
+\`\`\`javascript
+await mutex.run(\`account:\${id}\`, async () => {
+  const account = await getAccount(id);
+  await updateBalance(account.balance - price);
+});
+\`\`\`
+
+**Works in one process. Wrong in fifty** — every instance has its own mutex. Use it only when the lock is provably local.
+
+**5. Optimistic UI.** For UI state, reconciliation beats locking: accept the update optimistically, reconcile on the server response, roll back on conflict.
+
+\`\`\`text
+choose: atomic (best) → optimistic locking → pessimistic locking → application mutex
+\`\`\`
+
+**The discipline that prevents most of it:** keep the read-modify-write inside a single database statement or a single transaction. The moment you \`SELECT\`, leave the function, and \`UPDATE\`, you have created a race.`,
+      difficulty: "medium",
+      tags: ["concurrency", "transactions", "synchronization", "databases"],
+      is_top50: false,
+    },
+    {
+      question: "Why do locks fix race conditions but slow down the backend?",
+      answer: `Because mutual exclusion means **doing less at once**. That is the whole trade: correctness costs parallelism.
+
+\`\`\`text
+no lock:   10 requests process in parallel      → 10 ms
+with lock: 10 requests queue, one at a time     → 100 ms
+\`\`\`
+
+**Three ways the cost compounds:**
+
+**1. Wait time grows with contention.**
+
+\`\`\`text
+utilisation u, service time S
+average wait  W ≈ (S × u) / (2 × (1 − u))
+
+u = 50%  →  W ≈ 0.5 S     fine
+u = 90%  →  W ≈ 4.5 S     degraded
+u = 99%  →  W ≈ 49 S      queue collapse
+\`\`\`
+
+That is an M/M/1 queue, and the shape matters more than the numbers: **latency explodes as utilisation approaches 100%, while throughput barely improves.** Keep utilisation well below saturation.
+
+**2. Lock scope.** Holding a lock longer than necessary blocks everyone who needs the same resource.
+
+\`\`\`javascript
+await mutex.run(async () => {
+  const user  = await db.getUser(id);        // network I/O under lock
+  const email = await sendEmail(user);        // seconds under lock
+  await db.update(user);                     // the only thing that needed it
+});
+\`\`\`
+
+\`\`\`javascript
+await mutex.run(async () => {
+  await db.update(user);                     // hold the lock only for the write
+});
+await sendEmail(user);                       // outside
+\`\`\`
+
+**3. Contention across a large key space.** If every request locks the *same* key, throughput is capped at one operation per lock duration no matter how many cores you have.
+
+\`\`\`javascript
+// global lock — serialises everything
+await globalMutex.run(fn);
+
+// per-key lock — only same-key requests queue
+await locks.get(\`account:\${id}\`).run(fn);
+\`\`\`
+
+**Know which locks to avoid.** Any lock held across a network call, or held while acquiring another, is a deadlock risk:
+
+\`\`\`javascript
+// deadlock: two threads take the two locks in opposite order
+const order = [a, b].sort();          // always acquire in a global order
+for (const id of order) await locks.get(id).acquire();
+\`\`\`
+
+**Reduce contention instead of removing the lock:**
+
+| Technique | Effect |
+|---|---|
+| Narrower lock scope | Shorter hold time |
+| Per-key locks | Unrelated work runs in parallel |
+| Optimistic locking | No waiting; fails fast |
+| Atomic DB operation | No lock at all |
+| Sharding the contended key | Splits the queue |
+
+\`\`\`text
+the goal is not "no locks" — it is "no contention"
+a lock with zero waiters is free
+\`\`\``,
+      difficulty: "medium",
+      tags: ["concurrency", "synchronization", "performance", "locking"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How does pessimistic locking stop the last seat being sold twice?",
+      answer: `By taking the lock **before** checking whether the seat is available, so nobody else can check at the same time.
+
+\`\`\`sql
+BEGIN;
+
+SELECT seat_id FROM seats
+WHERE event_id = 42 AND status = 'available'
+LIMIT 1
+FOR UPDATE;          -- ← row-level lock, held to COMMIT
+
+-- only now check and write
+UPDATE seats SET status = 'sold', buyer_id = $1
+WHERE seat_id = $2;
+
+COMMIT;              -- lock released
+\`\`\`
+
+**What \`FOR UPDATE\` does:** it locks the selected rows immediately, so a concurrent transaction touching those rows **blocks** rather than proceeding. The second user waits, then sees \`status = 'sold'\` and moves on.
+
+**Without it — the exact race:**
+
+\`\`\`text
+User A                          User B
+SELECT seat 7 → available
+                                SELECT seat 7 → available   ← both see it free
+UPDATE seat 7 → sold (buyer A)
+                                UPDATE seat 7 → sold (buyer B) ← BUG: overwritten
+\`\`\`
+
+You get one seat sold twice. **The check and the write must be atomic with respect to other transactions.** That is the whole point.
+
+**The conditional update is the better answer when you do not need to inspect first:**
+
+\`\`\`sql
+UPDATE seats SET status = 'sold', buyer_id = $1
+WHERE seat_id = $2 AND status = 'available';
+-- rows affected = 0  →  someone else got it, no lock needed at all
+\`\`\`
+
+\`\`\`javascript
+const result = await db.update(seats)
+  .set({ status: "sold", buyerId })
+  .where(and(eq(seats.seatId, id), eq(seats.status, "available")));
+
+if (result.rowCount === 0) throw new SeatUnavailable();   // correct, and lock-free
+\`\`\`
+
+One atomic statement. No waiting, no deadlock, no contention. **Prefer this whenever the condition fits in the \`WHERE\` clause.**
+
+**When you genuinely need pessimistic locking:** when the decision depends on reading several rows and computing something — calculating the best price across tiers, allocating the last unit of several resources, or validating against an aggregate.
+
+**Deadlock risk.** Holding two locks invites deadlock:
+
+\`\`\`sql
+-- T1 locks A then B;  T2 locks B then A  →  circular wait
+\`\`\`
+
+Always acquire locks in a **deterministic global order** (sort by id), and set a short \`lock_timeout\` so a deadlock surfaces as a fast error rather than a long hang.
+
+**Both mechanisms handle the 10,000-users-one-seat case correctly.** The difference is the failure behaviour: pessimistic locking makes users *wait* and adds lock-contention overhead; the conditional update makes all but one fail *immediately*. For a seat-booking endpoint the second is usually preferable.`,
+      difficulty: "hard",
+      tags: ["transactions", "concurrency", "locking", "optimization"],
+      is_top50: false,
+    },
+    // ──────── Distributed Systems in Production ────────
+    {
+      question:
+        "Why can one payment request deduct money twice, and how do idempotency keys prevent it?",
+      answer: `**The scenario.** A customer taps Pay. The request reaches your server, the charge succeeds at the gateway, but the response is slow and the client's 30-second timeout fires first. The client retries. Now the gateway is charged twice.
+
+\`\`\`
+t=0.0s  client sends POST /payments  (Idempotency-Key: abc-123)
+t=0.9s  gateway deducts ₹5,000        ← the work happened
+t=1.1s  response lost / TCP reset
+t=30s   client timeout fires
+t=31s   client retries  (same Idempotency-Key: abc-123)
+t=31.5s gateway deducts ₹5,000 again  ← customer charged twice
+\`\`\`
+
+**The uncomfortable truth:** the network is unreliable in ways that make exactly-once impossible to guarantee end-to-end. You cannot distinguish "the first request never arrived" from "the first request succeeded and the reply was lost". Something has to give.
+
+**The idempotency key is the explicit contract.** The client generates a unique key per logical operation and sends it with the request. The server stores the key, and on a repeat returns the *stored result* instead of doing the work again.
+
+\`\`\`sql
+CREATE TABLE idempotency_keys (
+  key         VARCHAR(255) PRIMARY KEY,
+  user_id     INT NOT NULL,
+  status      VARCHAR(20) NOT NULL,   -- IN_PROGRESS | COMPLETED | FAILED
+  response    JSON,
+  created_at  TIMESTAMP
+);
+
+-- the insert is the lock
+INSERT INTO idempotency_keys (key, user_id, status)
+VALUES (?, ?, 'IN_PROGRESS');
+\`\`\`
+
+**The unique constraint is the real mechanism**, not the SELECT. If the insert throws a duplicate-key error, you know another request with that key is already in flight — return \`409 Conflict\`, or poll until the first one finishes and return its result.
+
+\`\`\`text
+insert succeeds          → this is the first request, do the work
+duplicate key error      → key already seen, do NOT do the work
+\`\`\`
+
+Without the constraint, two concurrent requests with the same key both pass a \`SELECT\` and both charge.
+
+**Three details that decide whether this actually works:**
+
+1. **Scope the key per user.** Otherwise one user's key can replay another's request.
+2. **Always return the original response**, not a new one. A different payload on retry is a client bug — reject it rather than silently processing.
+3. **Set a TTL** (24h is typical). Keys are an abuse-control table, not a ledger.
+
+**The "succeeded but confirmation lost" case** is the one most designs miss: the work committed but you never learned it did. Recovery is to *query by key* and return the stored outcome — never to re-execute.
+
+**Interview framing:** idempotency is not about preventing duplicates in the database, it is about making the *client's retry safe*. State that and the answer lands.`,
+      difficulty: "medium",
+      tags: ["idempotency", "distributed-systems", "payments", "reliability"],
+      is_top50: false,
+    },
+    {
+      question: "Is HTTP PATCH really idempotent?",
+      answer: `**No — not by definition.** RFC 9110 lists GET, HEAD, PUT, DELETE and OPTIONS as idempotent. PATCH is explicitly *not*.
+
+\`\`\`http
+PATCH /orders/42
+{ "status": "shipped" }
+
+# safe to repeat — same end state
+PATCH /orders/42
+{ "status": "shipped" }
+\`\`\`
+
+\`\`\`http
+PATCH /orders/42
+{ "counter": "+1" }      # or {"quantity": 3} meaning "increment by 1"
+
+# send twice → the counter moved twice
+\`\`\`
+
+**The rule:** an operation is idempotent when repeating it has the *same effect* as doing it once. Setting a value is idempotent. Incrementing by a delta is not.
+
+| Operation | Idempotent? |
+|---|---|
+| \`{ "status": "shipped" }\` | Yes — setting the same value again |
+| \`{ "price": 100 }\` | Yes |
+| \`{ "quantity": +1 }\` | **No** |
+| \`{ "tags": ["a"] }\` if the server appends | **No** — depends on implementation |
+| \`{ "roles": ["admin"] }\` if the server adds | **No** — depends on implementation |
+
+**The subtlety worth stating in an interview:** whether PATCH is idempotent depends entirely on **how you interpret the patch document**. \`PUT\` is idempotent by definition because the resource is replaced. \`PATCH\` is a merge, and a merge that appends or increments is not repeatable.
+
+\`\`\`json
+{ "roles": ["admin"] }     // "set roles to exactly this"  → idempotent
+{ "addRole": "admin" }     // "add admin"                 → not idempotent
+\`\`\`
+
+**So how do you make retries safe?**
+
+1. **Prefer PATCH that assigns rather than increments.** Design the API so setting is the natural operation.
+2. **Accept an idempotency key** on PATCH, same as on POST.
+3. **Use a version or \`If-Match\` ETag** so a stale write is rejected with \`412 Precondition Failed\` rather than clobbering a newer value.
+4. **Use POST for true operations** — "ship it", "cancel it" — where the verb means something beyond field assignment.
+
+**Where people get confused:** they assume PATCH is safe because it "only updates fields". But if two clients patch the same field, the second silently overwrites the first — a lost-update problem, not an idempotency one. Idempotency asks *"does repeating it change anything?"*; concurrency asks *"does someone else change it in between?"*. They are different questions with different fixes.`,
+      difficulty: "medium",
+      tags: ["rest", "idempotency", "api-design", "http"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Why is returning HTTP 200 for every API response a design mistake?",
+      answer: `Because the status code is the part of the response a generic client — a browser, a mobile SDK, a proxy, a monitoring system — reads to decide what to do. Always-200 discards that signal.
+
+\`\`\`http
+POST /orders
+
+HTTP/1.1 200 OK
+{ "success": false, "message": "insufficient funds", "code": "PAYMENT_DECLINED" }
+\`\`\`
+
+Every one of those behaviours is now impossible to implement generically:
+
+\`\`\`text
+client sees 200 → treats it as success
+retry policy     → 5xx triggers retry, 400 does not
+caches           → may cache an error as if it were data
+metrics          → your error rate is always 0%
+load balancers   → 503 is the health signal; 200 says "fine"
+API gateways     → rate limiters and circuit breakers key off 429/503
+\`\`\`
+
+**The mapping that matters:**
+
+| Code | Meaning | Retry? |
+|---|---|---|
+| \`200\` | OK — here is the result | n/a |
+| \`201\` | Created — resource created, \`Location\` header | No |
+| \`202\` | Accepted — queued, not done yet | Yes, later |
+| \`204\` | No Content — succeeded, empty body | No |
+| \`400\` | Malformed request | No — fix the client |
+| \`401\` | Not authenticated | No — refresh then retry |
+| \`403\` | Authenticated but not allowed | **Never** |
+| \`404\` | No such resource | No |
+| \`409\` | Conflict — state changed | After refetch |
+| \`422\` | Semantically invalid | No |
+| \`429\` | Rate limited | Yes, honour \`Retry-After\` |
+| \`500\` | Server bug | Yes, with backoff |
+| \`503\` | Overloaded or down | Yes, with backoff |
+
+**The two distinctions juniors collapse:**
+
+- **401 vs 403.** 401 means *"I don't know who you are"* — retry after authenticating. 403 means *"I know exactly who you are and the answer is no."* Retrying a 403 forever is pointless and, at scale, an easy way to build a self-inflicted DDoS.
+- **429 vs 503.** 503 says *"I am unhealthy"*. 429 says *"you are going too fast"* — a different party is at fault, and the remedy is for the caller to slow down.
+
+**Keep the body too.** Status codes are for generic consumers; a structured error body with a stable machine-readable \`code\` is what your own frontend should branch on.
+
+\`\`\`json
+{
+  "error": {
+    "code": "PAYMENT_DECLINED",
+    "message": "Insufficient funds",
+    "requestId": "req_8f2a"
+  }
+}
+\`\`\`
+
+**The one legitimate argument for always-200:** some RPC-style or GraphQL APIs return 200 with an \`errors\` array. That is a valid convention — but it is a deliberate choice that obliges you to build the status signalling yourself, for every client.`,
+      difficulty: "easy",
+      tags: ["rest", "api-design", "http", "http-status-codes"],
+      is_top50: true,
+    },
+    {
+      question: "Why did the database update but the UI still shows old data?",
+      answer: `Because in a typical app the read path and the write path are different systems, and you updated only one of them.
+
+\`\`\`text
+WRITE:  browser → API → PostgreSQL        ✅ updated
+READ:   browser → API → Redis (60s TTL) → ❌ stale value
+\`\`\`
+
+The write committed. The read was served from a cache that has not expired. To the user, nothing happened.
+
+**The five causes, in the order they actually happen:**
+
+**1. Cache invalidation** — the write never told the cache.
+\`\`\`javascript
+// the bug
+await db.update({ ...order, status: "shipped" });
+return order;
+
+// the fix: delete after write, never before
+await db.update({ ...order, status: "shipped" });
+await redis.del(\`order:\${order.id}\`);
+\`\`\`
+
+**2. Read replica lag** — the write went to the primary, the read hit a replica. See the replication-lag question.
+
+**3. Client-side staleness** — the mutation succeeded but you never invalidated the query cache.
+
+\`\`\`typescript
+await mutation.mutateAsync(data);
+await queryClient.invalidateQueries({ queryKey: ["orders", id] });
+\`\`\`
+
+**4. Wrong replica of the data** — you updated the table but read a denormalised copy in a search index or read model.
+
+**5. Propagation through an event** — the update is on a queue and the read model has not been rebuilt yet.
+
+**The two caching strategies and how they differ:**
+
+| | Cache-aside | Write-through |
+|---|---|---|
+| Who writes the cache | Application | Cache, on write |
+| Failure mode | Stale until TTL | Cache write can fail |
+| Read cost | One miss on first read | Always a hit |
+| Use when | Read-heavy, tolerance for staleness | Cache must never be stale |
+
+**Cache-aside is the default.** The important rule is that **invalidating before the write is wrong** — a concurrent reader can repopulate the cache with the old value between your delete and your commit, and then it stays stale for the full TTL.
+
+\`\`\`text
+WRONG:  delete cache → update DB   (reader repopulates with old data)
+RIGHT:  update DB → delete cache
+\`\`\`
+
+**TTL is your safety net, not your strategy.** A short TTL bounds the damage; it does not fix the bug. If a user sees stale data for even a few seconds, add explicit invalidation.
+
+**The failure everyone hits first:** cache penetration. A key that does not exist still gets a lookup, so a bot requesting random IDs sends every miss straight to the database. Cache negative results, or use a Bloom filter.`,
+      difficulty: "medium",
+      tags: ["caching", "caching-strategies", "consistency", "redis"],
+      is_top50: true,
+    },
+    {
+      question:
+        "Why does MySQL update successfully but users still see old data?",
+      answer: `Because with a primary-replica setup the write and the read usually go to **different machines**, and replication is asynchronous.
+
+\`\`\`text
+t=0.00  UPDATE orders SET status='paid'  →  PRIMARY     ✅ committed, client gets 200
+t=0.02  SELECT * FROM orders WHERE id=42 →  REPLICA     ❌ last row it received was t=-0.4s
+\`\`\`
+
+**Replication is asynchronous.** The primary acknowledges the write as soon as it is durable locally. It does *not* wait for replicas to catch up. So there is always a window — from milliseconds to seconds — where the replica legitimately does not have your change.
+
+\`\`\`sql
+SHOW REPLICA STATUS\\G
+Seconds_Behind_Master: 4        -- replication lag, in seconds
+\`\`\`
+
+**This is why read replicas do not fix read-your-own-writes.** The name is precise: your *write* went to the primary, and the read must too.
+
+\`\`\`javascript
+// sticky reads: route this user to the primary for N seconds after a write
+await db.primary.update(order);
+await session.set("readPrimaryUntil", Date.now() + 5000);
+\`\`\`
+
+**Options, cheapest first:**
+
+1. **Route reads to the primary** — simplest, costs you the read scaling that was the point of the replica.
+2. **Pin the session to the primary** briefly after a write. Correct, and localises the cost.
+3. **Wait for replication to catch up** before returning success. Correct but adds latency to every write.
+4. **Accept it** — legitimate for data where seconds of staleness do not matter (view counts, recommendations, dashboards).
+
+**Which is right depends on the field.** Nobody expects the "who viewed this profile" count to be current. Everyone expects their own payment to show as paid.
+
+**The trap people fall into:** treating replicas as a free read-scaling win. A replica gives you read *capacity*, not read *correctness*. If your application cannot tolerate lag, a replica does not remove the bottleneck — it hides it until the day lag spikes to 40 seconds.
+
+**Monitor the lag, do not assume it is zero.** Alert on \`Seconds_Behind_Master\` and on replica health. A replica that silently falls minutes behind is a data-correctness incident that no error message will ever surface.`,
+      difficulty: "medium",
+      tags: ["databases", "replication", "consistency", "distributed-systems"],
+      is_top50: false,
+    },
+    {
+      question: "Why does one user see 101 likes while another sees 100?",
+      answer: `**Because they are reading from different points in a distributed system.** Neither user is wrong.
+
+\`\`\`text
+primary:        likes = 101     ← the truth, committed
+replica A:      likes = 101
+replica B:      likes = 100     ← replication lag
+browser cache:  likes = 100     ← cached response, 30s TTL
+\`\`\`
+
+**Three layers can each be behind:**
+
+1. **Replication lag** — replica B has not received the latest write
+2. **Cache staleness** — the CDN or Redis still serves the previous response
+3. **Client state** — a SPA that fetched once and never revalidated
+
+This is **eventual consistency** doing exactly what it was designed to do. The alternative — every read hitting the primary — costs latency and availability for precision that a like count does not warrant.
+
+**The design decision is not "eventual or not", it is per field:**
+
+| Data | Guarantee needed |
+|---|---|
+| Like / view counts | Eventual — seconds of lag is invisible |
+| Feed ordering | Eventual, bounded |
+| Payment status | Strong — read your own write |
+| Stock on hand | Strong, or reserve atomically |
+| Password change | Strong, immediately |
+
+Asking "is this app eventual or strongly consistent?" is the wrong question. Asking "which fields need which guarantee?" is the right one.
+
+**The technique that gets you both:**
+
+\`\`\`text
+read path      → replicas (fast, possibly stale)
+write path     → primary (authoritative)
+after a write  → route *that user's* subsequent reads to the primary for a few seconds
+\`\`\`
+
+That is called **read-your-own-writes consistency**, and it gives a user the immediacy they actually expect without removing the read scaling.
+
+**The point an interviewer is listening for:** eventual consistency is not a defect you tolerate, it is a trade you make deliberately. Naming which data tolerates lag, and which does not, is the whole answer.`,
+      difficulty: "easy",
+      tags: ["distributed-systems", "consistency", "replication", "caching"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Why do 1000 users hit the database when a single cache entry expires?",
+      answer: `**Cache stampede** — also called the thundering herd. One popular key expires and every concurrent reader misses at the same instant.
+
+\`\`\`text
+t=0.0s   cache entry for "product:42" expires
+t=0.001  user 1   → MISS → SELECT ... FROM products WHERE id=42
+t=0.002  user 2   → MISS → SELECT ...
+t=0.003  user 3   → MISS → SELECT ...
+...
+t=0.400  user 1000 → MISS → SELECT ...
+\`\`\`
+
+One key, a thousand simultaneous database queries. If your database was sized assuming the cache absorbs 80–95% of reads, that is a 10–20× spike on the origin path.
+
+\`\`\`text
+hit rate 95% → DB sees ~50 queries/sec steady
+hit rate  0% → DB sees 1000 queries/sec at once
+\`\`\`
+
+The pool saturates, queue depth climbs, p99 latency goes from 48ms to seconds, and the error rate climbs before a circuit breaker even fires.
+
+**The fix, in order of effectiveness:**
+
+**1. Request coalescing (single-flight)** — the real solution. One request goes to the origin; the rest wait for its result.
+
+\`\`\`javascript
+const inflight = new Map();
+
+async function getProduct(id) {
+  if (inflight.has(id)) return inflight.get(id);   // join the existing load
+
+  const p = (async () => {
+    const row = await db.query(\`SELECT * FROM products WHERE id = \${id}\`);
+    await redis.set(\`product:\${id}\`, JSON.stringify(row), { EX: 60 });
+    return row;
+  })();
+
+  inflight.set(id, p);
+  try { return await p; } finally { inflight.delete(id); }
+}
+\`\`\`
+
+A thousand simultaneous misses now produce **one** origin query. This is what Redis \`SETNX\`-based locks are for in a multi-instance deployment.
+
+**2. Probabilistic early expiration** — never let the whole cache go cold together.
+
+\`\`\`javascript
+const ttl = 60;
+const jitter = Math.random() * 0.1 * ttl;   // expire up to 10% early, randomly
+await redis.set(key, value, { EX: ttl - Math.floor(jitter) });
+\`\`\`
+
+Expiries spread out, so the herd never forms.
+
+**3. Background refresh** — a warm-up job refreshes hot keys before they expire, so the TTL never actually triggers a miss.
+
+**4. Write-through on write** — after a deploy or a cache flush, the cache is empty *immediately*. Write-through (or a warm-up pass) avoids the cliff entirely.
+
+**5. Never cache errors** — or the stampede repeats every TTL until the origin recovers.
+
+**Why this is a production incident and not a theoretical one:** a rolling deploy clears the cache. That is a *scheduled* stampede, hitting at the least convenient moment, and it happens on every single release.`,
+      difficulty: "medium",
+      tags: ["caching", "caching-strategies", "redis", "thundering-herd"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How does a small webhook timeout create a million requests in seconds?",
+      answer: `Because every timeout triggers a retry, and every retry can time out too. The failure multiplies.
+
+\`\`\`text
+t=0s      you send 10,000 webhooks
+t=2s      your endpoint is slow
+t=4s      each caller times out at 2s → retries  → 10,000 more
+t=6s      those time out too                        → 10,000 more
+t=8s                                           → 10,000 more
+          total: 40,000 requests to an endpoint that was already struggling
+\`\`\`
+
+**This is a retry storm, and the key insight is that retries are load, not relief.** A dependency that is merely slow is still consuming capacity. Retrying against it adds load to a system that is already failing, which makes it slower still, which triggers more retries.
+
+\`\`\`text
+slow dependency
+   ↓ timeout
+client retries
+   ↓ more load on the dependency
+dependency gets slower
+   ↓ more timeouts
+more retries …  ← positive feedback loop
+\`\`\`
+
+**Four mitigations, and you need all of them:**
+
+**1. Exponential backoff with jitter.** Exponential alone synchronises every client into retrying at the same instant — worse than no jitter.
+
+\`\`\`javascript
+const delay = Math.random() * Math.min(1000 * 2 ** attempt, 30_000);
+\`\`\`
+
+**Full jitter** is strictly better than equal jitter: it randomises across the entire window rather than a fraction of it.
+
+**2. A retry budget.** Cap retries as a fraction of total traffic:
+
+\`\`\`text
+if retryRate > 10% → stop retrying, fail fast
+\`\`\`
+
+Once 10% of requests are retries, the extra traffic is pure harm. Most systems have no such limit, which is why storms are so severe.
+
+**3. Timeout before retry.** A timeout that is longer than the dependency's own budget means you wait forever before retrying a request that already failed.
+
+**4. Circuit breaker.** Once failures cross a threshold, stop calling entirely. See the circuit breaker question.
+
+**Only retry what is safe:**
+
+| Retry | Do not retry |
+|---|---|
+| 503, 502, 504 | 400 Bad Request |
+| Connection timeout | 401 Unauthenticated |
+| 429 (honour \`Retry-After\`) | 404 |
+| Network error | 409 — use an idempotency key |
+
+**On the receiver's side**, make handling cheap and idempotent: return 2xx fast and process asynchronously. A webhook endpoint that does its work inline is a webhook endpoint that times out, which is how you start a storm you did not intend.`,
+      difficulty: "medium",
+      tags: [
+        "reliability",
+        "distributed-systems",
+        "webhooks",
+        "cascading-failure",
+      ],
+      is_top50: false,
+    },
+    {
+      question:
+        "Why does adding one more database force millions of records to move?",
+      answer: `Because simple hash-based sharding puts each record's location *entirely* on one shard, so rebalancing means moving almost everything.
+
+\`\`\`javascript
+shard = hash(userId) % shardCount
+\`\`\`
+
+**The problem.** With 4 shards and 10 million users:
+
+\`\`\`text
+shard 0: 2.5M users   ████████████████
+shard 1: 2.5M users   ████████████████
+shard 2: 2.5M users   ████████████████
+shard 3: 2.5M users   ████████████████
+
+  now add a 5th shard and change the modulus to 5:
+
+shard 0: gets users whose id % 5 == 0   ← completely different people
+shard 1: gets users whose id % 5 == 1   ← and again
+shard 2: ...
+shard 3: ...
+shard 4: ...
+\`\`\`
+
+Almost **every** record changes shard. Growing 4 → 5 moves roughly 80% of your data. Growing 100 → 101 moves ~99%. The cost of adding one machine grows with the size of the cluster.
+
+**Consistent hashing fixes this by decoupling a key's location from the *number* of shards.** Keys map onto a fixed ring; each node owns several *virtual nodes* spread around it.
+
+\`\`\`text
+ring:  nodeA ··· nodeB ······· nodeC ··· nodeA(v2) ······ nodeB(v2) ··· nodeC(v2) ···
+
+key → hash → walk clockwise → first node owns it
+\`\`\`
+
+Now adding node D only claims keys in D's segment:
+
+\`\`\`text
+4 → 5 nodes:  only ~1/N of keys move   (N = number of nodes)
+             NOT ~80% of keys
+\`\`\`
+
+**Virtual nodes are what make it work.** With one virtual node per node, the ring has a handful of large gaps and the imbalance is severe. With 100–200 virtual nodes per machine, distribution is near-even and movement is smooth.
+
+\`\`\`text
+1 virtual node   → ±40% imbalance possible
+150 virtual nodes → ±5% imbalance
+\`\`\`
+
+**The remaining problem: hot spots.** Even with a good ring, one tenant may hash entirely to one shard. Fix it by adding a per-key salt or routing a hot tenant to its own shard.
+
+**Practical guidance:**
+
+- **Shard early or not at all.** Every future repartition is a migration.
+- **Consistent hashing for adding nodes; hash partitioning for evenly splitting a range.** They solve different problems.
+- **Never rebalance on the fly.** Do it as a controlled dual-write-then-cutover, not a live reshuffle.
+- **Estimate before you shard.** Most systems that shard did not need to — an unindexed query looks exactly like a capacity problem until you check.`,
+      difficulty: "medium",
+      tags: ["distributed-systems", "sharding", "scalability", "system-design"],
+      is_top50: false,
+    },
+    {
+      question: "Why can a ₹50,000 payment succeed but the order still fail?",
+      answer: `Because a single \`\`UPDATE\`\` cannot span three databases. The moment payment, order and inventory live in separate services, there is no transaction that covers all of them.
+
+\`\`\`text
+Order service     →  orders DB
+Payment service   →  payments DB
+Inventory service →  inventory DB
+\`\`\`
+
+The failure sequence:
+
+\`\`\`text
+1. Order created              ✅ orders DB
+2. Payment charged ₹50,000    ✅ payments DB
+3. Inventory decrement        ❌ DB timeout — out of stock
+4. "Order failed"
+
+Result: customer was charged, has no order, no stock reserved.
+\`\`\`
+
+**A database rollback cannot fix this.** The payment is committed in a different database, on a different connection, in a different process. \`ROLLBACK\` only undoes the current transaction's own writes.
+
+**The solution is the Saga pattern** — break the single distributed transaction into a sequence of *local* transactions, each committed independently, plus a **compensating action** for each step that has already succeeded.
+
+\`\`\`text
+T1  Create order            → if it fails, stop
+T2  Charge payment          → compensate: refund
+T3  Reserve inventory       → compensate: release stock
+T4  Confirm order           → done
+\`\`\`
+
+**A compensating action is not a rollback.** Refunding is a *new* business transaction. The charge stays in the ledger; a refund record is added against it. Auditors and reconciliation expect that shape.
+
+**Compensations cannot always be undone.** An email that was sent cannot be unsent, and a shipped parcel cannot be recalled. Those steps must be **pessimistic** — checked and confirmed before moving on — rather than compensated afterwards. Every saga is a mix of both:
+
+\`\`\`text
+pessimistic: email, shipping, anything irreversible
+optimistic:  reserve inventory, hold a seat, provision a credit
+\`\`\`
+
+**Why intermediate states are visible to the user.** Saga gives up isolation for availability: between T2 and T3 there is a real, durable state where money is taken and the order is pending. Users will see "payment received, order confirming". Design for that, because it will happen.
+
+**Choreography vs orchestration** is the next design choice, and the trade-off is where the scaling limit bites — see the two following questions.`,
+      difficulty: "medium",
+      tags: ["distributed-systems", "microservices", "saga", "transactions"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How does Saga choreography handle failures across microservices?",
+      answer: `**Choreography has no central controller.** Each service reacts to events others publish, and compensations are just more events.
+
+\`\`\`text
+Order service      publishes  OrderCreated
+        │
+        ├─▶ Payment service    listens → charges → publishes PaymentCompleted
+        │                              on failure → publishes PaymentFailed
+        │                                           │
+        └─▶ Inventory service  listens to OrderCreated → reserves → publishes StockReserved
+\`\`\`
+
+\`\`\`text
+happy path:  OrderCreated → PaymentCompleted → StockReserved → OrderConfirmed
+
+failure:     OrderCreated → PaymentCompleted → StockReservationFailed
+                                          → Payment service consumes it → publishes RefundIssued
+\`\`\`
+
+**Every compensating action is just another event handler.** Refund, cancel, release — each is a normal consumer.
+
+**Advantages:**
+- No central component to deploy, scale or bottleneck on
+- Services stay loosely coupled; adding a participant does not touch existing code
+- Naturally event-driven and auditable
+
+**The failure mode, and why it has a hard limit:** the workflow is **implicitly distributed across every codebase**. Nobody can read one file and understand the sequence.
+
+\`\`\`text
+where do I find "what happens after PaymentCompleted"?
+  → grep the Order service
+  → grep Payment
+  → grep Inventory
+  → grep Shipping
+\`\`\`
+
+At 3 services this is annoying. At 50 it is unmanageable — you genuinely cannot trace the flow, and a new engineer cannot be onboarded onto it.
+
+**Other sharp edges:**
+
+- **No visibility into progress.** Answering "where is order 42 right now?" means correlating event streams across systems.
+- **Infinite loops.** If A reacts to B's event by publishing something B listens to, you have a cycle. Guard with correlation IDs and idempotency keys.
+- **Failure of a participant is invisible.** If Shipping is down and nobody noticed, the saga just stalls — nothing reports it.
+- **Ordering assumptions.** Distributed consumers receive events out of order; every handler must tolerate that.
+
+**Practical rule:** choreography works well to about 3–5 participating services. Past that, the tracing cost usually exceeds what the decoupling buys you — which is exactly why orchestration exists.`,
+      difficulty: "hard",
+      tags: ["distributed-systems", "microservices", "saga", "event-driven"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How does Saga orchestration handle transactions across many microservices?",
+      answer: `**Orchestration introduces an explicit saga orchestrator** that owns the sequence. Services become passive workers it commands.
+
+\`\`\`text
+                    ┌──────────────────────┐
+OrderCreated ──────▶│  Saga Orchestrator    │
+                    │  knows the whole flow │
+                    └──────────┬───────────┘
+          ┌────────────────┬───┴────────┬────────────────┐
+          ▼                ▼            ▼                ▼
+   Order svc         Payment svc   Inventory svc    Shipping svc
+   (create)          (charge)      (reserve)       (dispatch)
+          │                │            │                │
+          └──── events ────┴────────────┴────────────────┘
+\`\`\`
+
+The orchestrator issues each step and waits for its outcome before deciding whether to continue or compensate.
+
+\`\`\`text
+1. createOrder        ✅
+2. reserveInventory   ✅
+3. chargePayment      ✅
+4. dispatchShipment   ❌ carrier API down
+
+   → orchestrate: RELEASE inventory, REFUND payment, CANCEL order
+\`\`\`
+
+**The compensating actions are declared up front**, which is the real benefit — the failure path is designed before it happens, not improvised during an incident.
+
+\`\`\`javascript
+const steps = [
+  { name: "reserveInventory", compensate: "releaseInventory" },
+  { name: "chargePayment",    compensate: "refundPayment" },
+  { name: "dispatchShipment", compensate: "cancelDispatch" },
+];
+\`\`\`
+
+**Why this is the answer at scale.** The entire flow is one readable artefact:
+
+- You can answer "where is order 42?" with a single query to the saga table
+- New engineers read one workflow file, not five services
+- Adding a step means editing the saga, not hunting for every listener
+- Timeouts, retries and compensation logic live in one place
+
+**The costs you accept:**
+
+- **A new component to run.** It becomes stateful, and it must be highly available.
+- **A central bottleneck.** Every saga passes through it. This is the same coupling you were trying to avoid, moved from code into infrastructure.
+- **Services become dumb.** Logic that belonged in a service now lives in the orchestrator, and the orchestrator must understand every service's business rules.
+- **Vendor lock-in.** The workflow is expressed in one orchestrator's language.
+
+**The hybrid that usually wins:** orchestrate the *top-level* flow, let each step's internals be choreographed. Order flow is orchestrated; the fulfilment details within fulfilment are not.
+
+**Persistent state is mandatory.** The orchestrator must survive a restart mid-saga, which means persisting every step and its outcome — not holding it in memory.`,
+      difficulty: "hard",
+      tags: ["distributed-systems", "microservices", "saga", "system-design"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Saga choreography vs orchestration — when should you use which?",
+      answer: `The trade-off is **implicity and low coupling** against **traceability and control**.
+
+| | Choreography | Orchestration |
+|---|---|---|
+| Control flow | Emerges from event handlers | Explicit, declared |
+| Central component | None | Saga orchestrator |
+| Where is the workflow? | Scattered across services | In one file/table |
+| Coupling | Services unaware of each other | Orchestrator knows everything |
+| Adding a participant | New listener | Edit the saga |
+| Debuggability | Hard | Easy |
+| Scaling limit | ~3–5 services | No hard limit |
+| Single point of failure | None | The orchestrator |
+
+**Choose choreography when:**
+
+- Two or three services participate
+- Each service is independently owned by a different team
+- The flow is simple and unlikely to change
+- You value avoiding another deployed component
+
+**Choose orchestration when:**
+
+- Five or more services participate
+- The flow changes often, or has branching and conditional steps
+- You must answer "what state is this transaction in?" during an incident
+- Compensation must be reliable and auditable
+- A failed saga must not be able to fall through the cracks
+
+**The trap with choreography at scale:** a saga silently stalls when a consumer dies. Nobody is watching for "order created 3 hours ago, payment never completed". With orchestration that is one row with a stale timestamp — a trivial alert.
+
+**The trap with orchestration:** you have rebuilt a central coordinator, which is the coupling you left the monolith to escape. Keep it deliberately dumb. It should sequence and compensate, not contain business rules.
+
+**The pragmatic middle, and what I would ship:**
+
+\`\`\`text
+orchestrate the top-level business flow   (order → payment → inventory)
+choreograph within each step              (notification preferences, analytics)
+\`\`\`
+
+This keeps the cross-service transaction traceable while letting each service keep its own internals flexible.
+
+**One more consideration — team topology.** Orchestration puts the flow in one repo, which suits a single owning team. Choreography distributes it, which suits an organisation where no team owns the end-to-end journey. Pick the one matching how you are actually organised.`,
+      difficulty: "hard",
+      tags: ["distributed-systems", "microservices", "saga", "system-design"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How do microservices roll back when each one has its own database?",
+      answer: `They do not — not with a single transaction. Each database is committed independently, so a global \`ROLLBACK\` is **structurally impossible**.
+
+\`\`\`sql
+-- this rolls back ONLY this database's transaction
+BEGIN;  UPDATE orders SET ...;  ROLLBACK;
+\`\`\`
+
+There is no transaction that spans a PostgreSQL connection, a Mongo connection and a Redis instance in three processes.
+
+**The solution is the Saga: local transactions plus compensating actions**, coordinated either by choreography or orchestration.
+
+\`\`\`text
+order.created        → orders DB       ✅ committed
+payment.charged      → payments DB     ✅ committed
+inventory.reserved   → inventory DB    ❌ FAILED
+
+compensation:
+  payment.refund      → payments DB     (a NEW transaction, not a rollback)
+  order.cancel        → orders DB       (a NEW transaction)
+\`\`\`
+
+**Compensating actions are not inverses of the code — they are new business operations.** The payment row stays; a refund is recorded against it. That distinction matters for reconciliation, for disputes, and for your finance team.
+
+**Every saga needs a per-step state machine**, because you must know what to compensate and what has already been compensated:
+
+\`\`\`text
+PENDING → DONE
+        → COMPENSATING → COMPENSATED
+        → FAILED (terminal)
+\`\`\`
+
+Make compensation **idempotent**. Compensation runs during an incident, when retries are most likely, and a double refund is worse than the original failure.
+
+**Partition your failures by reversibility:**
+
+| Step | Reversible? | Strategy |
+|---|---|---|
+| Reserve inventory | Yes | Compensate |
+| Charge payment | Yes (refund) | Compensate |
+| Send email | No | **Pessimistic** — do it last |
+| Ship goods | No | **Pessimistic** — do it last |
+
+\`\`\`text
+irreversible steps go LAST, after everything compensatable has succeeded
+\`\`\`
+
+**The outbox pattern is the other half of the answer.** If a service writes to its database and then publishes an event, a crash between the two loses the event forever.
+
+\`\`\`text
+WRONG:  update DB → publish event     (crash here = event lost, state wrong)
+RIGHT:  update DB + write event to an outbox table, same transaction
+        separate process reads outbox → publishes → marks sent
+\`\`\`
+
+Now the state change and the intent to announce it commit atomically. This is not optional for any system using events across services.`,
+      difficulty: "hard",
+      tags: [
+        "microservices",
+        "distributed-systems",
+        "transactions",
+        "event-driven",
+      ],
+      is_top50: false,
+    },
+    {
+      question:
+        "What happens when one microservice goes down and thousands of requests keep coming?",
+      answer: `Without protection the failure is not contained. It **cascades**, and each service in the chain takes down the one before it.
+
+\`\`\`text
+payment-service is DOWN
+
+caller ──▶ order-service ──▶ payment-service (timeout after 30s)
+             │                     │
+             │ holds a thread for 30s  ← thread pool drains
+             │ 500 threads busy          now order-service cannot
+             ▼                          serve ANY request
+        500 Internal Server Error  ◀── new orders now fail too
+\`\`\`
+
+**Order-service did not crash. It ran out of capacity waiting on a dependency that was never going to answer.** That is the classic cascading failure, and the thread/connection exhaustion is what kills the victim.
+
+**Three patterns, in the order you should apply them:**
+
+**1. Timeout — the foundation.** A call with no timeout is a call that can hang forever.
+
+\`\`\`javascript
+// set it below your client's own deadline
+const PAYMENT_TIMEOUT = 500;   // ms, not seconds
+\`\`\`
+
+Layer your timeouts so each is smaller than the one calling it: DB 200ms → service 300ms → API 500ms → client 1s. Otherwise every layer times out simultaneously and you learn nothing about where the time went.
+
+**2. Circuit breaker — the real containment.** Stop calling a dependency that is already failing.
+
+\`\`\`text
+CLOSED ──failures > threshold──▶ OPEN (fail fast, no call made)
+  ▲                                   │
+  │                             reset timeout
+  │                                   ▼
+  └─────── probe succeeds ────── HALF_OPEN
+\`\`\`
+
+While open, calls are **rejected in microseconds** instead of blocking for the timeout. Threads are never held, so order-service keeps serving everything that does not need payment.
+
+**3. Retry — carefully, and last.** Retries are traffic. Every retry against a dead service adds load to a service that is already down.
+
+\`\`\`javascript
+// retries need: bounded attempts, exponential backoff, FULL jitter, and an idempotency key
+\`\`\`
+
+Retry storms are the mechanism by which a slow dependency becomes a dead one. Always cap retries as a fraction of total traffic.
+
+**Also: bulkhead isolation.** Give each dependency its own pool.
+
+\`\`\`text
+no bulkhead:    payment pool full → every thread blocked → search also dies
+with bulkhead:  payment pool full → payment requests rejected
+                search has its own pool, keeps working
+\`\`\`
+
+**Order of operations matters:** timeouts first (they bound every failure), then the circuit breaker (they stop the cascade), then retries (they handle transient blips). A circuit breaker without timeouts will not trip, because calls hang rather than fail.`,
+      difficulty: "medium",
+      tags: [
+        "microservices",
+        "reliability",
+        "cascading-failure",
+        "distributed-systems",
+      ],
+      is_top50: false,
+    },
+    {
+      question:
+        "How does rate limiting protect a backend when an API suddenly goes viral?",
+      answer: `It acts as a **gatekeeper on the front door** — the cheapest possible place to reject load, before it consumes any expensive resource.
+
+\`\`\`text
+no rate limit:      1M requests ──▶ app ──▶ DB  →  pool exhausted, everything dead
+with rate limit:    1M requests ──▶ 100k pass, 900k rejected in ~1ms at the edge
+\`\`\`
+
+The rejection is almost free because it happens before any database work, any business logic, and any memory allocation. That is why rate limiting is a scalability feature and not just an abuse feature.
+
+**What it protects against:**
+
+1. **Bot scraping** — a crawler pulling your entire catalogue overnight
+2. **Credential stuffing** — thousands of login attempts per second against one endpoint
+3. **Accidental loops** — a client bug retrying in a tight loop
+4. **Cost amplification** — one customer's runaway job consuming your API quota
+5. **DDoS from a single tenant** — the neighbour effect in multi-tenant systems
+
+**\`429 Too Many Requests\` is the correct response**, and it should carry a hint:
+
+\`\`\`http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 30
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1735689600
+\`\`\`
+
+\`Retry-After\` matters most. Without it, every client picks its own retry interval and you get a synchronised retry storm.
+
+**Set limits per dimension, because one global limit is useless:**
+
+| Dimension | Protects against |
+|---|---|
+| Per API key | One customer's runaway traffic |
+| Per user | One account's automation |
+| Per IP | Unauthenticated bots |
+| Per endpoint | Expensive routes — search, export, reports |
+
+\`\`\`text
+per IP        → protects the aggregate
+per API key   → protects fairness between tenants
+per endpoint  → protects your expensive operations
+\`\`\`
+
+**Legitimate traffic must not be punished.** A limit of 60/min is fine for a chat message endpoint and fatal for a data export. Different endpoints need wildly different budgets, and a limit that blocks real users will be raised by whoever is paged — not by whoever set it.
+
+**Rate limits are a business decision as much as a technical one.** A free tier and an enterprise customer on the same endpoint with the same limit will get you a support ticket.`,
+      difficulty: "easy",
+      tags: ["rate-limiting", "system-design", "reliability", "microservices"],
+      is_top50: false,
+    },
+    {
+      question:
+        "How does token bucket rate limiting track millions of requests without storing them?",
+      answer: `The algorithm stores a **count and a timestamp**, not a log of requests. That is the entire trick.
+
+\`\`\`javascript
+// token bucket
+tokens        = how many requests you may make right now   (bucket capacity)
+lastRefillAt  = when we last added tokens
+
+function allow(userId) {
+  const now = Date.now();
+  const elapsed = now - lastRefillAt;
+
+  // refill proportionally to elapsed time
+  tokens = Math.min(BUCKET_CAPACITY, tokens + (elapsed / 1000) * REFILL_RATE);
+  lastRefillAt = now;
+
+  if (tokens < 1) return false;   // empty → reject
+  tokens -= 1;
+  return true;
+}
+\`\`\`
+
+**Memory is O(users), not O(requests).** Ten million users cost ten million small counters — there is no per-request history anywhere.
+
+**Two parameters:**
+
+- **Bucket capacity** — how large a burst you tolerate. This is the burst allowance.
+- **Refill rate** — your sustained rate, e.g. 10 tokens/second = 10 req/sec sustained.
+
+\`\`\`text
+bucket 100, refill 10/s:
+  t=0     100 requests instantly   ← burst
+  then    10 requests/sec sustained ← steady rate
+\`\`\`
+
+**The behaviour is the reason to choose it.** A user who has been idle for a minute gets a fresh full bucket and can burst immediately. A user hammering continuously is held at exactly the refill rate.
+
+**In Redis, for a distributed system:**
+
+\`\`\`lua
+-- atomic: read, refill, check, decrement, write back
+local data    = redis.call('HMGET', KEYS[1], 'tokens', 'ts')
+local tokens  = tonumber(data[1])
+local ts      = tonumber(data[2])
+local now     = tonumber(ARGV[1])
+local rate    = tonumber(ARGV[2])
+local cap     = tonumber(ARGV[3])
+
+local filled = math.min(cap, tokens + (now - ts) / 1000 * rate)
+if filled < 1 then
+  redis.call('HSET', KEYS[1], 'tokens', filled, 'ts', now)
+  return 0
+end
+redis.call('HSET', KEYS[1], 'tokens', filled - 1, 'ts', now)
+return 1
+\`\`\`
+
+The Lua script is essential. Read-modify-write without it is a race — two requests both see the same token count and both spend it.
+
+**The alternative and why it loses:**
+
+| Algorithm | Memory | Weakness |
+|---|---|---|
+| Fixed window | O(users) | 2× burst at the boundary |
+| Sliding window log | O(users × requests) | Unbounded memory |
+| Sliding window counter | O(users) | Approximate |
+| **Token bucket** | O(users) | Slightly more complex |
+| Leaky bucket | O(users) | Smooths output, no bursting |
+
+**Fixed window's boundary bug**, for contrast: a limit of 100/min lets a client send 100 at 11:00:59 and 100 more at 11:01:00 — 200 requests in two seconds.`,
+      difficulty: "medium",
+      tags: ["rate-limiting", "redis", "system-design", "distributed-systems"],
+      is_top50: false,
+    },
+    {
+      question: "How does sliding window rate limiting work?",
+      answer: `Sliding window counts requests over a **continuously moving** interval, so there is no boundary to exploit.
+
+\`\`\`text
+fixed window (1 min):   [─────]  ← 60s blocks, reset all at once
+                        ✔ count resets at the edge → burst
+
+sliding window (60s):   [─────]
+                          ←─────>
+                          continuous count over the last 60 seconds
+\`\`\`
+
+**Three implementations, with different trade-offs:**
+
+**1. Sliding window log** — store every request timestamp.
+
+\`\`\`javascript
+function allow(key, limit, windowMs) {
+  const now = Date.now();
+  const cutoff = now - windowMs;
+  const hits = redis.zrangebyscore(\`rl:\${key}\`, 0, now);   // ZSET of timestamps
+
+  // drop everything that has aged out of the window
+  redis.zremrangebyscore(\`rl:\${key}\`, 0, cutoff);
+
+  if (redis.zcard(\`rl:\${key}\`) < limit) {
+    redis.zadd(\`rl:\${key}\`, now, \`\${now}:\${Math.random()}\`);
+    return true;
+  }
+  return false;
+}
+\`\`\`
+
+Exact, and simple. But memory is **O(users × requests per window)** — a busy user at 1000 req/min is 1000 sorted-set members, per user.
+
+**2. Sliding window counter** — two fixed windows plus a weighted interpolation. This is what most systems use.
+
+\`\`\`javascript
+// weight the *previous* window by how much of it still overlaps
+const currentCount = 1;
+const previousCount = getPrevWindow(key);
+const overlap = 1 - ((now % windowMs) / windowMs);   // fraction still in scope
+
+const estimate = previousCount * overlap + currentCount;
+return estimate < limit;
+\`\`\`
+
+\`\`\`text
+limit 100/min, at t=30s into the window:
+  prev window had 60 requests, 50% still overlaps → 30
+  current window has 20
+  estimate = 50  →  under the limit, allow
+\`\`\`
+
+Memory is **O(users)** — two counters per key. The cost is a small approximation, which is acceptable for almost every use case.
+
+**3. Sliding window with a hybrid** — log for low-volume keys, counter for high-volume ones. More complexity than most teams need.
+
+**Why not just use a fixed window?** Because the boundary burst is trivially exploitable: a client that times its requests can send double the limit in a fraction of a second. Under a sliding window, that same client is limited to the true rate.
+
+**If you implement this yourself:** get the boundary logic right and it is easy to get wrong. Fix the window relative to the *first* request rather than to the wall clock, so every user gets their own aligned window and there is no shared boundary at all.`,
+      difficulty: "medium",
+      tags: ["rate-limiting", "redis", "system-design", "algorithms"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Where should rate limiting live — API gateway, backend, or both?",
+      answer: `**Both, for different reasons.** Most production incidents come from having only one.
+
+| Layer | Good at | Blind to |
+|---|---|---|
+| API gateway / CDN | Volumetric abuse, DDoS, bots | Business rules, per-user fairness |
+| Application | Per-user, per-tenant, per-endpoint limits | Traffic arriving before it reaches you |
+
+**The gateway is your first line of defence** because it rejects before your compute is involved:
+
+\`\`\`text
+100k requests/sec arrive
+  gateway rejects 95% at the edge in ~1ms, using near-zero app capacity
+\`\`\`
+
+\`\`\`bash
+# nginx: coarse protection, no application logic
+limit_req_zone $binary_remote_addr zone=perip:10m rate=20r/s;
+\`\`\`
+
+It can also rate limit by API key or JWT claim, not just IP, so per-tenant fairness is possible at this layer.
+
+**But the gateway cannot know your business rules:**
+
+\`\`\`text
+gateway: 1000 req/min per API key          ← can't express this
+app:     free tier  60 req/min
+         pro tier   600 req/min
+         export endpoint  2 req/min regardless of plan
+\`\`\`
+
+Layer-specific limits, plan-based limits, and anything reading your database all require application code.
+
+**Application-level limits, DB-backed:**
+
+\`\`\`typescript
+// global across all instances — a gateway or local limiter cannot do this
+const key = \`rl:\${userId}\`;
+const allowed = await limiter.check(key, plan.limitPerMinute);
+if (!allowed) throw new TooManyRequests();
+\`\`\`
+
+This is the only place you can enforce a limit that is **globally correct**. An in-memory counter on each of 50 instances gives you 50× your intended limit — the classic mistake.
+
+**Recommendation for most systems:**
+
+| Situation | Setup |
+|---|---|
+| Public API, single region | Gateway alone is usually fine |
+| Multi-instance, per-user limits | Application, DB-backed |
+| Paid tiers with different quotas | Gateway (coarse) + application (per-plan) |
+| Regulated or high-risk endpoints | Application only — you need the audit trail |
+
+**Watch the failure mode:** when your gateway and application limits disagree, users see inconsistent rejections and support cannot explain them. Set the gateway limit **higher** than the application limit so the application, which knows the plan tier, always makes the final call.`,
+      difficulty: "medium",
+      tags: ["rate-limiting", "system-design", "microservices", "architecture"],
+      is_top50: false,
+    },
+    {
+      question: "How would you apply the CAP theorem to a payment application?",
+      answer: `**Start by restating CAP correctly.** You do not choose two of three. Under a network partition — which is not optional, it is a fact of life — you choose between consistency and availability.
+
+\`\`\`text
+"Choose 2 of 3"          ← the common misstatement
+"Partition tolerance is mandatory; during a P, choose C or A"   ← correct
+\`\`\`
+
+**The scenario.** Your ledger database is in region A. Region A loses network connectivity to region B, which holds a read replica.
+
+\`\`\`text
+user in region B taps Pay
+  → can it reach the ledger?  NO — partition
+
+  Option C (consistency): reject the payment.  "We cannot verify your balance."
+  Option A (availability): accept it, write locally, reconcile later.
+\`\`\`
+
+**A payment system should choose C.** Money is the one domain where accepting an unverified transaction is worse than refusing a legitimate one.
+
+\`\`\`text
+"declined, try again"
+  vs
+"accepted — we will debit you once we reconnect"
+
+The second one can double-charge a customer and is not recoverable by a support ticket.
+\`\`\`
+
+**Now the interesting part: availability is still non-negotiable elsewhere.** A total outage on a payment API is also unacceptable. So the real design is *partitioned availability*:
+
+\`\`\`text
+AUTHENTICATION      → C  (must verify identity)
+BALANCE CHECK       → C  (must not overdraw)
+PAYMENT CAPTURE     → C  (atomic, idempotency key)
+READ: balances      → A  (serve slightly stale, clearly labelled)
+READ: receipts      → A  (lagging is acceptable)
+\`\`\`
+
+**Not every field gets the same guarantee** — see the eventual-consistency question. That per-field decision is what CAP actually looks like in a real design.
+
+**The guarantee you can still make during a partition:** you cannot verify the balance, but you *can* prevent double-spend.
+
+\`\`\`text
+1. accept the request (available)
+2. record it in a local pending ledger with an idempotency key
+3. tell the user "pending confirmation"
+4. reconcile on reconnect; auto-refund if the balance was insufficient
+\`\`\`
+
+That gives availability for the write path and consistency for the outcome — with the user honestly told it is pending.
+
+**Where CAP does not apply:** a single MySQL database is strongly consistent by default and makes no partition choice, because there is nothing to partition from. CAP is about *distributed* systems.
+
+**The answer an interviewer wants:** name a field, describe the partition, state what you sacrifice, and explain how the customer experience stays acceptable. "For payments, consistency — and availability is recovered through pending records plus auto-refund."`,
+      difficulty: "medium",
+      tags: ["distributed-systems", "cap-theorem", "consistency", "payments"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Why does the same application need different consistency guarantees in different places?",
+      answer: `Because **the cost of being wrong is not uniform across fields**. Consistency is bought with latency and reduced availability, so you spend it only where it matters.
+
+\`\`\`text
+balance      → wrong by ₹1  = a support ticket
+             → wrong by ₹50,000 = a real incident
+
+like count   → wrong by 1    = nobody notices
+             → wrong for 5 min = nobody notices
+
+stock count  → wrong by 1    = an oversold order you must refund
+\`\`\`
+
+**Three tiers, three techniques:**
+
+**1. Strong consistency — for money and identity.**
+
+\`\`\`sql
+BEGIN;
+  UPDATE accounts SET balance = balance - 5000 WHERE id = 1 AND balance >= 5000;
+  INSERT INTO ledger (user_id, amount) VALUES (1, -5000);
+COMMIT;
+\`\`\`
+
+The conditional \`AND balance >= 5000\` makes overdraft structurally impossible, atomically, with no read-then-write race.
+
+**2. Bounded staleness — for feeds and dashboards.**
+
+\`\`\`text
+replica lag < 2 seconds  → acceptable for a notifications feed
+\`\`\`
+
+Read from replicas, monitor the lag, and it is fine — as long as someone alerts when it exceeds the bound.
+
+**3. Eventual — for analytics and view counts.**
+
+\`\`\`text
+counts, recommendations, "who viewed this"
+\`\`\`
+
+These can be seconds or minutes behind with no user impact.
+
+**The same domain uses all three:**
+
+| Field | Guarantee | Why |
+|---|---|---|
+| Password | Strong, immediate | A stale session is a security hole |
+| Account balance | Strong | Money |
+| Order status | Read-your-writes | The user just paid |
+| Product reviews | Eventual, cached | Tolerable lag |
+| View counter | Eventual | Nobody checks |
+
+**The anti-pattern is picking one model for the whole system.** Strong-everywhere means every read hits the primary — you have built an expensive, slow, single point of failure. Eventual-everywhere means eventually you serve someone's wrong balance.
+
+**How to implement per-field guarantees cheaply:**
+
+\`\`\`javascript
+// pin a session to the primary for N seconds after a write
+await db.primary.update(balance);
+await session.set("readPrimaryUntil", Date.now() + 3000);
+\`\`\`
+
+\`\`\`typescript
+// type the guarantee, not just the value
+type Field<T, G extends "strong" | "eventual"> = { value: T; guarantee: G };
+\`\`\`
+
+**The point to make in an interview:** consistency is a per-field decision driven by business impact, not a global architectural setting. Systems that apply it uniformly get one of the two failure modes above.`,
+      difficulty: "easy",
+      tags: [
+        "distributed-systems",
+        "consistency",
+        "transactions",
+        "system-design",
+      ],
+      is_top50: false,
+    },
+    {
+      question: "What is CQRS and why do high-scale applications use it?",
+      answer: `CQRS splits every operation into a **command** (changes state) and a **query** (reads state), and lets the two use different models.
+
+\`\`\`text
+Command:  ChangeEmail        → validate, write, may fail
+Query:     GetUserProfile    → never fails, heavily optimised
+\`\`\`
+
+**The core problem it solves.** One model serving both directions forces compromises:
+
+- Reads want denormalised, wide, join-free shapes
+- Writes want normalised, constrained, invariant-preserving shapes
+- A single schema serving both ends up good at neither
+
+\`\`\`text
+users table normalised for writes  → querying it needs 5 joins
+denormalised for reads            → writes now have to maintain 5 copies
+\`\`\`
+
+**The read/write split:**
+
+\`\`\`text
+WRITE  ──▶ order-service     ──▶ orders DB       (normalised, transactional)
+            │
+            └──▶ publishes OrderCompleted
+                    │
+                    ▼
+         projection worker
+                    │
+                    ▼
+READ   ──▶ query-service      ──▶ read model DB  (denormalised, wide rows)
+\`\`\`
+
+Reads now hit a purpose-built shape. Joins disappear. The read model can be replicated and sharded independently of the write model.
+
+**The pattern that makes it work — the outbox.** Write the state change and the event in **one transaction**:
+
+\`\`\`sql
+BEGIN;
+  UPDATE orders SET status = 'paid' WHERE id = 42;
+  INSERT INTO outbox (type, payload) VALUES ('OrderPaid', '{"orderId":42}');
+COMMIT;
+-- separate process publishes from outbox → broker
+\`\`\`
+
+Publish-then-write loses events if you crash in between. Write-then-publish duplicates them if the publish is retried. The outbox makes both atomic.
+
+**When it is genuinely worth it:**
+
+- Read volume is many times the write volume
+- Reads need shapes the write model cannot efficiently provide
+- You want independent scaling: reads and writes scale differently
+
+**When it is over-engineering:**
+
+- Moderate traffic — a well-indexed relational schema handles most systems
+- No replica and no reporting workload
+- You have not measured that reads are the bottleneck
+
+**You pay for every CQRS deployment:** eventual consistency between write and read models, operational complexity, and debugging across an asynchronous gap where a user writes then reads and sees stale data. Solve the last one with read-your-own-writes or by returning the write result directly.
+
+**CQRS is usually paired with event sourcing** — and can be used without it. That distinction trips people up; see the next question.`,
+      difficulty: "hard",
+      tags: ["system-design", "cqrs", "distributed-systems", "architecture"],
+      is_top50: false,
+    },
+    {
+      question:
+        "What is event sourcing and why is it commonly paired with CQRS?",
+      answer: `**Event sourcing stores the sequence of things that happened, not just the current state.** State is derived by replaying events.
+
+\`\`\`text
+conventional:
+  users table → one row per user, updated in place
+  current state only; history is gone
+
+event sourcing:
+  UserRegistered  { id, email }
+  PlanUpgraded    { id, plan: "pro" }
+  PasswordChanged { id, hash }
+  → UserRegistered + PlanUpgraded  ⇒  state = { id, email, plan: "pro" }
+\`\`\`
+
+**The Instagram example.** A like is not one row that goes from 0 to 1. It is an event. That single event can drive:
+
+\`\`\`text
+LikeCreated ──▶ notification (tell the author)
+             ──▶ feed ranking
+             ──▶ analytics counters
+             ──▶ recommendation model
+\`\`\`
+
+With a mutable \`likes\` table, every one of those consumers needs to know how to compute "what changed", which is precisely what the event already tells you.
+
+**Why it pairs with CQRS:** event sourcing is the *write* side, CQRS is the *split* that gives you a read model optimised for queries. Reading a stream of 10,000 events per page view is unacceptable, so you project into a denormalised table.
+
+\`\`\`text
+Event store (append-only)  ──projection──▶  read model (fast queries)
+        write side                           read side
+\`\`\`
+
+**Event streams are the system of record, and therefore unforgeable.** You cannot edit history without it being detectable. That is why it suits finance and audit. But it also means an incorrect event cannot be deleted — only compensated for with a correcting event.
+
+**What you gain:**
+
+- **Full audit trail** for free
+- **Time travel** — replay to any past state to answer "what did this look like on 3 March?"
+- **Retroactive projections** — build a new read model from history without touching the source
+- **Temporal queries** — trends and analytics without a separate pipeline
+
+**What it costs, honestly:**
+
+- **Eventual consistency** between the store and every projection
+- **Schema versioning.** Events are a public contract; changing one breaks historical replay. This is the single hardest operational problem.
+- **No ad-hoc SQL.** You cannot \`WHERE\` across events easily.
+- **Rebuilds are slow.** A projection over years of events needs backfill, not a \`TRUNCATE\` and reload.
+- **GDPR is awkward.** Deleting a user's data means not sourcing it in the first place.
+
+**The honest recommendation:** event sourcing is powerful and rarely necessary. Use it where history is genuinely first-class — ledgers, audit, compliance. For most CRUD applications, an audit-log table alongside normal state gives you 80% of the value at 10% of the cost.`,
+      difficulty: "hard",
+      tags: ["system-design", "cqrs", "event-driven", "distributed-systems"],
+      is_top50: false,
+    },
+    {
+      question:
+        "Why do companies like Netflix, Uber and Amazon use Apache Kafka?",
+      answer: `Because **direct service-to-service calls create tight coupling and cascading failures**. Kafka replaces \(A \`\`calls\`\` → \(B\) with \(A\) publishes → \(B\) subscribes.
+
+\`\`\`text
+WITHOUT a broker — synchronous coupling:
+
+  order-service ──gRPC──▶ inventory-service
+  order-service ──HTTP──▶ payment-service
+  order-service ──HTTP──▶ notification-service
+
+  inventory is down
+    → order-service waits, then errors
+    → every other integration is now on the same code path
+    → adding a 4th service means editing order-service again
+\`\`\`
+
+\`\`\`text
+WITH a broker — asynchronous, decoupled:
+
+  order-service ──▶ KAFKA (topic: orders)  ──▶ inventory-service
+                           │                ──▶ payment-service
+                           │                ──▶ notification-service
+                           └──▶ analytics
+
+  inventory is down → it stops consuming and its backlog builds.
+                     order-service never notices. Nothing else breaks.
+\`\`\`
+
+**What Kafka specifically buys over a plain queue:**
+
+1. **Durability** — messages are replicated and survive broker and consumer restarts
+2. **High throughput** — sequential disk writes and batching; millions of messages per second
+3. **Replay** — a consumer can rewind and reprocess. A queue deletes on read; a log retains
+4. **Fan-out** — many independent consumer groups, each getting every message
+5. **Ordering within a partition** — see the partition-selection question
+6. **Decoupling over time** — a consumer offline for an hour catches up; it does not fail
+
+**The price:** operations complexity. Kafka is a distributed log with partitions, consumer groups, offsets and rebalances — a significant commitment. A managed queue (SQS, RabbitMQ) is far simpler and correct for many workloads.
+
+\`\`\`text
+use a queue  → you need jobs delivered once, roughly in order
+use Kafka    → you need an event log others can replay, at high volume
+\`\`\`
+
+**Where direct calls are still right:** when the caller genuinely needs an immediate answer. Inventory *availability check* is synchronous. "Order was placed" notification is not. Conflating the two is the root of a lot of unnecessary coupling.
+
+**The design discipline:** be explicit about which interactions are commands (need a reply) and which are events (fire and forget). Kafka suits events; it is a poor substitute for a request/response contract.`,
+      difficulty: "medium",
+      tags: ["kafka", "distributed-systems", "microservices", "message-queues"],
+      is_top50: false,
+    },
+    {
+      question: "How does Kafka decide which partition a message goes to?",
+      answer: `By **hashing the message key modulo the partition count** — or round-robin when there is no key.
+
+\`\`\`javascript
+partition = hash(key) % partitionCount
+\`\`\`
+
+**No key → round-robin**, so ordering is not guaranteed across messages.
+\`\`\`text
+no key:   msg1→P0  msg2→P1  msg3→P2  msg4→P0   (spread, no ordering)
+\`\`\`
+
+**With a key → same key always lands in the same partition**, which is what gives you ordering.
+
+\`\`\`text
+key = "order-42"
+  order-42.created → P2
+  order-42.paid    → P2     ← same partition, so same order
+  order-42.shipped → P2
+\`\`\`
+
+**Ordering is per-partition only.** A consumer assigned P0 and P1 may process P1's message before P0's. So "preserve order for a given order id" means "key by order id", and nothing more.
+
+**Choosing the key is a real design decision**, and the obvious choice is often wrong:
+
+\`\`\`text
+key = userId    → all of one user's events in order.
+                   But a power user creates hot partitions: P5 gets 40% of traffic.
+key = orderId   → even spread, per-order ordering.
+                   Correct unless you genuinely need per-user ordering.
+\`\`\`
+
+**Hot partitions are the failure this causes.** With 100 partitions and 1M users, hashing by userId should spread evenly — but a few power users skew badly. Symptoms: most partitions idle while a couple sit at full lag, and scaling up does not help because the key still hashes to the same partition.
+
+\`\`\`text
+remedy: composite key    orderId + randomSuffix
+        → even spread, but you LOSE per-order ordering
+remedy: more partitions  → does not help, the key still maps to one
+\`\`\`
+
+You cannot have both perfect spread and per-key ordering without accepting that some keys are hot. Choose which one the business needs.
+
+**Partition count is effectively permanent.** It is baked into the key hash function. Changing it re-hashes everything and triggers a full rebalance. Set it generously at creation — you cannot easily reduce it later.
+
+**Consumer groups compound the effect:** each group receives every message, so three groups means three times the traffic and three times the storage.`,
+      difficulty: "hard",
+      tags: ["kafka", "distributed-systems", "message-queues", "scalability"],
+      is_top50: false,
+    },
+    {
+      question: "What happens when a Kafka broker crashes — is data lost?",
+      answer: `**No, if replication is configured.** Every partition is replicated across brokers, and exactly one replica is the **leader** that serves reads and writes.
+
+\`\`\`text
+topic: orders, partition P2, replication factor 3
+
+  Broker A  → leader for P2
+  Broker B  → follower
+  Broker C  → follower
+\`\`\`
+
+**When Broker A dies:**
+
+1. Its in-sync replicas become **eligible** for election
+2. One is promoted to leader — typically the highest-offset replica
+3. Clients reconnect and discover the new leader
+4. Consumers rebalance onto the new leader
+
+\`\`\`text
+Broker A (dead)      Broker B              Broker C
+  P2 leader   ✗     P2 leader ✓           P2 follower
+  P3 follower ✓     P3 leader             P3 follower
+\`\`\`
+
+**The ISR — In-Sync Replicas — is the safety mechanism.** A follower is only in the ISR if it has acknowledged every message the leader has written. Only ISR members are eligible to become leader.
+
+\`\`\`text
+acks=all  → a write is only acknowledged once all ISR replicas have it
+\`\`\`
+
+**If no in-sync replica remains, data IS lost** — and that is the failure ISR exists to make loud rather than silent.
+
+\`\`\`text
+replication factor 3, min.insync.replicas 2
+  → tolerates loss of 1 broker with no data loss
+  → refuses writes if only 1 replica is in sync (better than losing data)
+\`\`\`
+
+**The availability/consistency trade-off, explicitly:**
+
+| Config | Behaviour | Cost |
+|---|---|---|
+| \`replication.factor = 3\`, \`min.insync.replicas = 2\` | Safe, tolerates 1 broker loss | Slightly lower availability |
+| \`min.insync.replicas = 1\` | Keeps accepting writes with 2 replicas down | **Silent data loss risk** |
+
+Most teams should set \`min.insync.replicas = 2\` and accept losing availability during a broker failure. Availability without durability is not usually the trade you want.
+
+**Kafka's guarantee is at-least-once by default**, not exactly-once. Your consumer must be idempotent — dedupe by message id or upsert by key. Kafka transactions give exactly-once for Kafka-to-Kafka, but not for writes to your own database.
+
+**Monitor consumer lag**, not just broker health. A partition whose leader was replaced replays from the last committed offset, so lag can spike sharply right after a failover.`,
+      difficulty: "hard",
+      tags: ["kafka", "distributed-systems", "reliability", "message-queues"],
+      is_top50: false,
+    },
   ],
   "frontend-engineer": [
     // ──────── HTML & The DOM ────────

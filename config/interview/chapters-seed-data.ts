@@ -266,6 +266,15 @@ function bfsShortestPath(start, target) {
           "What is the difference between linear search and binary search?",
           "What are circular buffers and when would you use them?",
           "What is the difference between a static array and a dynamic array?",
+          "What is amortized time complexity and why does array push have it?",
+          "What are the time complexities of common operations on arrays, linked lists and hash maps?",
+          "What is a deque and how does it differ from a stack and a queue?",
+          "What is a hash collision and how are hash tables resilient to them?",
+          "What is a trie and when is it better than a hash set?",
+          "What are the binary tree traversals — inorder, preorder and postorder — and what is each used for?",
+          "What is the difference between recursion and iteration, and when should you use each?",
+          "What is stack overflow and how do you avoid it?",
+          "What is a directed acyclic graph and why does cycle detection matter?",
         ],
       },
     },
@@ -427,6 +436,15 @@ class LoadBalancer {
           "What is the difference between synchronous and asynchronous communication in distributed systems?",
           "Explain the concept of rate limiting and common algorithms used.",
           "What is database indexing and how does it improve query performance?",
+          "What are the ACID properties and why do they matter?",
+          "What is database normalization and what are the normal forms?",
+          "What is a read replica and when would you use one?",
+          "What is eventual consistency and how does it differ from strong consistency?",
+          "What is a circuit breaker and when would you use one?",
+          "What is autoscaling and how does it work?",
+          "What is high availability and how is it measured?",
+          "What is a service registry and how does service discovery work?",
+          "What is graceful degradation and why does it matter?",
         ],
       },
     },
@@ -640,6 +658,16 @@ Patterns are guidelines, not rules. Force-fitting a pattern where simple code su
           "Explain the Strategy pattern and when would you use it.",
           "What is the Decorator pattern and how does it work?",
           "What is the difference between tight coupling and loose coupling?",
+          "What is the Adapter pattern and when would you use it?",
+          "What is the Builder pattern and what problem does it solve?",
+          "What is the Command pattern and how does it differ from Strategy?",
+          "What is the State pattern and how does it avoid a giant conditional?",
+          "What is the Proxy pattern and how does it differ from Decorator?",
+          "What is the Template Method pattern?",
+          "What is the difference between reference equality and value equality?",
+          "What is a shallow copy versus a deep copy, and when does it matter?",
+          "What is the Liskov Substitution Principle?",
+          "What is the Null Object pattern?",
         ],
       },
     },
@@ -817,6 +845,15 @@ console.log(amdahlSpeedup(0.1, Infinity)); // 10x maximum
           "What is spooling and how does it work?",
           "What is the difference between paging and segmentation?",
           "Explain the concept of a system call and give examples.",
+          "What are the common CPU scheduling algorithms — FCFS, SJF, Round Robin and Priority?",
+          "What is starvation, and how is it different from deadlock?",
+          "What are zombie and orphan processes?",
+          "What are the main inter-process communication (IPC) mechanisms?",
+          "What is a critical section and what properties must a correct solution guarantee?",
+          "What is demand paging and how does it work?",
+          "What are page replacement algorithms — FIFO, LRU and Optimal — and how do they differ?",
+          "What is the TLB and why does it matter for memory performance?",
+          "What is the operating system page cache and how does it affect database performance?",
         ],
       },
     },
@@ -983,6 +1020,15 @@ class RaftNode {
           "What is a firewall and what types of firewalls exist?",
           "What is the difference between a hub, a switch, and a router?",
           "Explain the concept of a port number and list common ports.",
+          "What is a socket and how does it work?",
+          "What is the difference between latency and throughput?",
+          "What are the common causes of network latency and how do you diagnose them?",
+          "What is a network timeout and how should you handle one?",
+          "What is NAT and why is it needed?",
+          "What is connection pooling and keep-alive, and why do they matter for network performance?",
+          "What is a load balancer and how does it work?",
+          "What is the difference between encoding, encryption, and hashing?",
+          "What is compression caching (gzip, brotli) and how does it interact with CDNs?",
         ],
       },
     },
@@ -1069,6 +1115,26 @@ function twoSum(nums, target) {
           "Merge two sorted arrays — two-pointer technique with O(n) time and O(1) extra space",
           "Determine if a string is a palindrome — two pointers from both ends, handling alphanumeric characters only",
           "Find the maximum subarray sum (Kadane's algorithm) — explain the optimal O(n) approach",
+          "Check whether two strings are anagrams of each other — frequency counting with a character map in O(n)",
+          "Find the missing number in an array containing every number from 0 to n-1 — sum formula or XOR in one pass",
+          "Determine whether an array contains duplicate values — a Set gives O(n) instead of O(n²)",
+          "Validate balanced parentheses using a stack — push on an opening bracket, pop and match on a closing one",
+          "Find the single number in an array where every other element appears twice — XOR of all elements",
+          "Reverse a string in place using two pointers — O(1) extra space",
+          "Remove duplicates from a sorted array in place — a write index tracking the read index",
+          "Rotate an array to the right by k positions — the three-reversal trick",
+          "Move all zeroes to the end of an array while preserving the order of other elements — one pass, O(n)",
+          "Find the first non-repeating character in a string — two passes with a frequency map",
+          "Find the intersection of two sorted arrays — two pointers advancing the smaller element",
+          "Find the length of the longest substring with at most k distinct characters — sliding window with a frequency map",
+          "Determine whether an array can be partitioned into two subsets with equal sum — and why greedy fails",
+          "Sort an array containing only 0s, 1s and 2s in a single pass — Dutch National Flag algorithm",
+          "Find a contiguous subarray whose sum equals a target using prefix sums and a hash map — O(n)",
+          "Merge all overlapping intervals — sort by start, then sweep with a running maximum end",
+          "Find the k most frequent elements in an array — bucket sort by frequency in O(n)",
+          "Detect a cycle in a linked list using Floyd's slow and fast pointers — O(1) extra space",
+          "Find the longest common subsequence of two strings — memoisation on two indices and why greedy fails",
+          "How do you approach an unfamiliar coding problem in an interview — clarify, brute force, then optimise",
         ],
       },
     },
@@ -1245,6 +1311,26 @@ git reflog                      # View all HEAD movements (safety net)
           "What is the difference between git reset, git revert, and git restore?",
           "Explain a branching strategy you have used — describe the workflow and its trade-offs",
           "How do you remove a file from git history that contains sensitive information?",
+          "What is Git and what problem does version control solve?",
+          "What is the difference between `git init` and `git clone`?",
+          "Explain Git's three areas — the working directory, the staging area, and the repository",
+          "What is a commit, and what does the commit hash represent?",
+          "What does HEAD mean in Git?",
+          "How do you create a branch and switch to it?",
+          "What is the difference between `git fetch` and `git pull`?",
+          "What is a remote in Git and how do you configure one?",
+          "What is `.gitignore` and how does it work?",
+          "What does `git stash` do and when would you use it?",
+          "What does `git cherry-pick` do and when would you use it?",
+          "What is interactive rebase (`git rebase -i`) and what can you do with it?",
+          "How do you squash several commits into one before opening a pull request?",
+          "What does `git push --force` do, and why is it dangerous?",
+          "What is the difference between `git reset --soft`, `git reset --mixed` and `git reset --hard`?",
+          "What is `git bisect` and how do you use it to find a bad commit?",
+          "What is `git blame` and when is it useful?",
+          "What is a detached HEAD and how do you recover from it?",
+          "What is `git reflog` and how can it recover a commit you thought you lost?",
+          "How do you recover a branch that a teammate force-pushed away?",
         ],
       },
     },
@@ -1330,6 +1416,184 @@ Access-Control-Allow-Methods: GET, POST
           "Explain the difference between 301 and 302 redirects — when would you use each?",
           "What is CORS and why do we need it? — explain the preflight request and how servers enable cross-origin access",
           "What are the Core Web Vitals and why are they important for user experience?",
+          "What are the main HTTP methods and when would you use each one?",
+          "What is a URL and what are its main parts?",
+          "What is the critical rendering path?",
+          "What are the common HTTP status codes and their meanings?",
+          "What is the DOM and how does it work?",
+          "How does script placement affect page rendering?",
+          "How does the Fetch API work and how is it different from XMLHttpRequest?",
+          "Why is HTTPS important and how does TLS work?",
+          "What are cookies and how are they used for authentication?",
+          "What is XSS (Cross-Site Scripting) and what are its types?",
+          "What is a CSRF token and how does it prevent attacks?",
+          "What is Content Security Policy (CSP)?",
+          "What are security headers and which ones matter most?",
+          "What is HTTP Strict Transport Security (HSTS)?",
+          "What is HTTP parameter pollution?",
+          "What are HTTP caching headers and how do they work together?",
+          "What is the Vary header and when is it used?",
+          "What does the Age header indicate in HTTP caching?",
+          "What is the difference between a cache hit and a cache miss?",
+          "How do you optimize a web application for performance?",
+        ],
+      },
+    },
+    {
+      title: "Production Engineering & Incident Patterns",
+      content: {
+        overview:
+          'Concept chapters ask "what is X?" and this one asks "what happened at 03:14, and what made it better?" Real production incidents are rarely a single broken assumption - they are a missing index behind a slow query behind an exhausted connection pool behind an N+1 in an ORM relationship. This chapter walks through the failures that recur in production, in the shape they actually arrive, so the diagnosis becomes pattern-matching rather than guesswork. Each question states the symptom, the mechanism, and the design decision that prevents a recurrence.',
+        realLifeScenario:
+          "A dashboard took four hours to build and eight hours to seed. Every day at 03:00 a cron job starts, memory climbs steadily for twelve hours, and at 15:04 the container is OOM-killed. CPU never exceeds 15 percent. The database is idle. Disk usage is flat. Every alert is green right up until the process dies, and the next night it is identical. Nobody connects the fact that the failure always happens twelve hours after the 03:00 job starts, because the alerts have never been correlated with the job schedule. The job retains a Map at module scope, so it never releases the previous night's 500,000 order objects, and the process, being long-lived, never gets a fresh heap. The fix is two lines: scope the cache to the run, or run the job as a one-shot process that exits.",
+        explanation: `## How to use this chapter
+
+Read each question as a **diagnosis**, not a definition. The structure is always the same:
+
+\`\`\`text
+symptom   ->  what you would see in the dashboard or the pager
+mechanism ->  why it happens, at the level of the system
+fix       ->  the design decision that stops it recurring
+\`\`\`
+
+Skipping straight to the fix produces cargo-cult fixes. Understanding the mechanism is what lets you recognise the symptom when it appears somewhere you have not seen it before.
+
+## The recurring patterns
+
+**Query patterns.** \`SELECT *\` triples payload when someone adds a column. \`WHERE email = ?\` is fast on 3,000 rows and a 4 GB scan on 50 million. A missing index, a function applied to the indexed column, or stale statistics all produce an identical symptom. An N+1 query is invisible until you multiply by instance count.
+
+**Resource exhaustion.** The database sits at 30 percent CPU while the app times out, because the connection pool - not the database - is the ceiling, and that ceiling is set by latency rather than capacity. Loading a million rows OOMs a Node process because V8 has a hard heap ceiling and the failure is not catchable.
+
+**Concurrency.** Check-then-act produces a lost update, a double booking, or two duplicate payments. A missing \`WHERE\` on a \`DELETE\` has no code review defence except least privilege.
+
+**Scale.** Code that works for 100 users fails at a million because hidden constants were invisible at 100. Scaling out when the bottleneck is elsewhere multiplies load on that bottleneck: 50 servers times 10 queries per request is 500 queries, and 50 connection pools of 20 is 1,000 connections against a \`max_connections\` of 200.
+
+## What this chapter deliberately does not do
+
+It does not repeat the concept chapters. System Design already defines CAP, sharding and idempotency. This chapter asks what those mechanisms look like when they fail at 03:00 on a Sunday, which is a different question and the one an interviewer is actually asking.
+
+The frontend and product questions in the first half are here deliberately: multi-tenant domain routing, form data loss, scroll restoration, role-based UI and client-side authorisation are real production problems that interface and full-stack engineers are asked about constantly, and they sit naturally beside the backend material because the boundary between the two is where the bugs live.`,
+        keyPoints: [
+          "Diagnose before you fix: symptom, then mechanism, then design decision, in that order",
+          "Connection pool exhaustion, not database CPU, is usually the first bottleneck to appear",
+          "SELECT * triples payload on every read the moment someone adds a column",
+          "A 30 percent CPU database with timing-out requests means the pool is the ceiling, not the query",
+          "Check-then-act is a race; use one atomic statement or an explicit row lock",
+          "Scaling out multiplies load on the shared bottleneck - find it before you scale",
+          "Replicas are not backups: a bad DELETE propagates to every copy",
+        ],
+        tips: [
+          "Answer with the symptom first. 'The database is at 30 percent CPU' narrows the search enormously before you say a word about queries",
+          "Learn two or three mechanisms in depth - connection pools, N+1, and check-then-act - rather than all of them shallowly",
+          "For any incident question, state what you would measure next. Knowing the diagnosis path beats memorising the fix",
+          "Least privilege is the strongest defence against a missing WHERE clause, because it makes the mistake impossible rather than merely unlikely",
+          "A long-lived process running scheduled work needs a memory trend alert. A sawtooth that resets on restart is the fingerprint of a leak",
+        ],
+        sampleQuestions: [
+          "How do you build a multi-tenant application where each domain serves a different system?",
+          "What are interceptors actually used for in real frontend applications?",
+          "How do you manage local development and production API URLs?",
+          "How do you stop users losing a long form when they refresh the page?",
+          "How do you return a user to the same page and scroll position after they open a record?",
+          "How do you call two APIs in parallel, and how do you chain one after another?",
+          "How do you render different UI based on a user's role?",
+          "Why must you never rely on the frontend to secure an API?",
+          "How do you avoid an extra backend call on every keystroke in a search form?",
+          "Why is \`SELECT *\` a performance mistake in production?",
+          "Why does \`WHERE email = ?\` run fast locally but crawl in production?",
+          "Why does random indexing slow down inserts?",
+          "Why is \`console.log\` dangerous in production?",
+          "Why does the database sit at 30% CPU while the application times out?",
+          "Why does importing millions of rows in one transaction lock the tables?",
+          "Why does loading 10 lakh database records crash a Node.js app?",
+          "Why does uploading one large file crash the server?",
+          "How can a missing \`WHERE\` clause wipe a production database?",
+          "Why does a bot requesting \`page=100000\` take the database to 100% CPU?",
+          "How did a memory leak in a cron job crash production every night?",
+          "Why does the API time out when the server looks completely healthy?",
+          "Why did performance get worse after scaling from 2 servers to 50?",
+          "Why does code that works for 100 users fail with a million?",
+          "How does one server handle thousands of concurrent users?",
+          "How does Node.js handle thousands of concurrent requests on one thread?",
+          "How do multiple threads updating the same data corrupt application state?",
+          "Why do locks fix race conditions but slow down the backend?",
+          "How does pessimistic locking stop the last seat being sold twice?",
+        ],
+      },
+    },
+    {
+      title: "Distributed Systems in Production",
+      content: {
+        overview:
+          'Once a system spans more than one machine, the questions change from "is this code correct?" to "what does this system do when the network, a broker, or a replica misbehaves?" This chapter covers the failure modes that only appear at scale: money charged twice, a cache that stampedes, a saga that half-completes, a broker that crashes mid-partition, and a consistency guarantee that quietly differs per field. Every question is posed as a production symptom rather than a definition, because that is the shape these problems take in an interview and in an incident.',
+        realLifeScenario:
+          "A payments team ships a new checkout. Everything works for three days, then a customer reports being charged 50,000 rupees twice. The logs show two identical POST requests 31 seconds apart with the same Idempotency-Key. The first succeeded at t=0.9s; the response was lost in transit; the client's 30-second timeout fired and it retried. The server had no idempotency layer, so it processed the request again. Three days with no incident is not evidence of correctness, it is evidence that the network was quiet. The fix is a unique constraint on the key plus a stored response, so the retry returns the original outcome instead of doing the work. That single table would have prevented the incident, and the reason it was missing is that the happy path looked fine.",
+        explanation: `## The question behind every question here
+
+**What happens when this component is slow, dead, or lying?**
+
+That framing is what separates a junior answer from a senior one. \"What is a circuit breaker?\" tests recall. \"The payment service is down, the order service has 500 threads blocked on 30-second timeouts - what happens and how do you stop it?\" tests whether you can see the system.
+
+## The five failure families
+
+**1. Retries and duplication.** Idempotency keys are not about preventing duplicates in the database; they are about making the *client's retry safe*. Network failures are indistinguishable from successful-but-unacknowledged requests, so the server must dedupe by key, with a unique constraint rather than a SELECT, or two concurrent requests both pass the check. The same reasoning applies to retry storms: retries are load, not relief, so bound them, back off exponentially with full jitter, and cap retries as a fraction of total traffic.
+
+**2. Staleness and consistency.** Replication lag, cache TTLs and read replicas mean different users legitimately see different values. The decision is never "eventual or strong" globally, it is per field. Passwords and balances need strong; like counts and view totals do not. Read-your-own-writes is the technique that buys immediacy without giving up read scaling.
+
+**3. Partial failure.** Circuit breakers, bulkheads, timeouts and load shedding are all the same idea: contain the blast radius. Without them, one slow dependency consumes your thread pool and every other endpoint dies with it. Order matters - timeouts first, because a breaker with no timeout never trips.
+
+**4. Distributed transactions.** A single UPDATE cannot span three databases, so multi-service workflows use the Saga pattern: local transactions plus compensating actions, orchestrated or choreographed. Compensations are new business operations, not rollbacks. The transition point is 3 to 5 services, where implicit choreography stops being traceable.
+
+**5. Streaming and partitioning.** Kafka gives durability, replay and fan-out; it does not give global ordering, only ordering within a partition. Partition count is effectively permanent, hot keys defeat scaling out, and ISR is what stops a leader failure from becoming data loss.
+
+## What to take away
+
+Every answer here should end with a *decision and its cost*. \"Add an idempotency key\" is half an answer; \"an idempotency key plus a unique constraint, which costs one index and one lookup per write, and buys safe client retries\" is the answer.
+
+And in every case, ask what you would measure. The engineer who says \"I would look at consumer lag\" has told you more about readiness than one who lists three patterns.`,
+        keyPoints: [
+          "Idempotency keys make client retries safe; enforce them with a unique constraint, not a SELECT",
+          "Retries are load, not relief - bound them with backoff, full jitter and a retry budget",
+          "Timeouts must be layered, and smaller inside than out, or every layer times out at once",
+          "Consistency is decided per field, not per system; read-your-own-writes buys both",
+          "Cache stampede is a first-class failure mode - request coalescing is the actual fix",
+          "A single UPDATE cannot span databases; Saga uses local transactions plus compensating actions",
+          "Kafka orders within a partition only, and partition count is effectively permanent",
+        ],
+        tips: [
+          "Frame every answer as 'what happens when X is slow, dead, or lying' - that framing is what senior candidates demonstrate",
+          "Always state the cost of your fix. 'Add an idempotency key' is half an answer; name the index it costs",
+          "Know the difference between 401 and 403, and 429 and 503 - they imply different client behaviour",
+          "When discussing CAP, do not say 'pick two of three'. Say partition tolerance is mandatory and choose between consistency and availability during a partition",
+          "Finish with what you would measure. Consumer lag, pool utilisation and p99 often matter more than the pattern you choose",
+        ],
+        sampleQuestions: [
+          "Why can one payment request deduct money twice, and how do idempotency keys prevent it?",
+          "Is HTTP PATCH really idempotent?",
+          "Why is returning HTTP 200 for every API response a design mistake?",
+          "Why did the database update but the UI still shows old data?",
+          "Why does MySQL update successfully but users still see old data?",
+          "Why does one user see 101 likes while another sees 100?",
+          "Why do 1000 users hit the database when a single cache entry expires?",
+          "How does a small webhook timeout create a million requests in seconds?",
+          "Why does adding one more database force millions of records to move?",
+          "Why can a ₹50,000 payment succeed but the order still fail?",
+          "How does Saga choreography handle failures across microservices?",
+          "How does Saga orchestration handle transactions across many microservices?",
+          "Saga choreography vs orchestration — when should you use which?",
+          "How do microservices roll back when each one has its own database?",
+          "What happens when one microservice goes down and thousands of requests keep coming?",
+          "How does rate limiting protect a backend when an API suddenly goes viral?",
+          "How does token bucket rate limiting track millions of requests without storing them?",
+          "How does sliding window rate limiting work?",
+          "Where should rate limiting live — API gateway, backend, or both?",
+          "How would you apply the CAP theorem to a payment application?",
+          "Why does the same application need different consistency guarantees in different places?",
+          "What is CQRS and why do high-scale applications use it?",
+          "What is event sourcing and why is it commonly paired with CQRS?",
+          "Why do companies like Netflix, Uber and Amazon use Apache Kafka?",
+          "How does Kafka decide which partition a message goes to?",
+          "What happens when a Kafka broker crashes — is data lost?",
         ],
       },
     },
@@ -2841,6 +3105,26 @@ That last one is the tell. Most candidates recite the type list. The candidate w
           "What are the security considerations when using JWT?",
           "How do microservices handle authentication?",
           "What is the difference between stateful and stateless authentication?",
+          "What is OAuth 2.0?",
+          "What is the difference between encoding, encryption, and hashing?",
+          "What is salting in password hashing?",
+          "How does HTTP Basic Authentication work?",
+          "What is Digest Authentication?",
+          "What is SAML and how does it relate to SSO?",
+          "What is PKCE and when is it used?",
+          "How does LDAP work for authentication?",
+          "How do you implement token revocation?",
+          "What is the principle of least privilege?",
+          "How do you handle authentication in a REST API?",
+          "How can sessions be hijacked and how do you prevent it?",
+          "What is a session fixation attack?",
+          "What is the difference between horizontal and vertical authorization?",
+          "What is the difference between authentication bypass and privilege escalation?",
+          "What is the difference between authentication and session management?",
+          "What is Rate Limiting and how does it relate to authentication?",
+          "How do you handle caching for authenticated content?",
+          "Explain the difference between symmetric and asymmetric encryption in JWT.",
+          "How does Clerk handle authentication?",
         ],
       },
     },
