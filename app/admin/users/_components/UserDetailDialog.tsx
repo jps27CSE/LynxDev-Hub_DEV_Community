@@ -26,10 +26,16 @@ type UserDetailDialogProps = {
 
 function parseSkills(skills: unknown): string[] {
   if (!Array.isArray(skills)) return [];
-  return (skills as unknown[]).filter((s): s is string => typeof s === "string" && s.trim().length > 0);
+  return (skills as unknown[]).filter(
+    (s): s is string => typeof s === "string" && s.trim().length > 0,
+  );
 }
 
-export default function UserDetailDialog({ userId, open, onOpenChange }: UserDetailDialogProps) {
+export default function UserDetailDialog({
+  userId,
+  open,
+  onOpenChange,
+}: UserDetailDialogProps) {
   const [user, setUser] = useState<AdminUserDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +47,9 @@ export default function UserDetailDialog({ userId, open, onOpenChange }: UserDet
     try {
       const res = await fetch(`/api/admin/users/${id}`, { signal });
       if (!res.ok) {
-        const body = await res.json().catch(() => ({} as Record<string, unknown>));
+        const body = await res
+          .json()
+          .catch(() => ({}) as Record<string, unknown>);
         const msg =
           typeof body.error === "string" ? body.error : `Failed ${res.status}`;
         throw new Error(msg);
@@ -50,7 +58,8 @@ export default function UserDetailDialog({ userId, open, onOpenChange }: UserDet
       if (!signal.aborted) setUser(data);
     } catch (e: unknown) {
       if (e instanceof DOMException && e.name === "AbortError") return;
-      if (!signal.aborted) setError(e instanceof Error ? e.message : "Failed to load");
+      if (!signal.aborted)
+        setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
       if (!signal.aborted) setLoading(false);
     }
@@ -135,7 +144,9 @@ export default function UserDetailDialog({ userId, open, onOpenChange }: UserDet
           </div>
         ) : error ? (
           <div className="py-4 space-y-3">
-            <p className="text-sm text-muted-foreground">Unable to load user. Please retry.</p>
+            <p className="text-sm text-muted-foreground">
+              Unable to load user. Please retry.
+            </p>
             <Button size="sm" variant="outline" onClick={handleRetry}>
               Try again
             </Button>
@@ -157,11 +168,15 @@ export default function UserDetailDialog({ userId, open, onOpenChange }: UserDet
                 {user.subscription ? (
                   <Badge className="text-xs">{user.subscription}</Badge>
                 ) : (
-                  <span className="text-xs text-muted-foreground">no subscription</span>
+                  <span className="text-xs text-muted-foreground">
+                    no subscription
+                  </span>
                 )}
               </div>
               {user.bio && (
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">{user.bio}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
+                  {user.bio}
+                </p>
               )}
               {skills.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
@@ -187,7 +202,9 @@ export default function UserDetailDialog({ userId, open, onOpenChange }: UserDet
               </TabsList>
               <TabsContent value="enrollments" className="pt-3">
                 <div className="rounded-lg border bg-muted/20 p-4 space-y-2">
-                  <p className="text-sm font-medium">Enrollments · {user.enrollmentsCount}</p>
+                  <p className="text-sm font-medium">
+                    Enrollments · {user.enrollmentsCount}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {user.enrollmentsCount === 0
                       ? "No enrollments yet."
@@ -197,7 +214,9 @@ export default function UserDetailDialog({ userId, open, onOpenChange }: UserDet
               </TabsContent>
               <TabsContent value="feedback" className="pt-3">
                 <div className="rounded-lg border bg-muted/20 p-4 space-y-2">
-                  <p className="text-sm font-medium">Feedback · {user.feedbackCount}</p>
+                  <p className="text-sm font-medium">
+                    Feedback · {user.feedbackCount}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {user.feedbackCount === 0
                       ? "No feedback tickets submitted."
@@ -208,7 +227,9 @@ export default function UserDetailDialog({ userId, open, onOpenChange }: UserDet
             </Tabs>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground py-4">No user selected.</p>
+          <p className="text-sm text-muted-foreground py-4">
+            No user selected.
+          </p>
         )}
       </DialogContent>
     </Dialog>

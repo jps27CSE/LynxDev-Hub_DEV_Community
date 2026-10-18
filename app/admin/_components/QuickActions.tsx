@@ -1,10 +1,5 @@
 import Link from "next/link";
-import {
-  MessageSquare,
-  BarChart3,
-  Settings,
-  ExternalLink,
-} from "lucide-react";
+import { MessageSquare, BarChart3, Settings, ExternalLink } from "lucide-react";
 
 export default function QuickActions({ openTickets }: { openTickets: number }) {
   const actions = [

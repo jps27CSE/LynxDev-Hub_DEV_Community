@@ -18,6 +18,9 @@ export function JsonLd({ data }: { data: string }) {
   const safe = data.replace(/</g, "\\u003c");
 
   return (
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safe }} />
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: safe }}
+    />
   );
 }

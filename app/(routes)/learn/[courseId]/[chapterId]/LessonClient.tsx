@@ -70,7 +70,8 @@ export default function LessonClient({
   useEffect(() => {
     measureEditor();
     const observer = new ResizeObserver(measureEditor);
-    if (editorContainerRef.current) observer.observe(editorContainerRef.current);
+    if (editorContainerRef.current)
+      observer.observe(editorContainerRef.current);
     return () => observer.disconnect();
   }, [measureEditor]);
 
@@ -257,11 +258,7 @@ export default function LessonClient({
                 <RotateCcw className="w-4 h-4 mr-1" />
                 Reset
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleShowSolution}
-              >
+              <Button size="sm" variant="outline" onClick={handleShowSolution}>
                 <Eye className="w-4 h-4 mr-1" />
                 Show Solution
               </Button>
@@ -272,9 +269,7 @@ export default function LessonClient({
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border-b border-white/10 sticky top-0">
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
-                      runError
-                        ? "bg-red-500"
-                        : "bg-emerald-500 animate-pulse"
+                      runError ? "bg-red-500" : "bg-emerald-500 animate-pulse"
                     }`}
                   />
                   <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">

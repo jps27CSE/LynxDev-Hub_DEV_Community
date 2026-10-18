@@ -61,10 +61,7 @@ export function clampAdminUsersPage(page: number): number {
 }
 
 function escapeLike(input: string): string {
-  return input
-    .replace(/\\/g, "\\\\")
-    .replace(/%/g, "\\%")
-    .replace(/_/g, "\\_");
+  return input.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
 }
 
 function truncateSearch(input: string): string {

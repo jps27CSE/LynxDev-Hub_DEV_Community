@@ -108,7 +108,9 @@ export function EditorToolbar({
           className="h-7 px-2 sm:px-2 text-xs gap-1"
         >
           <Play className="w-3 h-3" />
-          <span className="hidden sm:inline">{running ? "Running..." : runLabel}</span>
+          <span className="hidden sm:inline">
+            {running ? "Running..." : runLabel}
+          </span>
           <span className="sm:hidden">{running ? "..." : runLabel}</span>
         </Button>
       </div>

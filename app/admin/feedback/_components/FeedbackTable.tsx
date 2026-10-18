@@ -87,10 +87,7 @@ export default function FeedbackTable({
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <Tabs
-          value={currentStatus}
-          onValueChange={(v) => updateParams(v, 1)}
-        >
+        <Tabs value={currentStatus} onValueChange={(v) => updateParams(v, 1)}>
           <TabsList className="w-full sm:w-auto">
             {STATUS_TABS.map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value}>
@@ -100,7 +97,10 @@ export default function FeedbackTable({
           </TabsList>
         </Tabs>
 
-        <form onSubmit={handleSearch} className="flex items-center gap-2 w-full sm:w-auto">
+        <form
+          onSubmit={handleSearch}
+          className="flex items-center gap-2 w-full sm:w-auto"
+        >
           <Input
             placeholder="Search tickets..."
             value={searchInput}
@@ -116,60 +116,65 @@ export default function FeedbackTable({
       <div className="rounded-lg border bg-card overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead className="w-12" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.length === 0 ? (
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                  No tickets found.
-                </TableCell>
+                <TableHead>Title</TableHead>
+                <TableHead>User</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead className="w-12" />
               </TableRow>
-            ) : (
-              data.map((ticket) => (
-                <TableRow key={ticket.id}>
-                  <TableCell className="font-medium max-w-[200px] truncate">
-                    {ticket.title}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {ticket.authorName}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{ticket.category}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      className={STATUS_BADGE[ticket.status ?? "open"] ?? ""}
-                      variant="outline"
-                    >
-                      {(ticket.status ?? "open").replace("_", " ")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-xs">
-                    {new Date(ticket.created_at ?? Date.now()).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setSelectedTicket(ticket)}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
+            </TableHeader>
+            <TableBody>
+              {data.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="text-center text-muted-foreground py-8"
+                  >
+                    No tickets found.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                data.map((ticket) => (
+                  <TableRow key={ticket.id}>
+                    <TableCell className="font-medium max-w-[200px] truncate">
+                      {ticket.title}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {ticket.authorName}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{ticket.category}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        className={STATUS_BADGE[ticket.status ?? "open"] ?? ""}
+                        variant="outline"
+                      >
+                        {(ticket.status ?? "open").replace("_", " ")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs">
+                      {new Date(
+                        ticket.created_at ?? Date.now(),
+                      ).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setSelectedTicket(ticket)}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
       </div>
 

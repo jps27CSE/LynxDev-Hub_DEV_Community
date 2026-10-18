@@ -32,7 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!course) return { title: "Course Not Found" };
   return {
     title: course.title,
-    description: course.description || `${course.title} — free course on LynxDEV.`,
+    description:
+      course.description || `${course.title} — free course on LynxDEV.`,
   };
 }
 

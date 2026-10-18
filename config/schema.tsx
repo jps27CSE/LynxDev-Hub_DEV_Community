@@ -169,7 +169,11 @@ export const feedbackTickets = mysqlTable(
     is_deleted: boolean("is_deleted").default(false),
   },
   (table) => [
-    index("feedback_user_idx").on(table.user_id, table.is_deleted, table.created_at),
+    index("feedback_user_idx").on(
+      table.user_id,
+      table.is_deleted,
+      table.created_at,
+    ),
     index("feedback_admin_list_idx").on(table.status, table.created_at),
   ],
 );

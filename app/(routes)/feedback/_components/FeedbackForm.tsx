@@ -5,20 +5,47 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Send, Bug, Lightbulb, MessageSquare, HelpCircle } from "lucide-react";
+import {
+  Loader2,
+  Send,
+  Bug,
+  Lightbulb,
+  MessageSquare,
+  HelpCircle,
+} from "lucide-react";
 
 const CATEGORIES = [
-  { value: "bug", label: "Bug", icon: Bug, color: "text-red-500 bg-red-500/10 border-red-500/20", activeColor: "text-red-500 bg-red-500/20 border-red-500/40" },
-  { value: "feature", label: "Feature", icon: Lightbulb, color: "text-amber-500 bg-amber-500/10 border-amber-500/20", activeColor: "text-amber-500 bg-amber-500/20 border-amber-500/40" },
-  { value: "feedback", label: "Feedback", icon: MessageSquare, color: "text-blue-500 bg-blue-500/10 border-blue-500/20", activeColor: "text-blue-500 bg-blue-500/20 border-blue-500/40" },
-  { value: "other", label: "Other", icon: HelpCircle, color: "text-muted-foreground bg-muted/50 border-border/50", activeColor: "text-foreground bg-muted border-border" },
+  {
+    value: "bug",
+    label: "Bug",
+    icon: Bug,
+    color: "text-red-500 bg-red-500/10 border-red-500/20",
+    activeColor: "text-red-500 bg-red-500/20 border-red-500/40",
+  },
+  {
+    value: "feature",
+    label: "Feature",
+    icon: Lightbulb,
+    color: "text-amber-500 bg-amber-500/10 border-amber-500/20",
+    activeColor: "text-amber-500 bg-amber-500/20 border-amber-500/40",
+  },
+  {
+    value: "feedback",
+    label: "Feedback",
+    icon: MessageSquare,
+    color: "text-blue-500 bg-blue-500/10 border-blue-500/20",
+    activeColor: "text-blue-500 bg-blue-500/20 border-blue-500/40",
+  },
+  {
+    value: "other",
+    label: "Other",
+    icon: HelpCircle,
+    color: "text-muted-foreground bg-muted/50 border-border/50",
+    activeColor: "text-foreground bg-muted border-border",
+  },
 ] as const;
 
-export default function FeedbackForm({
-  onCreated,
-}: {
-  onCreated: () => void;
-}) {
+export default function FeedbackForm({ onCreated }: { onCreated: () => void }) {
   const [category, setCategory] = useState("other");
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
@@ -41,7 +68,11 @@ export default function FeedbackForm({
       const res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category, title: title.trim(), message: message.trim() }),
+        body: JSON.stringify({
+          category,
+          title: title.trim(),
+          message: message.trim(),
+        }),
       });
 
       if (res.ok) {
@@ -67,7 +98,9 @@ export default function FeedbackForm({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <label className="text-xs font-medium text-muted-foreground">Category</label>
+          <label className="text-xs font-medium text-muted-foreground">
+            Category
+          </label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {CATEGORIES.map((c) => {
               const Icon = c.icon;
@@ -90,7 +123,9 @@ export default function FeedbackForm({
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-medium text-muted-foreground">Title</label>
+          <label className="text-xs font-medium text-muted-foreground">
+            Title
+          </label>
           <Input
             placeholder="Brief summary of your feedback"
             value={title}
@@ -104,7 +139,9 @@ export default function FeedbackForm({
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-medium text-muted-foreground">Message</label>
+          <label className="text-xs font-medium text-muted-foreground">
+            Message
+          </label>
           <Textarea
             placeholder="Describe your feedback in detail..."
             value={message}

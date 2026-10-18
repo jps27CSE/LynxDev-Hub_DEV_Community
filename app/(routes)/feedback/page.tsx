@@ -23,14 +23,15 @@ export default async function FeedbackPage({
   const params = await searchParams;
   const rawPage = params.page;
   const page =
-    rawPage !== undefined && /^\d+$/.test(rawPage)
-      ? parseInt(rawPage, 10)
-      : 1;
+    rawPage !== undefined && /^\d+$/.test(rawPage) ? parseInt(rawPage, 10) : 1;
 
   const dbUserId = await getDbUserIdByClerkId(userId);
   if (!dbUserId) redirect("/");
 
-  const { data, total, hasMore } = await getMyFeedback(dbUserId, clampPage(page));
+  const { data, total, hasMore } = await getMyFeedback(
+    dbUserId,
+    clampPage(page),
+  );
 
   return (
     <div className="w-full max-w-3xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6">
@@ -48,12 +49,15 @@ export default async function FeedbackPage({
             </span>
           </h1>
           <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-sm text-muted-foreground leading-relaxed">
-            Report bugs, request features, or share general feedback with the team.
+            Report bugs, request features, or share general feedback with the
+            team.
           </p>
           <div className="flex items-center gap-4 mt-3 sm:mt-4">
             <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
               <Plus className="w-3.5 h-3.5" />
-              <span>{total} {total === 1 ? "ticket" : "tickets"} submitted</span>
+              <span>
+                {total} {total === 1 ? "ticket" : "tickets"} submitted
+              </span>
             </div>
           </div>
         </div>

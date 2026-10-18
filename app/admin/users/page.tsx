@@ -14,7 +14,8 @@ import AdminPageWrapper from "../_components/AdminPageWrapper";
 
 export const metadata: Metadata = {
   title: "Manage Users",
-  description: "View and manage LynxDEV users — search, sort, and inspect enrollments and feedback.",
+  description:
+    "View and manage LynxDEV users — search, sort, and inspect enrollments and feedback.",
 };
 
 export const dynamic = "force-dynamic";
@@ -29,10 +30,18 @@ async function getAdminName(): Promise<string> {
 export default async function AdminUsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; sort?: string; page?: string; subscription?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    sort?: string;
+    page?: string;
+    subscription?: string;
+  }>;
 }) {
   const params = await searchParams;
-  const rawQ = typeof params.q === "string" ? params.q.trim().slice(0, MAX_SEARCH_LENGTH) : "";
+  const rawQ =
+    typeof params.q === "string"
+      ? params.q.trim().slice(0, MAX_SEARCH_LENGTH)
+      : "";
   const q = rawQ;
   const sort = parseAdminUsersSort(params.sort);
   const rawPage = params.page;
@@ -52,7 +61,12 @@ export default async function AdminUsersPage({
   let fetchError = false;
 
   try {
-    const result = await getUsersPaginated(q || undefined, sort, subscription, page);
+    const result = await getUsersPaginated(
+      q || undefined,
+      sort,
+      subscription,
+      page,
+    );
     data = result.data;
     total = result.total;
     hasMore = result.hasMore;

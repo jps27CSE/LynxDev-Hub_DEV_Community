@@ -6,9 +6,21 @@ export default async function InterviewStats() {
   const stats = await getInterviewStats();
 
   const items = [
-    { label: "Categories", value: stats?.categoryCount, color: "text-purple-600 dark:text-purple-500" },
-    { label: "Questions", value: stats?.questionCount, color: "text-purple-600 dark:text-purple-500" },
-    { label: "Top 50", value: stats?.top50Count, color: "text-yellow-600 dark:text-yellow-500" },
+    {
+      label: "Categories",
+      value: stats?.categoryCount,
+      color: "text-purple-600 dark:text-purple-500",
+    },
+    {
+      label: "Questions",
+      value: stats?.questionCount,
+      color: "text-purple-600 dark:text-purple-500",
+    },
+    {
+      label: "Top 50",
+      value: stats?.top50Count,
+      color: "text-yellow-600 dark:text-yellow-500",
+    },
   ];
 
   return (
@@ -32,7 +44,9 @@ export default async function InterviewStats() {
         <div className="flex items-end justify-between gap-2">
           {items.map((item) => (
             <div key={item.label} className="text-center min-w-0 flex-1">
-              <p className={`text-xl sm:text-2xl font-bold leading-none ${item.color}`}>
+              <p
+                className={`text-xl sm:text-2xl font-bold leading-none ${item.color}`}
+              >
                 {item.value ?? "\u2014"}
               </p>
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-1.5">

@@ -52,7 +52,10 @@ export default function DesigningScalableArchitecture() {
         <li>Someone bypasses it once, with a comment explaining why.</li>
         <li>The bypass becomes a pattern because there is no enforcement.</li>
         <li>The pattern becomes the convention.</li>
-        <li>Six months later the convention is the architecture, and nobody chose it.</li>
+        <li>
+          Six months later the convention is the architecture, and nobody chose
+          it.
+        </li>
       </OL>
 
       <P>
@@ -63,8 +66,8 @@ export default function DesigningScalableArchitecture() {
       </P>
 
       <Callout tone="note">
-        The test for an architecture rule is not whether it is good advice. It is
-        whether breaking it produces a <em>visible</em> cost. If the cost of
+        The test for an architecture rule is not whether it is good advice. It
+        is whether breaking it produces a <em>visible</em> cost. If the cost of
         violating a rule is only felt six months later by someone debugging, the
         rule is documentation, not architecture.
       </Callout>
@@ -78,16 +81,15 @@ export default function DesigningScalableArchitecture() {
 
       <P>
         The intuitive structure is to centralize permission checks in middleware
-        and let route handlers trust them. It looks clean. It also fails, because
-        a data accessor can be called from somewhere the middleware never
-        anticipated.
+        and let route handlers trust them. It looks clean. It also fails,
+        because a data accessor can be called from somewhere the middleware
+        never anticipated.
       </P>
 
       <P>
         Our admin authorization has a shape we are happy with: an allowlist
         sourced from the environment, a direct-ID fast path that avoids a query,
-        and — most importantly —{" "}
-        <strong>a fail-closed default</strong>.
+        and — most importantly — <strong>a fail-closed default</strong>.
       </P>
 
       <Code language="typescript">{`export const isAdmin = cache(async (userId: string): Promise<boolean> => {
@@ -151,9 +153,9 @@ export default function DesigningScalableArchitecture() {
 
       <P>
         That is fine, and worth writing down explicitly — because it changes how
-        you debug. Those <C>401</C> branches are not your auth boundary; they are
-        the second lock on the second door. If someone removes the proxy check,
-        the handlers still hold.
+        you debug. Those <C>401</C> branches are not your auth boundary; they
+        are the second lock on the second door. If someone removes the proxy
+        check, the handlers still hold.
       </P>
 
       <H2 id="principle-2">Principle 2 — Colocate by feature, not by layer</H2>
@@ -165,10 +167,10 @@ export default function DesigningScalableArchitecture() {
       </P>
 
       <P>
-        The failure is navigational. To answer &ldquo;where does chapter progress
-        get written?&rdquo; you search a directory of unrelated functions,
-        because everything that touches the database lives together regardless
-        of what it does.
+        The failure is navigational. To answer &ldquo;where does chapter
+        progress get written?&rdquo; you search a directory of unrelated
+        functions, because everything that touches the database lives together
+        regardless of what it does.
       </P>
 
       <div className="my-8 rounded-xl border border-border/40 overflow-hidden">
@@ -184,9 +186,7 @@ export default function DesigningScalableArchitecture() {
         <Fact label="components/">
           Reusable UI. Shadcn primitives plus app-specific components.
         </Fact>
-        <Fact label="context/">
-          Exactly one user-state context. Not two.
-        </Fact>
+        <Fact label="context/">Exactly one user-state context. Not two.</Fact>
       </div>
 
       <P>
@@ -197,17 +197,19 @@ export default function DesigningScalableArchitecture() {
       </P>
 
       <Callout tone="warning">
-        &ldquo;Just this one query needs the schema inline&rdquo; is how the rule
-        dies. It is genuinely faster, and it is genuinely fine — right up
+        &ldquo;Just this one query needs the schema inline&rdquo; is how the
+        rule dies. It is genuinely faster, and it is genuinely fine — right up
         until someone adds an index that four scattered queries need to know
         about.
       </Callout>
 
-      <H2 id="principle-3">Principle 3 — Server-first, and push interactivity down</H2>
+      <H2 id="principle-3">
+        Principle 3 — Server-first, and push interactivity down
+      </H2>
 
       <P>
-        The <C>&quot;use client&quot;</C> directive is not additive. Once a file is
-        marked, everything it imports and directly renders joins the client
+        The <C>&quot;use client&quot;</C> directive is not additive. Once a file
+        is marked, everything it imports and directly renders joins the client
         bundle.
       </P>
 
@@ -240,8 +242,8 @@ export default function DesigningScalableArchitecture() {
       </P>
 
       <P>
-        Our course data accessors caught errors and returned{" "}
-        <C>[]</C>. So during a database outage the catalog page rendered{" "}
+        Our course data accessors caught errors and returned <C>[]</C>. So
+        during a database outage the catalog page rendered{" "}
         <em>&ldquo;No courses available yet&rdquo;</em> — which is a confident,
         specific lie. The correct state and the failure state were
         indistinguishable.
@@ -277,26 +279,24 @@ export default function DesigningScalableArchitecture() {
       <H2 id="principle-5">Principle 5 — Make config explicit and typed</H2>
 
       <P>
-        Values that are decisions rather than code belong in{" "}
-        <C>config/</C>, expressed as unions so the compiler carries them:
+        Values that are decisions rather than code belong in <C>config/</C>,
+        expressed as unions so the compiler carries them:
       </P>
 
       <Code language="typescript">{`export const SITE_NOTICE_SEVERITIES = ["info", "warning", "critical"] as const;
 export type SiteNoticeSeverity = (typeof SITE_NOTICE_SEVERITIES)[number];`}</Code>
 
       <P>
-        A route can then accept only valid values, and a typo is a compile
-        error rather than a row that silently stores{" "}
-        <C>&quot;critical &quot;</C> with a trailing space and never renders as
-        intended.
+        A route can then accept only valid values, and a typo is a compile error
+        rather than a row that silently stores <C>&quot;critical &quot;</C> with
+        a trailing space and never renders as intended.
       </P>
 
       <H3>The validation strictness that matters</H3>
 
       <P>
-        When a form feeds a database upsert, every field is{" "}
-        <em>required</em> and none are <C>.optional()</C>. This is not
-        pedantry:
+        When a form feeds a database upsert, every field is <em>required</em>{" "}
+        and none are <C>.optional()</C>. This is not pedantry:
       </P>
 
       <Callout tone="warning">
@@ -325,7 +325,10 @@ export type SiteNoticeSeverity = (typeof SITE_NOTICE_SEVERITIES)[number];`}</Cod
         the second occurrence, but once the shape is genuinely settled. The
         shared error-response helpers in our API layer are five small functions
         that exist because writing{" "}
-        <C>NextResponse.json(&#123; error: &quot;...&quot; &#125;, &#123; status: 500 &#125;)</C>{" "}
+        <C>
+          NextResponse.json(&#123; error: &quot;...&quot; &#125;, &#123; status:
+          500 &#125;)
+        </C>{" "}
         fourteen slightly different ways was already costing us.
       </P>
 
@@ -357,9 +360,9 @@ export type SiteNoticeSeverity = (typeof SITE_NOTICE_SEVERITIES)[number];`}</Cod
 
       <Callout tone="trap" title="What this cost us">
         Two real defects on one feature passed <C>tsc</C> and were caught only
-        by reading the build output and by running the code. A review doc claimed
-        a sandbox was closed while a second execution path was still open.
-        Review discipline caught it — but a test would not have needed the
+        by reading the build output and by running the code. A review doc
+        claimed a sandbox was closed while a second execution path was still
+        open. Review discipline caught it — but a test would not have needed the
         luck.
       </Callout>
 
@@ -382,8 +385,8 @@ export type SiteNoticeSeverity = (typeof SITE_NOTICE_SEVERITIES)[number];`}</Cod
           error state.
         </LI>
         <LI>
-          Required-not-optional schemas for upserts, because{" "}
-          <C>undefined</C> is silently skipped by the ORM.
+          Required-not-optional schemas for upserts, because <C>undefined</C> is
+          silently skipped by the ORM.
         </LI>
         <LI>
           No test framework is a debt with a maintenance cost, not a neutral

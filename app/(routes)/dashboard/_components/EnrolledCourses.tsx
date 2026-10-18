@@ -21,14 +21,18 @@ const EnrolledCourses = ({
             <BookOpen className="w-7 h-7 sm:w-8 sm:h-8 text-muted-foreground" />
           </div>
           <div className="text-center">
-            <h3 className="font-semibold text-base sm:text-lg">No enrolled courses yet</h3>
+            <h3 className="font-semibold text-base sm:text-lg">
+              No enrolled courses yet
+            </h3>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-sm">
               Start your learning journey by enrolling in a course that
               interests you.
             </p>
           </div>
           <Link href="/courses">
-            <Button className="mt-2" size="sm">Browse Courses</Button>
+            <Button className="mt-2" size="sm">
+              Browse Courses
+            </Button>
           </Link>
         </div>
       </div>

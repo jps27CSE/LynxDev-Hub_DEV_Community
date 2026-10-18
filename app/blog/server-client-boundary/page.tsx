@@ -41,18 +41,18 @@ export default function ServerClientBoundary() {
       <H2 id="what-happened">What happened</H2>
 
       <P>
-        We built a global notice banner — an admin-toggled maintenance or warning
-        message shown above every page. The data layer lives in{" "}
+        We built a global notice banner — an admin-toggled maintenance or
+        warning message shown above every page. The data layer lives in{" "}
         <C>lib/site-notice.ts</C>, which reads a singleton row and projects it
         into a small public shape for the banner to render.
       </P>
 
       <P>
-        The banner is a client component: it has to read{" "}
-        <C>sessionStorage</C> to remember dismissals. So the banner needed the
-        severity type and the list of valid severity values. Those lived in{" "}
-        <C>lib/site-notice.ts</C>, which imports <C>config/db</C>, which creates
-        a <C>mysql2</C> connection pool.
+        The banner is a client component: it has to read <C>sessionStorage</C>{" "}
+        to remember dismissals. So the banner needed the severity type and the
+        list of valid severity values. Those lived in <C>lib/site-notice.ts</C>,
+        which imports <C>config/db</C>, which creates a <C>mysql2</C> connection
+        pool.
       </P>
 
       <Code language="tsx">{`// components/SiteNoticeBanner.tsx  — "use client"
@@ -79,15 +79,16 @@ import { SITE_NOTICE_SEVERITIES } from "@/lib/site-notice"; // not fine`}</Code>
       <P>
         This is the part worth sitting with. The code was genuinely
         type-correct. Importing a constant from a module is a legal operation.
-        Nothing about the <C>const SITE_NOTICE_SEVERITIES = [&quot;info&quot;, ...]</C>{" "}
+        Nothing about the{" "}
+        <C>const SITE_NOTICE_SEVERITIES = [&quot;info&quot;, ...]</C>{" "}
         declaration says where it is allowed to execute.
       </P>
 
       <P>
-        <C>tsc</C> answers:{" "}
-        <em>do these types line up?</em> The bundler answers:{" "}
-        <em>can every module in this graph run in the target environment?</em> Two
-        different questions. Only the second one catches this.
+        <C>tsc</C> answers: <em>do these types line up?</em> The bundler
+        answers:{" "}
+        <em>can every module in this graph run in the target environment?</em>{" "}
+        Two different questions. Only the second one catches this.
       </P>
 
       <P>
@@ -101,11 +102,11 @@ import { SITE_NOTICE_SEVERITIES } from "@/lib/site-notice"; // not fine`}</Code>
       <H2 id="the-fix">The fix, and why we moved the constant</H2>
 
       <P>
-        The obvious patch is to keep the vocabulary in{" "}
-        <C>lib/site-notice.ts</C> and have the client component read it from
-        there — which is what we would have done without the incident, because
-        it was already there. That patch is wrong, or rather, it works while
-        leaving the trap armed for the next person.
+        The obvious patch is to keep the vocabulary in <C>lib/site-notice.ts</C>{" "}
+        and have the client component read it from there — which is what we
+        would have done without the incident, because it was already there. That
+        patch is wrong, or rather, it works while leaving the trap armed for the
+        next person.
       </P>
 
       <P>
@@ -130,15 +131,15 @@ export type SiteNoticeSeverity = (typeof SITE_NOTICE_SEVERITIES)[number];`}</Cod
         </LI>
         <LI>
           <strong>The rule has to be mechanical.</strong> &ldquo;Be careful what
-          you re-export&rdquo; is advice. &ldquo;If a module transitively reaches{" "}
-          <C>config/db</C>, a client component may only{" "}
+          you re-export&rdquo; is advice. &ldquo;If a module transitively
+          reaches <C>config/db</C>, a client component may only{" "}
           <C>import type</C> from it&rdquo; is a rule that can be checked.
         </LI>
       </OL>
 
       <Callout tone="tip">
-        The general form of this rule is worth keeping: identify the modules that
-        reach Node built-ins, then constrain the import direction at that
+        The general form of this rule is worth keeping: identify the modules
+        that reach Node built-ins, then constrain the import direction at that
         boundary. One well-placed constraint beats a code review checklist that
         everyone eventually stops reading.
       </Callout>
@@ -147,9 +148,12 @@ export type SiteNoticeSeverity = (typeof SITE_NOTICE_SEVERITIES)[number];`}</Cod
 
       <OL>
         <LI>
-          <strong><C>import type</C> is always safe.</strong> Type-only imports
-          are erased and never enter the client graph. Reach for them
-          deliberately when a client component needs a shape but not a value.
+          <strong>
+            <C>import type</C> is always safe.
+          </strong>{" "}
+          Type-only imports are erased and never enter the client graph. Reach
+          for them deliberately when a client component needs a shape but not a
+          value.
         </LI>
         <LI>
           <strong>Keep vocabulary in zero-import modules.</strong> Constants,
@@ -164,7 +168,9 @@ export type SiteNoticeSeverity = (typeof SITE_NOTICE_SEVERITIES)[number];`}</Cod
           prop. Spreading the row would be one refactor away from a leak.
         </LI>
         <LI>
-          <strong>Never bridge a value across the boundary to save an import.</strong>
+          <strong>
+            Never bridge a value across the boundary to save an import.
+          </strong>
           The performance cost of one extra module is zero. The cost of a
           bundler failure is a broken build.
         </LI>
@@ -175,8 +181,8 @@ export type SiteNoticeSeverity = (typeof SITE_NOTICE_SEVERITIES)[number];`}</Cod
       <P>
         The notice row has an <C>updated_by</C> field holding a user identifier.
         Returning the row directly would have worked perfectly until someone
-        added <C>&#123;...record&#125;</C> to a response body. So the shared read
-        path returns a named projection:
+        added <C>&#123;...record&#125;</C> to a response body. So the shared
+        read path returns a named projection:
       </P>
 
       <Code language="typescript">{`export type ActiveSiteNotice = {
@@ -217,10 +223,10 @@ export const db = drizzle(mysql.createPool(poolConfig));`}</Code>
 
       <P>
         Server/Client boundaries fail quietly in a specific way: the failure is
-        not in the code you wrote, it is in the graph that code{" "}
-        <em>reaches</em>. Import graphs are invisible in review, invisible to
-        the type checker, and fully deterministic — which means the bug is not
-        intermittent, it is waiting for the next person to add one import.
+        not in the code you wrote, it is in the graph that code <em>reaches</em>
+        . Import graphs are invisible in review, invisible to the type checker,
+        and fully deterministic — which means the bug is not intermittent, it is
+        waiting for the next person to add one import.
       </P>
 
       <P>
@@ -233,7 +239,10 @@ export const db = drizzle(mysql.createPool(poolConfig));`}</Code>
         <LI>Constrain what may be imported from them, mechanically.</LI>
         <LI>Keep shared vocabulary in dependency-free modules.</LI>
         <LI>Project explicitly at the boundary instead of spreading rows.</LI>
-        <LI>Always read the build output — the bundler is the type checker you are missing.</LI>
+        <LI>
+          Always read the build output — the bundler is the type checker you are
+          missing.
+        </LI>
       </UL>
     </BlogLayout>
   );

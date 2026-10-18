@@ -89,7 +89,10 @@ async function ContinueLearning({ email }: { email: string }) {
             <div
               className={`w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl sm:rounded-2xl ${difficultyIconClass(current.course.difficulty)} flex items-center justify-center flex-shrink-0 ring-1 ring-border`}
             >
-              <CourseIcon title={current.course.title} className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
+              <CourseIcon
+                title={current.course.title}
+                className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7"
+              />
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-base sm:text-lg lg:text-xl font-display font-bold tracking-tight truncate">
@@ -110,7 +113,9 @@ async function ContinueLearning({ email }: { email: string }) {
 
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
             <div className="text-right">
-              <p className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight">{pct}%</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight">
+                {pct}%
+              </p>
               <p className="text-[10px] sm:text-[11px] text-muted-foreground">
                 {done}/{total}
               </p>

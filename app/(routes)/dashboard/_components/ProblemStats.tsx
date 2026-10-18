@@ -6,10 +6,26 @@ export default async function ProblemStats() {
   const stats = await getProblemStats();
 
   const items = [
-    { label: "Total", value: stats?.total, color: "text-emerald-600 dark:text-emerald-500" },
-    { label: "Easy", value: stats?.easy, color: "text-green-600 dark:text-green-500" },
-    { label: "Medium", value: stats?.medium, color: "text-yellow-600 dark:text-yellow-500" },
-    { label: "Hard", value: stats?.hard, color: "text-red-600 dark:text-red-500" },
+    {
+      label: "Total",
+      value: stats?.total,
+      color: "text-emerald-600 dark:text-emerald-500",
+    },
+    {
+      label: "Easy",
+      value: stats?.easy,
+      color: "text-green-600 dark:text-green-500",
+    },
+    {
+      label: "Medium",
+      value: stats?.medium,
+      color: "text-yellow-600 dark:text-yellow-500",
+    },
+    {
+      label: "Hard",
+      value: stats?.hard,
+      color: "text-red-600 dark:text-red-500",
+    },
   ];
 
   return (
@@ -33,7 +49,9 @@ export default async function ProblemStats() {
         <div className="flex items-end justify-between gap-2">
           {items.map((item) => (
             <div key={item.label} className="text-center min-w-0 flex-1">
-              <p className={`text-xl sm:text-2xl font-bold leading-none ${item.color}`}>
+              <p
+                className={`text-xl sm:text-2xl font-bold leading-none ${item.color}`}
+              >
                 {item.value ?? "\u2014"}
               </p>
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-1.5">

@@ -29,9 +29,8 @@ export default function RateLimitingServerless() {
       <Lead>
         Every rate limiter tutorial uses a Map. On a long-running Node server
         that works. On a serverless platform it is not slow or approximate — it
-        is{" "}
-        <em>not a rate limiter at all</em>, and it fails silently in the exact
-        direction that costs you money.
+        is <em>not a rate limiter at all</em>, and it fails silently in the
+        exact direction that costs you money.
       </Lead>
 
       <P>
@@ -52,8 +51,8 @@ export default function RateLimitingServerless() {
       <P>
         A user allowed 5 requests per minute who gets routed to four instances
         does not get 5 requests. They get 20 — 5 on each. Worse, the limits are
-        per instance, so a burst scales the allowance <em>linearly with load</em>{" "}
-        exactly when you most need it flat.
+        per instance, so a burst scales the allowance{" "}
+        <em>linearly with load</em> exactly when you most need it flat.
       </P>
 
       <Callout tone="warning">
@@ -101,12 +100,14 @@ export default function RateLimitingServerless() {
         mentor endpoint does not consume their progress budget.
       </P>
 
-      <H2 id="the-window">Fixed windows, and why the window is computed client-side</H2>
+      <H2 id="the-window">
+        Fixed windows, and why the window is computed client-side
+      </H2>
 
       <P>
-        The window start is not stored as &ldquo;when did this bucket begin&rdquo;
-        and compared against <C>now()</C>. It is{" "}
-        <em>quantized</em>:
+        The window start is not stored as &ldquo;when did this bucket
+        begin&rdquo; and compared against <C>now()</C>. It is <em>quantized</em>
+        :
       </P>
 
       <Code language="typescript">{`const windowStart = Math.floor(Date.now() / windowMs) * windowMs;
@@ -129,18 +130,18 @@ const bucket = \`user:\${userId}:\${scope}\`;`}</Code>
 
       <P>
         The trade-off is real and worth stating: fixed windows allow a burst of{" "}
-        <C>2 × limit</C> across a boundary — 5 requests at 11:59:59 and 5 more at
-        12:00:01. Sliding windows or token buckets eliminate this at the cost of
-        real state and more read-modify-write risk. For abuse control on
+        <C>2 × limit</C> across a boundary — 5 requests at 11:59:59 and 5 more
+        at 12:00:01. Sliding windows or token buckets eliminate this at the cost
+        of real state and more read-modify-write risk. For abuse control on
         self-service endpoints, the boundary burst is an acceptable trade for a
         fully atomic single statement.
       </P>
 
-      <H2 id="atomicity">The interesting part — increment and read in one statement</H2>
+      <H2 id="atomicity">
+        The interesting part — increment and read in one statement
+      </H2>
 
-      <P>
-        The naive version is wrong and wrong in a way that looks correct:
-      </P>
+      <P>The naive version is wrong and wrong in a way that looks correct:</P>
 
       <Code language="sql">{`-- DO NOT SHIP THIS
 SELECT count FROM rate_limits WHERE bucket = ?;        -- reads N
@@ -150,14 +151,14 @@ UPDATE rate_limits SET count = N + 1 WHERE bucket = ?; -- writes N+1, losing eve
 
       <P>
         Under concurrency that loses updates, so the limiter under-counts and
-        lets bursts through. The fix is to never read and never write
-        separately — do both in one atomic statement.
+        lets bursts through. The fix is to never read and never write separately
+        — do both in one atomic statement.
       </P>
 
       <P>
-        MySQL and TiDB have no <C>INSERT ... RETURNING</C>, so the usual answer is
-        to upsert and then select the row. That reintroduces the race. Instead we
-        use the <C>LAST_INSERT_ID()</C> trick: the server maintains a
+        MySQL and TiDB have no <C>INSERT ... RETURNING</C>, so the usual answer
+        is to upsert and then select the row. That reintroduces the race.
+        Instead we use the <C>LAST_INSERT_ID()</C> trick: the server maintains a
         per-connection variable, and setting it as part of the upsert makes the
         new value readable on the <em>same pinned connection</em> that performed
         the write.
@@ -266,8 +267,8 @@ ON DUPLICATE KEY UPDATE
       <H2 id="responding">Responding properly</H2>
 
       <P>
-        A 429 without usable headers forces clients into guesswork. We return the
-        full state:
+        A 429 without usable headers forces clients into guesswork. We return
+        the full state:
       </P>
 
       <Code language="typescript">{`return NextResponse.json(
@@ -296,8 +297,8 @@ ON DUPLICATE KEY UPDATE
           scales with traffic.
         </LI>
         <LI>
-          One row per (user, scope), not per request — the table stays bounded by
-          user count.
+          One row per (user, scope), not per request — the table stays bounded
+          by user count.
         </LI>
         <LI>
           Quantize the window and expiry becomes free: no cleanup job, and the
@@ -311,9 +312,7 @@ ON DUPLICATE KEY UPDATE
           Decide the failure direction on purpose. Ours is closed, and we say so
           in a comment.
         </LI>
-        <LI>
-          Limit where it is worth the round-trip, not on every request.
-        </LI>
+        <LI>Limit where it is worth the round-trip, not on every request.</LI>
       </UL>
     </BlogLayout>
   );
