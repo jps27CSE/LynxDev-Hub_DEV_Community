@@ -44,13 +44,15 @@ Recorded first, and deliberately, because a gap report that only lists failures 
 | # | Gap | Evidence | Severity |
 |---|---|---|---|
 | 1.1 | **CI never runs on your work** | `.github/workflows/ci.yml:3-7` triggers on `push`/`pull_request` against `master` only. Development happens on `development-branch`, so the admin module, the blog module and the system-design spec have had zero automated verification | 🔴 P0 |
-| 1.2 | **CI's only style gate is permanently red** | `npm run format:check` fails **53 files** and is a step at `ci.yml:37-38`, so the workflow fails on every run | 🔴 P0 |
+| 1.2 | ~~**CI's only style gate is permanently red**~~ | **Resolved** — `npx prettier --write .` applied to 53 files; `format:check` now exits 0. Verification in §11 | ✅ Fixed |
 | 1.3 | No tests, no `test` script, no CI test step | — | 🔴 P0 |
 | 1.4 | No linter at all | ESLint is not installed and no config exists. `next lint` was removed in Next 16, so there is no linting path at all | 🟠 P1 |
 | 1.5 | CI is fragile | `ci.yml:17-20` requires a `CI/CD` environment plus `DATABASE_URL`. If the secret is unset, `next build` **fails** rather than skipping | 🟠 P1 |
 | 1.6 | Schema drift is undetectable in CI | `drizzle-kit` is never run by the workflow; a missing migration surfaces at runtime, in production | 🟡 P2 |
 
 > **A gate that always fails is worse than no gate.** It teaches the team to ignore CI, which is why the formatting failure sat in Known Debt for weeks instead of being a two-minute fix. The same logic applies to 1.1: a CI badge that never runs is indistinguishable from no CI, only more comfortable.
+
+> **Update:** 1.2 is now fixed (§11), but 1.1 is not — CI still only triggers on `master`. Until 1.1 lands, the format gate is green locally and still unverified in automation, so 1.1 remains the binding constraint on this section.
 
 `.agent/feature-tracker.md` records the failing-file count as **45**. It is now **53**. That number is already stale, and any specific count will be obsolete the moment the next file is edited — see the remediation note in §7.
 
@@ -186,8 +188,8 @@ Ordered by ratio of risk-removed to effort. Each row is independently shippable.
 | Phase | Work | Files | Why here |
 |---|---|---|---|
 | **1** | README rewrite | `README.md` | Cheapest high-impact item. Front door for every future reader, including you |
-| **1** | Un-break the format gate | repo-wide, 53 files | Own commit, exactly as Known Debt prescribes. Restores an honest CI signal |
-| **1** | CI triggers on `development-branch` | `.github/workflows/ci.yml:3-7` | Until this exists, no later CI work is observable |
+| **1** | ~~Un-break the format gate~~ | repo-wide, 53 files | **Done** (§11). Own commit, exactly as Known Debt prescribes. Restores an honest CI signal |
+| **1** | CI triggers on `development-branch` | `.github/workflows/ci.yml:3-7` | **Next.** Until this exists, no later CI work is observable |
 | **2** | `npm test` + tests for `parse-id`, `editor`, `config/system-design` | `package.json`, 3 test files | Closes the untested security boundaries |
 | **2** | Add CI `test` step | `.github/workflows/ci.yml` | Only after `npm test` exists, or the gate just moves |
 | **3** | Dependabot | `.github/dependabot.yml` | 7 majors behind is a ticking clock, and auto-PRs cost no attention |
@@ -209,6 +211,40 @@ Stated so the report is not trusted beyond its evidence:
 - **No performance measurement** was taken — bundle size, Core Web Vitals, and route-level timings are all unassessed. Vercel Speed Insights is installed but its data was not read.
 - **Accessibility was not assessed** beyond confirming no tooling exists (no axe, no testing-library). This is likely a real gap given dark-mode-only UI, but it is unquantified.
 - **Log-shipping and alerting configuration** on Vercel was not inspected.
+
+---
+
+## 11. Remediation log
+
+Appended as work lands, so this report does not repeat the staleness it criticises in §9.
+
+### 1.2 — Format gate re-established
+
+**Change:** `npx prettier --write .` across 53 files, committed on its own as the Known Debt entry required. No dependency, no config change, no behavioural change.
+
+**Verified by running, not reasoning:**
+
+| Check | Result |
+|---|---|
+| `npm run format:check` | exit 0 — "All matched files use Prettier code style" |
+| `npm run check:blog-toc` | 51/51 anchors resolve, 5/5 posts registered |
+| `npm run typecheck` | exit 0 |
+| `npm run build` | exit 0, route table unchanged |
+| Rendered HTML vs `ec0cb14` | all 5 blog posts render **byte-identical** |
+
+**Why the last row is the one that matters.** The diff removed 13 `{" "}` repo-wide. Those are React's explicit-space markers, and "Prettier only removes them when a literal space is equivalent" is an argument, not evidence — this report criticises exactly that kind of reasoning elsewhere. So `HEAD` and the formatted tree were built separately and their prerendered HTML diffed:
+
+- Extracted text content was identical on all five posts immediately.
+- The DOM differed only in `<!-- -->` comments, which is how React serialises a `{" "}` that became a literal space.
+- Normalising those, plus the per-build nonce and asset hashes, made all five posts byte-identical.
+
+Prettier converts `{" "}` to a literal space only when surrounding reflow makes one redundant. Confirmed, not assumed.
+
+**Ordering note.** This was done *before* 1.1 deliberately. Flipping the CI trigger first would have turned every push on `development-branch` red for a reason already fixed in the working tree — which re-teaches the "ignore CI" habit 1.2 exists to kill. Green first, then visible.
+
+**Known Debt.** The tracker's `format:check fails on 45 files` entry is removed — it was false twice over (45 was already stale, then became 0). It is **not** replaced with a claim that the gate is *enforced*, because it is not yet: `ci.yml` still triggers on `master` only. That claim becomes true in 1.1, and should be written then.
+
+**Still open in this section:** 1.1. Everything in Phases 2–5 remains unobservable until CI runs on the branch work actually happens on.
 
 ---
 
