@@ -41,6 +41,12 @@ jobs:
       - name: Format check
         run: npm run format:check
 
+      # Before Build on purpose: the whole suite runs in well under a second,
+      # so a regression should fail in seconds rather than after a 2-minute
+      # build. Nothing here needs a database.
+      - name: Test
+        run: npm test
+
       - name: Build
         run: npm run build
 

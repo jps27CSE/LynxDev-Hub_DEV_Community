@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
     "check:blog-toc": "tsx scripts/check-blog-toc.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

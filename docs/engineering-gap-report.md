@@ -43,16 +43,16 @@ Recorded first, and deliberately, because a gap report that only lists failures 
 
 | # | Gap | Evidence | Severity |
 |---|---|---|---|
-| 1.1 | ~~**CI never runs on your work**~~ | **Addressed in the tree, awaiting first observed run** — `ci.yml` now triggers on `master` **and** `development-branch` for both `push` and `pull_request`, plus `workflow_dispatch` so the gate can be exercised before it gates anything. **Not** marked resolved: a workflow edit is a claim, not a measurement. Verification in §11 | 🟡 P1 |
+| 1.1 | ~~**CI never runs on your work**~~ | **Resolved** — `ci.yml` triggers on `master` **and** `development-branch` for both `push` and `pull_request`, plus `workflow_dispatch`. **Closed by observation, not by edit**: CI #31 ran green on `development-branch` at `3462517`, which also proves the `CI/CD` environment has no required reviewers (a gated one would queue instead of completing). Verification in §11 | ✅ Fixed |
 | 1.2 | ~~**CI's only style gate is permanently red**~~ | **Resolved** — `npx prettier --write .` applied to 53 files; `format:check` now exits 0. Verification in §11 | ✅ Fixed |
-| 1.3 | No tests, no `test` script, no CI test step | — | 🔴 P0 |
+| 1.3 | ~~No tests, no `test` script, no CI test step~~ | **Addressed in the tree, awaiting first observed run** — `npm test` on `node:test` + `tsx`, **zero new dependencies**; 45 tests across 3 files, gated in CI between `Format check` and `Build`. Not marked resolved: CI has not yet run this step on `development-branch`. Verification in §11 | 🟡 P1 |
 | 1.4 | No linter at all | ESLint is not installed and no config exists. `next lint` was removed in Next 16, so there is no linting path at all | 🟠 P1 |
 | 1.5 | CI is fragile | `ci.yml:21-24` requires a `CI/CD` environment plus `DATABASE_URL`. **Now confirmed by measurement** (§11): with `DATABASE_URL` unset the build exits 1 — `/interview` is statically prerendered and its chapter query throws rather than degrading. The DB secret is load-bearing, not a convenience | 🟠 P1 |
 | 1.6 | Schema drift is undetectable in CI | `drizzle-kit` is never run by the workflow; a missing migration surfaces at runtime, in production | 🟡 P2 |
 
 > **A gate that always fails is worse than no gate.** It teaches the team to ignore CI, which is why the formatting failure sat in Known Debt for weeks instead of being a two-minute fix. The same logic applies to 1.1: a CI badge that never runs is indistinguishable from no CI, only more comfortable.
 
-> **Update:** 1.2 is fixed (§11) and 1.1 is addressed in the tree (§11). 1.1 is **not** closed until a green run is actually observed on `development-branch` — until then the format gate is green locally and still unverified in automation, so 1.1 remains the binding constraint on this section.
+> **Update:** 1.2 and 1.1 are both closed (§11) — 1.1 by CI #31 going green on `development-branch`, which is the observation the format-gate Known Debt entry was waiting on. **That entry's enforcement claim is now true** and has been written. 1.3 is addressed in the tree and unverified in automation, so the honest summary of this section is: the pipeline observes the branch and runs two gates; a third is staged.
 
 `.agent/feature-tracker.md` records the failing-file count as **45**. It is now **53**. That number is already stale, and any specific count will be obsolete the moment the next file is edited — see the remediation note in §7. §11 removed the stale entry entirely rather than replacing `45` with `53`.
 
@@ -81,12 +81,14 @@ This is the cheapest high-impact item in the entire report, and the only one who
 
 | # | Gap | Evidence | Severity |
 |---|---|---|---|
-| 3.1 | Zero tests anywhere in the repo | No framework, no script, no test files | 🔴 P0 |
-| 3.2 | **Security boundaries are untested** | `lib/parse-id.ts:6` gates every dynamic route param; `lib/editor.ts:115` `buildSandboxedSrcDoc` builds the iframe sandbox that lesson code runs inside | 🔴 P0 |
+| 3.1 | ~~Zero tests anywhere in the repo~~ | **Addressed in the tree** — 45 tests, 14 suites, across 3 files in `tests/`. `npm test` runs `node:test` through `tsx`. Verification in §11 | 🟡 P1 |
+| 3.2 | ~~**Security boundaries are untested**~~ | **Addressed in the tree** — all three named targets covered: `lib/parse-id.ts`, `lib/editor.ts:115`, and `config/system-design/registry.ts` (the last was not in the original list; see §11). One boundary is **not** covered and cannot be from a unit test — see the caveat below. Verification in §11 | 🟠 P1 |
 | 3.3 | No coverage or mutation measurement | — | 🟡 P2 |
 | 3.4 | No API-route integration tests | 18 routes, 0 tests | 🟡 P2 |
 
-### 3.2 expanded — why `parse-id` deserves a test today
+> **3.2 is narrower than it looks, and the narrowing is not closable by adding more tests.** The assertion that actually protects the learner is the `sandbox="allow-scripts"` attribute on the consuming `<iframe>` (`components/editor/BrowserPreview.tsx:37`, `app/(routes)/learn/[courseId]/[chapterId]/LessonClient.tsx:307`). That lives in `.tsx` and cannot be asserted from a unit test. `tests/editor.test.ts` documents this in-file rather than leaving it to look like coverage: **passing the editor suite does not mean lesson code is contained.** Closing this properly needs a component or E2E layer — deliberately out of scope per §8.
+
+### 3.2 expanded — why `parse-id` deserved a test
 
 `parsePositiveInt` claims in its own doc comment to reject `"1.5"`, `"1abc"` and `""`. It does. Probing it further found behaviour that is **correct but undocumented and almost certainly accidental**:
 
@@ -97,11 +99,15 @@ This is the cheapest high-impact item in the entire report, and the only one who
 | `"+12"`, `" 12 "`, `"12.0"` | `12` | lenient whitespace/sign |
 | `"٣"` (Arabic-Indic digit) | `null` | correctly rejected |
 
-Harmless in practice — no route has an id of `0x10` — but it is unpinned behaviour discovered by reading, which is exactly the category of thing a test converts from accident to decision.
+Harmless in practice — no route has an id of `0x10` — but it was unpinned behaviour discovered by reading, which is exactly the category of thing a test converts from accident to decision. **Now pinned** in `tests/parse-id.test.ts`, labelled *"accepted by `Number()`, never chosen"*, so that tightening the parser fails the suite loudly instead of arriving as a refactor side effect. Tightening to `/^\d+$/` is the correct rule and remains unapplied: it changes behaviour across every route at once and deserves its own commit.
 
-### 3.2 — the harness is free
+### 3.1 — the harness was free
 
-`node:test` driven through `tsx` was verified working in this repo: `@/` path aliases resolve, no new dependency, no config. **"No test framework" is not a blocker** — it is a five-line `package.json` entry.
+`node:test` driven through `tsx` was verified working in this repo: `@/` path aliases resolve, no new dependency, no config. **"No test framework" was not a blocker** — it was a one-line `package.json` entry. **The finding was correct and is now acted on**; the suite runs 45 tests in ~0.4s.
+
+### 3.3 — mutation testing, which §8 did not anticipate
+
+§8 recommends *against* Jest/Vitest/Playwright as ceremony. That judgement is right about *dependencies*. But a suite that has never been observed failing is an untested gate — the same defect §11 records for `check:blog-toc`. Each target was therefore deliberately broken and re-run: `Number()`→`parseInt()` failed 6 tests, dropping the `<head>` stylesheet injection failed 2, and reverting `Object.hasOwn` to a truthiness guard failed 9. The gate bites; that is now evidence rather than assumption. Coverage *percentage* is still not measured, and per §8 still should not gate a merge.
 
 ---
 
@@ -150,7 +156,8 @@ An initial read of this suggested *15 of 18 routes had silent, unlogged 500s*. T
 |---|---|---|---|
 | Tests gate merges | ✅ | ❌ none | **Gap** |
 | Lint gate merges | ✅ | ❌ not installed | **Gap** |
-| CI runs on every branch | ✅ | ⚠️ `master` + `development-branch`, unverified in automation | **Closing** |
+| CI runs on every branch | ✅ | ✅ `master` + `development-branch`, observed green | **Match** |
+| Tests gate merges | ✅ | ⚠️ 45 tests exist and run in CI; unverified in automation, and no branch protection makes green *required* | **Closing** |
 | Green gate required to merge | ✅ | ⚠️ gate now runs on the right branch, but no branch protection — green is still not *required* | **Gap** |
 | Automated dependency updates | ✅ Dependabot | ❌ | **Gap** |
 | Error tracking in production | ✅ | ❌ | **Gap** |
@@ -189,17 +196,17 @@ Ordered by ratio of risk-removed to effort. Each row is independently shippable.
 |---|---|---|---|
 | **1** | README rewrite | `README.md` | Cheapest high-impact item. Front door for every future reader, including you |
 | **1** | ~~Un-break the format gate~~ | repo-wide, 53 files | **Done** (§11). Own commit, exactly as Known Debt prescribes. Restores an honest CI signal |
-| **1** | CI triggers on `development-branch` | `.github/workflows/ci.yml:4-11` | **In tree** (§11). Closes only once a green run is observed on the branch. Until then no later CI work is observable |
-| **1** | `check:blog-toc` wired into CI | `.github/workflows/ci.yml` | **In tree** (§11). A free gate for a drift class Known Debt already records, never wired up. Must run *after* `Build` |
-| **2** | `npm test` + tests for `parse-id`, `editor`, `config/system-design` | `package.json`, 3 test files | Closes the untested security boundaries |
-| **2** | Add CI `test` step | `.github/workflows/ci.yml` | Only after `npm test` exists, or the gate just moves |
+| **1** | ~~CI triggers on `development-branch`~~ | `.github/workflows/ci.yml:4-11` | **Done** (§11). Closed by CI #31 going green, not by the edit |
+| **1** | ~~`check:blog-toc` wired into CI~~ | `.github/workflows/ci.yml` | **Done** (§11). A free gate for a drift class Known Debt already records, never wired up. Must run *after* `Build` |
+| **2** | ~~`npm test` + tests for `parse-id`, `editor`, `config/system-design`~~ | `package.json`, 3 test files | **Done** (§11). Zero new dependencies; 45 tests |
+| **2** | ~~Add CI `test` step~~ | `.github/workflows/ci.yml` | **In tree** (§11). Runs before `Build` so a regression fails in seconds, not minutes. Unverified in automation |
 | **3** | Dependabot | `.github/dependabot.yml` | 7 majors behind is a ticking clock, and auto-PRs cost no attention |
 | **3** | Harden CSP, add missing headers | `next.config.ts` | Closes 4.1/4.2 |
 | **3** | Unify logging onto `log` | 6 route files | Makes the I.8 redaction guarantee actually hold |
 | **4** | ESLint + CI lint step | `eslint.config.mjs`, `package.json`, workflow | Needs 2 devDependencies; useful, not urgent |
-| **5** | Stale branch cleanup, PR template, migration-drift check | remote, `.github/` | Process polish |
+| **5** | Stale branch cleanup, PR template, migration-drift check | remote, `.github/` | Process polish. The migration-drift check is now cheap — a gate finally exists to receive it — but **its precondition is unmet and must be measured first**: `npm exec drizzle-kit generate` on a clean tree has never been run, so it is unknown whether the repo is currently drifted. Adding the gate blind risks a red CI on day one |
 
-**On the stale `45` in Known Debt:** replace it with a statement that the gate is *enforced* (CI runs `format:check` and must pass), not with the number `53`. A number goes stale the next time a file is edited; that is the exact failure mode the tracker already records for hand-maintained anchors and interview-question counts.
+**On the stale `45` in Known Debt:** replace it with a statement that the gate is *enforced* (CI runs `format:check` and must pass), not with the number `53`. A number goes stale the next time a file is edited; that is the exact failure mode the tracker already records for hand-maintained anchors and interview-question counts. **Written** — CI #31 ran `format:check` and passed on `development-branch`.
 
 ---
 
@@ -212,7 +219,8 @@ Stated so the report is not trusted beyond its evidence:
 - **No performance measurement** was taken — bundle size, Core Web Vitals, and route-level timings are all unassessed. Vercel Speed Insights is installed but its data was not read.
 - **Accessibility was not assessed** beyond confirming no tooling exists (no axe, no testing-library). This is likely a real gap given dark-mode-only UI, but it is unquantified.
 - **Log-shipping and alerting configuration** on Vercel was not inspected.
-- **No CI run on `development-branch` has been observed.** The §11 entry for 1.1 records local, command-level verification only. The edited workflow has never executed under real Actions conditions, so its behaviour there — including the `CI/CD` environment gate — is unconfirmed.
+- **No CI run has yet exercised the new `test` step.** §11 records local, command-level verification for 1.3 only. CI #31 predates it. The same rule that kept 1.1 open until #31 went green keeps 1.3 open now.
+- **CI #31 was observed via its aggregate check status, not its step log.** GitHub fails the job if any step fails, so step-level green follows — but `gh` is not installed on this machine, so the log itself was not read.
 
 ---
 
@@ -284,6 +292,83 @@ The generalisable lesson is the sibling of one already in Known Debt (*`npm run 
 **`environment: CI/CD` left unchanged, deliberately.** Removing it was considered, on the reasoning that a build needing neither database nor secret would be more robust. Measurement killed that: the build does need the database, and dropping the line would have silently broken env-scoped secret resolution. Altering secret-access semantics is not in scope for "flip the trigger", and should not be bundled into a change whose point is making a gate visible.
 
 **Open in this section:** confirm the `CI/CD` environment has no **required reviewers**. If it does, runs queue indefinitely instead of failing fast, and 1.1 would present as permanently "in progress" rather than broken — a failure mode that looks like progress. `gh` is not installed locally, so this was not checkable from the working tree.
+
+---
+
+### 1.1 — closed by observation
+
+The entry above withheld the closure deliberately. It is now closed, and not by the edit — by a run.
+
+**CI #31** executed on `development-branch` at `3462517` and passed. That single observation discharges three separate open questions at once:
+
+| Question it answers | How |
+|---|---|
+| Does CI actually run on the working branch? | The run exists |
+| Does `CI/CD` have required reviewers? | **No** — a gated environment would queue the job indefinitely instead of completing it |
+| Is the format gate now *enforced*, not merely green locally? | `format:check` ran as a step and the job passed |
+
+The third row is what the Known Debt format-gate entry had been waiting on since it was written. That entry's wording was conditional — *"record the enforcement claim when a green CI run is observed on `development-branch`, not when the workflow file changes"* — and the condition has now occurred. The claim is written.
+
+**What this still does not give.** No branch protection exists, so a red PR can still be merged. The gate produces a signal; nothing compels anyone to read it. That is gap 6.3, unchanged.
+
+**Evidence grade:** the aggregate check status, not the step log — `gh` is not installed here. GitHub fails the job if any step fails, so step-level green follows, but the log was not read.
+
+---
+
+### 1.3 + 3.1 + 3.2 — a test harness, zero dependencies
+
+**Change:** one line in `package.json`, three new files under `tests/`, one CI step. No new dependency, no config file, no framework.
+
+```json
+"test": "node --import tsx --test \"tests/**/*.test.ts\""
+```
+
+**Verified by running, in workflow order:**
+
+| Step | Result |
+|---|---|
+| `npm test` | exit 0 — **45 tests, 14 suites, ~0.4s** |
+| `npm test` with `DATABASE_URL` unset | exit 0, 45/45 — no test file reaches `config/db` |
+| `npm run typecheck` | exit 0 |
+| `npm run format:check` | exit 0 (caught 2 unformatted test files first; fixed with `prettier --write tests/`) |
+| `npm run build` | exit 0 |
+| `npm run check:blog-toc` | exit 0 |
+
+**The database check is here because I got the equivalent question wrong last time.** During 1.1 I asserted the build did not need a database, on the strength of one call site I had already checked, and measurement contradicted it. So this suite was run with `DATABASE_URL` deliberately blanked rather than reasoned about. It passes, and `grep` confirms no transitive path from any test to `config/db`. That is why the step can sit *before* `Build`: it needs neither a database nor a network, and a regression fails in seconds instead of after a two-minute build.
+
+#### The gate was mutation-tested before being trusted
+
+A suite that has never been observed failing is an untested gate — the defect §11 already records for `check:blog-toc`. Each target was deliberately broken and re-run:
+
+| Mutation | Result |
+|---|---|
+| `parse-id`: `Number()` → `parseInt(raw, 10)` | **6 failures** |
+| `editor`: drop the `<head>` stylesheet injection | **2 failures** |
+| `registry`: `Object.hasOwn` → truthiness guard | **9 failures** |
+
+The third is the one that matters most: it re-introduces the exact prototype-chain bug that `registry.ts:51-57` documents at length, and nine tests catch it.
+
+#### A fourth target the report never listed
+
+`config/system-design/registry.ts:10` states that `npm run check:system-design` verifies the registry in both directions. **That script does not exist** — not in `package.json`, not in `scripts/`, and there is no `config/system-design/modules/` and no system-design route in `app/`.
+
+So `getModule`'s prototype-chain guard — the one security invariant in that module — was protected by nothing at all. `LOADERS` is an empty map until Task 13 authors the content, which means `next build` never calls the function, no route renders it, and `tsc` cannot see it because the code is correct right now. A refactor that "simplified" `Object.hasOwn(LOADERS, slug)` back to `if (!loader) return null` would have passed every layer this repo owns.
+
+This is the same failure class as the unwired `check:blog-toc`, one step worse: not a gate that is written but unrun, but a gate that is *named* and never written. Documented in `tests/system-design-registry.test.ts` rather than deleted from the source, so the next reader inherits the fact instead of the false promise.
+
+#### What the tests deliberately pin as *accidents*
+
+`tests/parse-id.test.ts` asserts that `"0x10"` → `16`, `"1e3"` → `1000`, `"+12"` → `12`. None of that was chosen. The suite names the block *"accepted by `Number()`, never chosen"* so that tightening the parser fails loudly in review instead of arriving as a refactor side effect. `/^\d+$/` is the correct rule; applying it changes behaviour across every route at once and belongs in its own commit, not as a quiet edit inside a test-harness change.
+
+#### One coverage claim deliberately not made
+
+`tests/editor.test.ts` asserts that markup passes through `buildSandboxedSrcDoc` **unescaped, in all three branches**, with the reasoning inline: the input is authored lesson content, escaping it would show learners literal `&lt;div&gt;`, and containment comes from `sandbox="allow-scripts"` — not from this string helper.
+
+The file also says, in terms, that **passing these tests does not mean lesson code is contained.** The assertion that would is the `sandbox` attribute on a `.tsx` `<iframe>`, unreachable from a unit test. 3.2 is downgraded to 🟠 P1, not closed, because of that gap — and per §8 the component/E2E layer that would close it is explicitly not being built.
+
+#### Honest status
+
+1.3 is **not** marked resolved. CI #31 predates this change, so the `test` step has never run on `development-branch`. The rule that held 1.1 open until an observation arrived holds 1.3 open now.
 
 ---
 
