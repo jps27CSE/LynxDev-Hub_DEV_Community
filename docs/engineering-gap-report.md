@@ -43,18 +43,18 @@ Recorded first, and deliberately, because a gap report that only lists failures 
 
 | # | Gap | Evidence | Severity |
 |---|---|---|---|
-| 1.1 | **CI never runs on your work** | `.github/workflows/ci.yml:3-7` triggers on `push`/`pull_request` against `master` only. Development happens on `development-branch`, so the admin module, the blog module and the system-design spec have had zero automated verification | 🔴 P0 |
+| 1.1 | ~~**CI never runs on your work**~~ | **Addressed in the tree, awaiting first observed run** — `ci.yml` now triggers on `master` **and** `development-branch` for both `push` and `pull_request`, plus `workflow_dispatch` so the gate can be exercised before it gates anything. **Not** marked resolved: a workflow edit is a claim, not a measurement. Verification in §11 | 🟡 P1 |
 | 1.2 | ~~**CI's only style gate is permanently red**~~ | **Resolved** — `npx prettier --write .` applied to 53 files; `format:check` now exits 0. Verification in §11 | ✅ Fixed |
 | 1.3 | No tests, no `test` script, no CI test step | — | 🔴 P0 |
 | 1.4 | No linter at all | ESLint is not installed and no config exists. `next lint` was removed in Next 16, so there is no linting path at all | 🟠 P1 |
-| 1.5 | CI is fragile | `ci.yml:17-20` requires a `CI/CD` environment plus `DATABASE_URL`. If the secret is unset, `next build` **fails** rather than skipping | 🟠 P1 |
+| 1.5 | CI is fragile | `ci.yml:21-24` requires a `CI/CD` environment plus `DATABASE_URL`. **Now confirmed by measurement** (§11): with `DATABASE_URL` unset the build exits 1 — `/interview` is statically prerendered and its chapter query throws rather than degrading. The DB secret is load-bearing, not a convenience | 🟠 P1 |
 | 1.6 | Schema drift is undetectable in CI | `drizzle-kit` is never run by the workflow; a missing migration surfaces at runtime, in production | 🟡 P2 |
 
 > **A gate that always fails is worse than no gate.** It teaches the team to ignore CI, which is why the formatting failure sat in Known Debt for weeks instead of being a two-minute fix. The same logic applies to 1.1: a CI badge that never runs is indistinguishable from no CI, only more comfortable.
 
-> **Update:** 1.2 is now fixed (§11), but 1.1 is not — CI still only triggers on `master`. Until 1.1 lands, the format gate is green locally and still unverified in automation, so 1.1 remains the binding constraint on this section.
+> **Update:** 1.2 is fixed (§11) and 1.1 is addressed in the tree (§11). 1.1 is **not** closed until a green run is actually observed on `development-branch` — until then the format gate is green locally and still unverified in automation, so 1.1 remains the binding constraint on this section.
 
-`.agent/feature-tracker.md` records the failing-file count as **45**. It is now **53**. That number is already stale, and any specific count will be obsolete the moment the next file is edited — see the remediation note in §7.
+`.agent/feature-tracker.md` records the failing-file count as **45**. It is now **53**. That number is already stale, and any specific count will be obsolete the moment the next file is edited — see the remediation note in §7. §11 removed the stale entry entirely rather than replacing `45` with `53`.
 
 ---
 
@@ -150,8 +150,8 @@ An initial read of this suggested *15 of 18 routes had silent, unlogged 500s*. T
 |---|---|---|---|
 | Tests gate merges | ✅ | ❌ none | **Gap** |
 | Lint gate merges | ✅ | ❌ not installed | **Gap** |
-| CI runs on every branch | ✅ | ❌ master only | **Gap** |
-| Green gate required to merge | ✅ | ❌ never green | **Gap** |
+| CI runs on every branch | ✅ | ⚠️ `master` + `development-branch`, unverified in automation | **Closing** |
+| Green gate required to merge | ✅ | ⚠️ gate now runs on the right branch, but no branch protection — green is still not *required* | **Gap** |
 | Automated dependency updates | ✅ Dependabot | ❌ | **Gap** |
 | Error tracking in production | ✅ | ❌ | **Gap** |
 | Security headers reviewed | ✅ | ⚠️ 1 of 6 | **Gap** |
@@ -189,7 +189,8 @@ Ordered by ratio of risk-removed to effort. Each row is independently shippable.
 |---|---|---|---|
 | **1** | README rewrite | `README.md` | Cheapest high-impact item. Front door for every future reader, including you |
 | **1** | ~~Un-break the format gate~~ | repo-wide, 53 files | **Done** (§11). Own commit, exactly as Known Debt prescribes. Restores an honest CI signal |
-| **1** | CI triggers on `development-branch` | `.github/workflows/ci.yml:3-7` | **Next.** Until this exists, no later CI work is observable |
+| **1** | CI triggers on `development-branch` | `.github/workflows/ci.yml:4-11` | **In tree** (§11). Closes only once a green run is observed on the branch. Until then no later CI work is observable |
+| **1** | `check:blog-toc` wired into CI | `.github/workflows/ci.yml` | **In tree** (§11). A free gate for a drift class Known Debt already records, never wired up. Must run *after* `Build` |
 | **2** | `npm test` + tests for `parse-id`, `editor`, `config/system-design` | `package.json`, 3 test files | Closes the untested security boundaries |
 | **2** | Add CI `test` step | `.github/workflows/ci.yml` | Only after `npm test` exists, or the gate just moves |
 | **3** | Dependabot | `.github/dependabot.yml` | 7 majors behind is a ticking clock, and auto-PRs cost no attention |
@@ -211,6 +212,7 @@ Stated so the report is not trusted beyond its evidence:
 - **No performance measurement** was taken — bundle size, Core Web Vitals, and route-level timings are all unassessed. Vercel Speed Insights is installed but its data was not read.
 - **Accessibility was not assessed** beyond confirming no tooling exists (no axe, no testing-library). This is likely a real gap given dark-mode-only UI, but it is unquantified.
 - **Log-shipping and alerting configuration** on Vercel was not inspected.
+- **No CI run on `development-branch` has been observed.** The §11 entry for 1.1 records local, command-level verification only. The edited workflow has never executed under real Actions conditions, so its behaviour there — including the `CI/CD` environment gate — is unconfirmed.
 
 ---
 
@@ -244,7 +246,44 @@ Prettier converts `{" "}` to a literal space only when surrounding reflow makes 
 
 **Known Debt.** The tracker's `format:check fails on 45 files` entry is removed — it was false twice over (45 was already stale, then became 0). It is **not** replaced with a claim that the gate is *enforced*, because it is not yet: `ci.yml` still triggers on `master` only. That claim becomes true in 1.1, and should be written then.
 
-**Still open in this section:** 1.1. Everything in Phases 2–5 remains unobservable until CI runs on the branch work actually happens on.
+**Still open in this section:** 1.1 as of this entry — see the 1.1 entry below for the current state.
+
+---
+
+### 1.1 — CI now observes the branch work happens on
+
+**Change:** `.github/workflows/ci.yml` only. Three edits: `push` and `pull_request` now list `master` **and** `development-branch`; `workflow_dispatch` added; `check:blog-toc` wired in as a post-`Build` step. No dependency, no config change, no application code.
+
+**Status: addressed in the tree, not closed.** A workflow edit is a claim; this gap closes when a green run is *observed* on `development-branch`. That has not happened. `workflow_dispatch` exists so the question is answerable before the gate is trusted, not after.
+
+**Verified by running, in workflow order:**
+
+| Step | Result |
+|---|---|
+| `npm run build` | exit 0 — 17 static routes: 14 at the `1h` window, 3 with none (`/blog/feed.xml`, `/blog/opengraph-image`, `/robots.txt`). The `1h` TTL recorded in tracker §16.1 holds on `/interview`, `/interview/customize`, `/interview/stack`, `/problems`, `/profile`, `/whats-new` and `/_not-found` — i.e. no route regressed to a shorter window |
+| `npm run check:blog-toc` | exit 0 — 9/9, 21/21, 6/6, 8/8, 7/7 anchors; 5/5 posts registered |
+| `npm run typecheck` | exit 0 |
+| `npm run format:check` | exit 0 |
+| `yaml.safe_load(ci.yml)` | valid; step order as listed above |
+
+**`check:blog-toc` must run after `Build` — and that ordering is measured, not assumed.** The script reads prerendered HTML from `.next/server/app/blog` (`scripts/check-blog-toc.ts:19,26`). Run against a tree that has not been built, it reports `FAIL <slug>: no prerendered HTML. Did the post render?` on all five posts. It is a post-build gate, not a standalone one. Placing it before `Build` would have produced a permanently red CI on an otherwise passing repo — the §1 failure mode this report opens with, introduced by the fix for it.
+
+**1.5 corrected upward, because I got it wrong first.** Scoping this work, I claimed 1.5's premise was unsubstantiated. The reasoning: the root layout's notice fetch catches and returns `null`, therefore the build should not need a database. Measured, it does:
+
+```
+Error occurred prerendering page "/interview".
+Error: Failed query: select `category_id` from `interview_category_chapters`
+    [cause]: connect ECONNREFUSED 127.0.0.1:3306
+Export encountered an error on /(routes)/interview/page: /interview, exiting the build.
+```
+
+`/interview` is statically prerendered — it carries the `1h` ISR window §16.1 measured — and its chapter query throws rather than degrading. **The `DATABASE_URL` secret is load-bearing.** The original 1.5 evidence stands; only the specific failure is now pinned.
+
+The generalisable lesson is the sibling of one already in Known Debt (*`npm run typecheck` passing is not sufficient verification*): **asserting a conclusion from a partial sample of the surface is the same error as asserting it from reading.** My sample was one call site out of roughly a dozen prerendered routes — and the one I checked was the one I already knew was guarded.
+
+**`environment: CI/CD` left unchanged, deliberately.** Removing it was considered, on the reasoning that a build needing neither database nor secret would be more robust. Measurement killed that: the build does need the database, and dropping the line would have silently broken env-scoped secret resolution. Altering secret-access semantics is not in scope for "flip the trigger", and should not be bundled into a change whose point is making a gate visible.
+
+**Open in this section:** confirm the `CI/CD` environment has no **required reviewers**. If it does, runs queue indefinitely instead of failing fast, and 1.1 would present as permanently "in progress" rather than broken — a failure mode that looks like progress. `gh` is not installed locally, so this was not checkable from the working tree.
 
 ---
 

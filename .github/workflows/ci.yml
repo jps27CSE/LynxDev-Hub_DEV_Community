@@ -1,10 +1,14 @@
 name: CI
 
 on:
+  workflow_dispatch:
   pull_request:
-    branches: [master]
+    # development-branch is where all feature work lands. CI that only runs on
+    # master is indistinguishable from no CI — the gate never observes a
+    # regression until it reaches the long-lived branch.
+    branches: [master, development-branch]
   push:
-    branches: [master]
+    branches: [master, development-branch]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -39,3 +43,10 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # MUST run after Build: scripts/check-blog-toc.ts reads the prerendered
+      # HTML in .next/server/app/blog, so it reports "no prerendered HTML" on a
+      # tree that has not been built yet. Before it was wired up, a renamed TOC
+      # anchor rendered as a link that navigated nowhere and nothing caught it.
+      - name: Blog TOC check
+        run: npm run check:blog-toc
