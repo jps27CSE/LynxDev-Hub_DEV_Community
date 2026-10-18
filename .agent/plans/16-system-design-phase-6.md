@@ -1,7 +1,7 @@
 # System Design Learning — Phase 6 Feature Spec (Free-Tier Safe)
 
-> **Date:** 2026-10-17
-> **Status:** Not started — awaiting Task 1 approval
+> **Date:** 2026-10-17 (revised 2026-10-18 — Task 1 shipped, contract extended, see §16 decisions 32–35)
+> **Status:** Task 1 complete. Next: Task 2 — engine + rubric as a headless script.
 > **Scope:** An interactive system-design learning path: read a concept with scenarios and diagrams, then **build that app yourself and run it under traffic and failure**. Full beginner→advanced curriculum designed in §10.0 (~90 topics, Parts 0–9); **Phase A implements Part 0 + Part 1 + Part 3** = 14 modules, each ending in a 🔨 Build Task with hard pass criteria, grown across **one** photo-sharing app (100 users → chaos). Sliced into three independently shippable stages **A1 / A2 / A3** (§10.1).
 > **Phase A engine:** 9 node types, **no new node types needed** — 14 modules reduce to 7 property additions + scenario knobs (§5.2.1).
 > **Stack:** Next.js 16 App Router (Server Components default), React 19, Clerk `auth()`, Drizzle + TiDB MySQL (`connectionLimit:5`), Tailwind v4 + shadcn/ui, `react-resizable-panels` (already installed, currently **unused**), Vercel Hobby Free, TiDB Cloud Starter Free
@@ -166,6 +166,11 @@ config/system-design/
 
 `solutionGraph` is **cumulative**: module 14's solution is module 13's solution plus the chaos hardening, because each Build Task starts from the previous module's finished design (§10.1). Authoring that chain is the real cost of the one-app decision, and it is why the slice gates in §12 are non-negotiable.
 
+**A module's slug is always its filename.** No mapping table. That is what lets
+`check:system-design` (Task 11) be a bidirectional check with no second source
+of truth to drift — the same reason `config/blog.ts` keeps `slug` next to its
+`app/blog/<slug>/page.tsx` and asserts the two match (`check:blog-toc`).
+
 ### 4.1 `registry.ts` — why dynamic `import()`
 
 `app/(routes)/system-design/[module]/page.tsx` is a dynamic segment. If it statically imports a barrel of all three modules, **every lesson page ships all three modules' prose in its JS bundle**. Dynamic `import()` keyed on slug splits each module into its own chunk:
@@ -241,12 +246,43 @@ Every Phase A module (Part 0, Part 1, Reliability — §10.1) was checked agains
 | `database` | `partitions`, `hotKeyShare` | 8 — sharding, hot keys |
 | `cache` | `stampedeGuard` | 6 — cache stampede |
 | `queue` | `maxDepth`, `retryLimit`, `dlqEnabled` | 13 — backpressure, DLQ |
+| `cdn` | `hitRate` | 10 — the share of media answered at the edge |
+| `worker` | `replicas` | 12 — "the resize service is down" implies more than one |
 | **edge** | `retry: { attempts, backoffMs, jitter }`, `partitioned` | 11, 12 — retries, partitioning |
+| **scenario** | `writeShare`, `mediaShare`, `bytesPerMediaRequest`, `abusiveShare` | 6, 7, 9, 10 — the traffic mix (below) |
 | **scenario** | `latencyJitterMs`, `cacheColdStart`, `replicaLagMs` | 7, 14 — lag, cold start |
+
+**The traffic-mix additions (Task 1).** The original table gave `scenario` only
+three knobs, and `arrivalRate` alone is a homogeneous stream. That is not enough
+to state **5 of the 6** sim-based pass criteria in §10.1, each of which was
+unprovable against the §5.5 result shape:
+
+| Criterion | Needs | Added |
+|---|---|---|
+| M6 "0 stale reads" | per-class error counts | `SimulationResult.errorClasses` |
+| M7 "writes still succeed" | a write costs 8 ms vs a 2 ms read | `scenario.writeShare` |
+| M9 "bot gets 429s, real users 0 errors" | one abusive client inside normal traffic | `scenario.abusiveShare` + `errorClasses.rejected` |
+| M10 "origin bandwidth < 10%" | 2 MB payloads, only some requests carry one | `scenario.mediaShare` + `bytesPerMediaRequest` + `cdn.hitRate` + `result.bandwidthMbps` |
+| M8 "that query p95 < 300 ms" | a latency per node, not just utilisation | `perNode[].serviceMs` + `queueWaitMs` |
+
+`abusiveShare` is the one that looks odd in isolation and is the one that
+matters: without it, "the bot" and "real users" are indistinguishable inside a
+single arrival rate, and M9 reduces to a global cap that cannot distinguish a
+successful block from collateral damage.
 
 **Why rate limiting is an `load_balancer` property and not a 10th node type.** A `rate_limiter` node type invites a beginner to place it somewhere harmless — behind the app server, or on one branch of the graph — and the lesson silently teaches the wrong placement. Attaching it to the load balancer makes *"the thing in front of everything"* the only place it can go, which is the actual lesson.
 
 `SdGraph` therefore carries `{ nodes: SdNode[], edges: SdEdge[], scenario: SdScenario }` — properties live on the instances, so one graph can mix two differently-sized app servers.
+
+**`SdNode` is a discriminated union on `type`, not one flat shape.** Nine
+variants, each carrying only its own fields. The reason is the authoring site:
+14 modules produce roughly 84 step checks and pass criteria, and on a flat shape
+with nullable fields every one of them needs a null guard — and a missed guard is
+a runtime crash rather than a compile error. With the union,
+`graph.nodes.find(n => n.type === "cache")` narrows to `SdCacheNode` and
+`n.hitRate` is a plain `number`. `lib/system-design/validation.ts` mirrors it as
+`z.discriminatedUnion("type", ...)`, the same zod v4 API §7.2 already relies on.
+The cost is symmetry: a new property means touching the type *and* the schema.
 
 ### 5.3 The loop
 
@@ -254,7 +290,7 @@ Open model, fixed arrival rate:
 
 1. **Precompute** the adjacency map and, per node, the request path (first outgoing edge). Validate on entry: a reachable `client`, no unresolvable dangling edge, at least one terminal datastore. Return a structured `invalid` result rather than throwing — the canvas must render *why* a graph is unsimulatable.
 2. **Step** over a fixed 10 s window at `dt = 0.01 s`.
-3. **Inject** `arrivalRate × dt` requests per step, PRNG-jittered so arrivals are bursty rather than uniform.
+3. **Inject** `arrivalRate × dt` requests per step, PRNG-jittered so arrivals are bursty rather than uniform. Each arrival is classified by `SdScenario`: `writeShare` decides read vs write (and therefore which `serviceMs` applies), `mediaShare` decides whether it carries `bytesPerMediaRequest`, and `abusiveShare` marks it as the abusive client so the rate limiter can treat it differently from everyone else.
 4. **Walk** each request along its path. Per hop: `latency += queueWait + serviceTime`.
 5. **Queueing** is M/M/1: `W = 1/(μ − λ)`. **When `λ ≥ μ` the node is saturated** — flag it, shed the excess, and count it in `errorRate`. Saturation must be *visible*, not silently absorbed, or the learner learns nothing.
 6. **Cache nodes** serve locally with probability `hitRate`; otherwise forward.
@@ -284,18 +320,32 @@ export type SimulationResult = {
   throughput: number;              // req/s sustained
   latency: { p50: number; p95: number; p99: number };  // ms
   errorRate: number;               // 0..1
+  errorClasses: Partial<Record<SdErrorClass, number>>;  // ← Task 1, see §5.2.1
+  bandwidthMbps: number;                                  // ← Task 1, module 10
   perNode: Array<{
     id: string;
     utilisation: number;           // 0..1, >1 means saturated
     concurrency: number;           // from Little's Law
+    serviceMs: number;             // ← Task 1, module 8
     queueWaitMs: number;
     saturated: boolean;
     down: boolean;
   }>;
-  bottleneck: { nodeId: string | null; reason: string } | null;
+  bottleneck: { nodeId: string; reason: string } | null;
   teaching: string[];              // ← plain-language "why"
 };
 ```
+
+`errorClasses` is why there is no `staleReadRate`. §6.1's worked example asserts
+`r.staleReadRate === 0`, but a scalar `errorRate` cannot distinguish *"the node
+was unreachable"* from *"the node answered, with data from ten seconds ago"* —
+and that difference **is** module 6's lesson and module 14's payoff. Splitting
+the scalar into `unreachable | stale | rejected | shed` keeps the distinction the
+failure mode is built to teach.
+
+`bottleneck.nodeId` lost its inner `| null`: §5.5 originally had both
+`bottleneck: {...} | null` and `nodeId: string | null`, which is two ways of
+saying "nothing to point at". One is enough.
 
 `teaching[]` is **not garnish**. A simulator that emits numbers without explaining them is a toy. Example strings:
 
@@ -390,8 +440,8 @@ withRequestLog("... /api/system-design/state", async () => {
 const stateMutation = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("lesson-complete"), slug: z.string().min(1).max(120) }),
   z.object({
-    kind: z.literal("lab-save"),
-    labSlug: z.string().min(1).max(120),
+    kind: z.literal("task-save"),
+    taskSlug: z.string().min(1).max(120),
     graph: SdGraphSchema,          // node/edge arrays, cap 40 nodes / 120 edges
     steps: z.array(z.string()).max(40),
   }),
@@ -494,7 +544,7 @@ Tab switch — **Design / Run / Steps** — following the pattern at `LessonClie
 
 ### 9.3 Save path — debounced, mirrored, failure-tolerant
 
-1. `localStorage` write **synchronously on every edit** — with `try/catch` on every access, namespaced key `sd-lab:<slug>`, matching `ProblemWorkspace.tsx:16,24-34`. This is why a refresh mid-drag loses nothing.
+1. `localStorage` write **synchronously on every edit** — with `try/catch` on every access, namespaced key `sd-task:<slug>`, matching `ProblemWorkspace.tsx:16,24-34`. This is why a refresh mid-drag loses nothing.
 2. `POST` debounced **2 s** after the last change.
 3. Failure → one `sonner` toast, local mirror retained, **never block the UI**. Saving a diagram must not interrupt drawing.
 
@@ -599,8 +649,6 @@ Some published paths use 15 separate apps, each a 13-step lab restarting from ze
 | Interview realism | weak | strong |
 
 **Resolution:** one app for the learning path (A1–A3), many apps for interview labs in a later phase. Both, sequenced — not either/or.
-| 13 | **Idempotency & safe retries** | Idempotency keys, dedup, DLQ. At-least-once vs exactly-once — and why "exactly-once" is a lie. | `queue.retryLimit`, `queue.dlqEnabled` |
-| 14 | **Chaos: designing for failure** | Injection drills. Failover. **What silently returns stale data** rather than erroring. | §5.4 all four kinds |
 
 ### 10.2 Lesson shape — the retrieval-first pattern
 
@@ -852,6 +900,13 @@ Everything below is **designed** — it is mapped in the §10.0 roadmap and will
 | 29 | No standalone `labs/[slug]` route; task lives at `/[module]/task` | One task per module, so it belongs inside the module. A standalone lab route would exist only to serve Phase 7 interview labs — YAGNI, and it would shape Phase A's architecture for an unspecced future | `/system-design/labs/[slug]` |
 | 30 | Module template includes an **Interview Byte** (shape · strong answer · **the trap**) | The trap — the answer that sounds right and gets a candidate rejected — is what an interview actually tests, and almost no free resource teaches it | Concept + diagram only |
 | 31 | Content **synthesised** from primer / AlgoMaster / KodeKloud / Norvig / company blogs, with per-lesson attribution | The synthesis is where the beginner-level ordering happens; attribution is the copyright answer and the quality argument | Copying prose from any one source |
+| 32 | **`SdNode` is a discriminated union on `type`** | ~84 checks and criteria across 14 modules; a flat shape makes every one of them a null guard, and a missed guard is a runtime crash instead of a compile error. `find(n => n.type === "cache")` narrows, and the Zod mirror uses `z.discriminatedUnion` | One flat `SdNode` with ~15 nullable fields, simpler JSON at the cost of ~84 unchecked accesses |
+| 33 | **Contract extended in Task 1, not deferred to Task 2** | §12's ordering is "contract first, content ∥ engine". Shipping §5.2.1 verbatim meant 5 of 6 sim criteria were unprovable, so Task 13 authoring would have blocked on a Task-2 rediscovery | Extend during Task 2 — the "locked" contract was never actually locked |
+| 34 | `registry.ts` ships with an **empty** `LOADERS` map | `import()` on files that do not exist until Task 13 fails `tsc` at Task 1 and keeps it red for 12 tasks. Entries land one per module at Task 13 | Scaffold a placeholder module, or move Task 1 after Task 13 — both break the empty-system-first ordering |
+| 35 | `labSlug` → `taskSlug`, `lab-save` → `task-save`, `sd-lab:` → `sd-task:` | The `labs` → `tasks` rename in §3.2 was incomplete and left three sites implying labs are a separate collection. Settled now, while these files are open | Leave it for Task 11 — the API route and localStorage key would ship with `lab` vocabulary over a `tasks` column |
+| 36 | `getModule` guards with `Object.hasOwn`, not truthiness | `LOADERS` is an object literal, so `LOADERS["constructor"]` resolves through `Object.prototype`. `if (!loader)` caught none of the inherited keys: `constructor` returned `undefined` and `valueOf` / `hasOwnProperty` / `__proto__` **threw**. A slug is attacker-supplied on a dynamic route, and a throw means 500 where the caller wanted 404 | `if (!loader) return null` — looks equivalent, silently accepts prototype keys |
+| 37 | `NODE_TYPE_ORDER` is **derived** from `NODE_TYPES`, not a second list | `SdNodeType[]` accepts a list that is *valid*, not *complete*. Deleting one entry removed that node from the palette and left `tsc` clean — a silent hole in the only thing a learner touches first. Deriving from `Record<SdNodeType, …>` makes omission unrepresentable | Keep the hand-maintained array and let `check:system-design` catch it in Task 11 — a month of a node missing from the palette |
+| 38 | `SdNodeResult.serviceMs`, not `latencyMs`; `SdScenario.writeShare`, not `readWriteShare` | `SimulationResult.latency.p95` already means *total* latency including queue, so `latencyMs` next to `queueWaitMs` was one word with two meanings across two types read together. `readWriteShare` reads as "reads and writes combined", which is always 1.0 | Ship the original names and rely on the comments |
 
 ---
 
@@ -859,15 +914,20 @@ Everything below is **designed** — it is mapped in the §10.0 roadmap and will
 
 | Item | State | Notes |
 |---|---|---|
-| Tasks 1–12 (slice A1) | ⬜ Not started | Awaiting approval to begin Task 1 |
+| **Tasks 1–12 (slice A1)** | 🔄 **Task 1 done** | Task 1 (contract + node registry) shipped 2026-10-18. Task 2 = engine + rubric as a headless script |
 | Task 13 (A1 content) | ⬜ Not started | 4 modules — Part 0 |
 | Tasks 14–15 (A2, A3) | ⬜ Gated behind A1 | Do not author before Phase A1 is personally used |
+| Task 1 — `config/system-design/types.ts` | ✅ Done | All types in one dependency-free file. That is what avoids a runtime cycle: `SdPassCriterion.assert` is content but consumes the engine's `SimulationResult` |
+| Task 1 — `lib/system-design/nodes.ts` | ✅ Done | 9 types as data, `defaultNode()`, palette order, §15 Q1 blurb line per type. All 9 `iconKey`s verified against `lucide-react` |
+| Task 1 — `config/system-design/registry.ts` | ✅ Done | `LOADERS` intentionally empty until Task 13 (decision 34) |
+| Task 1 — contract gaps closed | ✅ Done | `errorClasses`, `bandwidthMbps`, `perNode[].serviceMs`, `writeShare`, `mediaShare`, `bytesPerMediaRequest`, `abusiveShare`, `cdn.hitRate`, `worker.replicas` — see §5.2.1 |
+| Task 1 — self-review pass | ✅ Done | Found and fixed 3 defects: prototype-key lookup in `getModule` (threw on 3 of 5 inherited keys → 500 not 404, decision 36), `NODE_TYPE_ORDER` able to silently omit a type with `tsc` clean (decision 37), and two names that meant something other than they said (decision 38). Also documented the `Infinity` JSON trap on `client.capacity` |
 | §10.0 curriculum roadmap | ✅ Written | Part 0–9, ~90 topics, engine support tagged |
 | §10.1 14-module table | ✅ Written | each with lessons · Build Task · pass criteria · engine properties |
 | §10.3 module template | ✅ Written | Story → Lessons → Interview Byte → Build Task → Recap |
 | §10.4 source map | ✅ Written | primer, AlgoMaster, KodeKloud, Norvig, highscalability, company blogs |
 | §10.5 visualizer specs | ✅ Spec'd, not built | 4 visualizers, ~570 lines, Phase 7 |
-| §5.2.1 engine properties | ✅ Spec'd | 7 property additions, 0 new node types |
+| §5.2.1 engine properties | ✅ Spec'd + **extended** | 9 property additions, 0 new node types. Extended at Task 1 — the traffic mix was missing (§5.2.1) |
 | §6.1 pass criteria | ✅ Spec'd | `SdPassCriterion` — asserts on `SimulationResult` |
 | §6.2 hard-gate safety valve | ✅ Spec'd | primary/secondary split + reveal escape hatch + `attempts > 20` mis-tune detector |
 | §3.2 `tasks` shape | ✅ Spec'd | `graph`, `steps`, `criteriaMet`, `attempts`, `revealed` |
