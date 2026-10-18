@@ -5,11 +5,7 @@ import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
 import HelpButton from "./HelpButton";
 
-export default function AppShell({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -56,7 +52,9 @@ export default function AppShell({
           sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
         }`}
       >
-        <main className="flex-1 flex flex-col min-w-0 w-full overflow-hidden">{children}</main>
+        <main className="flex-1 flex flex-col min-w-0 w-full overflow-hidden">
+          {children}
+        </main>
       </div>
 
       <HelpButton />

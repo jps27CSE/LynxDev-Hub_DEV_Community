@@ -52,10 +52,7 @@ export function Callout({
 
   return (
     <aside
-      className={cn(
-        "my-8 rounded-xl border px-5 py-4 flex gap-3.5",
-        ring,
-      )}
+      className={cn("my-8 rounded-xl border px-5 py-4 flex gap-3.5", ring)}
     >
       <Icon className={cn("size-[18px] shrink-0 mt-0.5", accent)} aria-hidden />
       <div className="min-w-0">

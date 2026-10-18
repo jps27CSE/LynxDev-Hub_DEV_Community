@@ -32,11 +32,7 @@ export default function HelpButton() {
         className="w-10 h-10 rounded-full bg-[#1a1d24] border border-border/50 text-muted-foreground hover:text-foreground hover:bg-[#22252d] flex items-center justify-center shadow-lg hover:shadow-xl transition-all"
         aria-label="Help"
       >
-        {open ? (
-          <X className="w-4 h-4" />
-        ) : (
-          <HelpCircle className="w-5 h-5" />
-        )}
+        {open ? <X className="w-4 h-4" /> : <HelpCircle className="w-5 h-5" />}
       </button>
     </div>
   );

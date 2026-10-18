@@ -191,7 +191,9 @@ export const getEnrollmentsByEmail = cache(
       if (!user) return [];
       return await withConnectRetry(() => fetchEnrollments(user.id));
     } catch (error) {
-      log.error("getEnrollmentsByEmail failed", error, { email: maskEmail(email) });
+      log.error("getEnrollmentsByEmail failed", error, {
+        email: maskEmail(email),
+      });
       return [];
     }
   },
@@ -204,7 +206,9 @@ export const getEnrollmentsByClerkId = cache(
       if (!user) return [];
       return await withConnectRetry(() => fetchEnrollments(user.id));
     } catch (error) {
-      log.error("getEnrollmentsByClerkId failed", error, { clerkId: maskId(clerkId) });
+      log.error("getEnrollmentsByClerkId failed", error, {
+        clerkId: maskId(clerkId),
+      });
       return [];
     }
   },
