@@ -116,11 +116,22 @@ Harmless in practice — no route has an id of `0x10` — but it was unpinned be
 | # | Gap | Evidence | Severity |
 |---|---|---|---|
 | 4.1 | **CSP provides near-zero script protection** | `next.config.ts:25` — `script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https:`. The `https:` wildcard permits script execution from **any origin**, so an XSS has no containment. Combined with `unsafe-inline` and `unsafe-eval`, the directive is close to decorative for its main threat | 🟠 P1 |
-| 4.2 | One security header out of six | No `Strict-Transport-Security`, `X-Content-Type-Options`, `Referrer-Policy`, `frame-ancestors`, `object-src`, `base-uri` | 🟠 P1 |
-| 4.3 | No Dependabot; dependency drift unmonitored | 55 outdated packages, **7 major versions behind**: Clerk 6→7, TypeScript 5→7, recharts 2→3, lucide-react 0.x→1.x, dotenv 17→18, react-day-picker 9→10, `@types/node` 20→26 | 🟠 P1 |
-| 4.4 | No `npm audit` in CI | — | 🟡 P2 |
+| 4.2 | ~~One security header out of six~~ | **Resolved** — `Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `X-Permitted-Cross-Domain-Policies` added in `next.config.ts`. Verified **served**, not assumed: `next start` + `curl` against `/` and `/blog/feed.xml`. Verification in §11 | ✅ Fixed |
+| 4.3 | No Dependabot; dependency drift unmonitored | **Deliberately not adopted.** The original evidence was 55 outdated / 7 majors behind, which is hygiene, not risk. The actual risk turned out to be different and is now closed — see 4.3a | 🟡 P2 |
+| 4.3a | ~~(new) Critical CVEs in the auth boundary~~ | **Resolved** — `npm audit` succeeded where it had previously timed out, and reported **22 vulnerabilities: 3 critical, 11 high, 8 moderate**. Two criticals bypassed `proxy.ts`, which *is* this app's auth boundary. Patched to **0 critical / 0 high / 6 low-moderate**, all remaining in dev-only tooling. Verification in §11 | ✅ Fixed |
+| 4.4 | ~~No `npm audit` in CI~~ | **Resolved** — `npm audit --audit-level=high` runs in CI, after `npm ci`. Gated at `high` deliberately: plain `npm audit` exits 1 on 6 moderate/low dev-tooling advisories, and a permanently red gate is worse than none. Verification in §11 | ✅ Fixed |
 
 **Already correct and worth keeping:** `.env.example` is complete with every value empty; `.env` is gitignored; no secrets are tracked; `/api/cron/cleanup` is bearer-token gated (`app/api/cron/cleanup/route.ts:11-20`); admin auth is a fail-closed allowlist; Mermaid/XSS boundaries in the blog are covered by CSP.
+
+**4.1 is now unblocked and is the largest remaining security gap.** Two things changed. The patched Next (16.4) fixes the *"cross-site scripting in App Router applications using CSP nonces"* advisory, and ships **SRI** (Subresource Integrity, experimental) as the path to dropping `'unsafe-inline'`.
+
+**SRI, not nonces.** The documented way to add nonces is `proxy.ts`, and it would be a serious regression here:
+
+> *"Using nonces in your CSP, **all pages must be dynamically rendered**... Static optimization and Incremental Static Regeneration (ISR) are disabled... No CDN caching... **PPR is incompatible with nonce-based CSP.**"*
+
+This app has 17 static routes and 14 at a deliberately measured `1h` window — worth ~0.4% of the Vercel function budget instead of the ~26% recorded in §16.1. Nonce CSP would hand all of that back. SRI generates build-time hashes instead, preserving static generation and CDN caching. React 19.3's **Trusted Types** is a third path and needs no nonce at all — but `react` is pinned at `19.2.3`, so that is a second framework change.
+
+**Ruled out by reading the code, not assumed:** no Server Actions exist (so the null-origin CSRF advisory does not apply); AVIF is not enabled in `images.formats` (so the Image Optimization RCE does not apply); there are no org or billing tables (so Clerk's second critical does not apply); Vercel is Linux (so the Windows-hosted RCE does not apply).
 
 The CSP finding is worth stating precisely, because "you have a CSP" and "your CSP does something" are different claims. It is present, and for `frame-src`/`img-src` it does real work. For `script-src`, the `https:` wildcard means it does not constrain the thing it exists to constrain.
 
@@ -159,9 +170,9 @@ An initial read of this suggested *15 of 18 routes had silent, unlogged 500s*. T
 | CI runs on every branch | ✅ | ✅ `master` + `development-branch`, observed green | **Match** |
 | Tests gate merges | ✅ | ⚠️ 45 tests exist and run in CI; unverified in automation, and no branch protection makes green *required* | **Closing** |
 | Green gate required to merge | ✅ | ⚠️ gate now runs on the right branch, but no branch protection — green is still not *required* | **Gap** |
-| Automated dependency updates | ✅ Dependabot | ❌ | **Gap** |
+| Automated dependency updates | ✅ Dependabot | ❌ *deliberate* — a `npm audit` CI gate catches advisories; routine version PRs on an untested app are churn, not safety | **Gap (chosen)** |
 | Error tracking in production | ✅ | ❌ | **Gap** |
-| Security headers reviewed | ✅ | ⚠️ 1 of 6 | **Gap** |
+| Security headers reviewed | ✅ | ✅ all six present and verified served | **Match** |
 | Onboarding documentation | ✅ | ❌ boilerplate | **Gap** |
 | Automated schema-drift check | ✅ | ❌ | **Gap** |
 | Architectural decision records | ✅ | ✅ plans + decision tables | **Ahead** |
@@ -214,9 +225,9 @@ Ordered by ratio of risk-removed to effort. Each row is independently shippable.
 
 Stated so the report is not trusted beyond its evidence:
 
-- **`npm audit` timed out** against the registry. The outdated-package data is solid, but whether any of the 55 carry a known CVE is **unconfirmed**.
-- **No end-to-end run was performed.** Findings come from static inspection plus the CI commands themselves, not from exercising flows in a browser.
-- **No performance measurement** was taken — bundle size, Core Web Vitals, and route-level timings are all unassessed. Vercel Speed Insights is installed but its data was not read.
+- ~~**`npm audit` timed out** against the registry.~~ **Obsolete, and it was the most consequential caveat in this report.** The audit now runs: **22 vulnerabilities, 3 critical, 11 high**, all now patched to 0/0. The lesson is recorded in §11 — an unmeasured risk stated as *unconfirmed* is still unmeasured, and it stayed that way for longer than the packages it described.
+- **Auth behaviour after the Clerk/Next upgrade was checked by status code, not by signing in.** `proxy.ts` responses were verified with `curl` (`/dashboard` → 307 to sign-in, `/admin` → 307, public routes → 200), but no session was created. The Clerk advisory was a *route protection bypass*, so the status codes are the right instrument — but a signed-in `/admin` → `/` redirect and a real sign-in round trip remain **manually unverified**.
+- **No performance measurement** was taken — bundle size, Core Web Vitals, and route-level timings are all unassessed. Vercel Speed Insights is installed but its data was not read. The upgrade was reported subjectively as "feels fast" after bumping `next` 16.1.1 → 16.4.2; parts of that (Turbopack memory eviction, persistent build cache, lazy compilation) are **dev-server only** and are not evidence of a production improvement.
 - **Accessibility was not assessed** beyond confirming no tooling exists (no axe, no testing-library). This is likely a real gap given dark-mode-only UI, but it is unquantified.
 - **Log-shipping and alerting configuration** on Vercel was not inspected.
 - **No CI run has yet exercised the new `test` step.** §11 records local, command-level verification for 1.3 only. CI #31 predates it. The same rule that kept 1.1 open until #31 went green keeps 1.3 open now.
@@ -369,6 +380,78 @@ The file also says, in terms, that **passing these tests does not mean lesson co
 #### Honest status
 
 1.3 is **not** marked resolved. CI #31 predates this change, so the `test` step has never run on `development-branch`. The rule that held 1.1 open until an observation arrived holds 1.3 open now.
+
+---
+
+### 4.2 + 4.3a + 4.4 — the CVEs behind the "unconfirmed" caveat
+
+**Change:** `package.json` + lockfile, one CI step, five headers in `next.config.ts`.
+
+**The finding.** §10 recorded that `npm audit` had timed out against the registry, so whether any of the 55 outdated packages carried a known CVE was *"unconfirmed"*. That was the single most consequential unmeasured claim in this report, and it was also the cheapest thing on this list to close. The audit ran in seconds once attempted:
+
+| | Before | After |
+|---|---|---|
+| Critical | 3 | **0** |
+| High | 11 | **0** |
+| Moderate | 8 | 4 |
+| Low | 0 | 2 |
+| **Total** | **22** | **6** |
+
+**Why the three criticals mattered here specifically.** Two were not hygiene findings:
+
+- `@clerk/nextjs` ≤ 6.39.2 — *"Middleware-based route protection bypass"*
+- `next` ≤ 16.3.7 — several *"Middleware/Proxy bypass in App Router"*
+
+`proxy.ts` runs `auth.protect()` on every route outside `isPublicRoute`, and §5.2 of this report already records that **the proxy, not the per-handler `auth()`, is the real auth boundary**. Both advisories bypass exactly that file, on a site where people sign in.
+
+**Ruled out by reading the code, not by assuming:** no Server Actions exist (null-origin CSRF advisory N/A); AVIF is not in `images.formats` (Image Optimization RCE N/A); no org or billing tables (Clerk's second critical N/A); Vercel is Linux (Windows RCE N/A).
+
+**Verified by running, in exact `ci.yml` order:**
+
+| Step | Result |
+|---|---|
+| `npm audit --audit-level=high` | exit 0 |
+| `npm run typecheck` | exit 0 |
+| `npm run format:check` | exit 0 |
+| `npm test` | exit 0 — 45/45 |
+| `npm run build` | exit 0 |
+| `npm run check:blog-toc` | exit 0 |
+| route table | 52 / 17 static / 14 at `1h` / 3 no-window — identical to every build measured before it |
+
+**The pin nearly got undone.** `npm install next@16.4.2` silently rewrote `"next": "16.4.2"` to `"^16.4.2"`. The exact pin exists so framework drift cannot arrive unannounced, and a security patch is not a reason to remove it. Restored to exact, and `npm install` re-run to confirm the lockfile still agreed.
+
+**Why the audit gate is `high` and not plain.** The 6 remaining advisories are all moderate/low and all in dev-only tooling (`drizzle-kit` → `@esbuild-kit` → `esbuild`) plus low-severity `dompurify` and `monaco-editor`. Plain `npm audit` **exits 1** on those. Gating on them would be red CI on a commit that changed no code — the §1 failure mode this report opens with. `high` still catches the class that actually bit here, and the advisories were cleared **in the same commit that added the step**, because a gate and the patch that makes it pass are not separable.
+
+**Deliberately not done:** Dependabot version updates, Cache Components, React 19.3, SRI. All worth doing; all are separate changes.
+
+**4.2** — five headers added and **verified served**, not assumed: `next start` + `curl` against `/` and `/blog/feed.xml`. Two were checked rather than assumed: `frame-ancestors` does not affect this app's own `srcdoc` lesson iframes (`BrowserPreview.tsx:34`, `LessonClient.tsx:305`), and HSTS is ignored over `http` so `npm run dev` is unaffected.
+
+---
+
+### Two bugs found while verifying the above
+
+Neither caused by the upgrade. Both were found *because* of it.
+
+**`/api/cron/cleanup` was unreachable.** The proxy intercepted before the handler: Vercel Cron sends no session cookie, the path is not in `isPublicRoute`, so `auth.protect()` 307'd the job to `/sign-in` and the handler's bearer-token check never ran. The nightly rate-limit cleanup was silently not executing — while §4 of this report describes that route as legitimately public. The two files simply disagreed.
+
+Fixed by adding `/api/cron(.*)` to `isPublicRoute`. **Verified end-to-end with `curl`:**
+
+| Request | Before | After |
+|---|---|---|
+| `/api/cron/cleanup`, no token | 307 → `/sign-in` | **reaches handler** (fail-closed 500 locally: `CRON_SECRET` unset) |
+| `/api/cron/cleanup`, wrong token | 307 → `/sign-in` | **reaches handler** → 401 in prod |
+
+Controls re-checked in the same run, all unchanged: `/dashboard` → 307 to sign-in, `/admin` → 307, `/robots.txt` → 200, `/sitemap.xml` → 200, `/` → 200, `/api/health` → 200. The auth boundary is intact.
+
+**`acquireTimeout` was never applied.** `config/db.tsx` passed it with a comment claiming it was *"honored at runtime"* despite not being in `mysql2`'s `PoolOptions` typings. mysql2 says otherwise, six times per build:
+
+```
+Ignoring invalid configuration option passed to Connection: acquireTimeout.
+This is currently a warning, but in future versions of MySQL2, an error
+will be thrown...
+```
+
+So the 15s queue-wait bound that tracker **I.5** credited for surviving TiDB cold starts **was not in effect**, and the option would eventually become a hard error rather than a warning. Removed, along with the `& { acquireTimeout: number }` widening that existed only to appease the missing typing. Verified: build exit 0 and **zero** `acquireTimeout` occurrences in the log. Behaviourally a no-op today — it removes a false claim and a future breakage. Queued requests remain bounded by `queueLimit: 25`; cold-start patience by `connectTimeout` plus `lib/db-retry`.
 
 ---
 

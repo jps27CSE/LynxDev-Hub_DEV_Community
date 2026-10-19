@@ -18,6 +18,16 @@ import {
  * `auth.protect()` 307'd crawlers to the sign-in page instead of serving them
  * the file. An unreadable sitemap removes the whole site from the discovery
  * path this blog depends on, so both are public by necessity.
+ *
+ * `/api/cron(.*)` is public for a different reason: it must be, because the
+ * proxy runs before the route handler. Vercel Cron sends no session cookie,
+ * so without this entry `auth.protect()` 307'd the job to the sign-in page
+ * and the handler's own bearer-token check
+ * (`app/api/cron/cleanup/route.ts`) never executed — the nightly rate-limit
+ * cleanup was silently not running. Exposing the path here is safe: the
+ * handler is fail-closed (500 when CRON_SECRET is unset, 401 when the
+ * `Authorization: Bearer` header does not match), so the proxy adds no
+ * authorisation the handler does not already enforce for itself.
  */
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
@@ -27,6 +37,7 @@ const isPublicRoute = createRouteMatcher([
   "/robots.txt",
   "/sitemap.xml",
   "/api/health(.*)",
+  "/api/cron(.*)",
 ]);
 
 export default async function middleware(
