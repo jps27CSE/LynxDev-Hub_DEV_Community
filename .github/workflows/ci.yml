@@ -35,6 +35,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Gated at `high`, deliberately. Plain `npm audit` exits 1 today: 6
+      # remaining advisories, all moderate/low, all in dev-only tooling
+      # (drizzle-kit -> @esbuild-kit -> esbuild) plus low-severity dompurify
+      # and monaco-editor. Gating on those would mean red CI on a commit that
+      # changed no code — the state §1 of the gap report calls worse than no
+      # gate at all, because it teaches you to ignore the thing that matters.
+      #
+      # `high` still catches the class that actually bit here. On
+      # development-branch this found 3 critical / 11 high, including
+      # "@clerk/nextjs middleware-based route protection bypass" and several
+      # "Next.js middleware/proxy bypass in App Router" advisories. Both target
+      # proxy.ts, which IS this app's auth boundary. Patched in the same commit
+      # that added this step, because a gate and the patch that makes it pass
+      # are not separable — adding it first would have been permanently red.
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
       - name: Typecheck
         run: npm run typecheck
 
