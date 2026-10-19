@@ -48,7 +48,7 @@ Recorded first, and deliberately, because a gap report that only lists failures 
 | 1.3 | ~~No tests, no `test` script, no CI test step~~ | **Addressed in the tree, awaiting first observed run** — `npm test` on `node:test` + `tsx`, **zero new dependencies**; 45 tests across 3 files, gated in CI between `Format check` and `Build`. Not marked resolved: CI has not yet run this step on `development-branch`. Verification in §11 | 🟡 P1 |
 | 1.4 | No linter at all | ESLint is not installed and no config exists. `next lint` was removed in Next 16, so there is no linting path at all | 🟠 P1 |
 | 1.5 | CI is fragile | `ci.yml:21-24` requires a `CI/CD` environment plus `DATABASE_URL`. **Now confirmed by measurement** (§11): with `DATABASE_URL` unset the build exits 1 — `/interview` is statically prerendered and its chapter query throws rather than degrading. The DB secret is load-bearing, not a convenience | 🟠 P1 |
-| 1.6 | Schema drift is undetectable in CI | `drizzle-kit` is never run by the workflow; a missing migration surfaces at runtime, in production | 🟡 P2 |
+| 1.6 | ~~Schema drift is undetectable in CI~~ | **Resolved** — `npm run check:migrations` runs `drizzle-kit generate` and fails if it writes anything. Converts "a missing migration surfaces at runtime, in production" into a red build. Precondition was verified before adoption: the repo was **not** drifted. Verification in §11 | ✅ Fixed |
 
 > **A gate that always fails is worse than no gate.** It teaches the team to ignore CI, which is why the formatting failure sat in Known Debt for weeks instead of being a two-minute fix. The same logic applies to 1.1: a CI badge that never runs is indistinguishable from no CI, only more comfortable.
 
@@ -215,7 +215,8 @@ Ordered by ratio of risk-removed to effort. Each row is independently shippable.
 | **3** | Harden CSP, add missing headers | `next.config.ts` | Closes 4.1/4.2 |
 | **3** | Unify logging onto `log` | 6 route files | Makes the I.8 redaction guarantee actually hold |
 | **4** | ESLint + CI lint step | `eslint.config.mjs`, `package.json`, workflow | Needs 2 devDependencies; useful, not urgent |
-| **5** | Stale branch cleanup, PR template, migration-drift check | remote, `.github/` | Process polish. The migration-drift check is now cheap — a gate finally exists to receive it — but **its precondition is unmet and must be measured first**: `npm exec drizzle-kit generate` on a clean tree has never been run, so it is unknown whether the repo is currently drifted. Adding the gate blind risks a red CI on day one |
+| **5** | ~~Stale branch cleanup, PR template~~ | remote, `.github/` | Process polish |
+| ~~5~~ | ~~migration-drift check~~ | `scripts/check-migration-drift.ts`, `ci.yml` | **Done** (§11). Was Phase 5 "process polish" because no gate existed to receive it — one now does |
 
 **On the stale `45` in Known Debt:** replace it with a statement that the gate is *enforced* (CI runs `format:check` and must pass), not with the number `53`. A number goes stale the next time a file is edited; that is the exact failure mode the tracker already records for hand-maintained anchors and interview-question counts. **Written** — CI #31 ran `format:check` and passed on `development-branch`.
 
@@ -452,6 +453,61 @@ will be thrown...
 ```
 
 So the 15s queue-wait bound that tracker **I.5** credited for surviving TiDB cold starts **was not in effect**, and the option would eventually become a hard error rather than a warning. Removed, along with the `& { acquireTimeout: number }` widening that existed only to appease the missing typing. Verified: build exit 0 and **zero** `acquireTimeout` occurrences in the log. Behaviourally a no-op today — it removes a false claim and a future breakage. Queued requests remain bounded by `queueLimit: 25`; cold-start patience by `connectTimeout` plus `lib/db-retry`.
+
+---
+
+→ See `feature-tracker.md` for delivery status and `WORKFLOW.md` for the build process this report assumes### 1.6 — schema drift, caught before production
+
+**Change:** `scripts/check-migration-drift.ts`, one `package.json` entry, one CI step. No new dependency — `drizzle-kit` and `dotenv` were already present.
+
+**The precondition was measured before the gate was written, not after.** Every other gate added in this report would have gone red on arrival if its target was already broken, so the first thing to establish was whether the repo is drifted:
+
+```
+$ npx drizzle-kit generate
+No schema changes, nothing to migrate
+```
+
+Clean. The gate was safe to adopt.
+
+**What it catches.** Nothing else in this workflow notices a schema change committed without its migration. `tsc` passes — the schema compiles. The 45 tests pass — none of them reach `config/db` by design. The build succeeds. The route table is unchanged. The app then fails at runtime, in production, on the first query that touches the new column.
+
+**Verified by running, in exact `ci.yml` order:**
+
+| Step | Result |
+|---|---|
+| `npm audit --audit-level=high` | exit 0 |
+| `npm run check:migrations` | exit 0 — *new* |
+| `npm run typecheck` | exit 0 |
+| `npm run format:check` | exit 0 |
+| `npm test` | exit 0 — 45/45 |
+| `npm run build` | exit 0 |
+| `npm run check:blog-toc` | exit 0 |
+
+**Mutation-tested before being trusted.** A column (`drift_probe`) was added to `usersTable` in `config/schema.tsx` with no migration:
+
+```
+FAIL schema drift: config/schema.tsx has changes with no migration.
+
+   M drizzle/meta/_journal.json
+  ?? drizzle/0011_wealthy_liz_osborn.sql
+  ?? drizzle/meta/0011_snapshot.json
+```
+
+exit 1, naming all three files and telling the developer the fix is to commit the migration. Schema restored, generated files deleted, journal reverted — gate returns to exit 0. A gate that has never been observed failing is an untested gate, which is now a Known Debt entry.
+
+**Two design decisions that a simpler version would have got wrong.**
+
+*It compares before-and-after, it does not ask "is `drizzle/` dirty".* A developer who has **already** generated the migration but has not committed it has a dirty `drizzle/` directory. A dirty-check would report drift for a migration that already exists and tell them to generate one they already have — failing the correct action. This was not reasoned about in the abstract; the case was run:
+
+| Tree state | Result |
+|---|---|
+| Clean, schema matches | `OK`, exit 0 |
+| Schema changed, no migration | `FAIL`, exit 1, names the files |
+| Migration generated but **uncommitted** | `OK`, exit 0 — nothing is missing |
+
+`git diff --exit-code` is also deliberately **not** used. A newly generated migration is *untracked*, and `git diff` only compares tracked files — it would miss the exact condition the check exists to catch. It would incidentally notice the `_journal.json` edit, but that is a side effect, not the mechanism.
+
+**Cost:** one `generate` run, ~2 seconds, no network, no database connection. It needs `DATABASE_URL` only because `drizzle.config.ts` does `new URL(...)` at module load.
 
 ---
 

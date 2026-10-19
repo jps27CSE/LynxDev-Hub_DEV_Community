@@ -52,6 +52,16 @@ jobs:
       - name: Audit dependencies
         run: npm audit --audit-level=high
 
+      # Catches a schema change committed without its migration. Nothing else
+      # in this workflow notices that: tsc passes, the tests pass, the build
+      # succeeds and the route table is unchanged — then the app fails at
+      # runtime, in production, on the first query touching the new column.
+      #
+      # Needs DATABASE_URL (already set above) but no live connection; generate
+      # diffs config/schema.tsx against the on-disk snapshots in drizzle/meta.
+      - name: Migration drift check
+        run: npm run check:migrations
+
       - name: Typecheck
         run: npm run typecheck
 
