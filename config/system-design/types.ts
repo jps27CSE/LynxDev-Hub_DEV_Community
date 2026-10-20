@@ -243,7 +243,7 @@ export type SimulationResult = {
   /** Off-origin throughput, so module 10 can ask whether the origin is idle. */
   bandwidthMbps: number;
   perNode: SdNodeResult[];
-  bottleneck: { nodeId: string; reason: string } | null;
+  bottleneck: { nodeId: string; reason: string; concurrency: number } | null;
   /**
    * Plain-language "why". Not garnish — a simulator that emits numbers without
    * explaining them is a toy. The learner reads these instead of the numbers.

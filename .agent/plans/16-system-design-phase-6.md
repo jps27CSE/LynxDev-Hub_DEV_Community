@@ -1,7 +1,7 @@
 # System Design Learning — Phase 6 Feature Spec (Free-Tier Safe)
 
-> **Date:** 2026-10-17 (revised 2026-10-18 — Task 1 shipped, contract extended, see §16 decisions 32–35)
-> **Status:** Task 1 complete. Next: Task 2 — engine + rubric as a headless script.
+> **Date:** 2026-10-17 (revised 2026-10-20 — Task 2 shipped, engine + rubric + verification complete)
+> **Status:** Task 1 complete. Task 2 complete. Next: Task 3 — schema table + migration.
 > **Scope:** An interactive system-design learning path: read a concept with scenarios and diagrams, then **build that app yourself and run it under traffic and failure**. Full beginner→advanced curriculum designed in §10.0 (~90 topics, Parts 0–9); **Phase A implements Part 0 + Part 1 + Part 3** = 14 modules, each ending in a 🔨 Build Task with hard pass criteria, grown across **one** photo-sharing app (100 users → chaos). Sliced into three independently shippable stages **A1 / A2 / A3** (§10.1).
 > **Phase A engine:** 9 node types, **no new node types needed** — 14 modules reduce to 7 property additions + scenario knobs (§5.2.1).
 > **Stack:** Next.js 16 App Router (Server Components default), React 19, Clerk `auth()`, Drizzle + TiDB MySQL (`connectionLimit:5`), Tailwind v4 + shadcn/ui, `react-resizable-panels` (already installed, currently **unused**), Vercel Hobby Free, TiDB Cloud Starter Free
@@ -742,7 +742,7 @@ Roughly 15 topics in Part 4–5 are *shapeable into a one-hypothesis interactive
 | # | Task | Files | Verify |
 |---|---|---|---|
 | 1 | Types + node registry + `registry.ts` with dynamic imports | `config/system-design/{types.ts,registry.ts,nodes.ts→lib/system-design/nodes.ts}` | `npm run typecheck` |
-| 2 | **Engine + rubric as a headless script** | `lib/system-design/{engine.ts,rubric.ts,validation.ts,graph-codec.ts}` | **`npx tsx` scratch script** — assert a 1-server design saturates, a replica raises throughput, 2 runs are byte-identical. Also assert `SdPassCriterion.assert()` fires on the broken graph and not on the solution graph |
+| 2 | **Engine + rubric as a headless script** | `lib/system-design/{engine.ts,rubric.ts,validation.ts,graph-codec.ts}` | **`npx tsx` scratch script** — assert a 1-server design saturates, a replica raises throughput, 2 runs are byte-identical. Also assert `SdPassCriterion.assert()` fires on the broken graph and not on the solution graph | ✅ Done |
 | 3 | Schema table + migration | `config/schema.tsx`, `drizzle/` | `npm run typecheck`, `npx drizzle-kit generate` + migrate, confirm 15/20 tables |
 | 4 | API route + rate-limit scope + config entry | `app/api/system-design/state/route.ts`, `lib/db-rate-limit.ts:9-24`, `config/rate-limits.ts` | curl with a signed session; 21st POST/min → 429; force an error and confirm `log.error` output **under `NODE_ENV=production`** |
 | 5 | Canvas — pan/zoom/drag/connect/delete | `components/system-design/canvas/*` | Manual: drag, connect, reconnect, delete, zoom-at-cursor. **`npm run build`** (I.9). ⚠️ **Checkpoint: canvas feels bad → stop and evaluate React Flow now** |
@@ -914,7 +914,7 @@ Everything below is **designed** — it is mapped in the §10.0 roadmap and will
 
 | Item | State | Notes |
 |---|---|---|
-| **Tasks 1–12 (slice A1)** | 🔄 **Task 1 done** | Task 1 (contract + node registry) shipped 2026-10-18. Task 2 = engine + rubric as a headless script |
+| **Tasks 1–12 (slice A1)** | 🔄 **Task 1 done, Task 2 done** | Task 1 (contract + node registry) shipped 2026-10-18. Task 2 (engine + rubric + verification script) completed 2026-10-20 |
 | Task 13 (A1 content) | ⬜ Not started | 4 modules — Part 0 |
 | Tasks 14–15 (A2, A3) | ⬜ Gated behind A1 | Do not author before Phase A1 is personally used |
 | Task 1 — `config/system-design/types.ts` | ✅ Done | All types in one dependency-free file. That is what avoids a runtime cycle: `SdPassCriterion.assert` is content but consumes the engine's `SimulationResult` |
@@ -922,6 +922,12 @@ Everything below is **designed** — it is mapped in the §10.0 roadmap and will
 | Task 1 — `config/system-design/registry.ts` | ✅ Done | `LOADERS` intentionally empty until Task 13 (decision 34) |
 | Task 1 — contract gaps closed | ✅ Done | `errorClasses`, `bandwidthMbps`, `perNode[].serviceMs`, `writeShare`, `mediaShare`, `bytesPerMediaRequest`, `abusiveShare`, `cdn.hitRate`, `worker.replicas` — see §5.2.1 |
 | Task 1 — self-review pass | ✅ Done | Found and fixed 3 defects: prototype-key lookup in `getModule` (threw on 3 of 5 inherited keys → 500 not 404, decision 36), `NODE_TYPE_ORDER` able to silently omit a type with `tsc` clean (decision 37), and two names that meant something other than they said (decision 38). Also documented the `Infinity` JSON trap on `client.capacity` |
+| Task 2 — `lib/system-design/validation.ts` | ✅ Done | Zod v4 discriminated unions for SdGraph, SdNode, SdEdge, SdScenario with `.max()` bounds on all strings |
+| Task 2 — `lib/system-design/graph-codec.ts` | ✅ Done | Base64url encode/decode with size limits (8KB), schema validation on decode |
+| Task 2 — `lib/system-design/engine.ts` | ✅ Done | Deterministic engine: mulberry32 PRNG, M/M/1 queueing, 4 failure kinds, Little's Law per node, split into 5 functions |
+| Task 2 — `lib/system-design/rubric.ts` | ✅ Done | Step builders (addNode, connect, placeBetween, setProperty), criterion builders (latencyPct, throughput, errorRate, errorClass, bandwidthMbps, nodeAvgLatency, zeroStaleReads, writesSucceed) |
+| Task 2 — `scripts/verify-engine.ts` | ✅ Done | 26 headless tests: determinism, capacity, cache, failures, share links, steps, criteria, Little's Law, teaching, topology, rate limiting, bandwidth, validation, M/M/1 formula |
+| Task 2 — self-review pass | ✅ Done | Fixed 11 issues: DoS cap, string bounds, payload size limit, M/M/1 verification, broken criterion builders, magic constants, function decomposition, duplicate removal, dynamic teaching strings, edge map precompute, all 26 tests passing |
 | §10.0 curriculum roadmap | ✅ Written | Part 0–9, ~90 topics, engine support tagged |
 | §10.1 14-module table | ✅ Written | each with lessons · Build Task · pass criteria · engine properties |
 | §10.3 module template | ✅ Written | Story → Lessons → Interview Byte → Build Task → Recap |
