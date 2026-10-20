@@ -461,14 +461,13 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## Links
 
-| Resource             | Link                                                                                                   |
-| -------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Repository**       | [github.com/jps27CSE/LynxDev-Hub_DEV_Community](https://github.com/jps27CSE/LynxDev-Hub_DEV_Community) |
-| **Live Demo**        | [lynxdev.vercel.app](https://lynxdev.vercel.app)                                                       |
-| **Engineering Blog** | [/blog](/blog)                                                                                         |
-| **Gap Report**       | [docs/engineering-gap-report.md](docs/engineering-gap-report.md)                                       |
-| **Feature Tracker**  | [.agent/feature-tracker.md](.agent/feature-tracker.md)                                                 |
-| **Architecture**     | [.agent/architecture.md](.agent/architecture.md)                                                       |
+| Resource            | Link                                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Repository**      | [github.com/jps27CSE/LynxDev-Hub_DEV_Community](https://github.com/jps27CSE/LynxDev-Hub_DEV_Community) |
+| **Live Demo**       | [lynxdev.vercel.app](https://lynxdev.vercel.app)                                                       |
+| **Gap Report**      | [docs/engineering-gap-report.md](docs/engineering-gap-report.md)                                       |
+| **Feature Tracker** | [.agent/feature-tracker.md](.agent/feature-tracker.md)                                                 |
+| **Architecture**    | [.agent/architecture.md](.agent/architecture.md)                                                       |
 
 ---
 
