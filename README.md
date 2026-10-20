@@ -79,21 +79,21 @@ We believe high-quality developer education shouldn't cost a fortune. Every feat
 ```mermaid
 graph TD
     A[User Browser] --> B[Next.js 16 App Router]
-    B --> C[Clerk Middleware<br/>proxy.ts]
+    B --> C[Clerk Middleware\nproxy.ts]
     C --> D{isPublicRoute?}
-    D -->|Yes| E[Public Routes<br/>/, /blog, /whats-new]
-    D -->|No| F[auth.protect()<br/>Clerk Session]
-    F --> G[Server Components<br/>(routes)]
+    D -->|Yes| E[Public Routes\n/, /blog, /whats-new]
+    D -->|No| F[auth.protect()\nClerk Session]
+    F --> G[Server Components\n(routes)]
     G --> H[Turbopack + Turbopack Cache]
-    G --> I[Drizzle ORM<br/>TiDB Cloud]
-    G --> J[Mistral AI<br/>Streaming Chat]
-    G --> K[Monaco Editor<br/>Sandboxed iframe]
-    G --> L[Vercel Analytics<br/>Speed Insights]
+    G --> I[Drizzle ORM\nTiDB Cloud]
+    G --> J[Mistral AI\nStreaming Chat]
+    G --> K[Monaco Editor\nSandboxed iframe]
+    G --> L[Vercel Analytics\nSpeed Insights]
 
-    M[Cron Job] --> N[/api/cron/cleanup<br/>Rate-limit cleanup]
+    M[Cron Job] --> N[/api/cron/cleanup\nRate-limit cleanup]
     N --> I
 
-    O[Admin] --> P[Site Notices<br/>Users<br/>Feedback]
+    O[Admin] --> P[Site Notices\nUsers\nFeedback]
     P --> I
 
     style C fill:#f9f,stroke:#333
