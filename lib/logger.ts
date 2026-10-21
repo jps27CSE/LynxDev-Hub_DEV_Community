@@ -44,7 +44,7 @@ function emit(
   }
 }
 
-const MAX_CAUSE_DEPTH = 3;
+export const MAX_CAUSE_DEPTH = 3;
 
 /**
  * Drizzle interpolates bound parameters into the error message, and an
@@ -52,22 +52,34 @@ const MAX_CAUSE_DEPTH = 3;
  * row's contents several times over. Keep the query shape, drop the values.
  * Matches to the end of the message, or up to the first stack frame.
  */
-const SQL_PARAMS = /params: [\s\S]*?(?=\n\s+at\s|$)/g;
+export const SQL_PARAMS = /params: [\s\S]*?(?=\n\s+at\s|$)/g;
 
 /** Driver-level fields that identify the failure; they sit on `cause`. */
-const DIAGNOSTIC_KEYS = ["code", "errno", "sqlState", "sqlMessage"] as const;
+export const DIAGNOSTIC_KEYS = ["code", "errno", "sqlState", "sqlMessage"] as const;
 
-function redactParams(text: string): string {
+export function redactParams(text: string): string {
   return text.replace(SQL_PARAMS, "params: [redacted]");
 }
 
-function serializeError(err: unknown, depth = 0): unknown {
-  if (!(err instanceof Error)) return err;
+export interface SerializedError {
+  name: string;
+  message: string;
+  stack?: string;
+  code?: string;
+  errno?: number;
+  sqlState?: string;
+  sqlMessage?: string;
+  cause?: SerializedError;
+  [key: string]: unknown;
+}
+
+export function serializeError(err: unknown, depth = 0): SerializedError {
+  if (!(err instanceof Error)) return { name: "UnknownError", message: String(err) };
   if (depth >= MAX_CAUSE_DEPTH) {
     return { name: err.name, message: "[cause chain truncated]" };
   }
 
-  const serialized: Record<string, unknown> = {
+  const serialized: SerializedError = {
     name: err.name,
     message: redactParams(err.message),
   };
@@ -75,7 +87,7 @@ function serializeError(err: unknown, depth = 0): unknown {
 
   for (const key of DIAGNOSTIC_KEYS) {
     const value = (err as unknown as Record<string, unknown>)[key];
-    if (value !== undefined) serialized[key] = value;
+    if (value !== undefined) (serialized as Record<string, unknown>)[key] = value;
   }
   if (err.cause !== undefined) {
     serialized.cause = serializeError(err.cause, depth + 1);
