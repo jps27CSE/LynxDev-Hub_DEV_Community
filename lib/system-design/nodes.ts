@@ -1,5 +1,7 @@
 import type { SdNode, SdNodeType } from "@/config/system-design/types";
 
+export type { SdNodeType };
+
 /**
  * The nine node types, as data.
  *

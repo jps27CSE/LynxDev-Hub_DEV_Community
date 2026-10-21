@@ -1,0 +1,215 @@
+"use client";
+
+import { useRef, useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { createLucideIcon } from "@/components/ui/lucide-icons";
+import type { SdNode, SdNodeType } from "@/config/system-design/types";
+import { getNodeTypeSpec, NODE_TYPES } from "@/lib/system-design/nodes";
+
+interface NodeCardProps {
+  node: SdNode;
+  scale: number;
+  pan: { x: number; y: number };
+  selected: boolean;
+  onSelect: (id: string) => void;
+  onDragStart: (event: React.DragEvent, nodeId: string) => void;
+  onDragEnd: () => void;
+  onPositionChange: (id: string, x: number, y: number) => void;
+  onConnectStart: (event: React.MouseEvent, nodeId: string, port: "input" | "output") => void;
+  utilisation?: number;
+}
+
+const PORT_RADIUS = 6;
+
+export function NodeCard({
+  node,
+  scale,
+  pan,
+  selected,
+  onSelect,
+  onDragStart,
+  onDragEnd,
+  onPositionChange,
+  onConnectStart,
+  utilisation,
+}: NodeCardProps) {
+  const spec = getNodeTypeSpec(node.type);
+  const Icon = createLucideIcon(spec.iconKey);
+  const nodeRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0, nodeX: 0, nodeY: 0 });
+
+  const screenX = pan.x + node.x * scale;
+  const screenY = pan.y + node.y * scale;
+  const cardWidth = 160;
+  const cardHeight = 72;
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest(".port")) return;
+    onSelect(node.id);
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      nodeX: node.x,
+      nodeY: node.y,
+    };
+    e.stopPropagation();
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+    const move = (e: MouseEvent) => {
+      const dx = (e.clientX - dragStartRef.current.x) / scale;
+      const dy = (e.clientY - dragStartRef.current.y) / scale;
+      onPositionChange(node.id, dragStartRef.current.nodeX + dx, dragStartRef.current.nodeY + dy);
+    };
+    const up = () => {
+      setIsDragging(false);
+      onDragEnd();
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+    return () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+    };
+  }, [isDragging, scale, node.id, onPositionChange, onDragEnd]);
+
+  const getUtilisationColor = (util?: number) => {
+    if (util === undefined) return "bg-muted";
+    if (util >= 1) return "bg-red-500";
+    if (util >= 0.7) return "bg-amber-500";
+    return "bg-green-500";
+  };
+
+  return (
+    <div
+      ref={nodeRef}
+      className={cn(
+        "absolute select-none touch-none transition-transform duration-100",
+        selected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+        isDragging && "cursor-grabbing z-50",
+        !isDragging && "cursor-grab"
+      )}
+      style={{
+        left: screenX,
+        top: screenY,
+        transform: `scale(${scale})`,
+        transformOrigin: "0 0",
+      }}
+      onMouseDown={handleMouseDown}
+      onDragStart={(e) => onDragStart(e, node.id)}
+    >
+      <div
+        className={cn(
+          "relative flex flex-col items-center gap-1.5 p-2.5 rounded-lg border bg-card",
+          "min-w-[160px] max-w-[180px]",
+          selected ? "border-primary shadow-lg" : "border-border shadow-sm",
+          "hover:border-primary/50 transition-all duration-150"
+        )}
+        style={{ width: cardWidth, height: cardHeight }}
+      >
+        <div className="flex items-center justify-between w-full mb-1">
+          <div className="flex items-center gap-2">
+            <div className={cn("relative flex items-center justify-center w-8 h-8 rounded bg-muted", "overflow-hidden")}>
+              <Icon className="w-4 h-4 text-foreground" strokeWidth={2} />
+              {node.type === "app_server" && node.replicas > 1 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {node.replicas}x
+                </span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="text-xs font-medium truncate block">{node.label}</span>
+              <span className="text-[10px] text-muted-foreground capitalize">{node.type.replace("_", " ")}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            {utilisation !== undefined && (
+              <div className={cn("w-2 h-2 rounded-full", getUtilisationColor(utilisation))} title={`Utilisation: ${(utilisation * 100).toFixed(0)}%`} />
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-between w-full px-1">
+          <div
+            className="port w-3 h-3 rounded-full border-2 border-primary/50 bg-background hover:border-primary hover:bg-primary/10 transition-colors cursor-crosshair"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              onConnectStart(e, node.id, "output");
+            }}
+            title="Connect from here"
+          />
+          <div
+            className="port w-3 h-3 rounded-full border-2 border-primary/50 bg-background hover:border-primary hover:bg-primary/10 transition-colors cursor-crosshair"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              onConnectStart(e, node.id, "input");
+            }}
+            title="Connect to here"
+          />
+        </div>
+
+        {node.type === "load_balancer" && (
+          <div className="mt-1.5 text-[10px] text-muted-foreground flex items-center gap-1">
+            <span>Algorithm:</span>
+            <span className="font-mono capitalize">{node.algorithm}</span>
+          </div>
+        )}
+
+        {node.type === "app_server" && (
+          <div className="mt-1.5 text-[10px] text-muted-foreground flex items-center gap-1 flex-wrap">
+            <span>Replicas:</span>
+            <span className="font-mono">{node.replicas}</span>
+            {node.maxConcurrency && <span className="text-muted-foreground/50">| Max concurrency: {node.maxConcurrency}</span>}
+            {node.breakerEnabled && <span className="text-muted-foreground/50">| Circuit breaker</span>}
+          </div>
+        )}
+
+        {node.type === "cache" && (
+          <div className="mt-1.5 text-[10px] text-muted-foreground flex items-center gap-1 flex-wrap">
+            <span>Hit rate:</span>
+            <span className="font-mono">{(node.hitRate * 100).toFixed(0)}%</span>
+            <span className="text-muted-foreground/50">| TTL: {node.ttlMs / 1000}s</span>
+            {node.stampedeGuard && <span className="text-muted-foreground/50">| Stampede guard</span>}
+          </div>
+        )}
+
+        {node.type === "database" && (
+          <div className="mt-1.5 text-[10px] text-muted-foreground flex items-center gap-1 flex-wrap">
+            <span>Read replicas:</span>
+            <span className="font-mono">{node.readReplicas}</span>
+            <span className="text-muted-foreground/50">| Partitions: {node.partitions}</span>
+            {node.hotKeyShare > 0 && <span className="text-muted-foreground/50">| Hot key: {(node.hotKeyShare * 100).toFixed(0)}%</span>}
+          </div>
+        )}
+
+        {node.type === "queue" && (
+          <div className="mt-1.5 text-[10px] text-muted-foreground flex items-center gap-1 flex-wrap">
+            <span>Max depth:</span>
+            <span className="font-mono">{node.maxDepth}</span>
+            <span className="text-muted-foreground/50">| Retry: {node.retryLimit}</span>
+            {node.dlqEnabled && <span className="text-muted-foreground/50">| DLQ</span>}
+          </div>
+        )}
+
+        {node.type === "worker" && (
+          <div className="mt-1.5 text-[10px] text-muted-foreground flex items-center gap-1">
+            <span>Replicas:</span>
+            <span className="font-mono">{node.replicas}</span>
+          </div>
+        )}
+
+        {node.type === "cdn" && (
+          <div className="mt-1.5 text-[10px] text-muted-foreground flex items-center gap-1">
+            <span>Hit rate:</span>
+            <span className="font-mono">{(node.hitRate * 100).toFixed(0)}%</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
