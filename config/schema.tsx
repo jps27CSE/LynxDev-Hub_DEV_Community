@@ -191,3 +191,12 @@ export const siteNotices = mysqlTable("site_notices", {
   updated_at: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
   updated_by: varchar("updated_by", { length: 255 }),
 });
+
+export const sdUserState = mysqlTable("sd_user_state", {
+  user_id: int("user_id")
+    .references(() => usersTable.id)
+    .primaryKey(),
+  lessons_completed: json(),
+  tasks: json(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+});
