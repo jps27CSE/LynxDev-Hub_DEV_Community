@@ -3,15 +3,16 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { simulate } from "@/lib/system-design/engine";
-import type { SimulationResult, SdGraph, SdFailure, SdNode } from "@/config/system-design/types";
+import { evaluateCriteria, allRequiredPass } from "@/lib/system-design/rubric";
+import type { SimulationResult, SdGraph, SdFailure, SdPassCriterion } from "@/config/system-design/types";
 
 interface SimulationPanelProps {
   graph: SdGraph;
   failures: SdFailure[];
+  passCriteria: SdPassCriterion[];
   onRun: (result: SimulationResult) => void;
-  onFailuresChange: (failures: SdFailure[]) => void;
-  simulationResult?: SimulationResult;
-  isRunning?: boolean;
+  onArrivalRateChange: (rate: number) => void;
+  simulationResult?: SimulationResult | null;
 }
 
 const MIN_ARRIVAL_RATE = 10;
@@ -21,10 +22,10 @@ const SPARKLINE_POINTS = 60;
 export function SimulationPanel({
   graph,
   failures,
+  passCriteria,
   onRun,
-  onFailuresChange,
+  onArrivalRateChange,
   simulationResult,
-  isRunning = false,
 }: SimulationPanelProps) {
   const [arrivalRate, setArrivalRate] = useState(graph.scenario.arrivalRate);
   const [latencyHistory, setLatencyHistory] = useState<number[]>([]);
@@ -41,11 +42,13 @@ export function SimulationPanel({
   useEffect(() => {
     if (simulationResult) {
       setLastResult(simulationResult);
-      setVerdict("pass");
+      // Compute verdict from pass criteria
+      const allPass = allRequiredPass(passCriteria, simulationResult);
+      setVerdict(allPass ? "pass" : "fail");
       // Track latency for sparkline
       setLatencyHistory((prev) => [...prev.slice(-SPARKLINE_POINTS + 1), simulationResult.latency.p95]);
     }
-  }, [simulationResult]);
+  }, [simulationResult, passCriteria]);
 
   // Sparkline data
   const sparklinePoints = useMemo(() => {
@@ -64,18 +67,19 @@ export function SimulationPanel({
   }, [latencyHistory]);
 
   const handleRun = useCallback(() => {
-    setVerdict("running");
-    // Trigger simulation via parent
-    const result = simulate(graph, failures);
+    // Run simulation with current graph and failures
+    const result = simulate(
+      { ...graph, scenario: { ...graph.scenario, arrivalRate } },
+      failures
+    );
     onRun(result);
-  }, [graph, failures, onRun]);
+  }, [failures, onRun]);
 
   const handleArrivalRateChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = Math.max(MIN_ARRIVAL_RATE, Math.min(MAX_ARRIVAL_RATE, parseInt(e.target.value) || MIN_ARRIVAL_RATE));
       setArrivalRate(value);
-      // Update graph scenario
-      // Note: Parent will handle graph update
+      onArrivalRateChange(value);
     },
     []
   );
@@ -124,25 +128,9 @@ export function SimulationPanel({
       {/* Run Button */}
       <button
         onClick={handleRun}
-        disabled={isRunning}
-        className={cn(
-          "w-full py-3 rounded-lg font-medium text-sm transition-colors",
-          isRunning
-            ? "bg-muted text-muted-foreground cursor-not-allowed"
-            : "bg-primary text-primary-foreground hover:bg-primary/90"
-        )}
+        className="w-full py-3 rounded-lg font-medium text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
       >
-        {isRunning ? (
-          <>
-            <svg className="animate-spin -ml-1 mr-2 h-4 w-4" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            Running...
-          </>
-        ) : (
-          "Run Simulation"
-        )}
+        Run Simulation
       </button>
 
       {/* Latency Sparkline */}
@@ -173,13 +161,11 @@ export function SimulationPanel({
           "p-3 rounded-lg text-center font-medium text-sm",
           verdict === "pass" && "bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20",
           verdict === "fail" && "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20",
-          verdict === "running" && "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 animate-pulse",
           verdict === "idle" && "bg-muted text-muted-foreground"
         )}
       >
         {verdict === "pass" && "✓ All checks passing"}
         {verdict === "fail" && "✗ Some checks failing"}
-        {verdict === "running" && "⟳ Running simulation..."}
         {verdict === "idle" && "Ready to run"}
       </div>
 
@@ -206,4 +192,17 @@ export function SimulationPanel({
       )}
     </div>
   );
+}
+
+// Format helpers (moved outside component to avoid recreation)
+function fmt(n: number) {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  return n.toFixed(n < 10 ? 1 : 0);
+}
+
+function fmtMs(ms: number) {
+  if (ms < 1) return `${(ms * 1000).toFixed(0)}µs`;
+  if (ms < 1000) return `${ms.toFixed(1)}ms`;
+  return `${(ms / 1000).toFixed(2)}s`;
 }
