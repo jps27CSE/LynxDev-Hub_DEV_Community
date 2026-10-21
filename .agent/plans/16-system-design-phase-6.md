@@ -1,7 +1,7 @@
 # System Design Learning — Phase 6 Feature Spec (Free-Tier Safe)
 
-> **Date:** 2026-10-17 (revised 2026-10-20 — Task 3 shipped, schema + migration complete)
-> **Status:** Task 1 complete. Task 2 complete. Task 3 complete. Next: Task 4 — API route + rate-limit scope + config entry.
+> **Date:** 2026-10-17 (revised 2026-10-20 — Task 4 shipped, API route + rate limits complete)
+> **Status:** Task 1 complete. Task 2 complete. Task 3 complete. Task 4 complete. Next: Task 5 — Canvas pan/zoom/drag/connect/delete.
 > **Scope:** An interactive system-design learning path: read a concept with scenarios and diagrams, then **build that app yourself and run it under traffic and failure**. Full beginner→advanced curriculum designed in §10.0 (~90 topics, Parts 0–9); **Phase A implements Part 0 + Part 1 + Part 3** = 14 modules, each ending in a 🔨 Build Task with hard pass criteria, grown across **one** photo-sharing app (100 users → chaos). Sliced into three independently shippable stages **A1 / A2 / A3** (§10.1).
 > **Phase A engine:** 9 node types, **no new node types needed** — 14 modules reduce to 7 property additions + scenario knobs (§5.2.1).
 > **Stack:** Next.js 16 App Router (Server Components default), React 19, Clerk `auth()`, Drizzle + TiDB MySQL (`connectionLimit:5`), Tailwind v4 + shadcn/ui, `react-resizable-panels` (already installed, currently **unused**), Vercel Hobby Free, TiDB Cloud Starter Free
@@ -744,7 +744,7 @@ Roughly 15 topics in Part 4–5 are *shapeable into a one-hypothesis interactive
 | 1 | Types + node registry + `registry.ts` with dynamic imports | `config/system-design/{types.ts,registry.ts,nodes.ts→lib/system-design/nodes.ts}` | `npm run typecheck` |
 | 2 | **Engine + rubric as a headless script** | `lib/system-design/{engine.ts,rubric.ts,validation.ts,graph-codec.ts}` | **`npx tsx` scratch script** — assert a 1-server design saturates, a replica raises throughput, 2 runs are byte-identical. Also assert `SdPassCriterion.assert()` fires on the broken graph and not on the solution graph | ✅ Done |
 | 3 | Schema table + migration | `config/schema.tsx`, `drizzle/` | `npm run typecheck`, `npx drizzle-kit generate` + migrate, confirm 15/20 tables | ✅ Done |
-| 4 | API route + rate-limit scope + config entry | `app/api/system-design/state/route.ts`, `lib/db-rate-limit.ts:9-24`, `config/rate-limits.ts` | curl with a signed session; 21st POST/min → 429; force an error and confirm `log.error` output **under `NODE_ENV=production`** |
+| 4 | API route + rate-limit scope + config entry | `app/api/system-design/state/route.ts`, `lib/db-rate-limit.ts:9-24`, `config/rate-limits.ts` | curl with a signed session; 21st POST/min → 429; force an error and confirm `log.error` output **under `NODE_ENV=production`** | ✅ Done |
 | 5 | Canvas — pan/zoom/drag/connect/delete | `components/system-design/canvas/*` | Manual: drag, connect, reconnect, delete, zoom-at-cursor. **`npm run build`** (I.9). ⚠️ **Checkpoint: canvas feels bad → stop and evaluate React Flow now** |
 | 6 | SimulationPanel + ResultsRail + FailurePanel wired to the engine | + `ModelDisclosure.tsx` | Manual: crank to 10×, node turns red, bottleneck pin appears, kill a node and re-run |
 | 7 | Inspector + HintLayer + ShareButton | 3 components | Manual: tune replicas, all 3 hint tiers, copy link reopens the design. **Record the URL length** (§9.4) |
@@ -930,6 +930,9 @@ Everything below is **designed** — it is mapped in the §10.0 roadmap and will
 | Task 2 — self-review pass | ✅ Done | Fixed 11 issues: DoS cap, string bounds, payload size limit, M/M/1 verification, broken criterion builders, magic constants, function decomposition, duplicate removal, dynamic teaching strings, edge map precompute, all 26 tests passing |
 | Task 3 — `config/schema.tsx` | ✅ Done | Added `sd_user_state` table with `user_id` PK/FK, `lessons_completed` JSON, `tasks` JSON, `updated_at` |
 | Task 3 — `drizzle/0011_quiet_slipstream.sql` | ✅ Done | Migration generated and applied; 15/20 tables confirmed; no schema drift |
+| Task 4 — `app/api/system-design/state/route.ts` | ✅ Done | GET/POST with Clerk auth, DB rate limit, Zod discriminated union for lesson-complete + task-save, Drizzle transaction |
+| Task 4 — `lib/db-rate-limit.ts` | ✅ Done | Added `system-design` scope to `RateLimitScope` union |
+| Task 4 — `config/rate-limits.ts` | ✅ Done | Added POST 20/min and GET 30/min entries for `/api/system-design/state` |
 | §10.0 curriculum roadmap | ✅ Written | Part 0–9, ~90 topics, engine support tagged |
 | §10.1 14-module table | ✅ Written | each with lessons · Build Task · pass criteria · engine properties |
 | §10.3 module template | ✅ Written | Story → Lessons → Interview Byte → Build Task → Recap |

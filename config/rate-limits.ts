@@ -106,6 +106,16 @@ const routes: { pattern: string; method: string; config: RateLimitConfig }[] = [
     method: "PATCH",
     config: { limit: 10, windowMs: WINDOW_1M },
   },
+  {
+    pattern: "/api/system-design/state",
+    method: "POST",
+    config: { limit: 20, windowMs: WINDOW_1M },
+  },
+  {
+    pattern: "/api/system-design/state",
+    method: "GET",
+    config: { limit: 30, windowMs: WINDOW_1M },
+  },
 ];
 
 const defaultConfig: RateLimitConfig = { limit: 20, windowMs: WINDOW_1M };
