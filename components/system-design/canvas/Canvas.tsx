@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { NODE_TYPES, NODE_TYPE_ORDER } from "@/lib/system-design/nodes";
 import type { SdNodeType } from "@/config/system-design/types";
@@ -47,7 +47,6 @@ export function Canvas({
   const [edges, setEdges] = useState<SdEdge[]>(graph.edges);
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [connecting, setConnecting] = useState<{ from: string; port: "input" | "output"; pos: { x: number; y: number } } | null>(null);
   const [showGrid, setShowGrid] = useState(true);
 
   const canvasRef = useRef<HTMLDivElement>(null as HTMLDivElement | null);
@@ -58,6 +57,7 @@ export function Canvas({
     handleMouseDown,
     handleWheel: handleWheelFromHook,
     handleDragStart,
+    startConnection,
   } = useCanvasInteractions({
     nodes,
     edges,
@@ -86,6 +86,32 @@ export function Canvas({
   useEffect(() => {
     onGraphChange({ nodes, edges, scenario: graph.scenario });
   }, [nodes, edges, graph.scenario, onGraphChange]);
+
+  // O(1) node lookup map
+  const nodeMap = useMemo(() => new Map(nodes.map((n) => [n.id, n])), [nodes]);
+
+  // O(1) simulation result lookup map
+  const perNodeMap = useMemo(
+    () =>
+      simulationResult
+        ? new Map(simulationResult.perNode.map((n) => [n.id, n]))
+        : new Map(),
+    [simulationResult]
+  );
+
+  // Stable onPositionChange handler
+  const handlePositionChange = useCallback(
+    (id: string, x: number, y: number) => {
+      setNodes((prev) =>
+        prev.map((n) =>
+          n.id === id
+            ? { ...n, x: Math.round(x / GRID_SIZE) * GRID_SIZE, y: Math.round(y / GRID_SIZE) * GRID_SIZE }
+            : n
+        )
+      );
+    },
+    []
+  );
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -146,8 +172,8 @@ export function Canvas({
         {showGrid && <rect className="w-full h-full" fill="url(#grid)" />}
         <g style={{ transform: `translate(${pan.x}, ${pan.y}) scale(${scale})` }}>
           {edges.map((edge) => {
-            const fromNode = nodes.find((n) => n.id === edge.from);
-            const toNode = nodes.find((n) => n.id === edge.to);
+            const fromNode = nodeMap.get(edge.from);
+            const toNode = nodeMap.get(edge.to);
             return (
               <EdgePath
                 key={edge.id}
@@ -162,10 +188,10 @@ export function Canvas({
               />
             );
           })}
-          {connectionState && (
+          {connectionState && connectionState.currentPos && (
             <g>
               <path
-                d={`M${connectionState.fromNodeId} C...`}
+                d={`M${connectionState.fromPortPos.x} ${connectionState.fromPortPos.y} C${(connectionState.fromPortPos.x + connectionState.currentPos.x) / 2} ${connectionState.fromPortPos.y} ${(connectionState.fromPortPos.x + connectionState.currentPos.x) / 2} ${connectionState.currentPos.y} ${connectionState.currentPos.x} ${connectionState.currentPos.y}`}
                 stroke="hsl(var(--primary))"
                 strokeWidth={2}
                 strokeDasharray="6,4"
@@ -182,16 +208,9 @@ export function Canvas({
               pan={pan}
               selected={selectedNodeId === node.id}
               onSelect={onSelectNode}
-              onDragStart={() => {}}
-              onDragEnd={() => {}}
-              onPositionChange={(id, x, y) => {
-                setNodes((prev) => prev.map((n) => (n.id === id ? { ...n, x: Math.round(x / GRID_SIZE) * GRID_SIZE, y: Math.round(y / GRID_SIZE) * GRID_SIZE } : n)));
-              }}
-              onConnectStart={(e, nodeId, port) => {
-                e.stopPropagation();
-                setConnecting({ from: nodeId, port, pos: { x: 0, y: 0 } });
-              }}
-              utilisation={simulationResult?.perNode.find((n) => n.id === node.id)?.utilisation}
+              onPositionChange={handlePositionChange}
+              onConnectStart={startConnection}
+              utilisation={perNodeMap.get(node.id)?.utilisation}
             />
           ))}
         </g>

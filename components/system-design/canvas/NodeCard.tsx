@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { createLucideIcon } from "@/components/ui/lucide-icons";
 import type { SdNode, SdNodeType } from "@/config/system-design/types";
@@ -12,10 +12,8 @@ interface NodeCardProps {
   pan: { x: number; y: number };
   selected: boolean;
   onSelect: (id: string) => void;
-  onDragStart: (event: React.DragEvent, nodeId: string) => void;
-  onDragEnd: () => void;
   onPositionChange: (id: string, x: number, y: number) => void;
-  onConnectStart: (event: React.MouseEvent, nodeId: string, port: "input" | "output") => void;
+  onConnectStart: (nodeId: string, port: "input" | "output") => void;
   utilisation?: number;
 }
 
@@ -27,8 +25,6 @@ export function NodeCard({
   pan,
   selected,
   onSelect,
-  onDragStart,
-  onDragEnd,
   onPositionChange,
   onConnectStart,
   utilisation,
@@ -36,47 +32,11 @@ export function NodeCard({
   const spec = getNodeTypeSpec(node.type);
   const Icon = createLucideIcon(spec.iconKey);
   const nodeRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef({ x: 0, y: 0, nodeX: 0, nodeY: 0 });
 
   const screenX = pan.x + node.x * scale;
   const screenY = pan.y + node.y * scale;
   const cardWidth = 160;
   const cardHeight = 72;
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest(".port")) return;
-    onSelect(node.id);
-    setIsDragging(true);
-    dragStartRef.current = {
-      x: e.clientX,
-      y: e.clientY,
-      nodeX: node.x,
-      nodeY: node.y,
-    };
-    e.stopPropagation();
-  };
-
-  useEffect(() => {
-    if (!isDragging) return;
-    const move = (e: MouseEvent) => {
-      const dx = (e.clientX - dragStartRef.current.x) / scale;
-      const dy = (e.clientY - dragStartRef.current.y) / scale;
-      onPositionChange(node.id, dragStartRef.current.nodeX + dx, dragStartRef.current.nodeY + dy);
-    };
-    const up = () => {
-      setIsDragging(false);
-      onDragEnd();
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
-    };
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
-    return () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
-    };
-  }, [isDragging, scale, node.id, onPositionChange, onDragEnd]);
 
   const getUtilisationColor = (util?: number) => {
     if (util === undefined) return "bg-muted";
@@ -91,8 +51,7 @@ export function NodeCard({
       className={cn(
         "absolute select-none touch-none transition-transform duration-100",
         selected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
-        isDragging && "cursor-grabbing z-50",
-        !isDragging && "cursor-grab"
+        "cursor-grab"
       )}
       style={{
         left: screenX,
@@ -100,8 +59,10 @@ export function NodeCard({
         transform: `scale(${scale})`,
         transformOrigin: "0 0",
       }}
-      onMouseDown={handleMouseDown}
-      onDragStart={(e) => onDragStart(e, node.id)}
+      onMouseDown={(e) => {
+        if ((e.target as HTMLElement).closest(".port")) return;
+        onSelect(node.id);
+      }}
     >
       <div
         className={cn(
@@ -139,7 +100,7 @@ export function NodeCard({
             className="port w-3 h-3 rounded-full border-2 border-primary/50 bg-background hover:border-primary hover:bg-primary/10 transition-colors cursor-crosshair"
             onMouseDown={(e) => {
               e.stopPropagation();
-              onConnectStart(e, node.id, "output");
+              onConnectStart(node.id, "output");
             }}
             title="Connect from here"
           />
@@ -147,7 +108,7 @@ export function NodeCard({
             className="port w-3 h-3 rounded-full border-2 border-primary/50 bg-background hover:border-primary hover:bg-primary/10 transition-colors cursor-crosshair"
             onMouseDown={(e) => {
               e.stopPropagation();
-              onConnectStart(e, node.id, "input");
+              onConnectStart(node.id, "input");
             }}
             title="Connect to here"
           />

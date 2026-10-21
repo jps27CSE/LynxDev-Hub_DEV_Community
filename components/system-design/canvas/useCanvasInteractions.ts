@@ -3,9 +3,12 @@
 import { useRef, useCallback, useEffect, useState } from "react";
 import type { SdNode, SdEdge, SdNodeType } from "@/config/system-design/types";
 import { defaultNode, NODE_TYPES } from "@/lib/system-design/nodes";
+import { getPortPosition } from "@/lib/system-design/geometry";
 
 const NODE_WIDTH = 160;
 const NODE_HEIGHT = 72;
+const PORT_HIT_RADIUS = 6;
+const EDGE_HIT_THRESHOLD = 8;
 
 interface UseCanvasInteractionsProps {
   nodes: SdNode[];
@@ -26,6 +29,7 @@ interface UseCanvasInteractionsProps {
 interface ConnectionState {
   fromNodeId: string;
   fromPort: "input" | "output";
+  fromPortPos: { x: number; y: number };
   currentPos: { x: number; y: number } | null;
 }
 
@@ -82,9 +86,7 @@ export function useCanvasInteractions({
 
   const getPortAtPosition = useCallback(
     (node: SdNode, canvasX: number, canvasY: number): "input" | "output" | null => {
-      const nodeCenterX = node.x + NODE_WIDTH / 2;
       const nodeCenterY = node.y + NODE_HEIGHT / 2;
-      const portRadius = 12 / scale;
 
       const outputPort = { x: node.x + NODE_WIDTH, y: nodeCenterY };
       const inputPort = { x: node.x, y: nodeCenterY };
@@ -92,16 +94,16 @@ export function useCanvasInteractions({
       const distToOutput = Math.hypot(canvasX - outputPort.x, canvasY - outputPort.y);
       const distToInput = Math.hypot(canvasX - inputPort.x, canvasY - inputPort.y);
 
-      if (distToOutput < portRadius) return "output";
-      if (distToInput < portRadius) return "input";
+      if (distToOutput < PORT_HIT_RADIUS) return "output";
+      if (distToInput < PORT_HIT_RADIUS) return "input";
       return null;
     },
-    [scale]
+    []
   );
 
   const getEdgeAtPosition = useCallback(
     (canvasX: number, canvasY: number) => {
-      const threshold = 8 / scale;
+      const threshold = EDGE_HIT_THRESHOLD;
       for (const edge of edges) {
         const fromNode = nodes.find((n) => n.id === edge.from);
         const toNode = nodes.find((n) => n.id === edge.to);
@@ -130,7 +132,7 @@ export function useCanvasInteractions({
       }
       return null;
     },
-    [edges, nodes, scale]
+    [edges, nodes]
   );
 
   const handleMouseDown = useCallback(
@@ -155,6 +157,7 @@ export function useCanvasInteractions({
           setConnectionState({
             fromNodeId: targetNode.id,
             fromPort: port,
+            fromPortPos: getPortPosition(targetNode, pan, scale, port === "output"),
             currentPos: canvasPos,
           });
           onSelectNode(targetNode.id);
@@ -290,6 +293,22 @@ export function useCanvasInteractions({
     };
   }, [handleMouseMove, handleMouseUp, handleKeyDown]);
 
+  const startConnection = useCallback(
+    (nodeId: string, port: "input" | "output") => {
+      const node = nodes.find((n) => n.id === nodeId);
+      if (!node) return;
+
+      const fromPortPos = getPortPosition(node, pan, scale, port === "output");
+      setConnectionState({
+        fromNodeId: nodeId,
+        fromPort: port,
+        fromPortPos,
+        currentPos: fromPortPos,
+      });
+    },
+    [nodes, pan, scale]
+  );
+
   const handleDragStart = useCallback(
     (type: SdNodeType, e: React.DragEvent) => {
       const rect = canvasRef.current?.getBoundingClientRect();
@@ -307,5 +326,6 @@ export function useCanvasInteractions({
     handleMouseDown,
     handleWheel,
     handleDragStart,
+    startConnection,
   };
 }

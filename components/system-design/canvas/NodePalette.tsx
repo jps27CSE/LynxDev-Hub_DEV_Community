@@ -33,7 +33,10 @@ export function NodePalette({ onDragStart, disabledTypes = [] }: NodePaletteProp
                   <button
                     key={type}
                     draggable
-                    onDragStart={(e) => onDragStart(type, e)}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("application/json", JSON.stringify({ type }));
+                      onDragStart(type, e);
+                    }}
                     className={cn(
                       "group relative flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-background",
                       "hover:border-primary/50 hover:bg-accent transition-all duration-200",
