@@ -1,7 +1,7 @@
 # System Design Learning — Phase 6 Feature Spec (Free-Tier Safe)
 
-> **Date:** 2026-10-17 (revised 2026-10-20 — Task 5 shipped, canvas complete)
-> **Status:** Task 1 complete. Task 2 complete. Task 3 complete. Task 4 complete. Task 5 complete. Next: Task 6 — SimulationPanel + ResultsRail + FailurePanel wired to the engine.
+> **Date:** 2026-10-17 (revised 2026-10-20 — Task 6 shipped, SimulationPanel + ResultsRail + FailurePanel + ModelDisclosure complete)
+> **Status:** Task 1 complete. Task 2 complete. Task 3 complete. Task 4 complete. Task 5 complete. Task 6 complete. Next: Task 7 — Inspector + HintLayer + ShareButton.
 > **Scope:** An interactive system-design learning path: read a concept with scenarios and diagrams, then **build that app yourself and run it under traffic and failure**. Full beginner→advanced curriculum designed in §10.0 (~90 topics, Parts 0–9); **Phase A implements Part 0 + Part 1 + Part 3** = 14 modules, each ending in a 🔨 Build Task with hard pass criteria, grown across **one** photo-sharing app (100 users → chaos). Sliced into three independently shippable stages **A1 / A2 / A3** (§10.1).
 > **Phase A engine:** 9 node types, **no new node types needed** — 14 modules reduce to 7 property additions + scenario knobs (§5.2.1).
 > **Stack:** Next.js 16 App Router (Server Components default), React 19, Clerk `auth()`, Drizzle + TiDB MySQL (`connectionLimit:5`), Tailwind v4 + shadcn/ui, `react-resizable-panels` (already installed, currently **unused**), Vercel Hobby Free, TiDB Cloud Starter Free
@@ -746,7 +746,8 @@ Roughly 15 topics in Part 4–5 are *shapeable into a one-hypothesis interactive
 | 3 | Schema table + migration | `config/schema.tsx`, `drizzle/` | `npm run typecheck`, `npx drizzle-kit generate` + migrate, confirm 15/20 tables | ✅ Done |
 | 4 | API route + rate-limit scope + config entry | `app/api/system-design/state/route.ts`, `lib/db-rate-limit.ts:9-24`, `config/rate-limits.ts` | curl with a signed session; 21st POST/min → 429; force an error and confirm `log.error` output **under `NODE_ENV=production`** | ✅ Done |
 | 5 | Canvas — pan/zoom/drag/connect/delete | `components/system-design/canvas/*` | Manual: drag, connect, reconnect, delete, zoom-at-cursor. **`npm run build`** (I.9). ⚠️ **Checkpoint: canvas feels bad → stop and evaluate React Flow now** | ✅ Done |
-| 6 | SimulationPanel + ResultsRail + FailurePanel wired to the engine | + `ModelDisclosure.tsx` | Manual: crank to 10×, node turns red, bottleneck pin appears, kill a node and re-run |
+| 6 | SimulationPanel + ResultsRail + FailurePanel wired to the engine | + `ModelDisclosure.tsx` | Manual: crank to 10×, node turns red, bottleneck pin appears, kill a node and re-run | ✅ Done |
+| 7 | Inspector + HintLayer + ShareButton | 3 components | Manual: tune replicas, all 3 hint tiers, copy link reopens the design. **Record the URL length** (§9.4) |
 | 7 | Inspector + HintLayer + ShareButton | 3 components | Manual: tune replicas, all 3 hint tiers, copy link reopens the design. **Record the URL length** (§9.4) |
 | 8 | Routes + `generateStaticParams` + path index + module + lesson reader | `app/(routes)/system-design/**`, `components/system-design/LessonFlow.tsx` | `npm run build` route table shows `●` for all four |
 | 9 | Build-Task workspace — 3-pane `ResizablePanelGroup`, step rail, **criteria panel**, hard gate, escape hatch, autosave | `TaskWorkspace.tsx`, `components/system-design/CriteriaPanel.tsx` | Manual: refresh mid-edit, nothing lost; criteria gate blocks; escape hatch reveals without passing; 375px and 1920px |
@@ -914,7 +915,7 @@ Everything below is **designed** — it is mapped in the §10.0 roadmap and will
 
 | Item | State | Notes |
 |---|---|---|
-| **Tasks 1–12 (slice A1)** | 🔄 **Task 1–5 done** | Task 1 (contract + node registry) shipped 2026-10-18. Task 2 (engine + rubric + verification) completed 2026-10-20. Task 3 (schema + migration) completed 2026-10-20. Task 4 (API route + rate limits) completed 2026-10-20. Task 5 (canvas) completed 2026-10-20. |
+| **Tasks 1–12 (slice A1)** | 🔄 **Task 1–6 done** | Task 1 (contract + node registry) shipped 2026-10-18. Task 2 (engine + rubric + verification) completed 2026-10-20. Task 3 (schema + migration) completed 2026-10-20. Task 4 (API route + rate limits) completed 2026-10-20. Task 5 (canvas) completed 2026-10-20. Task 6 (simulation panels) completed 2026-10-20. |
 | Task 13 (A1 content) | ⬜ Not started | 4 modules — Part 0 |
 | Tasks 14–15 (A2, A3) | ⬜ Gated behind A1 | Do not author before Phase A1 is personally used |
 | Task 1 — `config/system-design/types.ts` | ✅ Done | All types in one dependency-free file. That is what avoids a runtime cycle: `SdPassCriterion.assert` is content but consumes the engine's `SimulationResult` |
@@ -942,6 +943,12 @@ Everything below is **designed** — it is mapped in the §10.0 roadmap and will
 | Task 5 — `components/ui/lucide-icons.tsx` | ✅ Done | Icon map for Lucide icons used in node palette |
 | Task 5 — `lib/system-design/nodes.ts` | ✅ Updated | Re-exported `SdNodeType` for canvas components |
 | Task 5 — self-review pass | ✅ Done | Typecheck clean, build passes, hand-rolled SVG canvas works without React Flow |
+| Task 6 — `components/system-design/SimulationPanel.tsx` | ✅ Done | Traffic slider, Run/Stop, latency sparkline, verdict |
+| Task 6 — `components/system-design/ResultsRail.tsx` | ✅ Done | Metrics readout (p50/p95/p99, throughput, error rate, bandwidth, error classes, bottleneck, teaching) |
+| Task 6 — `components/system-design/FailurePanel.tsx` | ✅ Done | Chaos toggles for node_down, degraded, partition, replica_lag with forms |
+| Task 6 — `components/system-design/ModelDisclosure.tsx` | ✅ Done | Integrity panel with model limitations and assumptions |
+| Task 6 — `components/system-design/canvas/Canvas.tsx` | ✅ Updated | 3-pane layout with right panel tabs (Results/Inspector/Failures/Model) |
+| Task 6 — self-review pass | ✅ Done | Typecheck clean, build passes, all 26 engine tests pass |
 | §10.0 curriculum roadmap | ✅ Written | Part 0–9, ~90 topics, engine support tagged |
 | §10.1 14-module table | ✅ Written | each with lessons · Build Task · pass criteria · engine properties |
 | §10.3 module template | ✅ Written | Story → Lessons → Interview Byte → Build Task → Recap |

@@ -8,6 +8,10 @@ import { NodeCard } from "./NodeCard";
 import { EdgePath } from "./EdgePath";
 import { NodePalette } from "./NodePalette";
 import { useCanvasInteractions } from "./useCanvasInteractions";
+import { SimulationPanel } from "../SimulationPanel";
+import { ResultsRail } from "../ResultsRail";
+import { FailurePanel } from "../FailurePanel";
+import { ModelDisclosure } from "../ModelDisclosure";
 import type { SdNode, SdEdge, SdGraph, SdFailure } from "@/config/system-design/types";
 import { defaultNode } from "@/lib/system-design/nodes";
 import { simulate } from "@/lib/system-design/engine";
@@ -28,6 +32,7 @@ interface CanvasProps {
   onConnect: (from: string, to: string) => void;
   simulationResult?: ReturnType<typeof simulate>;
   className?: string;
+  onFailuresChange?: (failures: SdFailure[]) => void;
 }
 
 export function Canvas({
@@ -42,12 +47,14 @@ export function Canvas({
   onConnect,
   simulationResult,
   className,
+  onFailuresChange,
 }: CanvasProps) {
   const [nodes, setNodes] = useState<SdNode[]>(graph.nodes);
   const [edges, setEdges] = useState<SdEdge[]>(graph.edges);
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [showGrid, setShowGrid] = useState(true);
+  const [rightPanel, setRightPanel] = useState<"results" | "inspector" | "failures" | "model">("results");
 
   const canvasRef = useRef<HTMLDivElement>(null as HTMLDivElement | null);
 
@@ -122,6 +129,21 @@ export function Canvas({
     }
   };
 
+  const handleRunSimulation = useCallback(() => {
+    if (onRunSimulation) {
+      onRunSimulation(failures);
+    }
+  }, [failures, onRunSimulation]);
+
+  const handleFailuresChange = useCallback(
+    (newFailures: any[]) => {
+      if (onFailuresChange) {
+        onFailuresChange(newFailures);
+      }
+    },
+    [onFailuresChange]
+  );
+
   const zoomIn = useCallback(() => {
     setScale((s) => Math.min(MAX_SCALE, s * 1.2));
   }, []);
@@ -159,108 +181,468 @@ export function Canvas({
     });
   }, [nodes]);
 
-  return (
-    <div className={cn("relative flex-1 overflow-hidden bg-background", className)} ref={canvasRef} onWheel={handleWheel} onMouseDown={handleMouseDown}>
-      <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: "none" }}>
-        <defs>
-          {showGrid && (
-            <pattern id="grid" width={GRID_SIZE} height={GRID_SIZE} patternUnits="userSpaceOnUse">
-              <path d={`M ${GRID_SIZE} 0 L 0 0 0 ${GRID_SIZE}`} fill="none" stroke="hsl(var(--border))" strokeWidth={0.5} />
-            </pattern>
-          )}
-        </defs>
-        {showGrid && <rect className="w-full h-full" fill="url(#grid)" />}
-        <g style={{ transform: `translate(${pan.x}, ${pan.y}) scale(${scale})` }}>
-          {edges.map((edge) => {
-            const fromNode = nodeMap.get(edge.from);
-            const toNode = nodeMap.get(edge.to);
-            return (
-              <EdgePath
-                key={edge.id}
-                edge={edge}
-                fromNode={fromNode}
-                toNode={toNode}
-                scale={scale}
-                pan={pan}
-                selected={selectedEdgeId === edge.id}
-                onSelect={onSelectEdge}
-                onDelete={(id) => setEdges((prev) => prev.filter((e) => e.id !== id))}
-              />
-            );
-          })}
-          {connectionState && connectionState.currentPos && (
-            <g>
-              <path
-                d={`M${connectionState.fromPortPos.x} ${connectionState.fromPortPos.y} C${(connectionState.fromPortPos.x + connectionState.currentPos.x) / 2} ${connectionState.fromPortPos.y} ${(connectionState.fromPortPos.x + connectionState.currentPos.x) / 2} ${connectionState.currentPos.y} ${connectionState.currentPos.x} ${connectionState.currentPos.y}`}
-                stroke="hsl(var(--primary))"
-                strokeWidth={2}
-                strokeDasharray="6,4"
-                fill="none"
-                style={{ pointerEvents: "none" }}
-              />
-            </g>
-          )}
-          {nodes.map((node) => (
-            <NodeCard
-              key={node.id}
-              node={node}
-              scale={scale}
-              pan={pan}
-              selected={selectedNodeId === node.id}
-              onSelect={onSelectNode}
-              onPositionChange={handlePositionChange}
-              onConnectStart={startConnection}
-              utilisation={perNodeMap.get(node.id)?.utilisation}
-            />
-          ))}
-        </g>
-      </svg>
+  const handleRightPanelChange = useCallback((panel: "results" | "inspector" | "failures" | "model") => {
+    setRightPanel(panel);
+  }, []);
 
-      <div className="absolute bottom-4 right-4 flex flex-col gap-2" style={{ pointerEvents: "auto" }}>
-        <button onClick={zoomIn} className="p-2 rounded-lg bg-card border border-border hover:bg-accent transition-colors" title="Zoom in (Ctrl + +)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            <line x1="11" y1="8" x2="11" y2="14" />
-            <line x1="8" y1="11" x2="14" y2="11" />
-          </svg>
-        </button>
-        <button onClick={zoomOut} className="p-2 rounded-lg bg-card border border-border hover:bg-accent transition-colors" title="Zoom out (Ctrl + -)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            <line x1="8" y1="11" x2="14" y2="11" />
-          </svg>
-        </button>
-        <button onClick={resetView} className="p-2 rounded-lg bg-card border border-border hover:bg-accent transition-colors" title="Reset view (Ctrl + 0)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            <line x1="11" y1="8" x2="11" y2="14" />
-            <line x1="8" y1="11" x2="14" y2="11" />
-          </svg>
-        </button>
-        <button onClick={fitView} className="p-2 rounded-lg bg-card border border-border hover:bg-accent transition-colors" title="Fit to view (Ctrl + F)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-          </svg>
-        </button>
+  return (
+    <div className={cn("relative flex flex-col h-full overflow-hidden bg-background", className)} ref={canvasRef} onWheel={handleWheel} onMouseDown={handleMouseDown}>
+      {/* Top toolbar */}
+      <div className="absolute top-4 left-4 right-4 flex items-center justify-between gap-2 z-10" style={{ pointerEvents: "auto" }}>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 p-2 rounded-lg bg-card/80 border border-border backdrop-blur-sm">
+            <input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} className="sr-only" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={cn("text-muted-foreground", showGrid && "text-foreground")}>
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+            </svg>
+            <span className="text-sm">Grid</span>
+          </label>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setRightPanel("results")}
+            className={cn(
+              "px-2 py-1 rounded text-xs font-medium transition-colors",
+              rightPanel === "results" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Results
+          </button>
+          <button
+            onClick={() => setRightPanel("inspector")}
+            className={cn(
+              "px-2 py-1 rounded text-xs font-medium transition-colors",
+              rightPanel === "inspector" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Inspector
+          </button>
+          <button
+            onClick={() => setRightPanel("failures")}
+            className={cn(
+              "px-2 py-1 rounded text-xs font-medium transition-colors",
+              rightPanel === "failures" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Failures
+          </button>
+          <button
+            onClick={() => setRightPanel("model")}
+            className={cn(
+              "px-2 py-1 rounded text-xs font-medium transition-colors",
+              rightPanel === "model" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Model
+          </button>
+        </div>
       </div>
 
-      <div className="absolute top-4 left-4 flex gap-2" style={{ pointerEvents: "auto" }}>
-        <label className="flex items-center gap-2 p-2 rounded-lg bg-card/80 border border-border backdrop-blur-sm">
-          <input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} className="sr-only" />
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={cn("text-muted-foreground", showGrid && "text-foreground")}>
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-            <rect x="14" y="14" width="7" height="7" />
-          </svg>
-          <span className="text-sm">Grid</span>
-        </label>
+      {/* Main 3-pane layout */}
+      <div className="flex-1 flex overflow-hidden" style={{ marginTop: "48px" }}>
+        {/* Left: Steps/Palette (280px) */}
+        <div className="w-72 flex-shrink-0 border-r border-border flex flex-col bg-card/50">
+          <div className="p-3 border-b border-border">
+            <h3 className="font-medium text-sm text-foreground">Palette</h3>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <NodePalette onDragStart={handleDragStart} />
+          </div>
+        </div>
+
+        {/* Center: Canvas (flex-1) */}
+        <div className="flex-1 relative overflow-hidden flex flex-col min-w-0">
+          {/* Canvas area */}
+          <div className="flex-1 relative overflow-hidden" ref={canvasRef} onWheel={handleWheel} onMouseDown={handleMouseDown}>
+            <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: "none" }}>
+              <defs>
+                {showGrid && (
+                  <pattern id="grid" width={GRID_SIZE} height={GRID_SIZE} patternUnits="userSpaceOnUse">
+                    <path d={`M ${GRID_SIZE} 0 L 0 0 0 ${GRID_SIZE}`} fill="none" stroke="hsl(var(--border))" strokeWidth={0.5} />
+                  </pattern>
+                )}
+              </defs>
+              {showGrid && <rect className="w-full h-full" fill="url(#grid)" />}
+              <g style={{ transform: `translate(${pan.x}, ${pan.y}) scale(${scale})` }}>
+                {edges.map((edge) => {
+                  const fromNode = nodeMap.get(edge.from);
+                  const toNode = nodeMap.get(edge.to);
+                  return (
+                    <EdgePath
+                      key={edge.id}
+                      edge={edge}
+                      fromNode={fromNode}
+                      toNode={toNode}
+                      scale={scale}
+                      pan={pan}
+                      selected={selectedEdgeId === edge.id}
+                      onSelect={onSelectEdge}
+                      onDelete={(id) => setEdges((prev) => prev.filter((e) => e.id !== id))}
+                    />
+                  );
+                })}
+                {connectionState && connectionState.currentPos && (
+                  <g>
+                    <path
+                      d={`M${connectionState.fromPortPos.x} ${connectionState.fromPortPos.y} C${(connectionState.fromPortPos.x + connectionState.currentPos.x) / 2} ${connectionState.fromPortPos.y} ${(connectionState.fromPortPos.x + connectionState.currentPos.x) / 2} ${connectionState.currentPos.y} ${connectionState.currentPos.x} ${connectionState.currentPos.y}`}
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2}
+                      strokeDasharray="6,4"
+                      fill="none"
+                      style={{ pointerEvents: "none" }}
+                    />
+                  </g>
+                )}
+                {nodes.map((node) => (
+                  <NodeCard
+                    key={node.id}
+                    node={node}
+                    scale={scale}
+                    pan={pan}
+                    selected={selectedNodeId === node.id}
+                    onSelect={onSelectNode}
+                    onPositionChange={handlePositionChange}
+                    onConnectStart={startConnection}
+                    utilisation={perNodeMap.get(node.id)?.utilisation}
+                  />
+                ))}
+              </g>
+            </svg>
+
+            {/* Zoom controls */}
+            <div className="absolute bottom-4 right-4 flex flex-col gap-2" style={{ pointerEvents: "auto" }}>
+              <button onClick={zoomIn} className="p-2 rounded-lg bg-card border border-border hover:bg-accent transition-colors" title="Zoom in (Ctrl + +)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  <line x1="11" y1="8" x2="11" y2="14" />
+                  <line x1="8" y1="11" x2="14" y2="11" />
+                </svg>
+              </button>
+              <button onClick={zoomOut} className="p-2 rounded-lg bg-card border border-border hover:bg-accent transition-colors" title="Zoom out (Ctrl + -)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  <line x1="8" y1="11" x2="14" y2="11" />
+                </svg>
+              </button>
+              <button onClick={resetView} className="p-2 rounded-lg bg-card border border-border hover:bg-accent transition-colors" title="Reset view (Ctrl + 0)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  <line x1="11" y1="8" x2="11" y2="14" />
+                  <line x1="8" y1="11" x2="14" y2="11" />
+                </svg>
+              </button>
+              <button onClick={fitView} className="p-2 rounded-lg bg-card border border-border hover:bg-accent transition-colors" title="Fit to view (Ctrl + F)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Grid toggle */}
+            <div className="absolute top-4 left-4 flex gap-2" style={{ pointerEvents: "auto" }}>
+              <label className="flex items-center gap-2 p-2 rounded-lg bg-card/80 border border-border backdrop-blur-sm">
+                <input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} className="sr-only" />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={cn("text-muted-foreground", showGrid && "text-foreground")}>
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                </svg>
+                <span className="text-sm">Grid</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Bottom: Simulation Panel */}
+          <div className="border-t border-border bg-card/50 p-3">
+            <SimulationPanel
+              graph={{ nodes, edges, scenario: graph.scenario }}
+              failures={failures}
+              onRun={handleRunSimulation}
+              onFailuresChange={handleFailuresChange}
+              simulationResult={simulationResult}
+            />
+          </div>
+        </div>
+
+        {/* Right: Results / Inspector / Failures / Model (340px) */}
+        <div className="w-86 flex-shrink-0 border-l border-border bg-card/50 flex flex-col overflow-hidden">
+          <div className="h-full flex flex-col overflow-hidden">
+            {rightPanel === "results" && (
+              <ResultsRail
+                result={simulationResult ?? null}
+                selectedNodeId={selectedNodeId}
+              />
+            )}
+            {rightPanel === "inspector" && (
+              <div className="flex-1 overflow-y-auto p-3">
+                <h3 className="font-medium text-sm mb-3">Inspector</h3>
+                {selectedNodeId ? (
+                  <NodeInspector
+                    node={nodes.find((n) => n.id === selectedNodeId)}
+                    onUpdate={(updates) => {
+                      setNodes((prev) =>
+                        prev.map((n) =>
+                          n.id === selectedNodeId ? { ...n, ...updates } : n
+                        )
+                      );
+                    }}
+                  />
+                ) : (
+                  <p className="text-muted-foreground text-sm">Select a node to inspect</p>
+                )}
+              </div>
+            )}
+            {rightPanel === "failures" && (
+              <div className="flex-1 overflow-y-auto p-3">
+                <FailurePanel
+                  graph={{ nodes, edges, scenario: graph.scenario }}
+                  failures={failures}
+                  onFailuresChange={handleFailuresChange}
+                />
+              </div>
+            )}
+            {rightPanel === "model" && (
+              <div className="flex-1 overflow-y-auto p-3">
+                <ModelDisclosure />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <NodePalette onDragStart={handleDragStart} />
+    </div>
+  );
+}
+
+// Simple Node Inspector component
+function NodeInspector({
+  node,
+  onUpdate,
+}: {
+  node: any | undefined;
+  onUpdate: (updates: any) => void;
+}) {
+  if (!node) return null;
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="text-xs text-muted-foreground block mb-1">Label</label>
+        <input
+          type="text"
+          value={node.label}
+          onChange={(e) => onUpdate({ label: e.target.value })}
+          className="w-full px-2 py-1 bg-background border border-border rounded text-sm"
+        />
+      </div>
+
+      {node.type === "load_balancer" && (
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1">Algorithm</label>
+          <select
+            value={node.algorithm}
+            onChange={(e) => onUpdate({ algorithm: e.target.value })}
+            className="w-full px-2 py-1 bg-background border border-border rounded text-sm"
+          >
+            <option value="rr">Round Robin</option>
+            <option value="least_conn">Least Connections</option>
+          </select>
+        </div>
+      )}
+
+      {node.type === "app_server" && (
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">Replicas</span>
+            <input
+              type="number"
+              min="1"
+              max="100"
+              value={node.replicas}
+              onChange={(e) => onUpdate({ replicas: parseInt(e.target.value) })}
+              className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">Max Concurrency</span>
+            <input
+              type="number"
+              min="1"
+              value={node.maxConcurrency || 100}
+              onChange={(e) => onUpdate({ maxConcurrency: parseInt(e.target.value) || null })}
+              className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">Circuit Breaker</span>
+            <input
+              type="checkbox"
+              checked={node.breakerEnabled}
+              onChange={(e) => onUpdate({ breakerEnabled: e.target.checked })}
+            />
+          </label>
+        </div>
+      )}
+
+      {node.type === "cache" && (
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">Hit Rate</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={node.hitRate}
+              onChange={(e) => onUpdate({ hitRate: parseFloat(e.target.value) })}
+              className="flex-1 h-2 bg-muted rounded-lg appearance-none accent-primary"
+            />
+            <span className="w-10 text-right font-mono text-sm">
+              {(node.hitRate * 100).toFixed(0)}%
+            </span>
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">TTL (ms)</span>
+            <input
+              type="number"
+              min="1000"
+              max="3600000"
+              value={node.ttlMs}
+              onChange={(e) => onUpdate({ ttlMs: parseInt(e.target.value) })}
+              className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">Stampede Guard</span>
+            <input
+              type="checkbox"
+              checked={node.stampedeGuard}
+              onChange={(e) => onUpdate({ stampedeGuard: e.target.checked })}
+            />
+          </label>
+        </div>
+      )}
+
+      {node.type === "database" && (
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">Read Replicas</span>
+            <input
+              type="number"
+              min="0"
+              max="10"
+              value={node.readReplicas}
+              onChange={(e) => onUpdate({ readReplicas: parseInt(e.target.value) })}
+              className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">Partitions</span>
+            <input
+              type="number"
+              min="1"
+              max="1000"
+              value={node.partitions}
+              onChange={(e) => onUpdate({ partitions: parseInt(e.target.value) })}
+              className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">Hot Key Share</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={node.hotKeyShare}
+              onChange={(e) => onUpdate({ hotKeyShare: parseFloat(e.target.value) })}
+              className="flex-1 h-2 bg-muted rounded-lg appearance-none accent-primary"
+            />
+            <span className="w-10 text-right font-mono text-sm">
+              {(node.hotKeyShare * 100).toFixed(0)}%
+            </span>
+          </label>
+        </div>
+      )}
+
+      {node.type === "queue" && (
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">Max Depth</span>
+            <input
+              type="number"
+              min="1"
+              max="1000000"
+              value={node.maxDepth}
+              onChange={(e) => onUpdate({ maxDepth: parseInt(e.target.value) })}
+              className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">Retry Limit</span>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              value={node.retryLimit}
+              onChange={(e) => onUpdate({ retryLimit: parseInt(e.target.value) })}
+              className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">DLQ</span>
+            <input
+              type="checkbox"
+              checked={node.dlqEnabled}
+              onChange={(e) => onUpdate({ dlqEnabled: e.target.checked })}
+            />
+          </label>
+        </div>
+      )}
+
+      {node.type === "worker" && (
+        <div>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">Replicas</span>
+            <input
+              type="number"
+              min="1"
+              max="100"
+              value={node.replicas}
+              onChange={(e) => onUpdate({ replicas: parseInt(e.target.value) })}
+              className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
+            />
+          </label>
+        </div>
+      )}
+
+      {node.type === "cdn" && (
+        <div>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="w-20 text-muted-foreground">Hit Rate</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={node.hitRate}
+              onChange={(e) => onUpdate({ hitRate: parseFloat(e.target.value) })}
+              className="flex-1 h-2 bg-muted rounded-lg appearance-none accent-primary"
+            />
+            <span className="w-10 text-right font-mono text-sm">
+              {(node.hitRate * 100).toFixed(0)}%
+            </span>
+          </label>
+        </div>
+      )}
     </div>
   );
 }
