@@ -7,3 +7,6 @@ export { SimulationPanel } from "./SimulationPanel";
 export { ResultsRail } from "./ResultsRail";
 export { FailurePanel } from "./FailurePanel";
 export { ModelDisclosure } from "./ModelDisclosure";
+export { HintLayer } from "./HintLayer";
+export { ShareButton } from "./ShareButton";
+export { NodeInspector } from "./NodeInspector";

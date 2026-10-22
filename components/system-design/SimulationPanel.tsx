@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { simulate } from "@/lib/system-design/engine";
 import { evaluateCriteria, allRequiredPass } from "@/lib/system-design/rubric";
 import type { SimulationResult, SdGraph, SdFailure, SdPassCriterion } from "@/config/system-design/types";
+import { ShareButton } from "@/components/system-design/ShareButton";
 
 interface SimulationPanelProps {
   graph: SdGraph;
@@ -126,12 +127,15 @@ export function SimulationPanel({
       </div>
 
       {/* Run Button */}
-      <button
-        onClick={handleRun}
-        className="w-full py-3 rounded-lg font-medium text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-      >
-        Run Simulation
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={handleRun}
+          className="flex-1 py-3 rounded-lg font-medium text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          Run Simulation
+        </button>
+        <ShareButton graph={{ nodes: [], edges: [], scenario: graph.scenario }} />
+      </div>
 
       {/* Latency Sparkline */}
       <div className="space-y-1">
