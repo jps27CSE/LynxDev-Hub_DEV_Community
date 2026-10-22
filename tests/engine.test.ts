@@ -297,7 +297,7 @@ describe("simulate — main entry point", () => {
 
   it("handles node_down failure", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "app1" }];
+    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "app1", id: "test-node-down-1" }];
     const result = simulate(graph, failures);
     // App server is down, so all requests fail as unreachable
     assert.equal(result.valid, true); // topology still valid, client exists
@@ -307,7 +307,7 @@ describe("simulate — main entry point", () => {
 
   it("handles degraded node failure", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "degraded", nodeId: "app1", factor: 0.5 }];
+    const failures: SdFailure[] = [{ kind: "degraded", nodeId: "app1", factor: 0.5, id: "test-degraded-1" }];
     const result = simulate(graph, failures);
     assert.equal(result.valid, true);
     // Capacity halved, may cause saturation at high arrival rate
@@ -315,7 +315,7 @@ describe("simulate — main entry point", () => {
 
   it("handles partition failure", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "partition", edgeIds: ["e1"] }];
+    const failures: SdFailure[] = [{ kind: "partition", edgeIds: ["e1"], id: "test-partition-1" }];
     const result = simulate(graph, failures);
     assert.equal(result.valid, true);
     assert.equal(result.errorRate, 1);
@@ -324,7 +324,7 @@ describe("simulate — main entry point", () => {
 
   it("handles replica_lag failure", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "replica_lag", nodeId: "db1", lagMs: 100 }];
+    const failures: SdFailure[] = [{ kind: "replica_lag", nodeId: "db1", lagMs: 100, id: "test-replica-lag-1" }];
     const result = simulate(graph, failures);
     assert.equal(result.valid, true);
     // May produce stale errors on reads
@@ -333,8 +333,8 @@ describe("simulate — main entry point", () => {
   it("handles multiple failures", () => {
     const graph = cacheGraph();
     const failures: SdFailure[] = [
-      { kind: "degraded", nodeId: "app1", factor: 0.5 },
-      { kind: "partition", edgeIds: ["e3"] },
+      { kind: "degraded", nodeId: "app1", factor: 0.5, id: "test-degraded-2" },
+      { kind: "partition", edgeIds: ["e3"], id: "test-partition-2" },
     ];
     const result = simulate(graph, failures);
     assert.equal(result.valid, true);
@@ -497,7 +497,7 @@ describe("simulate — percentiles", () => {
 
   it("percentiles are 0 when no completed requests", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "c1" }]; // Client down = no requests can start
+    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "c1", id: "test-node-down-5" }]; // Client down = no requests can start
     const result = simulate(graph, failures);
     assert.equal(result.latency.p50, 0);
     assert.equal(result.latency.p95, 0);
@@ -509,8 +509,8 @@ describe("simulate — error classes", () => {
   it("tracks all four error classes", () => {
     const graph = cacheGraph();
     const failures: SdFailure[] = [
-      { kind: "node_down", nodeId: "db1" },
-      { kind: "replica_lag", nodeId: "db1", lagMs: 100 },
+      { kind: "node_down", nodeId: "db1", id: "test-node-down-1" },
+      { kind: "replica_lag", nodeId: "db1", lagMs: 100, id: "test-replica-lag-1" },
     ];
     const result = simulate(graph, failures);
     // Should have unreachable (node_down), possibly stale (replica_lag)
@@ -519,7 +519,7 @@ describe("simulate — error classes", () => {
 
   it("errorClasses sum approximates errorRate * totalArrivals", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "app1" }];
+    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "app1", id: "test-node-down-2" }];
     const result = simulate(graph, failures);
     // With app server down, all requests should fail
     assert.equal(result.errorRate, 1);
@@ -553,7 +553,7 @@ describe("simulate — perNode results", () => {
 
   it("marks down nodes correctly", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "app1" }];
+    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "app1", id: "test-node-down-3" }];
     const result = simulate(graph, failures);
     const appNode = result.perNode.find((n) => n.id === "app1");
     assert.ok(appNode);
@@ -634,7 +634,7 @@ describe("simulate — edge cases", () => {
 
   it("does not mutate input failures array", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "s1" }];
+    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "s1", id: "test-node-down-4" }];
     const original = JSON.stringify(failures);
     simulate(graph, failures);
     assert.equal(JSON.stringify(failures), original);

@@ -200,7 +200,7 @@ runTest("Determinism: same graph → identical SimulationResult", () => {
 // Test 2: Determinism with failures
 runTest("Determinism: with failures → identical SimulationResult", () => {
   const g = withCacheGraph();
-  const failures: SdFailure[] = [{ kind: "degraded", nodeId: "db-1", factor: 0.5 }];
+  const failures: SdFailure[] = [{ kind: "degraded", nodeId: "db-1", factor: 0.5, id: "test-degraded-1" }];
   const r1 = simulate(g, failures);
   const r2 = simulate(g, failures);
   assertEqual(r1, r2, "Two runs with failures must be byte-identical");
@@ -240,7 +240,7 @@ runTest("Cache in front of DB reduces DB utilisation", () => {
 // Test 6: Failure injection — node_down
 runTest("Failure: node_down stops traffic through that node", () => {
   const g = threeReplicaGraph();
-  const failures: SdFailure[] = [{ kind: "node_down", nodeId: "app-1" }];
+  const failures: SdFailure[] = [{ kind: "node_down", nodeId: "app-1", id: "test-node-down-1" }];
   const r = simulate(g, failures);
   assertTrue(r.errorRate > 0.5, `Error rate ${r.errorRate.toFixed(2)} should be high when app server is down`);
   assertTrue((r.errorClasses.unreachable ?? 0) > 0, "Should have unreachable errors");
@@ -250,7 +250,7 @@ runTest("Failure: node_down stops traffic through that node", () => {
 runTest("Failure: degraded reduces capacity", () => {
   const g = threeReplicaGraph();
   const normal = simulate(g);
-  const degraded = simulate(g, [{ kind: "degraded", nodeId: "app-1", factor: 0.5 }]);
+  const degraded = simulate(g, [{ kind: "degraded", nodeId: "app-1", factor: 0.5, id: "test-degraded-1" }]);
   const appNormal = normal.perNode.find((n) => n.id === "app-1");
   const appDegraded = degraded.perNode.find((n) => n.id === "app-1");
   assertTrue(appDegraded!.utilisation > appNormal!.utilisation, "Degraded node should have higher utilisation");
@@ -261,7 +261,7 @@ runTest("Failure: degraded reduces capacity", () => {
 // Use a graph without cache to test replica lag.
 runTest("Failure: replica_lag produces stale error class", () => {
   const g = withoutCacheGraph(); // No cache, all reads go to DB
-  const failures: SdFailure[] = [{ kind: "replica_lag", nodeId: "db-1", lagMs: 100 }];
+  const failures: SdFailure[] = [{ kind: "replica_lag", nodeId: "db-1", lagMs: 100, id: "test-replica-lag-1" }];
   const r = simulate(g, failures);
   assertTrue((r.errorClasses.stale ?? 0) > 0, "Should have stale errors from replica lag");
 });
@@ -269,7 +269,7 @@ runTest("Failure: replica_lag produces stale error class", () => {
 // Test 9: Failure injection — partition
 runTest("Failure: partition drops edges", () => {
   const g = threeReplicaGraph();
-  const failures: SdFailure[] = [{ kind: "partition", edgeIds: ["e3"] }];
+  const failures: SdFailure[] = [{ kind: "partition", edgeIds: ["e3"], id: "test-partition-1" }];
   const r = simulate(g, failures);
   assertTrue(r.errorRate > 0.5, "Partition should cause high error rate");
   assertTrue((r.errorClasses.unreachable ?? 0) > 0, "Should have unreachable errors from partition");

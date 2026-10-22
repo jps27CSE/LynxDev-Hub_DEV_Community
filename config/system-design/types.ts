@@ -202,13 +202,13 @@ export type SdErrorClass = "unreachable" | "stale" | "rejected" | "shed";
 
 export type SdFailure =
   /** The node is gone — requests routed through it fail as `unreachable`. */
-  | { kind: "node_down"; nodeId: string }
+  | { kind: "node_down"; nodeId: string; id: string }
   /** Capacity multiplied by `factor` — "the region is struggling". */
-  | { kind: "degraded"; nodeId: string; factor: number }
+  | { kind: "degraded"; nodeId: string; factor: number; id: string }
   /** Named edges stop carrying traffic — "services can no longer talk". */
-  | { kind: "partition"; edgeIds: string[] }
+  | { kind: "partition"; edgeIds: string[]; id: string }
   /** Reads through this node's replica return stale data, not an error. */
-  | { kind: "replica_lag"; nodeId: string; lagMs: number };
+  | { kind: "replica_lag"; nodeId: string; lagMs: number; id: string };
 
 /* -------------------------------------------------------------------------- */
 /* Engine output                                                              */

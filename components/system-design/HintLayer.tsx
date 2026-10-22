@@ -44,10 +44,12 @@ const TIER_ICONS: Record<HintTier, React.ReactNode> = {
 export function HintLayer({ step, result, onReveal, onClose }: HintLayerProps) {
   const [currentTier, setCurrentTier] = useState<HintTier>("nudge");
   const [showContent, setShowContent] = useState(true);
+  const [hasRevealed, setHasRevealed] = useState(false);
 
   const handleTierClick = useCallback((tier: HintTier) => {
     if (tier === "reveal") {
       onReveal();
+      setHasRevealed(true);
     }
     setCurrentTier(tier);
     setShowContent(true);
@@ -60,11 +62,6 @@ export function HintLayer({ step, result, onReveal, onClose }: HintLayerProps) {
 
   const isPassed = result.passed;
   const isRevealed = currentTier === "reveal";
-
-  // Don't show if passed and not revealed
-  if (isPassed && !isRevealed) {
-    return null;
-  }
 
   // Auto-advance tier based on progress
   // If nudge is shown and step has some progress, could auto-advance
@@ -122,14 +119,15 @@ export function HintLayer({ step, result, onReveal, onClose }: HintLayerProps) {
             <button
               key={tier}
               onClick={() => handleTierClick(tier)}
-              disabled={currentTier === tier && tier !== "reveal"}
+              disabled={currentTier === tier || (tier === "reveal" && hasRevealed)}
               className={cn(
                 "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all",
                 "flex items-center justify-center gap-1.5",
                 currentTier === tier
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "bg-muted text-muted-foreground hover:bg-muted/50",
-                tier === "reveal" && "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
+                tier === "reveal" && "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20",
+                (tier === "reveal" && hasRevealed) && "opacity-50 cursor-not-allowed"
               )}
             >
               {TIER_ICONS[tier]}

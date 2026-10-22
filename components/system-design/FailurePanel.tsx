@@ -62,6 +62,17 @@ const failureKinds: { kind: FailureKind; label: string; description: string; ico
   },
 ];
 
+// Shared helper functions
+const getNodeLabel = (graph: SdGraph, id: string): string => {
+  const node = graph.nodes.find((n) => n.id === id);
+  return node ? `${node.label} (${node.type})` : id;
+};
+
+const isDegraded = (f: SdFailure): f is SdFailure & { kind: "degraded"; factor: number } => f.kind === "degraded";
+const isReplicaLag = (f: SdFailure): f is SdFailure & { kind: "replica_lag"; lagMs: number } => f.kind === "replica_lag";
+const isNodeDown = (f: SdFailure): f is SdFailure & { kind: "node_down" } => f.kind === "node_down";
+const isPartition = (f: SdFailure): f is SdFailure & { kind: "partition" } => f.kind === "partition";
+
 export function FailurePanel({ graph, failures, onFailuresChange }: FailurePanelProps) {
   const [expandedKind, setExpandedKind] = useState<FailureKind | null>(null);
 
@@ -72,27 +83,25 @@ export function FailurePanel({ graph, failures, onFailuresChange }: FailurePanel
 
   const addFailure = useCallback(
     (kind: FailureKind, payload: Omit<SdFailure, "kind">) => {
-      onFailuresChange([...failures, { kind, ...payload } as SdFailure]);
+      const id = `${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      onFailuresChange([...failures, { kind, ...payload, id } as SdFailure]);
     },
     [failures, onFailuresChange]
   );
 
   const removeFailure = useCallback(
-    (index: number) => {
-      const newFailures = [...failures];
-      newFailures.splice(index, 1);
+    (id: string) => {
+      const newFailures = failures.filter((f) => f.id !== id);
       onFailuresChange(newFailures);
     },
     [failures, onFailuresChange]
   );
 
   const updateFailure = useCallback(
-    (index: number, updates: Partial<SdFailure>) => {
-      const newFailures = [...failures];
-      const current = newFailures[index];
-      // Use type assertion to satisfy discriminated union
-      const updated = { ...current, ...updates } as SdFailure;
-      newFailures[index] = updated;
+    (id: string, updates: Partial<SdFailure>) => {
+      const newFailures = failures.map((f) =>
+        f.id === id ? { ...f, ...updates } as SdFailure : f
+      );
       onFailuresChange(newFailures);
     },
     [failures, onFailuresChange]
@@ -165,17 +174,16 @@ export function FailurePanel({ graph, failures, onFailuresChange }: FailurePanel
                         Active ({kindFailures.length})
                       </div>
                       <ul className="space-y-1">
-                        {kindFailures.map((failure, index) => (
-                          <FailureItem
-                            key={`${kind}-${index}`}
-                            kind={kind}
-                            failure={failure}
-                            index={index}
-                            graph={graph}
-                            onUpdate={(updates) => updateFailure(index, updates)}
-                            onRemove={() => removeFailure(index)}
-                          />
-                        ))}
+{kindFailures.map((failure) => (
+                            <FailureItem
+                              key={failure.id}
+                              kind={kind}
+                              failure={failure}
+                              graph={graph}
+                              onUpdate={(updates) => updateFailure(failure.id, updates)}
+                              onRemove={() => removeFailure(failure.id)}
+                            />
+                          ))}
                       </ul>
                     </div>
                   )}
@@ -211,22 +219,23 @@ function AddFailureForm({ kind, graph, onAdd }: { kind: string; graph: any; onAd
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const id = `${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     let failure: any;
     switch (kind) {
       case "node_down":
-        failure = { kind: "node_down", nodeId: formState.nodeId } as const;
+        failure = { kind: "node_down", nodeId: formState.nodeId, id } as const;
         break;
       case "degraded":
-        failure = { kind: "degraded", nodeId: formState.nodeId, factor: formState.factor ?? 0.5 } as const;
+        failure = { kind: "degraded", nodeId: formState.nodeId, factor: formState.factor ?? 0.5, id } as const;
         break;
       case "partition":
-        failure = { kind: "partition", edgeIds: [formState.edgeId] } as const;
+        failure = { kind: "partition", edgeIds: [formState.edgeId], id } as const;
         break;
       case "replica_lag":
-        failure = { kind: "replica_lag", nodeId: formState.nodeId, lagMs: formState.lagMs ?? 100 } as const;
+        failure = { kind: "replica_lag", nodeId: formState.nodeId, lagMs: formState.lagMs ?? 100, id } as const;
         break;
       default:
-        failure = { kind } as const;
+        failure = { kind, id } as const;
     }
     onAdd(failure);
     setFormState({});
@@ -376,40 +385,28 @@ function AddFailureForm({ kind, graph, onAdd }: { kind: string; graph: any; onAd
 function FailureItem({
   kind,
   failure,
-  index,
   graph,
   onUpdate,
   onRemove,
 }: {
   kind: string;
-  failure: any;
-  index: number;
-  graph: any;
-  onUpdate: (updates: any) => void;
+  failure: SdFailure;
+  graph: SdGraph;
+  onUpdate: (updates: Partial<SdFailure>) => void;
   onRemove: () => void;
 }) {
-  const getNodeLabel = (id: string) => {
-    const node = graph.nodes.find((n: any) => n.id === id);
-    return node ? `${node.label} (${node.type})` : id;
-  };
-
-  const getEdgeLabel = (id: string) => {
-    const edge = graph.edges.find((e: any) => e.id === id);
-    return edge ? `${edge.from} → ${edge.to}` : id;
-  };
-
   return (
     <div className="flex items-center gap-2 p-2 bg-card border border-border rounded">
       <span className="px-2 py-0.5 text-xs font-mono bg-muted rounded text-muted-foreground">
-        #{index + 1}
+        #{failure.id.slice(-4)}
       </span>
       <div className="flex-1 min-w-0 text-sm text-muted-foreground truncate">
-        {kind === "node_down" && `Node down: ${getNodeLabel(failure.nodeId)}`}
-        {kind === "degraded" && `Degraded: ${getNodeLabel(failure.nodeId)} × ${failure.factor}x`}
-        {kind === "partition" && `Partition: ${getEdgeLabel(failure.edgeId)}`}
-        {kind === "replica_lag" && `Replica lag: ${getNodeLabel(failure.nodeId)} +${failure.lagMs}ms`}
+        {isNodeDown(failure) && `Node down: ${getNodeLabel(graph, failure.nodeId)}`}
+        {isDegraded(failure) && `Degraded: ${getNodeLabel(graph, failure.nodeId)} × ${failure.factor}x`}
+        {isPartition(failure) && `Partition: ${failure.edgeIds[0] ? graph.edges.find(e => e.id === failure.edgeIds[0])?.from + " → " + graph.edges.find(e => e.id === failure.edgeIds[0])?.to : "unknown"}`}
+        {isReplicaLag(failure) && `Replica lag: ${getNodeLabel(graph, failure.nodeId)} +${failure.lagMs}ms`}
       </div>
-      {kind === "degraded" && (
+      {isDegraded(failure) && (
         <input
           type="range"
           min="0.1"
@@ -420,7 +417,7 @@ function FailureItem({
           className="w-32 h-2 bg-muted rounded-lg appearance-none accent-primary"
         />
       )}
-      {kind === "replica_lag" && (
+      {isReplicaLag(failure) && (
         <input
           type="number"
           min="1"

@@ -134,7 +134,7 @@ export function SimulationPanel({
         >
           Run Simulation
         </button>
-        <ShareButton graph={{ nodes: [], edges: [], scenario: graph.scenario }} />
+        <ShareButton graph={{ nodes: graph.nodes, edges: graph.edges, scenario: graph.scenario }} />
       </div>
 
       {/* Latency Sparkline */}
