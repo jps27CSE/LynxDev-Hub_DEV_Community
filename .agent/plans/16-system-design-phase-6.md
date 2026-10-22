@@ -1,6 +1,6 @@
 # System Design Learning — Phase 6 Feature Spec (Free-Tier Safe)
 
-> **Date:** 2026-10-17 (revised 2026-10-20 — Task 7 shipped, HintLayer + ShareButton complete)
+> **Date:** 2026-10-17 (revised 2026-10-20 — Task 7 shipped, all bugs fixed)
 > **Status:** Task 1 complete. Task 2 complete. Task 3 complete. Task 4 complete. Task 5 complete. Task 6 complete. Task 7 complete. Next: Task 8 — Routes + `generateStaticParams` + path index + module + lesson reader.
 > **Scope:** An interactive system-design learning path: read a concept with scenarios and diagrams, then **build that app yourself and run it under traffic and failure**. Full beginner→advanced curriculum designed in §10.0 (~90 topics, Parts 0–9); **Phase A implements Part 0 + Part 1 + Part 3** = 14 modules, each ending in a 🔨 Build Task with hard pass criteria, grown across **one** photo-sharing app (100 users → chaos). Sliced into three independently shippable stages **A1 / A2 / A3** (§10.1).
 > **Phase A engine:** 9 node types, **no new node types needed** — 14 modules reduce to 7 property additions + scenario knobs (§5.2.1).
@@ -749,6 +749,7 @@ Roughly 15 topics in Part 4–5 are *shapeable into a one-hypothesis interactive
 | 6 | SimulationPanel + ResultsRail + FailurePanel wired to the engine | + `ModelDisclosure.tsx` | Manual: crank to 10×, node turns red, bottleneck pin appears, kill a node and re-run | ✅ Done |
 | 7 | Inspector + HintLayer + ShareButton | 3 components | Manual: tune replicas, all 3 hint tiers, copy link reopens the design. **Record the URL length** (§9.4) | ✅ Done |
 | 8 | Routes + `generateStaticParams` + path index + module + lesson reader | `app/(routes)/system-design/**`, `components/system-design/LessonFlow.tsx` | `npm run build` route table shows `●` for all four |
+| 8 | Routes + `generateStaticParams` + path index + module + lesson reader | `app/(routes)/system-design/**`, `components/system-design/LessonFlow.tsx` | `npm run build` route table shows `●` for all four |
 | 9 | Build-Task workspace — 3-pane `ResizablePanelGroup`, step rail, **criteria panel**, hard gate, escape hatch, autosave | `TaskWorkspace.tsx`, `components/system-design/CriteriaPanel.tsx` | Manual: refresh mid-edit, nothing lost; criteria gate blocks; escape hatch reveals without passing; 375px and 1920px |
 | 10 | *(moved — see Task 13)* | — | Content authoring deferred so every lesson is written against a running engine |
 | 11 | `check:system-design` script + package.json entry | `scripts/check-system-design.ts`, `package.json` | Flip a slug in `registry.ts` → script exits 1 |
@@ -914,7 +915,7 @@ Everything below is **designed** — it is mapped in the §10.0 roadmap and will
 
 | Item | State | Notes |
 |---|---|---|
-| **Tasks 1–12 (slice A1)** | 🔄 **Task 1–6 done** | Task 1 (contract + node registry) shipped 2026-10-18. Task 2 (engine + rubric + verification) completed 2026-10-20. Task 3 (schema + migration) completed 2026-10-20. Task 4 (API route + rate limits) completed 2026-10-20. Task 5 (canvas) completed 2026-10-20. Task 6 (simulation panels) completed 2026-10-20. |
+| **Tasks 1–12 (slice A1)** | 🔄 **Task 1–7 done** | Task 1 (contract + node registry) shipped 2026-10-18. Task 2 (engine + rubric + verification) completed 2026-10-20. Task 3 (schema + migration) completed 2026-10-20. Task 4 (API route + rate limits) completed 2026-10-20. Task 5 (canvas) completed 2026-10-20. Task 6 (simulation panels) completed 2026-10-20. Task 7 (HintLayer + ShareButton) completed 2026-10-20. |
 | Task 13 (A1 content) | ⬜ Not started | 4 modules — Part 0 |
 | Tasks 14–15 (A2, A3) | ⬜ Gated behind A1 | Do not author before Phase A1 is personally used |
 | Task 1 — `config/system-design/types.ts` | ✅ Done | All types in one dependency-free file. That is what avoids a runtime cycle: `SdPassCriterion.assert` is content but consumes the engine's `SimulationResult` |
@@ -952,6 +953,11 @@ Everything below is **designed** — it is mapped in the §10.0 roadmap and will
 | Task 7 — `components/system-design/ShareButton.tsx` | ✅ Done | Copy link + native share + copied toast |
 | Task 7 — `components/system-design/SimulationPanel.tsx` | ✅ Updated | Integrated ShareButton |
 | Task 7 — `components/system-design/index.ts` | ✅ Updated | Exported HintLayer, ShareButton |
+| Task 7 — `components/system-design/FailurePanel.tsx` | ✅ Fixed | FailureItem index bug fixed, getEdgeLabel fixed, SdFailure id field added |
+| Task 7 — `components/system-design/SimulationPanel.tsx` | ✅ Fixed | ShareButton receives full graph, verdict computed from passCriteria |
+| Task 7 — `components/system-design/HintLayer.tsx` | ✅ Fixed | Early return bug fixed, Reveal button disabled after click |
+| Task 7 — `config/system-design/types.ts` | ✅ Updated | Added `id` field to SdFailure |
+| Task 7 — `tests/engine.test.ts` | ✅ Fixed | Added `id` to all SdFailure test fixtures |
 | Task 7 — self-review pass | ✅ Done | Typecheck clean, build passes, all 26 engine tests pass |
 | §10.0 curriculum roadmap | ✅ Written | Part 0–9, ~90 topics, engine support tagged |
 | §10.1 14-module table | ✅ Written | each with lessons · Build Task · pass criteria · engine properties |
