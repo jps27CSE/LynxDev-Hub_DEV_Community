@@ -1,7 +1,7 @@
 # System Design Learning — Phase 6 Feature Spec (Free-Tier Safe)
 
-> **Date:** 2026-10-17 (revised 2026-10-23 — Task 8 committed and verified)
-> **Status:** Tasks 1–8 complete and committed. Task 8 is commit `1142031`; `npm run typecheck` and `npm run build` pass, and the build lists the system-design module, lesson, and task routes as SSG (`●`). The registry is still empty, so no concrete content pages are generated until Task 13. Task 9's interactive workspace is not implemented; the task route currently shows an explicit placeholder.
+> **Date:** 2026-10-17 (revised 2026-10-23 — Task 9 implementation verified)
+> **Status:** Tasks 1–8 complete and committed. Task 8 is commit `67177e8`. Task 9's interactive workspace is implemented and verified by typecheck, tests, and production build. **The System Design feature is not yet explorable end to end:** the module registry is empty, so no module or lesson pages/content are available. Task 13 must add and register the modules; then run the manual acceptance checks in §13.
 > **Scope:** An interactive system-design learning path: read a concept with scenarios and diagrams, then **build that app yourself and run it under traffic and failure**. Full beginner→advanced curriculum designed in §10.0 (~90 topics, Parts 0–9); **Phase A implements Part 0 + Part 1 + Part 3** = 14 modules, each ending in a 🔨 Build Task with hard pass criteria, grown across **one** photo-sharing app (100 users → chaos). Sliced into three independently shippable stages **A1 / A2 / A3** (§10.1).
 > **Phase A engine:** 9 node types, **no new node types needed** — 14 modules reduce to 7 property additions + scenario knobs (§5.2.1).
 > **Stack:** Next.js 16 App Router (Server Components default), React 19, Clerk `auth()`, Drizzle + TiDB MySQL (`connectionLimit:5`), Tailwind v4 + shadcn/ui, `react-resizable-panels` (already installed, currently **unused**), Vercel Hobby Free, TiDB Cloud Starter Free
@@ -782,6 +782,8 @@ Mirrors `scripts/check-blog-toc.ts` (`package.json:10`), which the tracker prais
 
 ## 13. Manual Test Script
 
+> **Availability:** The Task 9 workspace code is in place, but these end-to-end checks are blocked until Task 13 adds module content to the registry. Until then, the System Design area has no explorable modules.
+
 After Tasks 8–12, `npm run dev`:
 
 **Lessons**
@@ -914,7 +916,7 @@ Everything below is **designed** — it is mapped in the §10.0 roadmap and will
 
 | Item | State | Notes |
 |---|---|---|
-| **Tasks 1–12 (slice A1)** | 🔄 **Tasks 1–8 complete; Task 9 remains incomplete** | Task 1 (contract + node registry) shipped 2026-10-18. Task 2 (engine + rubric + verification) completed 2026-10-20. Task 3 (schema + migration) completed 2026-10-20. Task 4 (API route + rate limits) completed 2026-10-20. Task 5 (canvas) completed 2026-10-20. Task 6 (simulation panels) completed 2026-10-20. Task 7 (HintLayer + ShareButton) completed 2026-10-20. Task 8 routes, reader, and static build verification completed and committed as `1142031` on 2026-10-23; content routes will materialize after Task 13 registers modules. Task 9 remains incomplete. |
+| **Tasks 1–12 (slice A1)** | 🔄 **Tasks 1–9 implemented; end-to-end acceptance pending** | Task 1 (contract + node registry) shipped 2026-10-18. Task 2 (engine + rubric + verification) completed 2026-10-20. Task 3 (schema + migration) completed 2026-10-20. Task 4 (API route + rate limits) completed 2026-10-20. Task 5 (canvas) completed 2026-10-20. Task 6 (simulation panels) completed 2026-10-20. Task 7 (HintLayer + ShareButton) completed 2026-10-20. Task 8 routes and lesson reader committed as `67177e8` on 2026-10-23. Task 9 workspace is implemented and verified by typecheck, tests, and production build; interactive acceptance remains blocked until Task 13 registers modules. |
 | Task 13 (A1 content) | ⬜ Not started | 4 modules — Part 0 |
 | Tasks 14–15 (A2, A3) | ⬜ Gated behind A1 | Do not author before Phase A1 is personally used |
 | Task 1 — `config/system-design/types.ts` | ✅ Done | All types in one dependency-free file. That is what avoids a runtime cycle: `SdPassCriterion.assert` is content but consumes the engine's `SimulationResult` |
@@ -958,8 +960,8 @@ Everything below is **designed** — it is mapped in the §10.0 roadmap and will
 | Task 7 — `config/system-design/types.ts` | ✅ Updated | Added `id` field to SdFailure |
 | Task 7 — `tests/engine.test.ts` | ✅ Fixed | Added `id` to all SdFailure test fixtures |
 | Task 7 — self-review pass | ✅ Done | Typecheck clean, build passes, all 26 engine tests pass |
-| Task 8 — system-design routes and lesson reader | ✅ Committed (`1142031`) | Registry-backed static params for module/task routes and parent-derived lesson params; functional module and lesson readers with progress persistence. `npm run typecheck` and `npm run build` pass; build lists all dynamic route patterns as SSG. Registry currently has no modules, so concrete content pages await Task 13. |
-| Task 9 — Build-Task workspace | 🟡 Not implemented | Task route currently renders an explicit placeholder so Task 8's static route can build without importing an incomplete client workspace. Interactive canvas, criteria gate, escape hatch, autosave, and manual acceptance checks remain pending. |
+| Task 8 — system-design routes and lesson reader | ✅ Committed (`67177e8`) | Registry-backed static params for module/task routes and parent-derived lesson params; functional module and lesson readers with progress persistence. `npm run typecheck` and `npm run build` pass; build lists all dynamic route patterns as SSG. Registry currently has no modules, so concrete content pages await Task 13. |
+| Task 9 — Build-Task workspace | ✅ Implemented; manual acceptance pending | Interactive pointer-based canvas with node palette, move/connect/delete, simulation and failure controls, step progress and hints, sticky criteria gate, solution reveal without passing, local persistence and server autosave, and desktop/mobile layouts. `npm run typecheck`, `npm test`, and `npm run build` pass. Validate the listed manual acceptance checks after Task 13 populates the registry; no real module content exists yet. |
 | §10.0 curriculum roadmap | ✅ Written | Part 0–9, ~90 topics, engine support tagged |
 | §10.1 14-module table | ✅ Written | each with lessons · Build Task · pass criteria · engine properties |
 | §10.3 module template | ✅ Written | Story → Lessons → Interview Byte → Build Task → Recap |

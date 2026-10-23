@@ -31,11 +31,5 @@ export default async function TaskPage({ params }: TaskPageProps) {
 
   if (!mod) notFound();
 
-  return (
-    <TaskWorkspace
-      moduleTitle={mod.title}
-      taskBrief={mod.task.brief}
-      moduleSlug={module}
-    />
-  );
+  return <TaskWorkspace moduleSlug={module} />;
 }

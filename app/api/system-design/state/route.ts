@@ -14,7 +14,13 @@ import { createLogger } from "@/lib/logger";
 import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 import { withRequestLog } from "@/lib/request-log";
 import { SdGraphSchema, validateGraph } from "@/lib/system-design/validation";
-import type { SdGraph, SdUserState, SdTaskState } from "@/config/system-design/types";
+import { getModule } from "@/config/system-design/registry";
+import { simulate } from "@/lib/system-design/engine";
+import type {
+  SdGraph,
+  SdUserState,
+  SdTaskState,
+} from "@/config/system-design/types";
 
 const log = createLogger("system-design-state");
 
@@ -27,7 +33,39 @@ const StateMutationSchema = z.discriminatedUnion("kind", [
     kind: z.literal("task-save"),
     taskSlug: z.string().min(1).max(120),
     graph: SdGraphSchema,
-    steps: z.array(z.string()).max(40),
+    steps: z.array(z.string().min(1).max(120)).max(40),
+    criteriaMet: z.array(z.string().min(1).max(120)).max(40).optional(),
+    failures: z
+      .array(
+        z.discriminatedUnion("kind", [
+          z.object({
+            kind: z.literal("node_down"),
+            nodeId: z.string().min(1).max(64),
+            id: z.string().min(1).max(64),
+          }),
+          z.object({
+            kind: z.literal("degraded"),
+            nodeId: z.string().min(1).max(64),
+            factor: z.number().min(0).max(1),
+            id: z.string().min(1).max(64),
+          }),
+          z.object({
+            kind: z.literal("partition"),
+            edgeIds: z.array(z.string().min(1).max(64)).min(1).max(120),
+            id: z.string().min(1).max(64),
+          }),
+          z.object({
+            kind: z.literal("replica_lag"),
+            nodeId: z.string().min(1).max(64),
+            lagMs: z.number().min(0).max(60_000),
+            id: z.string().min(1).max(64),
+          }),
+        ]),
+      )
+      .max(20)
+      .optional(),
+    attempts: z.number().int().min(0).max(1_000_000).optional(),
+    revealed: z.array(z.string().min(1).max(120)).max(40).optional(),
   }),
 ]);
 
@@ -108,6 +146,65 @@ export async function POST(req: NextRequest) {
     const parsed = StateMutationSchema.safeParse(body);
     if (!parsed.success) return validationError(parsed.error);
 
+    let verifiedCriteriaMet: string[] = [];
+    if (parsed.data.kind === "task-save") {
+      const taskModule = await getModule(parsed.data.taskSlug);
+      if (!taskModule) {
+        return NextResponse.json(
+          { error: "Unknown system-design task" },
+          { status: 400 },
+        );
+      }
+
+      const graphValidation = validateGraph(parsed.data.graph);
+      if (!graphValidation.success) {
+        return NextResponse.json(
+          { error: "Invalid graph", details: graphValidation.errors },
+          { status: 400 },
+        );
+      }
+
+      const requestedCriteria = new Set(parsed.data.criteriaMet ?? []);
+      const knownCriteria = new Set(
+        taskModule.task.passCriteria.map((criterion) => criterion.id),
+      );
+      if ([...requestedCriteria].some((id) => !knownCriteria.has(id))) {
+        return NextResponse.json(
+          { error: "Unknown pass criterion" },
+          { status: 400 },
+        );
+      }
+
+      const failures = parsed.data.failures ?? [];
+      const nodeIds = new Set(
+        graphValidation.data.nodes.map((node) => node.id),
+      );
+      const edgeIds = new Set(
+        graphValidation.data.edges.map((edge) => edge.id),
+      );
+      const hasInvalidFailureTarget = failures.some((failure) =>
+        "nodeId" in failure
+          ? !nodeIds.has(failure.nodeId)
+          : failure.edgeIds.some((id) => !edgeIds.has(id)),
+      );
+      if (hasInvalidFailureTarget) {
+        return NextResponse.json(
+          { error: "A failure references a missing graph component" },
+          { status: 400 },
+        );
+      }
+
+      const result = simulate(graphValidation.data, failures);
+      verifiedCriteriaMet = result.valid
+        ? taskModule.task.passCriteria
+            .filter(
+              (criterion) =>
+                requestedCriteria.has(criterion.id) && criterion.assert(result),
+            )
+            .map((criterion) => criterion.id)
+        : [];
+    }
+
     const userResult = await db
       .select({ id: usersTable.id })
       .from(usersTable)
@@ -142,20 +239,26 @@ export async function POST(req: NextRequest) {
         }
       } else if (parsed.data.kind === "task-save") {
         const { taskSlug, graph, steps } = parsed.data;
-        const validation = validateGraph(graph);
-        if (!validation.success) {
-          return { error: "Invalid graph", details: validation.errors } as const;
-        }
-
         const existingTask = tasks[taskSlug];
-        const nextAttempts = (existingTask?.attempts ?? 0) + 1;
-
         tasks[taskSlug] = {
           graph,
           steps,
-          criteriaMet: existingTask?.criteriaMet ?? [],
-          attempts: nextAttempts,
-          revealed: existingTask?.revealed ?? [],
+          criteriaMet: [
+            ...new Set([
+              ...(existingTask?.criteriaMet ?? []),
+              ...verifiedCriteriaMet,
+            ]),
+          ],
+          attempts: Math.max(
+            existingTask?.attempts ?? 0,
+            parsed.data.attempts ?? 0,
+          ),
+          revealed: [
+            ...new Set([
+              ...(existingTask?.revealed ?? []),
+              ...(parsed.data.revealed ?? []),
+            ]),
+          ],
           updatedAt: now,
         };
       }
@@ -180,13 +283,6 @@ export async function POST(req: NextRequest) {
 
       return { lessonsCompleted, tasks };
     });
-
-    if ("error" in result) {
-      return NextResponse.json(
-        { error: result.error, details: result.details },
-        { status: 400 },
-      );
-    }
 
     return NextResponse.json(result);
   });

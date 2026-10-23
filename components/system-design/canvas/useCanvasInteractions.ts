@@ -7,6 +7,7 @@ import { getPortPosition } from "@/lib/system-design/geometry";
 
 const NODE_WIDTH = 160;
 const NODE_HEIGHT = 72;
+const GRID_SIZE = 40;
 const PORT_HIT_RADIUS = 6;
 const EDGE_HIT_THRESHOLD = 8;
 
@@ -15,8 +16,9 @@ interface UseCanvasInteractionsProps {
   edges: SdEdge[];
   scale: number;
   pan: { x: number; y: number };
-  onNodesChange: (nodes: SdNode[]) => void;
+  onNodesChange: (nodes: SdNode[], persistLocally?: boolean) => void;
   onEdgesChange: (edges: SdEdge[]) => void;
+  onPanChange: (pan: { x: number; y: number }) => void;
   onSelectNode: (id: string | null) => void;
   onSelectEdge: (id: string | null) => void;
   onConnect: (from: string, to: string) => void;
@@ -33,6 +35,14 @@ interface ConnectionState {
   currentPos: { x: number; y: number } | null;
 }
 
+interface NodeDragState {
+  nodeId: string;
+  pointerX: number;
+  pointerY: number;
+  nodeX: number;
+  nodeY: number;
+}
+
 export function useCanvasInteractions({
   nodes,
   edges,
@@ -40,6 +50,7 @@ export function useCanvasInteractions({
   pan,
   onNodesChange,
   onEdgesChange,
+  onPanChange,
   onSelectNode,
   onSelectEdge,
   onConnect,
@@ -48,11 +59,13 @@ export function useCanvasInteractions({
   onDeleteEdge,
   canvasRef,
 }: UseCanvasInteractionsProps) {
-  const [connectionState, setConnectionState] = useState<ConnectionState | null>(null);
+  const [connectionState, setConnectionState] =
+    useState<ConnectionState | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
   const selectedNodeIdRef = useRef<string | null>(null);
   const selectedEdgeIdRef = useRef<string | null>(null);
+  const draggingNodeRef = useRef<NodeDragState | null>(null);
 
   const screenToCanvas = useCallback(
     (clientX: number, clientY: number) => {
@@ -64,7 +77,7 @@ export function useCanvasInteractions({
         y: (clientY - rect.top - pan.y) / scale,
       };
     },
-    [pan, scale, canvasRef]
+    [pan, scale, canvasRef],
   );
 
   const getNodeAtPosition = useCallback(
@@ -75,30 +88,45 @@ export function useCanvasInteractions({
         const nodeRight = node.x + NODE_WIDTH;
         const nodeBottom = node.y + NODE_HEIGHT;
 
-        if (canvasX >= nodeLeft && canvasX <= nodeRight && canvasY >= nodeTop && canvasY <= nodeBottom) {
+        if (
+          canvasX >= nodeLeft &&
+          canvasX <= nodeRight &&
+          canvasY >= nodeTop &&
+          canvasY <= nodeBottom
+        ) {
           return node;
         }
       }
       return null;
     },
-    [nodes]
+    [nodes],
   );
 
   const getPortAtPosition = useCallback(
-    (node: SdNode, canvasX: number, canvasY: number): "input" | "output" | null => {
+    (
+      node: SdNode,
+      canvasX: number,
+      canvasY: number,
+    ): "input" | "output" | null => {
       const nodeCenterY = node.y + NODE_HEIGHT / 2;
 
       const outputPort = { x: node.x + NODE_WIDTH, y: nodeCenterY };
       const inputPort = { x: node.x, y: nodeCenterY };
 
-      const distToOutput = Math.hypot(canvasX - outputPort.x, canvasY - outputPort.y);
-      const distToInput = Math.hypot(canvasX - inputPort.x, canvasY - inputPort.y);
+      const distToOutput = Math.hypot(
+        canvasX - outputPort.x,
+        canvasY - outputPort.y,
+      );
+      const distToInput = Math.hypot(
+        canvasX - inputPort.x,
+        canvasY - inputPort.y,
+      );
 
       if (distToOutput < PORT_HIT_RADIUS) return "output";
       if (distToInput < PORT_HIT_RADIUS) return "input";
       return null;
     },
-    []
+    [],
   );
 
   const getEdgeAtPosition = useCallback(
@@ -120,7 +148,9 @@ export function useCanvasInteractions({
 
         if (distance === 0) continue;
 
-        const t = ((canvasX - fromCenterX) * dx + (canvasY - fromCenterY) * dy) / (distance * distance);
+        const t =
+          ((canvasX - fromCenterX) * dx + (canvasY - fromCenterY) * dy) /
+          (distance * distance);
 
         if (t < 0 || t > 1) continue;
 
@@ -132,24 +162,24 @@ export function useCanvasInteractions({
       }
       return null;
     },
-    [edges, nodes]
+    [edges, nodes],
   );
 
-  const handleMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
       if (e.button !== 0) return;
+      if (
+        e.target instanceof Element &&
+        e.target.closest(
+          "button, input, textarea, select, [contenteditable='true']",
+        )
+      ) {
+        return;
+      }
+      e.currentTarget.setPointerCapture(e.pointerId);
 
       const canvasPos = screenToCanvas(e.clientX, e.clientY);
       const targetNode = getNodeAtPosition(canvasPos.x, canvasPos.y);
-      const targetEdge = getEdgeAtPosition(canvasPos.x, canvasPos.y);
-
-      if (targetEdge) {
-        onSelectEdge(targetEdge.id);
-        selectedEdgeIdRef.current = targetEdge.id;
-        onSelectNode(null);
-        selectedNodeIdRef.current = null;
-        return;
-      }
 
       if (targetNode) {
         const port = getPortAtPosition(targetNode, canvasPos.x, canvasPos.y);
@@ -157,7 +187,12 @@ export function useCanvasInteractions({
           setConnectionState({
             fromNodeId: targetNode.id,
             fromPort: port,
-            fromPortPos: getPortPosition(targetNode, pan, scale, port === "output"),
+            fromPortPos: getPortPosition(
+              targetNode,
+              pan,
+              scale,
+              port === "output",
+            ),
             currentPos: canvasPos,
           });
           onSelectNode(targetNode.id);
@@ -169,6 +204,22 @@ export function useCanvasInteractions({
         selectedNodeIdRef.current = targetNode.id;
         onSelectEdge(null);
         selectedEdgeIdRef.current = null;
+        draggingNodeRef.current = {
+          nodeId: targetNode.id,
+          pointerX: e.clientX,
+          pointerY: e.clientY,
+          nodeX: targetNode.x,
+          nodeY: targetNode.y,
+        };
+        return;
+      }
+
+      const targetEdge = getEdgeAtPosition(canvasPos.x, canvasPos.y);
+      if (targetEdge) {
+        onSelectEdge(targetEdge.id);
+        selectedEdgeIdRef.current = targetEdge.id;
+        onSelectNode(null);
+        selectedNodeIdRef.current = null;
         return;
       }
 
@@ -178,33 +229,110 @@ export function useCanvasInteractions({
       selectedEdgeIdRef.current = null;
 
       setIsPanning(true);
-      panStartRef.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
+      panStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        panX: pan.x,
+        panY: pan.y,
+      };
     },
-    [screenToCanvas, getNodeAtPosition, getPortAtPosition, getEdgeAtPosition, onSelectNode, onSelectEdge, pan]
+    [
+      screenToCanvas,
+      getNodeAtPosition,
+      getPortAtPosition,
+      getEdgeAtPosition,
+      onSelectNode,
+      onSelectEdge,
+      pan,
+    ],
   );
 
-  const handleMouseMove = useCallback(
+  const handlePointerMove = useCallback(
     (e: Event) => {
-      const me = e as MouseEvent;
+      const me = e as PointerEvent;
+      const drag = draggingNodeRef.current;
+      if (drag) {
+        const deltaX = (me.clientX - drag.pointerX) / scale;
+        const deltaY = (me.clientY - drag.pointerY) / scale;
+        onNodesChange(
+          nodes.map((node) =>
+            node.id === drag.nodeId
+              ? { ...node, x: drag.nodeX + deltaX, y: drag.nodeY + deltaY }
+              : node,
+          ),
+          false,
+        );
+        return null;
+      }
+
       if (isPanning) {
         const dx = me.clientX - panStartRef.current.x;
         const dy = me.clientY - panStartRef.current.y;
-        return { panX: panStartRef.current.panX + dx, panY: panStartRef.current.panY + dy };
+        onPanChange({
+          x: panStartRef.current.panX + dx,
+          y: panStartRef.current.panY + dy,
+        });
       }
 
       if (connectionState) {
-        const canvasPos = screenToCanvas(me.clientX, me.clientY);
-        setConnectionState((prev) => (prev ? { ...prev, currentPos: canvasPos } : null));
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (rect) {
+          setConnectionState((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  currentPos: {
+                    x: me.clientX - rect.left,
+                    y: me.clientY - rect.top,
+                  },
+                }
+              : null,
+          );
+        }
       }
 
       return null;
     },
-    [isPanning, connectionState, screenToCanvas]
+    [
+      isPanning,
+      connectionState,
+      nodes,
+      onNodesChange,
+      onPanChange,
+      scale,
+      canvasRef,
+    ],
   );
 
-  const handleMouseUp = useCallback(
+  const handlePointerUp = useCallback(
     (e: Event) => {
-      const me = e as MouseEvent;
+      const me = e as PointerEvent;
+      if (e.type === "pointercancel") {
+        const drag = draggingNodeRef.current;
+        if (drag) onNodesChange(nodes, true);
+        draggingNodeRef.current = null;
+        setIsPanning(false);
+        setConnectionState(null);
+        return;
+      }
+
+      const drag = draggingNodeRef.current;
+      if (drag) {
+        draggingNodeRef.current = null;
+        const movedNode = nodes.find((node) => node.id === drag.nodeId);
+        if (movedNode) {
+          const x = Math.round(movedNode.x / GRID_SIZE) * GRID_SIZE;
+          const y = Math.round(movedNode.y / GRID_SIZE) * GRID_SIZE;
+          onNodesChange(
+            nodes.map((node) =>
+              node.id === drag.nodeId ? { ...node, x, y } : node,
+            ),
+            true,
+          );
+        }
+        return;
+      }
+
       if (isPanning) {
         setIsPanning(false);
         return;
@@ -217,11 +345,17 @@ export function useCanvasInteractions({
         if (targetNode && targetNode.id !== connectionState.fromNodeId) {
           const port = getPortAtPosition(targetNode, canvasPos.x, canvasPos.y);
           if (port && port !== connectionState.fromPort) {
-            const from = connectionState.fromPort === "output" ? connectionState.fromNodeId : targetNode.id;
-            const to = connectionState.fromPort === "output" ? targetNode.id : connectionState.fromNodeId;
+            const from =
+              connectionState.fromPort === "output"
+                ? connectionState.fromNodeId
+                : targetNode.id;
+            const to =
+              connectionState.fromPort === "output"
+                ? targetNode.id
+                : connectionState.fromNodeId;
 
             const existingEdge = edges.find(
-              (e) => e.from === from && e.to === to
+              (e) => e.from === from && e.to === to,
             );
             if (!existingEdge) {
               onConnect(from, to);
@@ -231,7 +365,17 @@ export function useCanvasInteractions({
         setConnectionState(null);
       }
     },
-    [isPanning, connectionState, screenToCanvas, getNodeAtPosition, getPortAtPosition, edges, onConnect]
+    [
+      isPanning,
+      connectionState,
+      screenToCanvas,
+      getNodeAtPosition,
+      getPortAtPosition,
+      edges,
+      onConnect,
+      nodes,
+      onNodesChange,
+    ],
   );
 
   const handleWheel = useCallback(
@@ -251,12 +395,22 @@ export function useCanvasInteractions({
 
       return { scale: newScale, panX: newPanX, panY: newPanY };
     },
-    [scale, pan, canvasRef]
+    [scale, pan, canvasRef],
   );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if ((e.key === "Delete" || e.key === "Backspace") && !e.shiftKey) {
+        const target = e.target;
+        if (
+          target instanceof HTMLElement &&
+          (target.isContentEditable ||
+            target.closest(
+              "button, input, textarea, select, [contenteditable='true']",
+            ))
+        ) {
+          return;
+        }
         if (selectedNodeIdRef.current) {
           onDeleteNode(selectedNodeIdRef.current);
           onSelectNode(null);
@@ -279,19 +433,21 @@ export function useCanvasInteractions({
         }
       }
     },
-    [connectionState, onDeleteNode, onDeleteEdge, onSelectNode, onSelectEdge]
+    [connectionState, onDeleteNode, onDeleteEdge, onSelectNode, onSelectEdge],
   );
 
   useEffect(() => {
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
     window.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [handleMouseMove, handleMouseUp, handleKeyDown]);
+  }, [handlePointerMove, handlePointerUp, handleKeyDown]);
 
   const startConnection = useCallback(
     (nodeId: string, port: "input" | "output") => {
@@ -306,7 +462,7 @@ export function useCanvasInteractions({
         currentPos: fromPortPos,
       });
     },
-    [nodes, pan, scale]
+    [nodes, pan, scale],
   );
 
   const handleDragStart = useCallback(
@@ -317,13 +473,13 @@ export function useCanvasInteractions({
       const canvasPos = screenToCanvas(e.clientX, e.clientY);
       onAddNode(type, canvasPos.x, canvasPos.y);
     },
-    [canvasRef, screenToCanvas, onAddNode]
+    [canvasRef, screenToCanvas, onAddNode],
   );
 
   return {
     connectionState,
     isPanning,
-    handleMouseDown,
+    handlePointerDown,
     handleWheel,
     handleDragStart,
     startConnection,

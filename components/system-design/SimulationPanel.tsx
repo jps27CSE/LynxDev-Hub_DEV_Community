@@ -41,14 +41,21 @@ export function SimulationPanel({
 
   // Update lastResult when simulationResult changes
   useEffect(() => {
-    if (simulationResult) {
-      setLastResult(simulationResult);
-      // Compute verdict from pass criteria
-      const allPass = allRequiredPass(passCriteria, simulationResult);
-      setVerdict(allPass ? "pass" : "fail");
-      // Track latency for sparkline
-      setLatencyHistory((prev) => [...prev.slice(-SPARKLINE_POINTS + 1), simulationResult.latency.p95]);
+    if (!simulationResult) {
+      setLastResult(null);
+      setVerdict("idle");
+      return;
     }
+
+    setLastResult(simulationResult);
+    // Compute verdict from pass criteria
+    const allPass = allRequiredPass(passCriteria, simulationResult);
+    setVerdict(allPass ? "pass" : "fail");
+    // Track latency for sparkline
+    setLatencyHistory((prev) => [
+      ...prev.slice(-SPARKLINE_POINTS + 1),
+      simulationResult.latency.p95,
+    ]);
   }, [simulationResult, passCriteria]);
 
   // Sparkline data
@@ -74,7 +81,7 @@ export function SimulationPanel({
       failures
     );
     onRun(result);
-  }, [failures, onRun]);
+  }, [arrivalRate, failures, graph, onRun]);
 
   const handleArrivalRateChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,7 +89,7 @@ export function SimulationPanel({
       setArrivalRate(value);
       onArrivalRateChange(value);
     },
-    []
+    [onArrivalRateChange]
   );
 
   // Format number for display
