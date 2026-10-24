@@ -8,7 +8,7 @@ import { getPortPosition } from "@/lib/system-design/geometry";
 const NODE_WIDTH = 160;
 const NODE_HEIGHT = 72;
 const GRID_SIZE = 40;
-const PORT_HIT_RADIUS = 6;
+const PORT_HIT_RADIUS = 16;
 const EDGE_HIT_THRESHOLD = 8;
 
 interface UseCanvasInteractionsProps {

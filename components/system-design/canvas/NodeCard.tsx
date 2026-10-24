@@ -103,8 +103,8 @@ export function NodeCard({
         </div>
 
         <div
-          className="port absolute -left-2 top-1/2 h-4 w-4 -translate-y-1/2 cursor-crosshair rounded-full border-2 border-primary/60 bg-background transition-all hover:scale-125 hover:border-primary hover:bg-primary/20"
-          onPointerDown={(e) => {
+          className="port absolute -left-3 top-1/2 h-6 w-6 -translate-y-1/2 cursor-pointer rounded-full border-2 border-primary/70 bg-background/90 transition-all hover:scale-150 hover:border-primary hover:bg-primary/30"
+          onMouseDown={(e) => {
             e.stopPropagation();
             e.preventDefault();
             onSelect(node.id);
@@ -116,11 +116,11 @@ export function NodeCard({
             onSelect(node.id);
             onConnectStart(node.id, "input");
           }}
-          title="Click to connect here"
+          title="Click to connect"
         />
         <div
-          className="port absolute -right-2 top-1/2 h-4 w-4 -translate-y-1/2 cursor-crosshair rounded-full border-2 border-primary/60 bg-background transition-all hover:scale-125 hover:border-primary hover:bg-primary/20"
-          onPointerDown={(e) => {
+          className="port absolute -right-3 top-1/2 h-6 w-6 -translate-y-1/2 cursor-pointer rounded-full border-2 border-primary/70 bg-background/90 transition-all hover:scale-150 hover:border-primary hover:bg-primary/30"
+          onMouseDown={(e) => {
             e.stopPropagation();
             e.preventDefault();
             onSelect(node.id);
@@ -132,7 +132,7 @@ export function NodeCard({
             onSelect(node.id);
             onConnectStart(node.id, "output");
           }}
-          title="Click to connect from here"
+          title="Click to connect"
         />
 
         {node.type === "load_balancer" && (
