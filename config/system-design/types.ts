@@ -331,6 +331,19 @@ export type SdTaskDef = {
   passCriteria: SdPassCriterion[];
 };
 
+export type SdChapter = {
+  /** Unique identifier for the chapter */
+  slug: string;
+  /** Display title for the chapter */
+  title: string;
+  /** Description or summary of the chapter */
+  description?: string;
+  /** Nested sub-chapters (for hierarchical chapter structure) */
+  children?: SdChapter[];
+  /** Optional lesson slug if this chapter wraps a single lesson */
+  lessonSlug?: string;
+};
+
 export type SdModule = {
   /** Always identical to the filename under `config/system-design/modules/`. */
   slug: string;
@@ -342,6 +355,30 @@ export type SdModule = {
   description: string;
   /** Where our app is now, and what just broke. */
   story: string;
+  storyIllustration?: {
+    chapters?: SdChapter[];
+    caption: string;
+    before: {
+      title: string;
+      description: string;
+      diagram?: {
+        nodes: any[];
+        edges: any[];
+        scenario: SdScenario;
+      };
+    };
+    after: {
+      title: string;
+      description: string;
+      diagram?: {
+        nodes: any[];
+        edges: any[];
+        scenario: SdScenario;
+      };
+    };
+  };
+  /** Chapters organize the learning content into sections */
+  chapters?: SdChapter[];
   lessons: SdLesson[];
   interviewByte: SdInterviewByte;
   task: SdTaskDef;

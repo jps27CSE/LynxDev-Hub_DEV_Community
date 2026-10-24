@@ -51,7 +51,7 @@ export function StepRail({ steps, results, onRun, attempts }: StepRailProps) {
           className="mt-4 h-1 overflow-hidden rounded-full bg-muted"
         >
           <div
-            className="h-full rounded-full bg-primary transition-[width]"
+            className="h-full rounded-full bg-sd-accent transition-[width]"
             style={{
               width: `${steps.length ? (completedCount / steps.length) * 100 : 0}%`,
             }}
@@ -72,9 +72,9 @@ export function StepRail({ steps, results, onRun, attempts }: StepRailProps) {
               className={cn(
                 "overflow-hidden rounded-lg border transition-colors",
                 isComplete
-                  ? "border-emerald-500/25 bg-emerald-500/[0.04]"
+                  ? "border-sd-success/30 bg-sd-success/5"
                   : "border-border bg-background/70",
-                isExpanded && !isComplete && "border-primary/40",
+                isExpanded && !isComplete && "border-sd-accent/40",
               )}
             >
               <button
@@ -91,7 +91,7 @@ export function StepRail({ steps, results, onRun, attempts }: StepRailProps) {
                   className={cn(
                     "flex size-6 shrink-0 items-center justify-center rounded-full font-mono text-[11px]",
                     isComplete
-                      ? "bg-emerald-500 text-white"
+                      ? "bg-sd-success text-white"
                       : "bg-muted text-muted-foreground",
                   )}
                 >
@@ -183,7 +183,7 @@ export function StepRail({ steps, results, onRun, attempts }: StepRailProps) {
         <button
           type="button"
           onClick={onRun}
-          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-sd-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-sd-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sd-accent focus-visible:ring-offset-2"
         >
           <Play size={15} fill="currentColor" />
           Run design

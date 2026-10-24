@@ -1054,13 +1054,14 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
 
         {currentGraph.nodes.length === 0 && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6 text-center">
-            <div className="max-w-xs rounded-xl border border-dashed border-border bg-card/90 p-5">
-              <CircleHelp className="mx-auto text-primary" size={22} />
-              <p className="mt-3 text-sm font-semibold">
+            <div className="max-w-xs rounded-2xl border border-dashed border-sd-accent/40 bg-card/90 p-6 shadow-sm">
+              <CircleHelp className="mx-auto text-sd-accent" size={24} />
+              <p className="mt-3 text-sm font-semibold text-foreground">
                 Start with the broken design
               </p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                Drag a component from the palette and connect the request path.
+                Drag a component from the palette below, then connect the request
+                path from client to data store.
               </p>
             </div>
           </div>
@@ -1100,7 +1101,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
             className={cn(
               "shrink-0 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
               rightPanel === panel
-                ? "bg-primary text-primary-foreground"
+                ? "bg-sd-accent text-white"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
@@ -1160,10 +1161,10 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
   );
 
   return (
-    <main className="flex h-[calc(100dvh-1rem)] min-h-[620px] flex-col overflow-hidden bg-background">
+    <main className="sd-scope flex h-[calc(100dvh-1rem)] min-h-[620px] flex-col overflow-hidden bg-background">
       <header className="flex min-h-14 items-center justify-between gap-3 border-b border-border px-3 py-2 sm:px-5">
         <div className="min-w-0">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-sd-accent">
             System design / build task
           </p>
           <div className="flex min-w-0 items-center gap-2">

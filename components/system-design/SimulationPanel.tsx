@@ -137,7 +137,7 @@ export function SimulationPanel({
       <div className="flex gap-2">
         <button
           onClick={handleRun}
-          className="flex-1 py-3 rounded-lg font-medium text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          className="flex-1 py-3 rounded-xl font-medium text-sm bg-sd-accent text-white hover:bg-sd-accent/90 transition-colors"
         >
           Run Simulation
         </button>

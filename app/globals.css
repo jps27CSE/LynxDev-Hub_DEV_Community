@@ -45,6 +45,14 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  /* System Design module accent palette (scoped via .sd-scope) */
+  --color-sd-accent: var(--sd-accent);
+  --color-sd-accent-soft: var(--sd-accent-soft);
+  --color-sd-success: var(--sd-success);
+  --color-sd-warn: var(--sd-warn);
+  --color-sd-danger: var(--sd-danger);
+  --color-sd-info: var(--sd-info);
 }
 
 :root {
@@ -114,6 +122,25 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
+}
+
+/* System Design module accent palette (scoped) */
+.sd-scope {
+  --sd-accent: oklch(0.55 0.22 265);
+  --sd-accent-soft: oklch(0.95 0.04 265);
+  --sd-success: oklch(0.62 0.17 155);
+  --sd-warn: oklch(0.72 0.16 75);
+  --sd-danger: oklch(0.62 0.2 25);
+  --sd-info: oklch(0.62 0.16 230);
+}
+
+.dark .sd-scope {
+  --sd-accent: oklch(0.72 0.18 265);
+  --sd-accent-soft: oklch(0.28 0.06 265);
+  --sd-success: oklch(0.78 0.15 155);
+  --sd-warn: oklch(0.82 0.14 75);
+  --sd-danger: oklch(0.78 0.16 25);
+  --sd-info: oklch(0.78 0.14 230);
 }
 
 @keyframes scroll {
@@ -376,6 +403,17 @@
 .lesson-content hr {
   border-color: var(--border);
   margin: 1.5rem 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sd-scope *,
+  .sd-scope *::before,
+  .sd-scope *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @layer base {

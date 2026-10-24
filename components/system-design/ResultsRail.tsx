@@ -23,9 +23,9 @@ const fmtMs = (ms: number) => {
 const fmtPct = (pct: number) => `${(pct * 100).toFixed(1)}%`;
 
 const utilizationColor = (util: number) => {
-  if (util >= 1) return "text-red-500";
-  if (util >= 0.7) return "text-amber-500";
-  return "text-green-500";
+  if (util >= 1) return "text-sd-danger";
+  if (util >= 0.7) return "text-sd-warn";
+  return "text-sd-success";
 };
 
 export function ResultsRail({ result, selectedNodeId }: ResultsRailProps) {
@@ -101,7 +101,7 @@ export function ResultsRail({ result, selectedNodeId }: ResultsRailProps) {
 
       {/* Bottleneck */}
       {result.bottleneck && (
-        <section className="p-3 bg-amber-50/50 dark:bg-amber-900/20 rounded-lg border border-amber-500/20">
+        <section className="rounded-xl border border-sd-warn/30 bg-sd-warn/5 p-3">
           <div className="flex items-start gap-2">
             <svg className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />

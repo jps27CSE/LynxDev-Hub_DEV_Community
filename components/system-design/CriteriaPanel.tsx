@@ -56,7 +56,7 @@ export function CriteriaPanel({
           className={cn(
             "mt-4 flex items-center gap-2 rounded-md border px-3 py-2 text-sm",
             allRequiredPassed
-              ? "border-emerald-500/25 bg-emerald-500/[0.06] text-emerald-700 dark:text-emerald-400"
+              ? "border-sd-success/30 bg-sd-success/5 text-sd-success"
               : "border-border bg-muted/40 text-muted-foreground",
           )}
           role="status"
@@ -111,9 +111,9 @@ export function CriteriaPanel({
                   className={cn(
                     "flex size-6 shrink-0 items-center justify-center rounded-full",
                     isMet
-                      ? "bg-emerald-500 text-white"
+                      ? "bg-sd-success text-white"
                       : currentPass
-                        ? "bg-emerald-500/10 text-emerald-600"
+                        ? "bg-sd-success/15 text-sd-success"
                         : "bg-muted text-muted-foreground",
                   )}
                 >
@@ -174,7 +174,7 @@ export function CriteriaPanel({
           type="button"
           onClick={onRevealSolution}
           disabled={solutionRevealed}
-          className="min-h-10 w-full rounded-md border border-border px-3 text-sm font-medium transition-colors hover:bg-muted disabled:cursor-default disabled:opacity-60"
+          className="min-h-10 w-full rounded-xl border border-border px-3 text-sm font-medium transition-colors hover:bg-muted disabled:cursor-default disabled:opacity-60"
         >
           {solutionRevealed
             ? "Senior design revealed"

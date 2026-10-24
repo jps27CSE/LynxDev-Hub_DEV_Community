@@ -126,7 +126,7 @@ export function FailurePanel({ graph, failures, onFailuresChange }: FailurePanel
               key={kind}
               className={cn(
                 "border border-border rounded-lg overflow-hidden",
-                isExpanded && "ring-1 ring-primary"
+                isExpanded && "ring-1 ring-sd-accent"
               )}
             >
               <button
@@ -203,7 +203,7 @@ export function FailurePanel({ graph, failures, onFailuresChange }: FailurePanel
       {failures.length > 0 && (
         <button
           onClick={() => onFailuresChange([])}
-          className="w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg border border-red-500/20 transition-colors"
+          className="w-full rounded-xl border border-sd-danger/30 px-3 py-2 text-sm text-sd-danger transition-colors hover:bg-sd-danger/10"
         >
           Clear All Failures
         </button>

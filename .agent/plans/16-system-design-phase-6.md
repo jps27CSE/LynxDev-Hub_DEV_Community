@@ -975,3 +975,52 @@ Everything below is **designed** — it is mapped in the §10.0 roadmap and will
 | §15 Q1 node labelling | ⬜ Open | Recommend yes |
 | §15 Q2 free mode | ⬜ Open | Recommend Phase 7 |
 | Authoring load | ⬜ Unstarted | **~2× a plain prose module each** (lessons + Interview Byte + rubric + criteria + solution graph). The long pole — not the engine. |
+---
+
+## 18. UI/UX Redesign — System Design Module (2026-10-24)
+
+A readability-first redesign of the entire System Design module surface. Goal: calm, legible, opinionated reading experience for lessons (where users spend the most time) and a focused, guided workspace for the build task. No new dependencies; all changes scoped to the module via a `.sd-scope` accent palette.
+
+### 18.1 Scoped accent palette (`app/globals.css`)
+- Added `--sd-accent` (indigo), `--sd-accent-soft`, `--sd-success`, `--sd-warn`, `--sd-danger`, `--sd-info` tokens under a `.sd-scope` class, with light/dark variants.
+- Registered as Tailwind v4 `--color-sd-*` tokens so `bg-sd-accent`, `text-sd-success`, etc. are usable.
+- Added a `prefers-reduced-motion` guard scoped to `.sd-scope`.
+- Applied `sd-scope` to the root containers of the index, module, lesson, and task pages.
+
+### 18.2 Index page (`app/(routes)/system-design/page.tsx`)
+- Gradient hero with accent blurs, part/module chips, refined spacing.
+
+### 18.3 Module card (`components/system-design/ModuleCard.tsx`)
+- Part chip, hover lift (`-translate-y-1` + shadow), focus ring, lessons count with accent dot.
+
+### 18.4 Module layout (`components/system-design/ModuleLayout.tsx`)
+- Removed the dead sidebar slot; added a sticky left lesson rail (collapsible) and a right "On this page" rail (anchor links + progress card + build-task CTA).
+- Full-height (`100dvh`) flex layout with independent scroll columns (left / middle / right), each with its own scrollbar.
+- Removed the "Open build task" button from the left rail (kept in right rail + build-task section).
+- Capped the reading column at `max-w-6xl`; rails narrowed to `w-44`/`w-64`.
+
+### 18.5 Lesson reader (`components/system-design/LessonFlow.tsx`)
+- Top progress bar (lesson N of M), reading-time estimate, keyboard ←/→ navigation.
+- Left rail: module/lesson list + progress (md breakpoint, `w-36`–`w-56`).
+- Right rail: section TOC (anchor links), progress, prev/next lesson links.
+- Per-section visual treatments: scenario (info), concept (plain), your-turn (warn), compare (accent), recap (success), diagram (card).
+- Full-width middle content option; inner wrappers aligned so title and prose share one column.
+- Full-height independent scroll columns.
+
+### 18.6 Task workspace (`components/system-design/TaskWorkspace.tsx`)
+- Accent tabs/header/empty-state; improved empty-canvas copy; larger tap targets.
+
+### 18.7 Step rail, criteria, simulation, failure, results
+- `StepRail`: semantic status colors, accent progress bar and run button, rounded cards.
+- `CriteriaPanel`: success/warn status colors, rounded cards.
+- `SimulationPanel`: accent run button.
+- `FailurePanel`: accent ring, danger clear-all button.
+- `ResultsRail`: semantic utilization colors, accent bottleneck card.
+
+### 18.8 Verification
+- `npm run typecheck` clean; `npm run build` succeeds; all system-design routes remain `●` SSG.
+- Manual checks: dark/light, 375px mobile, keyboard nav, independent scroll.
+
+### 18.9 Files touched
+`app/globals.css`, `app/(routes)/system-design/page.tsx`, `app/(routes)/system-design/[module]/page.tsx`,
+`components/system-design/{ModuleLayout,LessonFlow,ModuleCard,TaskWorkspace,StepRail,CriteriaPanel,SimulationPanel,FailurePanel,ResultsRail}.tsx`.
