@@ -362,7 +362,8 @@ export function useCanvasInteractions({
             }
           }
         }
-        setConnectionState(null);
+        // Don't clear immediately - allow clicking another port to connect
+        // setConnectionState(null);
       }
     },
     [
@@ -454,6 +455,37 @@ export function useCanvasInteractions({
       const node = nodes.find((n) => n.id === nodeId);
       if (!node) return;
 
+      // If already connecting from same node/port, cancel
+      if (
+        connectionState &&
+        connectionState.fromNodeId === nodeId &&
+        connectionState.fromPort === port
+      ) {
+        setConnectionState(null);
+        return;
+      }
+
+      // If connecting and click opposite port on different node, connect
+      if (connectionState && connectionState.fromNodeId !== nodeId) {
+        if (port !== connectionState.fromPort) {
+          const from =
+            connectionState.fromPort === "output"
+              ? connectionState.fromNodeId
+              : nodeId;
+          const to =
+            connectionState.fromPort === "output"
+              ? nodeId
+              : connectionState.fromNodeId;
+
+          const existingEdge = edges.find((e) => e.from === from && e.to === to);
+          if (!existingEdge) {
+            onConnect(from, to);
+          }
+          setConnectionState(null);
+          return;
+        }
+      }
+
       const fromPortPos = getPortPosition(node, pan, scale, port === "output");
       setConnectionState({
         fromNodeId: nodeId,
@@ -462,7 +494,7 @@ export function useCanvasInteractions({
         currentPos: fromPortPos,
       });
     },
-    [nodes, pan, scale],
+    [nodes, pan, scale, connectionState, edges, onConnect],
   );
 
   const handleDragStart = useCallback(
