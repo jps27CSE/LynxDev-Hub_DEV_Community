@@ -31,7 +31,9 @@ type SdModuleLoader = () => Promise<{ default: SdModule }>;
  * Own keys only. `Object.keys` is already own-keys-only, which is why the two
  * functions cannot disagree about what is registered.
  */
-const LOADERS: Record<string, SdModuleLoader> = {};
+const LOADERS: Record<string, SdModuleLoader> = {
+  "what-is-system-design": () => import("./modules/what-is-system-design"),
+};
 
 /**
  * Synchronous, so `generateStaticParams` can consume it in all three dynamic

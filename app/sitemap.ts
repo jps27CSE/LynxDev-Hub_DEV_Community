@@ -3,6 +3,7 @@ import { getAllCourses } from "@/lib/course-data";
 import { getAllCategories } from "@/lib/interview-data";
 import { TOP_PROBLEMS } from "@/config/problems/top-problems";
 import { getSortedPosts } from "@/config/blog";
+import { getAllModuleSlugs, getModule } from "@/config/system-design/registry";
 
 const BASE_URL = "https://lynxdev.io";
 
@@ -34,6 +35,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${BASE_URL}/problems`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/system-design`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.8,
@@ -100,11 +107,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
+  const systemDesignPages: MetadataRoute.Sitemap = [];
+  try {
+    const slugs = getAllModuleSlugs();
+    for (const slug of slugs) {
+      const mod = await getModule(slug);
+      if (!mod) continue;
+      systemDesignPages.push({
+        url: `${BASE_URL}/system-design/${slug}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      });
+      systemDesignPages.push({
+        url: `${BASE_URL}/system-design/${slug}/task`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      });
+      for (const lesson of mod.lessons) {
+        systemDesignPages.push({
+          url: `${BASE_URL}/system-design/${slug}/lesson/${lesson.slug}`,
+          lastModified: new Date(),
+          changeFrequency: "monthly" as const,
+          priority: 0.6,
+        });
+      }
+    }
+  } catch {
+    // ignore if not built yet
+  }
+
   return [
     ...staticPages,
     ...coursePages,
     ...categoryPages,
     ...problemPages,
     ...blogPages,
+    ...systemDesignPages,
   ];
 }

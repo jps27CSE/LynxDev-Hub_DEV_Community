@@ -9,19 +9,26 @@ interface LessonPageProps {
 
 export const dynamicParams = false;
 
-export async function generateStaticParams({
-  params,
-}: {
-  params?: { module?: string };
-}): Promise<Array<{ lesson: string }>> {
-  if (!params?.module) return [];
+export async function generateStaticParams(): Promise<
+  Array<{ module: string; lesson: string }>
+> {
+  const { getAllModuleSlugs } = await import("@/config/system-design/registry");
+  const slugs = getAllModuleSlugs();
+  const params: Array<{ module: string; lesson: string }> = [];
 
-  const module = await getModule(params.module);
-  if (!module)
-    throw new Error(
-      `Registered module "${params.module}" could not be loaded.`,
-    );
-  return module.lessons.map((lesson) => ({ lesson: lesson.slug }));
+  for (const moduleSlug of slugs) {
+    const module = await getModule(moduleSlug);
+    if (!module) {
+      throw new Error(
+        `Registered module "${moduleSlug}" could not be loaded for static params.`,
+      );
+    }
+    for (const lesson of module.lessons) {
+      params.push({ module: moduleSlug, lesson: lesson.slug });
+    }
+  }
+
+  return params;
 }
 
 export async function generateMetadata({

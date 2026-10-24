@@ -65,6 +65,12 @@
 | 5.7 | Skills roadmap tree | Pending | High | Interactive skill nodes with resources (articles, docs, videos) |
 | 5.8 | YouTube video courses | Pending | High | Videos from CodeInsightsByJack channel, mark complete with progress |
 
+## Phase 6 — System Design Learning
+
+| # | Feature | Status | Priority | Notes |
+|---|---------|--------|----------|-------|
+| 6.1 | System design learning path | In Progress | High | Plan: `.agent/plans/16-system-design-phase-6.md`. Engine, canvas, routes, task workspace, schema/API/rate limits done (Tasks 1-9). Guardrail script `npm run check:system-design` added (Task 11). Sidebar + sitemap + nav integrated (Task 12). Module 1 of 14 (`what-is-system-design`, Part 0) authored and registered with lessons, Interview Byte, and Build Task (Task 13 A1). 13 modules remaining (3 more Part 0, 6 Part 1, 4 Part 3). |
+
 ---
 
 ## Legend
