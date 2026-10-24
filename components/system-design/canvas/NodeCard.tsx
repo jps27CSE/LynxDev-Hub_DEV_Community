@@ -44,7 +44,7 @@ export function NodeCard({
   return (
     <div
       className={cn(
-        "absolute select-none touch-none transition-transform duration-100",
+        "absolute select-none transition-transform duration-100",
         selected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
         "cursor-grab",
       )}
@@ -53,6 +53,7 @@ export function NodeCard({
         top: screenY,
         transform: `scale(${scale})`,
         transformOrigin: "0 0",
+        pointerEvents: "auto",
       }}
     >
       <div

@@ -369,9 +369,19 @@ export function Canvas({
                     />
                   </g>
                 )}
-                {nodes.map((node) => (
+              </g>
+            </svg>
+            <div
+              className="absolute inset-0"
+              style={{
+                transform: `translate(${pan.x}, ${pan.y}) scale(${scale})`,
+                transformOrigin: "0 0",
+                pointerEvents: "none",
+              }}
+            >
+              {nodes.map((node) => (
+                <div key={node.id} style={{ pointerEvents: "auto" }}>
                   <NodeCard
-                    key={node.id}
                     node={node}
                     scale={scale}
                     pan={pan}
@@ -380,9 +390,9 @@ export function Canvas({
                     onConnectStart={startConnection}
                     utilisation={perNodeMap.get(node.id)?.utilisation}
                   />
-                ))}
-              </g>
-            </svg>
+                </div>
+              ))}
+            </div>
 
             {/* Zoom controls */}
             <div
