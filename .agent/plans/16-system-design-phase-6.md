@@ -917,11 +917,12 @@ Everything below is **designed** — it is mapped in the §10.0 roadmap and will
 | Item | State | Notes |
 |---|---|---|
 | **Tasks 1–12 (slice A1)** | 🔄 **Tasks 1–9 implemented; end-to-end acceptance pending** | Task 1 (contract + node registry) shipped 2026-10-18. Task 2 (engine + rubric + verification) completed 2026-10-20. Task 3 (schema + migration) completed 2026-10-20. Task 4 (API route + rate limits) completed 2026-10-20. Task 5 (canvas) completed 2026-10-20. Task 6 (simulation panels) completed 2026-10-20. Task 7 (HintLayer + ShareButton) completed 2026-10-20. Task 8 routes and lesson reader committed as `67177e8` on 2026-10-23. Task 9 workspace is implemented and verified by typecheck, tests, and production build; interactive acceptance remains blocked until Task 13 registers modules. |
-| Task 13 (A1 content) | ⬜ Not started | 4 modules — Part 0 |
-| Tasks 14–15 (A2, A3) | ⬜ Gated behind A1 | Do not author before Phase A1 is personally used |
+| Task 13 (A1 content) | ✅ Done (extended) | Part 0 all 4 modules authored + registered: `what-is-system-design`, `requirements`, `constraints-and-design-process`, `back-of-the-envelope`. Plus Module 5 (`load-balancers-and-stateless-services`) and **Module 6 (`caching`)** authored ahead of the A2 slice. 6 modules registered; guardrail green. |
+| Tasks 14 (A2 content) | 🔄 In progress | Module 7 (`read-replicas`) authored and registered (2026-10-24). Remaining A2 modules: 8 partitioning/sharding, 9 rate limiting, 10 CDNs. A3 modules (11–14) gated. |
+| Tasks 15 (A3 content) | ⬜ Gated behind A2 | Do not author before A2 is personally used |
 | Task 1 — `config/system-design/types.ts` | ✅ Done | All types in one dependency-free file. That is what avoids a runtime cycle: `SdPassCriterion.assert` is content but consumes the engine's `SimulationResult` |
 | Task 1 — `lib/system-design/nodes.ts` | ✅ Done | 9 types as data, `defaultNode()`, palette order, §15 Q1 blurb line per type. All 9 `iconKey`s verified against `lucide-react` |
-| Task 1 — `config/system-design/registry.ts` | ✅ Done | `LOADERS` intentionally empty until Task 13 (decision 34) |
+| Task 1 — `config/system-design/registry.ts` | ✅ Done | 7 modules registered: what-is-system-design, requirements, constraints-and-design-process, back-of-the-envelope, load-balancers-and-stateless-services, caching, read-replicas |
 | Task 1 — contract gaps closed | ✅ Done | `errorClasses`, `bandwidthMbps`, `perNode[].serviceMs`, `writeShare`, `mediaShare`, `bytesPerMediaRequest`, `abusiveShare`, `cdn.hitRate`, `worker.replicas` — see §5.2.1 |
 | Task 1 — self-review pass | ✅ Done | Found and fixed 3 defects: prototype-key lookup in `getModule` (threw on 3 of 5 inherited keys → 500 not 404, decision 36), `NODE_TYPE_ORDER` able to silently omit a type with `tsc` clean (decision 37), and two names that meant something other than they said (decision 38). Also documented the `Infinity` JSON trap on `client.capacity` |
 | Task 2 — `lib/system-design/validation.ts` | ✅ Done | Zod v4 discriminated unions for SdGraph, SdNode, SdEdge, SdScenario with `.max()` bounds on all strings |

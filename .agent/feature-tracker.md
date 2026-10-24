@@ -69,7 +69,7 @@
 
 | # | Feature | Status | Priority | Notes |
 |---|---------|--------|----------|-------|
-| 6.1 | System design learning path | In Progress | High | Plan: `.agent/plans/16-system-design-phase-6.md`. Engine, canvas, routes, task workspace, schema/API/rate limits done (Tasks 1-9). Guardrail script `npm run check:system-design` added (Task 11). Sidebar + sitemap + nav integrated (Task 12). Module 1 of 14 (`what-is-system-design`, Part 0) authored and registered with lessons, Interview Byte, and Build Task (Task 13 A1). 13 modules remaining (3 more Part 0, 6 Part 1, 4 Part 3). |
+| 6.1 | System design learning path | In Progress | High | Plan: `.agent/plans/16-system-design-phase-6.md`. Engine, canvas, routes, task workspace, schema/API/rate limits done (Tasks 1-9). Guardrail script `npm run check:system-design` added (Task 11). Sidebar + sitemap + nav integrated (Task 12). Module content: Part 0 all 4 (`what-is-system-design`, `requirements`, `constraints-and-design-process`, `back-of-the-envelope`) + Module 5 (`load-balancers-and-stateless-services`) + Module 6 (`caching`) + Module 7 (`read-replicas`) authored and registered — 7 modules total. Engine: `database.readReplicas` wired into capacity. Remaining A2: 8 partitioning/sharding, 9 rate limiting, 10 CDNs; A3: 11-14. |
 
 ---
 
