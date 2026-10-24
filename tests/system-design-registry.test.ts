@@ -144,13 +144,13 @@ describe("system-design registry", () => {
       );
     });
 
-    it("is empty while LOADERS is empty, and that is expected", async () => {
-      // TODO(Task 13): this flips the moment module content is authored. When
-      // it does, replace it with the real first module's slug rather than
-      // deleting the assertion — a test suite that loses an assertion quietly
-      // is how the file above ended up with no coverage at all.
-      assert.deepEqual(await loadAllModules(), []);
-      assert.deepEqual(getAllModuleSlugs(), []);
+    it("is populated once module content is authored", async () => {
+      // Task 13+ authored modules into LOADERS. The registry is no longer empty,
+      // and `loadAllModules` must return one entry per registered slug.
+      const slugs = getAllModuleSlugs();
+      const modules = await loadAllModules();
+      assert.ok(slugs.length > 0, "registry should not be empty after Task 13");
+      assert.equal(modules.length, slugs.length);
     });
   });
 });

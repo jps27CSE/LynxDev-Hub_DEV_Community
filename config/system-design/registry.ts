@@ -37,6 +37,8 @@ const LOADERS: Record<string, SdModuleLoader> = {
   "constraints-and-design-process": () => import("./modules/constraints-and-design-process"),
   "back-of-the-envelope": () => import("./modules/back-of-the-envelope"),
   "load-balancers-and-stateless-services": () => import("./modules/load-balancers-and-stateless-services"),
+  caching: () => import("./modules/caching"),
+  "read-replicas": () => import("./modules/read-replicas"),
 };
 
 /**

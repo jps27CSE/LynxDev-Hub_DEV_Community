@@ -176,6 +176,10 @@ function effectiveCapacity(node: SdNode, failures: SdFailure[]): number {
     cap *= (node as any).replicas ?? 1;
   }
 
+  if (node.type === "database") {
+    cap *= 1 + ((node as any).readReplicas ?? 0);
+  }
+
   return cap;
 }
 

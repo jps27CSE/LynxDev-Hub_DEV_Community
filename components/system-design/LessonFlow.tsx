@@ -559,7 +559,7 @@ function LessonDiagram({
   const nodeHeight = 64;
   const padding = 32;
   const minX = Math.min(...graph.nodes.map((node) => node.x));
-  const minY = Math.max(...graph.nodes.map((node) => node.y));
+  const minY = Math.min(...graph.nodes.map((node) => node.y));
   const maxX = Math.max(...graph.nodes.map((node) => node.x + nodeWidth));
   const maxY = Math.max(...graph.nodes.map((node) => node.y + nodeHeight));
   const width = maxX - minX + padding * 2;
@@ -569,16 +569,18 @@ function LessonDiagram({
   const offsetY = (y: number) => y - minY + padding;
 
   return (
-    <figure className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+    <figure className="rounded-2xl border border-border bg-card shadow-sm">
       <figcaption className="border-b border-border bg-muted/30 px-5 py-3 text-sm text-muted-foreground">
         {caption}
       </figcaption>
-      <div className="overflow-x-auto p-5">
+      <div className="overflow-auto p-5">
         <svg
           role="img"
           aria-label={caption}
           viewBox={`0 0 ${width} ${height}`}
-          className="mx-auto min-w-[520px] max-w-full"
+          width={width}
+          height={height}
+          className="min-w-[520px]"
         >
           <defs>
             <marker
