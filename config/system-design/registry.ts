@@ -33,6 +33,9 @@ type SdModuleLoader = () => Promise<{ default: SdModule }>;
  */
 const LOADERS: Record<string, SdModuleLoader> = {
   "what-is-system-design": () => import("./modules/what-is-system-design"),
+  requirements: () => import("./modules/requirements"),
+  "constraints-and-design-process": () => import("./modules/constraints-and-design-process"),
+  "back-of-the-envelope": () => import("./modules/back-of-the-envelope"),
 };
 
 /**
