@@ -34,12 +34,16 @@ type SdModuleLoader = () => Promise<{ default: SdModule }>;
 const LOADERS: Record<string, SdModuleLoader> = {
   "what-is-system-design": () => import("./modules/what-is-system-design"),
   requirements: () => import("./modules/requirements"),
-  "constraints-and-design-process": () => import("./modules/constraints-and-design-process"),
+  "constraints-and-design-process": () =>
+    import("./modules/constraints-and-design-process"),
   "back-of-the-envelope": () => import("./modules/back-of-the-envelope"),
-  "load-balancers-and-stateless-services": () => import("./modules/load-balancers-and-stateless-services"),
+  "load-balancers-and-stateless-services": () =>
+    import("./modules/load-balancers-and-stateless-services"),
   caching: () => import("./modules/caching"),
   "read-replicas": () => import("./modules/read-replicas"),
-  "partitioning-and-sharding": () => import("./modules/partitioning-and-sharding"),
+  "partitioning-and-sharding": () =>
+    import("./modules/partitioning-and-sharding"),
+  "rate-limiting": () => import("./modules/rate-limiting"),
 };
 
 /**
