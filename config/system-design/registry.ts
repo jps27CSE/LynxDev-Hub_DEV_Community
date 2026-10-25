@@ -48,6 +48,7 @@ const LOADERS: Record<string, SdModuleLoader> = {
   "how-systems-fail": () => import("./modules/how-systems-fail"),
   "timeouts-retries-circuit-breakers": () =>
     import("./modules/timeouts-retries-circuit-breakers"),
+  idempotency: () => import("./modules/idempotency"),
 };
 
 /**
