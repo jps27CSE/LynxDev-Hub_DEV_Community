@@ -45,6 +45,7 @@ const LOADERS: Record<string, SdModuleLoader> = {
     import("./modules/partitioning-and-sharding"),
   "rate-limiting": () => import("./modules/rate-limiting"),
   "cdns-and-static-content": () => import("./modules/cdns-and-static-content"),
+  "how-systems-fail": () => import("./modules/how-systems-fail"),
 };
 
 /**
