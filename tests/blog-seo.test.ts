@@ -67,7 +67,9 @@ describe("buildPostMetadata", () => {
     const meta = buildPostMetadata(post);
 
     // Should be an object with absolute, not a plain string
-    assert.ok(typeof meta.title === "object" && "absolute" in (meta.title as any));
+    assert.ok(
+      typeof meta.title === "object" && "absolute" in (meta.title as any),
+    );
     assert.equal((meta.title as any).absolute, `My Post | ${SITE_NAME}`);
   });
 
@@ -203,8 +205,13 @@ describe("buildBlogIndexMetadata", () => {
 
   it("title uses { absolute } to opt out of root layout template", () => {
     const meta = buildBlogIndexMetadata();
-    assert.ok(typeof meta.title === "object" && "absolute" in (meta.title as any));
-    assert.equal((meta.title as any).absolute, `Engineering Blog | ${SITE_NAME}`);
+    assert.ok(
+      typeof meta.title === "object" && "absolute" in (meta.title as any),
+    );
+    assert.equal(
+      (meta.title as any).absolute,
+      `Engineering Blog | ${SITE_NAME}`,
+    );
   });
 
   it("canonical URL is blog index", () => {
@@ -236,7 +243,10 @@ describe("buildBlogIndexMetadata", () => {
     it("description is the long-form blurb", () => {
       const meta = buildBlogIndexMetadata();
       assert.ok(((meta.openGraph as any)?.description as string).length > 50);
-      assert.match((meta.openGraph as any)?.description as string, /architecture|engineering/i);
+      assert.match(
+        (meta.openGraph as any)?.description as string,
+        /architecture|engineering/i,
+      );
     });
 
     it("images array has blog-level opengraph image", () => {
@@ -259,12 +269,18 @@ describe("buildBlogIndexMetadata", () => {
 
     it("title matches openGraph title", () => {
       const meta = buildBlogIndexMetadata();
-      assert.equal((meta.twitter as any)?.title, (meta.openGraph as any)?.title);
+      assert.equal(
+        (meta.twitter as any)?.title,
+        (meta.openGraph as any)?.title,
+      );
     });
 
     it("description matches openGraph description", () => {
       const meta = buildBlogIndexMetadata();
-      assert.equal((meta.twitter as any)?.description, (meta.openGraph as any)?.description);
+      assert.equal(
+        (meta.twitter as any)?.description,
+        (meta.openGraph as any)?.description,
+      );
     });
 
     it("images array contains blog-level opengraph image", () => {
@@ -423,9 +439,16 @@ describe("buildBlogIndexJsonLd", () => {
     const data = JSON.parse(buildBlogIndexJsonLd());
     for (const entry of data.blogPost) {
       assert.equal(entry["@type"], "TechArticle");
-      assert.ok(typeof entry.headline === "string" && entry.headline.length > 0);
-      assert.ok(typeof entry.url === "string" && entry.url.startsWith(BASE_URL));
-      assert.ok(typeof entry.datePublished === "string" && entry.datePublished.match(/^\d{4}-\d{2}-\d{2}$/));
+      assert.ok(
+        typeof entry.headline === "string" && entry.headline.length > 0,
+      );
+      assert.ok(
+        typeof entry.url === "string" && entry.url.startsWith(BASE_URL),
+      );
+      assert.ok(
+        typeof entry.datePublished === "string" &&
+          entry.datePublished.match(/^\d{4}-\d{2}-\d{2}$/),
+      );
     }
   });
 
@@ -447,7 +470,9 @@ describe("Constants", () => {
   it("BASE_URL is 'https://lynxdev.io'", () => {
     const post = samplePost({ slug: "test" });
     const meta = buildPostMetadata(post);
-    assert.ok((meta.alternates?.canonical as string).startsWith("https://lynxdev.io/"));
+    assert.ok(
+      (meta.alternates?.canonical as string).startsWith("https://lynxdev.io/"),
+    );
   });
 });
 

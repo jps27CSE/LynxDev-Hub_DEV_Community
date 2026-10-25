@@ -165,7 +165,11 @@ describe("tagLabels mapping", () => {
   it("every expected tag has correct label", () => {
     for (const [tag, label] of Object.entries(expectedTags)) {
       const result = formatTagLabel(tag);
-      assert.equal(result, label, `Mismatch for tag "${tag}": got "${result}", expected "${label}"`);
+      assert.equal(
+        result,
+        label,
+        `Mismatch for tag "${tag}": got "${result}", expected "${label}"`,
+      );
     }
   });
 
@@ -208,7 +212,10 @@ describe("formatTagLabel — fallback capitalization", () => {
   });
 
   it("handles multiple hyphens", () => {
-    assert.equal(formatTagLabel("very-long-custom-tag-name"), "Very Long Custom Tag Name");
+    assert.equal(
+      formatTagLabel("very-long-custom-tag-name"),
+      "Very Long Custom Tag Name",
+    );
   });
 
   it("handles leading/trailing hyphens", () => {

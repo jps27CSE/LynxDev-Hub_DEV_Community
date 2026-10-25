@@ -55,7 +55,12 @@ export const MAX_CAUSE_DEPTH = 3;
 export const SQL_PARAMS = /params: [\s\S]*?(?=\n\s+at\s|$)/g;
 
 /** Driver-level fields that identify the failure; they sit on `cause`. */
-export const DIAGNOSTIC_KEYS = ["code", "errno", "sqlState", "sqlMessage"] as const;
+export const DIAGNOSTIC_KEYS = [
+  "code",
+  "errno",
+  "sqlState",
+  "sqlMessage",
+] as const;
 
 export function redactParams(text: string): string {
   return text.replace(SQL_PARAMS, "params: [redacted]");
@@ -74,7 +79,8 @@ export interface SerializedError {
 }
 
 export function serializeError(err: unknown, depth = 0): SerializedError {
-  if (!(err instanceof Error)) return { name: "UnknownError", message: String(err) };
+  if (!(err instanceof Error))
+    return { name: "UnknownError", message: String(err) };
   if (depth >= MAX_CAUSE_DEPTH) {
     return { name: err.name, message: "[cause chain truncated]" };
   }
@@ -87,7 +93,8 @@ export function serializeError(err: unknown, depth = 0): SerializedError {
 
   for (const key of DIAGNOSTIC_KEYS) {
     const value = (err as unknown as Record<string, unknown>)[key];
-    if (value !== undefined) (serialized as Record<string, unknown>)[key] = value;
+    if (value !== undefined)
+      (serialized as Record<string, unknown>)[key] = value;
   }
   if (err.cause !== undefined) {
     serialized.cause = serializeError(err.cause, depth + 1);

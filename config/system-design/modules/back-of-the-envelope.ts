@@ -37,20 +37,57 @@ const module: SdModule = {
           caption: "Our app as-is",
           graph: {
             nodes: [
-              (() => { const n = defaultNode("client", "client-1", 60, 180); (n as any).label = "Users"; return n; })(),
-              (() => { const n = defaultNode("app_server", "app-1", 280, 180); (n as any).label = "Monolith"; (n as any).replicas = 1; return n; })(),
-              (() => { const n = defaultNode("database", "db-1", 500, 180); (n as any).label = "DB"; return n; })(),
+              (() => {
+                const n = defaultNode("client", "client-1", 60, 180);
+                (n as any).label = "Users";
+                return n;
+              })(),
+              (() => {
+                const n = defaultNode("app_server", "app-1", 280, 180);
+                (n as any).label = "Monolith";
+                (n as any).replicas = 1;
+                return n;
+              })(),
+              (() => {
+                const n = defaultNode("database", "db-1", 500, 180);
+                (n as any).label = "DB";
+                return n;
+              })(),
             ] as any,
             edges: [
-              { id: "e1", from: "client-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-              { id: "e2", from: "app-1", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+              {
+                id: "e1",
+                from: "client-1",
+                to: "app-1",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
+              {
+                id: "e2",
+                from: "app-1",
+                to: "db-1",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
             ],
-            scenario: { arrivalRate: 100, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+            scenario: {
+              arrivalRate: 100,
+              writeShare: 0.05,
+              mediaShare: 0,
+              bytesPerMediaRequest: 2_000_000,
+              abusiveShare: 0,
+              latencyJitterMs: 0,
+              cacheColdStart: false,
+              replicaLagMs: 0,
+            },
           },
         },
         {
           kind: "your_turn",
-          prompt: "Put these in order from fastest to slowest with rough reasoning: RAM, cross-continent network, SSD, L1 cache. Why does this order matter?",
+          prompt:
+            "Put these in order from fastest to slowest with rough reasoning: RAM, cross-continent network, SSD, L1 cache. Why does this order matter?",
         },
         {
           kind: "compare",
@@ -94,7 +131,8 @@ const module: SdModule = {
         },
         {
           kind: "your_turn",
-          prompt: "Redo the QPS calculation but assume peak is 3x average. Also say how you'd split reads/writes. Show your math clearly.",
+          prompt:
+            "Redo the QPS calculation but assume peak is 3x average. Also say how you'd split reads/writes. Show your math clearly.",
         },
         {
           kind: "compare",
@@ -133,7 +171,8 @@ const module: SdModule = {
         },
         {
           kind: "your_turn",
-          prompt: "Using Little's Law: λ = 30 req/s, average latency W = 0.25s. How many concurrent requests are in the system? Explain in words.",
+          prompt:
+            "Using Little's Law: λ = 30 req/s, average latency W = 0.25s. How many concurrent requests are in the system? Explain in words.",
         },
         {
           kind: "compare",
@@ -152,33 +191,97 @@ const module: SdModule = {
     },
   ],
   interviewByte: {
-    shape: "Estimate the storage and bandwidth for a photo app with 100k DAU, assuming 10% upload daily and 2MB photos.",
-    strongAnswer: "I'd start by stating assumptions: 100k DAU, 10% upload daily = 10,000 uploads/day, each photo ~2MB. Storage: 10,000 * 2MB = 20GB/day, so ~7.3TB/year. For bandwidth, assume users view feed heavily - say 10 photos per user per day at ~200KB (thumbnails) = 100k * 10 * 200KB = 200GB/day, which is about 2.3MB/s average. I'd note we'd use object storage for photos and a CDN for media since bandwidth would be too high to serve directly from app servers. All numbers are rough estimates.",
+    shape:
+      "Estimate the storage and bandwidth for a photo app with 100k DAU, assuming 10% upload daily and 2MB photos.",
+    strongAnswer:
+      "I'd start by stating assumptions: 100k DAU, 10% upload daily = 10,000 uploads/day, each photo ~2MB. Storage: 10,000 * 2MB = 20GB/day, so ~7.3TB/year. For bandwidth, assume users view feed heavily - say 10 photos per user per day at ~200KB (thumbnails) = 100k * 10 * 200KB = 200GB/day, which is about 2.3MB/s average. I'd note we'd use object storage for photos and a CDN for media since bandwidth would be too high to serve directly from app servers. All numbers are rough estimates.",
     trap: "Saying 'a lot' without doing the math, or putting all media in the SQL database. Always show your calculation and mention object storage + CDN for large media.",
   },
   task: {
-    brief: "For our photo-sharing app with 100k DAU, do a proper back-of-envelope: estimate average and peak QPS, daily/yearly storage for photos, and rough bandwidth. State ALL assumptions clearly.",
+    brief:
+      "For our photo-sharing app with 100k DAU, do a proper back-of-envelope: estimate average and peak QPS, daily/yearly storage for photos, and rough bandwidth. State ALL assumptions clearly.",
     startGraph: {
       nodes: [
-        (() => { const n = defaultNode("client", "client-1", 60, 180); (n as any).label = "Users"; return n; })(),
-        (() => { const n = defaultNode("app_server", "app-1", 280, 180); (n as any).label = "Monolith"; (n as any).replicas = 1; return n; })(),
+        (() => {
+          const n = defaultNode("client", "client-1", 60, 180);
+          (n as any).label = "Users";
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("app_server", "app-1", 280, 180);
+          (n as any).label = "Monolith";
+          (n as any).replicas = 1;
+          return n;
+        })(),
       ] as any,
       edges: [
-        { id: "e1", from: "client-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "client-1",
+          to: "app-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
-      scenario: { arrivalRate: 100, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+      scenario: {
+        arrivalRate: 100,
+        writeShare: 0.05,
+        mediaShare: 0,
+        bytesPerMediaRequest: 2_000_000,
+        abusiveShare: 0,
+        latencyJitterMs: 0,
+        cacheColdStart: false,
+        replicaLagMs: 0,
+      },
     },
     solutionGraph: {
       nodes: [
-        (() => { const n = defaultNode("client", "client-1", 60, 180); (n as any).label = "Users"; return n; })(),
-        (() => { const n = defaultNode("app_server", "app-1", 280, 180); (n as any).label = "Monolith"; (n as any).replicas = 1; return n; })(),
-        (() => { const n = defaultNode("database", "db-1", 500, 180); (n as any).label = "DB"; return n; })(),
+        (() => {
+          const n = defaultNode("client", "client-1", 60, 180);
+          (n as any).label = "Users";
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("app_server", "app-1", 280, 180);
+          (n as any).label = "Monolith";
+          (n as any).replicas = 1;
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("database", "db-1", 500, 180);
+          (n as any).label = "DB";
+          return n;
+        })(),
       ] as any,
       edges: [
-        { id: "e1", from: "client-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e2", from: "app-1", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "client-1",
+          to: "app-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e2",
+          from: "app-1",
+          to: "db-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
-      scenario: { arrivalRate: 100, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+      scenario: {
+        arrivalRate: 100,
+        writeShare: 0.05,
+        mediaShare: 0,
+        bytesPerMediaRequest: 2_000_000,
+        abusiveShare: 0,
+        latencyJitterMs: 0,
+        cacheColdStart: false,
+        replicaLagMs: 0,
+      },
     },
     steps: [
       {
@@ -187,15 +290,22 @@ const module: SdModule = {
         brief: "DAU * actions / 86400, add peak.",
         hint: "Show average and peak separately.",
         reveal: "e.g. 100k * 10 / 86400 ~ 11.5 avg QPS, peak ~35 QPS.",
-        check: (g) => ({ passed: g.nodes.length >= 1, progress: "✓ Work through QPS" }),
+        check: (g) => ({
+          passed: g.nodes.length >= 1,
+          progress: "✓ Work through QPS",
+        }),
       },
       {
         id: "storage-bandwidth",
         title: "Calculate storage & bandwidth",
         brief: "Photos dominate both.",
         hint: "Think about uploads vs views.",
-        reveal: "Uploads drive storage, views drive bandwidth. Plan for object storage + CDN.",
-        check: (g) => ({ passed: g.edges.length >= 0, progress: "✓ Work through storage/bandwidth" }),
+        reveal:
+          "Uploads drive storage, views drive bandwidth. Plan for object storage + CDN.",
+        check: (g) => ({
+          passed: g.edges.length >= 0,
+          progress: "✓ Work through storage/bandwidth",
+        }),
       },
     ],
     passCriteria: [
@@ -216,7 +326,8 @@ const module: SdModule = {
     "Little's Law connects latency, rate and concurrency",
     "Rough numbers > perfect numbers. Assumptions > silence",
   ],
-  attribution: "Synthesised from donnemartin/system-design-primer, algomaster.io and KodeKloud System Design For Beginners",
+  attribution:
+    "Synthesised from donnemartin/system-design-primer, algomaster.io and KodeKloud System Design For Beginners",
 };
 
 export default module;

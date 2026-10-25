@@ -18,9 +18,31 @@
 import { simulate } from "@/lib/system-design/engine";
 import { encodeGraph, decodeGraph } from "@/lib/system-design/graph-codec";
 import { SdGraphSchema } from "@/lib/system-design/validation";
-import { runAllSteps, evaluateCriteria, allRequiredPass, getBlockingCriterion, applyEscapeHatch, stepBuilders, criterionBuilders } from "@/lib/system-design/rubric";
-import type { SdGraph, SdNode, SdEdge, SdScenario, SdFailure, SdPassCriterion, SimulationResult, SdLoadBalancerNode, SdAppServerNode } from "@/config/system-design/types";
-import { defaultNode, NODE_TYPES, NODE_TYPE_ORDER } from "@/lib/system-design/nodes";
+import {
+  runAllSteps,
+  evaluateCriteria,
+  allRequiredPass,
+  getBlockingCriterion,
+  applyEscapeHatch,
+  stepBuilders,
+  criterionBuilders,
+} from "@/lib/system-design/rubric";
+import type {
+  SdGraph,
+  SdNode,
+  SdEdge,
+  SdScenario,
+  SdFailure,
+  SdPassCriterion,
+  SimulationResult,
+  SdLoadBalancerNode,
+  SdAppServerNode,
+} from "@/config/system-design/types";
+import {
+  defaultNode,
+  NODE_TYPES,
+  NODE_TYPE_ORDER,
+} from "@/lib/system-design/nodes";
 
 /* -------------------------------------------------------------------------- */
 /* Test graphs                                                                */
@@ -94,7 +116,9 @@ function oneServerGraph(): SdGraph {
 /** Same but with 3 app server replicas. */
 function threeReplicaGraph(): SdGraph {
   const g = oneServerGraph();
-  const app = g.nodes.find((n): n is SdAppServerNode => n.type === "app_server")!;
+  const app = g.nodes.find(
+    (n): n is SdAppServerNode => n.type === "app_server",
+  )!;
   app.replicas = 3;
   return g;
 }
@@ -107,7 +131,10 @@ function withCacheGraph(): SdGraph {
   g.nodes.push(cache);
   // Remove app->db edge
   g.edges = g.edges.filter((e) => !(e.from === "app-1" && e.to === "db-1"));
-  g.edges.push(makeEdge("e3", "app-1", "cache-1"), makeEdge("e4", "cache-1", "db-1"));
+  g.edges.push(
+    makeEdge("e3", "app-1", "cache-1"),
+    makeEdge("e4", "cache-1", "db-1"),
+  );
   return g;
 }
 
@@ -123,7 +150,11 @@ function brokenCacheGraph(): SdGraph {
   g.nodes.push(cache);
   // Cache between LB and app (wrong — should be between app and DB)
   g.edges = g.edges.filter((e) => !(e.from === "lb-1" && e.to === "app-1"));
-  g.edges.push(makeEdge("e2", "lb-1", "cache-1"), makeEdge("e3", "cache-1", "app-1"), makeEdge("e4", "app-1", "db-1"));
+  g.edges.push(
+    makeEdge("e2", "lb-1", "cache-1"),
+    makeEdge("e3", "cache-1", "app-1"),
+    makeEdge("e4", "app-1", "db-1"),
+  );
   return g;
 }
 
@@ -138,11 +169,17 @@ function solutionCacheGraph(): SdGraph {
 
 function assertEqual<T>(actual: T, expected: T, msg: string): void {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
-    throw new Error(`${msg}\n  Expected: ${JSON.stringify(expected)}\n  Actual:   ${JSON.stringify(actual)}`);
+    throw new Error(
+      `${msg}\n  Expected: ${JSON.stringify(expected)}\n  Actual:   ${JSON.stringify(actual)}`,
+    );
   }
 }
 
-function assertObjectsEqual(actual: unknown, expected: unknown, msg: string): void {
+function assertObjectsEqual(
+  actual: unknown,
+  expected: unknown,
+  msg: string,
+): void {
   // Deep comparison ignoring property order
   const normalize = (obj: unknown): unknown => {
     if (obj === null || typeof obj !== "object") return obj;
@@ -200,7 +237,9 @@ runTest("Determinism: same graph → identical SimulationResult", () => {
 // Test 2: Determinism with failures
 runTest("Determinism: with failures → identical SimulationResult", () => {
   const g = withCacheGraph();
-  const failures: SdFailure[] = [{ kind: "degraded", nodeId: "db-1", factor: 0.5, id: "test-degraded-1" }];
+  const failures: SdFailure[] = [
+    { kind: "degraded", nodeId: "db-1", factor: 0.5, id: "test-degraded-1" },
+  ];
   const r1 = simulate(g, failures);
   const r2 = simulate(g, failures);
   assertEqual(r1, r2, "Two runs with failures must be byte-identical");
@@ -210,9 +249,15 @@ runTest("Determinism: with failures → identical SimulationResult", () => {
 runTest("1-server design saturates at high load", () => {
   const g = oneServerGraph();
   const r = simulate(g);
-  assertTrue(!r.valid || r.perNode.some((n) => n.saturated), "At least one node should be saturated at 5000 req/s with 1 replica");
+  assertTrue(
+    !r.valid || r.perNode.some((n) => n.saturated),
+    "At least one node should be saturated at 5000 req/s with 1 replica",
+  );
   const appNode = r.perNode.find((n) => n.id === "app-1");
-  assertTrue(appNode?.saturated === true, "App server should be saturated (capacity 2000 < arrival 5000)");
+  assertTrue(
+    appNode?.saturated === true,
+    "App server should be saturated (capacity 2000 < arrival 5000)",
+  );
 });
 
 // Test 4: Adding replicas raises throughput
@@ -221,8 +266,14 @@ runTest("3 replicas handles 5000 req/s without saturation", () => {
   const r = simulate(g);
   const appNode = r.perNode.find((n) => n.id === "app-1");
   assertTrue(appNode !== undefined, "App server node should exist");
-  assertTrue(appNode!.utilisation < 1, `App server utilisation ${appNode!.utilisation.toFixed(2)} should be < 1 with 3 replicas`);
-  assertTrue(r.throughput > 4000, `Throughput ${r.throughput.toFixed(0)} should be near 5000`);
+  assertTrue(
+    appNode!.utilisation < 1,
+    `App server utilisation ${appNode!.utilisation.toFixed(2)} should be < 1 with 3 replicas`,
+  );
+  assertTrue(
+    r.throughput > 4000,
+    `Throughput ${r.throughput.toFixed(0)} should be near 5000`,
+  );
 });
 
 // Test 5: Cache reduces DB load
@@ -233,27 +284,46 @@ runTest("Cache in front of DB reduces DB utilisation", () => {
   const r2 = simulate(withCache);
   const db1 = r1.perNode.find((n) => n.id === "db-1");
   const db2 = r2.perNode.find((n) => n.id === "db-1");
-  assertTrue(db1 !== undefined && db2 !== undefined, "DB node should exist in both");
-  assertTrue(db2!.utilisation < db1!.utilisation, `DB utilisation should drop: ${db2!.utilisation.toFixed(2)} < ${db1!.utilisation.toFixed(2)}`);
+  assertTrue(
+    db1 !== undefined && db2 !== undefined,
+    "DB node should exist in both",
+  );
+  assertTrue(
+    db2!.utilisation < db1!.utilisation,
+    `DB utilisation should drop: ${db2!.utilisation.toFixed(2)} < ${db1!.utilisation.toFixed(2)}`,
+  );
 });
 
 // Test 6: Failure injection — node_down
 runTest("Failure: node_down stops traffic through that node", () => {
   const g = threeReplicaGraph();
-  const failures: SdFailure[] = [{ kind: "node_down", nodeId: "app-1", id: "test-node-down-1" }];
+  const failures: SdFailure[] = [
+    { kind: "node_down", nodeId: "app-1", id: "test-node-down-1" },
+  ];
   const r = simulate(g, failures);
-  assertTrue(r.errorRate > 0.5, `Error rate ${r.errorRate.toFixed(2)} should be high when app server is down`);
-  assertTrue((r.errorClasses.unreachable ?? 0) > 0, "Should have unreachable errors");
+  assertTrue(
+    r.errorRate > 0.5,
+    `Error rate ${r.errorRate.toFixed(2)} should be high when app server is down`,
+  );
+  assertTrue(
+    (r.errorClasses.unreachable ?? 0) > 0,
+    "Should have unreachable errors",
+  );
 });
 
 // Test 7: Failure injection — degraded
 runTest("Failure: degraded reduces capacity", () => {
   const g = threeReplicaGraph();
   const normal = simulate(g);
-  const degraded = simulate(g, [{ kind: "degraded", nodeId: "app-1", factor: 0.5, id: "test-degraded-1" }]);
+  const degraded = simulate(g, [
+    { kind: "degraded", nodeId: "app-1", factor: 0.5, id: "test-degraded-1" },
+  ]);
   const appNormal = normal.perNode.find((n) => n.id === "app-1");
   const appDegraded = degraded.perNode.find((n) => n.id === "app-1");
-  assertTrue(appDegraded!.utilisation > appNormal!.utilisation, "Degraded node should have higher utilisation");
+  assertTrue(
+    appDegraded!.utilisation > appNormal!.utilisation,
+    "Degraded node should have higher utilisation",
+  );
 });
 
 // Test 8: Failure injection — replica_lag produces stale reads
@@ -261,18 +331,33 @@ runTest("Failure: degraded reduces capacity", () => {
 // Use a graph without cache to test replica lag.
 runTest("Failure: replica_lag produces stale error class", () => {
   const g = withoutCacheGraph(); // No cache, all reads go to DB
-  const failures: SdFailure[] = [{ kind: "replica_lag", nodeId: "db-1", lagMs: 100, id: "test-replica-lag-1" }];
+  const failures: SdFailure[] = [
+    {
+      kind: "replica_lag",
+      nodeId: "db-1",
+      lagMs: 100,
+      id: "test-replica-lag-1",
+    },
+  ];
   const r = simulate(g, failures);
-  assertTrue((r.errorClasses.stale ?? 0) > 0, "Should have stale errors from replica lag");
+  assertTrue(
+    (r.errorClasses.stale ?? 0) > 0,
+    "Should have stale errors from replica lag",
+  );
 });
 
 // Test 9: Failure injection — partition
 runTest("Failure: partition drops edges", () => {
   const g = threeReplicaGraph();
-  const failures: SdFailure[] = [{ kind: "partition", edgeIds: ["e3"], id: "test-partition-1" }];
+  const failures: SdFailure[] = [
+    { kind: "partition", edgeIds: ["e3"], id: "test-partition-1" },
+  ];
   const r = simulate(g, failures);
   assertTrue(r.errorRate > 0.5, "Partition should cause high error rate");
-  assertTrue((r.errorClasses.unreachable ?? 0) > 0, "Should have unreachable errors from partition");
+  assertTrue(
+    (r.errorClasses.unreachable ?? 0) > 0,
+    "Should have unreachable errors from partition",
+  );
 });
 
 // Test 10: Share link codec round-trips (compare parsed objects, not JSON strings)
@@ -280,9 +365,16 @@ runTest("Share link codec: encode → decode preserves graph", () => {
   const g = withCacheGraph();
   const encoded = encodeGraph(g);
   const decoded = decodeGraph(encoded);
-  assertTrue(decoded.success, `Decode should succeed: ${decoded.success ? "" : decoded.error}`);
+  assertTrue(
+    decoded.success,
+    `Decode should succeed: ${decoded.success ? "" : decoded.error}`,
+  );
   if (decoded.success) {
-    assertObjectsEqual(decoded.data, g, "Decoded graph must match original exactly");
+    assertObjectsEqual(
+      decoded.data,
+      g,
+      "Decoded graph must match original exactly",
+    );
   }
 });
 
@@ -293,7 +385,11 @@ runTest("Share link codec: rejects invalid base64", () => {
 });
 
 runTest("Share link codec: rejects invalid JSON", () => {
-  const encoded = encodeGraph({ nodes: [], edges: [], scenario: makeScenario() });
+  const encoded = encodeGraph({
+    nodes: [],
+    edges: [],
+    scenario: makeScenario(),
+  });
   const tampered = encoded.slice(0, -5) + "XXXXX";
   const decoded = decodeGraph(tampered);
   assertFalse(decoded.success, "Should reject tampered payload");
@@ -301,14 +397,26 @@ runTest("Share link codec: rejects invalid JSON", () => {
 
 // Test 12: Step checks — add node
 runTest("Step check: addNode passes when node exists", () => {
-  const step = stepBuilders.addNode("cache", "Add cache", "Add a cache", "hint", "reveal");
+  const step = stepBuilders.addNode(
+    "cache",
+    "Add cache",
+    "Add a cache",
+    "hint",
+    "reveal",
+  );
   const g = withCacheGraph();
   const result = step.check(g);
   assertTrue(result.passed, "Step should pass when cache exists");
 });
 
 runTest("Step check: addNode fails when node missing", () => {
-  const step = stepBuilders.addNode("cache", "Add cache", "Add a cache", "hint", "reveal");
+  const step = stepBuilders.addNode(
+    "cache",
+    "Add cache",
+    "Add a cache",
+    "hint",
+    "reveal",
+  );
   const g = threeReplicaGraph(); // no cache
   const result = step.check(g);
   assertFalse(result.passed, "Step should fail when cache missing");
@@ -316,14 +424,28 @@ runTest("Step check: addNode fails when node missing", () => {
 
 // Test 13: Step checks — connect
 runTest("Step check: connect passes when wired correctly", () => {
-  const step = stepBuilders.connect("app_server", "cache", "Connect app to cache", "Connect", "hint", "reveal");
+  const step = stepBuilders.connect(
+    "app_server",
+    "cache",
+    "Connect app to cache",
+    "Connect",
+    "hint",
+    "reveal",
+  );
   const g = withCacheGraph();
   const result = step.check(g);
   assertTrue(result.passed, "Step should pass when app connects to cache");
 });
 
 runTest("Step check: connect fails when wired wrong", () => {
-  const step = stepBuilders.connect("app_server", "cache", "Connect app to cache", "Connect", "hint", "reveal");
+  const step = stepBuilders.connect(
+    "app_server",
+    "cache",
+    "Connect app to cache",
+    "Connect",
+    "hint",
+    "reveal",
+  );
   const g = brokenCacheGraph(); // cache between LB and app
   const result = step.check(g);
   assertFalse(result.passed, "Step should fail when cache is on wrong side");
@@ -331,17 +453,39 @@ runTest("Step check: connect fails when wired wrong", () => {
 
 // Test 14: Step checks — placeBetween
 runTest("Step check: placeBetween passes when correctly positioned", () => {
-  const step = stepBuilders.placeBetween("cache", "app_server", "database", "Place cache", "Place", "hint", "reveal");
+  const step = stepBuilders.placeBetween(
+    "cache",
+    "app_server",
+    "database",
+    "Place cache",
+    "Place",
+    "hint",
+    "reveal",
+  );
   const g = solutionCacheGraph();
   const result = step.check(g);
-  assertTrue(result.passed, "Step should pass when cache is between app and DB");
+  assertTrue(
+    result.passed,
+    "Step should pass when cache is between app and DB",
+  );
 });
 
 runTest("Step check: placeBetween fails when on wrong side", () => {
-  const step = stepBuilders.placeBetween("cache", "app_server", "database", "Place cache", "Place", "hint", "reveal");
+  const step = stepBuilders.placeBetween(
+    "cache",
+    "app_server",
+    "database",
+    "Place cache",
+    "Place",
+    "hint",
+    "reveal",
+  );
   const g = brokenCacheGraph();
   const result = step.check(g);
-  assertFalse(result.passed, "Step should fail when cache is between LB and app");
+  assertFalse(
+    result.passed,
+    "Step should fail when cache is between LB and app",
+  );
 });
 
 // Test 15: Module 6 criteria — solution passes latency, broken fails on placement
@@ -349,83 +493,156 @@ runTest("Step check: placeBetween fails when on wrong side", () => {
 // not cache staleness. With the broken graph (cache between LB and app),
 // the cache is NOT in front of the database, so there are no stale reads from cache.
 // The test checks that steps pass but criteria correctly distinguish placement.
-runTest("Module 6 criteria: solution passes latency, broken graph has different topology", () => {
-  const criteria: SdPassCriterion[] = [
-    criterionBuilders.latencyPct(95, 150, "p95 < 150 ms @ 50k r/s", "Cache must absorb reads", true),
-    criterionBuilders.zeroStaleReads("0 stale reads", "Cache in front of writes serves stale photos", true),
-  ];
+runTest(
+  "Module 6 criteria: solution passes latency, broken graph has different topology",
+  () => {
+    const criteria: SdPassCriterion[] = [
+      criterionBuilders.latencyPct(
+        95,
+        150,
+        "p95 < 150 ms @ 50k r/s",
+        "Cache must absorb reads",
+        true,
+      ),
+      criterionBuilders.zeroStaleReads(
+        "0 stale reads",
+        "Cache in front of writes serves stale photos",
+        true,
+      ),
+    ];
 
-  // Solution graph at 50k reads - cache correctly placed between app and DB
-  const solGraph = { ...solutionCacheGraph(), scenario: makeScenario({ arrivalRate: 50_000, writeShare: 0.05 }) };
-  const solResult = simulate(solGraph);
-  const solEval = evaluateCriteria(criteria, solResult);
-  // With cache correctly placed, latency should be low and no stale reads (no replica lag)
-  assertTrue(solEval.passedIds.includes("latency-p95"), "Solution should pass latency criterion");
-  assertTrue(allRequiredPass(criteria, solResult), "All required criteria should pass for solution");
+    // Solution graph at 50k reads - cache correctly placed between app and DB
+    const solGraph = {
+      ...solutionCacheGraph(),
+      scenario: makeScenario({ arrivalRate: 50_000, writeShare: 0.05 }),
+    };
+    const solResult = simulate(solGraph);
+    const solEval = evaluateCriteria(criteria, solResult);
+    // With cache correctly placed, latency should be low and no stale reads (no replica lag)
+    assertTrue(
+      solEval.passedIds.includes("latency-p95"),
+      "Solution should pass latency criterion",
+    );
+    assertTrue(
+      allRequiredPass(criteria, solResult),
+      "All required criteria should pass for solution",
+    );
 
-  // Broken graph at 50k reads - cache between LB and app (wrong placement)
-  const brokenGraph = { ...brokenCacheGraph(), scenario: makeScenario({ arrivalRate: 50_000, writeShare: 0.05 }) };
-  const brokenResult = simulate(brokenGraph);
-  const brokenEval = evaluateCriteria(criteria, brokenResult);
-  // The broken graph still has cache (but in wrong place), so latency might still be OK
-  // but the step check for "placeBetween" would fail
-  const blocking = getBlockingCriterion(criteria, brokenResult);
-  // Since there's no replica lag, stale check passes. The key difference is step checks.
-  assertTrue(blocking === null || blocking.id === "latency-p95", "Blocking criterion should be latency if any");
-});
+    // Broken graph at 50k reads - cache between LB and app (wrong placement)
+    const brokenGraph = {
+      ...brokenCacheGraph(),
+      scenario: makeScenario({ arrivalRate: 50_000, writeShare: 0.05 }),
+    };
+    const brokenResult = simulate(brokenGraph);
+    const brokenEval = evaluateCriteria(criteria, brokenResult);
+    // The broken graph still has cache (but in wrong place), so latency might still be OK
+    // but the step check for "placeBetween" would fail
+    const blocking = getBlockingCriterion(criteria, brokenResult);
+    // Since there's no replica lag, stale check passes. The key difference is step checks.
+    assertTrue(
+      blocking === null || blocking.id === "latency-p95",
+      "Blocking criterion should be latency if any",
+    );
+  },
+);
 
 // Test 16: Escape hatch reveals solution without passing
-runTest("Escape hatch: loads solution graph, marks criteria revealed, module stays locked", () => {
-  const criteria: SdPassCriterion[] = [
-    criterionBuilders.latencyPct(95, 150, "p95 < 150 ms", "Cache must absorb reads", true),
-    criterionBuilders.zeroStaleReads("0 stale reads", "Cache in front of writes serves stale photos", true),
-  ];
+runTest(
+  "Escape hatch: loads solution graph, marks criteria revealed, module stays locked",
+  () => {
+    const criteria: SdPassCriterion[] = [
+      criterionBuilders.latencyPct(
+        95,
+        150,
+        "p95 < 150 ms",
+        "Cache must absorb reads",
+        true,
+      ),
+      criterionBuilders.zeroStaleReads(
+        "0 stale reads",
+        "Cache in front of writes serves stale photos",
+        true,
+      ),
+    ];
 
-  const solGraph = { ...solutionCacheGraph(), scenario: makeScenario({ arrivalRate: 50_000, writeShare: 0.05 }) };
-  const { revealed, result } = applyEscapeHatch(solGraph, criteria);
-  assertTrue(revealed.length === 2, "Both criteria should be revealed");
-  assertTrue(allRequiredPass(criteria, result), "Solution should actually pass");
-});
+    const solGraph = {
+      ...solutionCacheGraph(),
+      scenario: makeScenario({ arrivalRate: 50_000, writeShare: 0.05 }),
+    };
+    const { revealed, result } = applyEscapeHatch(solGraph, criteria);
+    assertTrue(revealed.length === 2, "Both criteria should be revealed");
+    assertTrue(
+      allRequiredPass(criteria, result),
+      "Solution should actually pass",
+    );
+  },
+);
 
 // Test 17: Little's Law — concurrency = arrival_rate_at_node × (service + queue_wait)
-runTest("Little's Law: per-node concurrency ≈ arrival_rate × (service + queue_wait)", () => {
-  const g = withCacheGraph();
-  const r = simulate(g);
-  for (const pn of r.perNode) {
-    if (pn.id === "client-1") continue;
-    // Find the node's stats to get actual arrival rate
-    // The engine computes concurrency as actualArrivalRate * (avgService + avgQueueWait) / 1000
-    // We can verify by checking that concurrency / (serviceMs + queueWaitMs) * 1000 ≈ actualArrivalRate
-    const totalLatencyMs = pn.serviceMs + pn.queueWaitMs;
-    if (totalLatencyMs > 0) {
-      const impliedArrivalRate = pn.concurrency / (totalLatencyMs / 1000);
-      // The actual arrival rate at this node should be close to implied arrival rate
-      // Since we don't expose actualArrivalRate, we verify concurrency is reasonable
-      assertTrue(pn.concurrency >= 0, `Concurrency should be non-negative for ${pn.id}`);
-      assertTrue(pn.concurrency < 10000, `Concurrency should be reasonable for ${pn.id}: ${pn.concurrency}`);
+runTest(
+  "Little's Law: per-node concurrency ≈ arrival_rate × (service + queue_wait)",
+  () => {
+    const g = withCacheGraph();
+    const r = simulate(g);
+    for (const pn of r.perNode) {
+      if (pn.id === "client-1") continue;
+      // Find the node's stats to get actual arrival rate
+      // The engine computes concurrency as actualArrivalRate * (avgService + avgQueueWait) / 1000
+      // We can verify by checking that concurrency / (serviceMs + queueWaitMs) * 1000 ≈ actualArrivalRate
+      const totalLatencyMs = pn.serviceMs + pn.queueWaitMs;
+      if (totalLatencyMs > 0) {
+        const impliedArrivalRate = pn.concurrency / (totalLatencyMs / 1000);
+        // The actual arrival rate at this node should be close to implied arrival rate
+        // Since we don't expose actualArrivalRate, we verify concurrency is reasonable
+        assertTrue(
+          pn.concurrency >= 0,
+          `Concurrency should be non-negative for ${pn.id}`,
+        );
+        assertTrue(
+          pn.concurrency < 10000,
+          `Concurrency should be reasonable for ${pn.id}: ${pn.concurrency}`,
+        );
+      }
     }
-  }
-});
+  },
+);
 
 // Test 18: Teaching strings are generated
 runTest("Teaching: bottleneck explanation present when saturated", () => {
   const g = oneServerGraph();
   const r = simulate(g);
   assertTrue(r.teaching.length > 0, "Should have teaching strings");
-  assertTrue(r.teaching.some((t) => t.includes("bottleneck") || t.includes("utilisation") || t.includes("concurrent")), "Teaching should explain the bottleneck");
+  assertTrue(
+    r.teaching.some(
+      (t) =>
+        t.includes("bottleneck") ||
+        t.includes("utilisation") ||
+        t.includes("concurrent"),
+    ),
+    "Teaching should explain the bottleneck",
+  );
 });
 
 // Test 19: Invalid topology detection - orphan node gets no traffic
 runTest("Invalid topology: disconnected node gets no traffic", () => {
   const g = {
     ...threeReplicaGraph(),
-    nodes: [...threeReplicaGraph().nodes, defaultNode("cache", "orphan", 100, 300)],
+    nodes: [
+      ...threeReplicaGraph().nodes,
+      defaultNode("cache", "orphan", 100, 300),
+    ],
   };
   const r = simulate(g);
-  assertTrue(r.valid, "Graph should be valid (orphan node just gets no traffic)");
+  assertTrue(
+    r.valid,
+    "Graph should be valid (orphan node just gets no traffic)",
+  );
   const orphan = r.perNode.find((n) => n.id === "orphan");
   assertTrue(orphan !== undefined, "Orphan node should be in results");
-  assertTrue(orphan!.utilisation === 0, "Orphan node should have 0 utilisation");
+  assertTrue(
+    orphan!.utilisation === 0,
+    "Orphan node should have 0 utilisation",
+  );
 });
 
 // Test 20: No client → invalid
@@ -436,7 +653,10 @@ runTest("Invalid topology: no client node", () => {
   };
   const r = simulate(g);
   assertFalse(r.valid, "Should fail with no client");
-  assertTrue((r.invalidReason ?? "").includes("client"), `Invalid reason: ${r.invalidReason}`);
+  assertTrue(
+    (r.invalidReason ?? "").includes("client"),
+    `Invalid reason: ${r.invalidReason}`,
+  );
 });
 
 // Test 21: No terminal datastore → invalid (all nodes have outgoing edges)
@@ -458,7 +678,10 @@ runTest("Invalid topology: no terminal datastore (cycle)", () => {
   };
   const r = simulate(g);
   assertFalse(r.valid, "Should fail with no terminal datastore (cycle)");
-  assertTrue((r.invalidReason ?? "").includes("terminal"), `Invalid reason: ${r.invalidReason}`);
+  assertTrue(
+    (r.invalidReason ?? "").includes("terminal"),
+    `Invalid reason: ${r.invalidReason}`,
+  );
 });
 
 // Test 22: Abusive client rate limiting
@@ -468,21 +691,31 @@ runTest("Abusive client: rate limiting produces rejected errors", () => {
     ...baseGraph,
     scenario: makeScenario({ arrivalRate: 1000, abusiveShare: 0.5 }),
     nodes: baseGraph.nodes.map((n) =>
-      n.type === "load_balancer" ? { ...n, rateLimitPerMin: 60 } : n
+      n.type === "load_balancer" ? { ...n, rateLimitPerMin: 60 } : n,
     ),
   };
   const r = simulate(g);
-  assertTrue((r.errorClasses.rejected ?? 0) > 0, "Should have rejected errors from rate limit");
+  assertTrue(
+    (r.errorClasses.rejected ?? 0) > 0,
+    "Should have rejected errors from rate limit",
+  );
 });
 
 // Test 23: Media bandwidth calculation
 runTest("Bandwidth: media requests counted in bandwidthMbps", () => {
   const g = {
     ...withCacheGraph(),
-    scenario: makeScenario({ arrivalRate: 100, mediaShare: 1, bytesPerMediaRequest: 2_000_000 }),
+    scenario: makeScenario({
+      arrivalRate: 100,
+      mediaShare: 1,
+      bytesPerMediaRequest: 2_000_000,
+    }),
   };
   const r = simulate(g);
-  assertTrue(r.bandwidthMbps > 1, `Bandwidth ${r.bandwidthMbps.toFixed(1)} Mbps should reflect 2MB media`);
+  assertTrue(
+    r.bandwidthMbps > 1,
+    `Bandwidth ${r.bandwidthMbps.toFixed(1)} Mbps should reflect 2MB media`,
+  );
 });
 
 // Test 24: Validation schema accepts valid graph
@@ -494,7 +727,10 @@ runTest("Validation: valid graph passes SdGraphSchema", () => {
 
 // Test 25: Validation schema rejects invalid graph
 runTest("Validation: graph with missing fields fails", () => {
-  const bad = { ...withCacheGraph(), nodes: [{ ...withCacheGraph().nodes[0], type: "invalid_type" as any }] };
+  const bad = {
+    ...withCacheGraph(),
+    nodes: [{ ...withCacheGraph().nodes[0], type: "invalid_type" as any }],
+  };
   const result = SdGraphSchema.safeParse(bad);
   assertFalse(result.success, "Invalid graph should fail schema");
 });
@@ -519,11 +755,11 @@ runTest("M/M/1 queue formula: known values match theory", () => {
 
   // Test cases: (arrival, capacity/serviceRate) -> expected Wq in ms
   const cases = [
-    [100, 2000, 0.025],   // ρ=0.05, Wq = 100/(2000*1900)*1000 = 0.0263
-    [500, 2000, 0.167],   // ρ=0.25, Wq = 500/(2000*1500)*1000 = 0.1667
-    [1000, 2000, 0.5],    // ρ=0.5, Wq = 1000/(2000*1000)*1000 = 0.5
-    [1500, 2000, 1.5],    // ρ=0.75, Wq = 1500/(2000*500)*1000 = 1.5
-    [1900, 2000, 47.5],   // ρ=0.95, Wq = 1900/(2000*100)*1000 = 9.5... wait
+    [100, 2000, 0.025], // ρ=0.05, Wq = 100/(2000*1900)*1000 = 0.0263
+    [500, 2000, 0.167], // ρ=0.25, Wq = 500/(2000*1500)*1000 = 0.1667
+    [1000, 2000, 0.5], // ρ=0.5, Wq = 1000/(2000*1000)*1000 = 0.5
+    [1500, 2000, 1.5], // ρ=0.75, Wq = 1500/(2000*500)*1000 = 1.5
+    [1900, 2000, 47.5], // ρ=0.95, Wq = 1900/(2000*100)*1000 = 9.5... wait
   ];
 
   for (const [λ, μ, expected] of cases) {
@@ -531,12 +767,21 @@ runTest("M/M/1 queue formula: known values match theory", () => {
     const theory = theoryQueueWaitMs(λ, μ);
     // Allow small floating point differences
     const diff = Math.abs(engine - theory);
-    assertTrue(diff < 0.001, `M/M/1 formula mismatch: λ=${λ}, μ=${μ}, engine=${engine}, theory=${theory}, diff=${diff}`);
+    assertTrue(
+      diff < 0.001,
+      `M/M/1 formula mismatch: λ=${λ}, μ=${μ}, engine=${engine}, theory=${theory}, diff=${diff}`,
+    );
   }
 
   // Test saturation
-  assertTrue(engineQueueWaitMs(2000, 2000) === Infinity, "At ρ=1, queue wait should be Infinity");
-  assertTrue(engineQueueWaitMs(2500, 2000) === Infinity, "At ρ>1, queue wait should be Infinity");
+  assertTrue(
+    engineQueueWaitMs(2000, 2000) === Infinity,
+    "At ρ=1, queue wait should be Infinity",
+  );
+  assertTrue(
+    engineQueueWaitMs(2500, 2000) === Infinity,
+    "At ρ>1, queue wait should be Infinity",
+  );
 });
 
 /* -------------------------------------------------------------------------- */

@@ -16,10 +16,7 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import {
-  serializeError,
-  createLogger,
-} from "../lib/logger";
+import { serializeError, createLogger } from "../lib/logger";
 
 describe("serializeError — SQL params redaction (security boundary)", () => {
   it("redacts 'params: ...' in error message", () => {
@@ -72,11 +69,26 @@ describe("serializeError — SQL params redaction (security boundary)", () => {
 
 describe("serializeError — core behavior", () => {
   it("returns non-Error values as SerializedError", () => {
-    assert.deepEqual(serializeError("string error"), { name: "UnknownError", message: "string error" });
-    assert.deepEqual(serializeError(42), { name: "UnknownError", message: "42" });
-    assert.deepEqual(serializeError(null), { name: "UnknownError", message: "null" });
-    assert.deepEqual(serializeError(undefined), { name: "UnknownError", message: "undefined" });
-    assert.deepEqual(serializeError({ custom: "object" }), { name: "UnknownError", message: "[object Object]" });
+    assert.deepEqual(serializeError("string error"), {
+      name: "UnknownError",
+      message: "string error",
+    });
+    assert.deepEqual(serializeError(42), {
+      name: "UnknownError",
+      message: "42",
+    });
+    assert.deepEqual(serializeError(null), {
+      name: "UnknownError",
+      message: "null",
+    });
+    assert.deepEqual(serializeError(undefined), {
+      name: "UnknownError",
+      message: "undefined",
+    });
+    assert.deepEqual(serializeError({ custom: "object" }), {
+      name: "UnknownError",
+      message: "[object Object]",
+    });
   });
 
   it("serializes basic Error", () => {
@@ -166,7 +178,10 @@ describe("serializeError — core behavior", () => {
 
   it("serializes custom error classes", () => {
     class CustomError extends Error {
-      constructor(message: string, public statusCode: number) {
+      constructor(
+        message: string,
+        public statusCode: number,
+      ) {
         super(message);
         this.name = "CustomError";
       }
@@ -268,7 +283,10 @@ describe("Edge cases", () => {
   it("handles cause that is not an Error", () => {
     const err = new Error("Wrapper", { cause: "string cause" });
     const result = serializeError(err);
-    assert.deepEqual(result.cause, { name: "UnknownError", message: "string cause" });
+    assert.deepEqual(result.cause, {
+      name: "UnknownError",
+      message: "string cause",
+    });
   });
 
   it("serializes TypeError", () => {

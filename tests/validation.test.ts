@@ -34,7 +34,12 @@ import {
   SdScenarioSchema,
   SdGraphSchema,
 } from "../lib/system-design/validation";
-import type { SdGraph, SdNode, SdEdge, SdScenario } from "../config/system-design/types";
+import type {
+  SdGraph,
+  SdNode,
+  SdEdge,
+  SdScenario,
+} from "../config/system-design/types";
 
 /** Minimal valid graph for testing. */
 function minimalGraph(): SdGraph {
@@ -165,7 +170,11 @@ describe("SdNodeSchema — discriminated union of 9 node types", () => {
   it("accepts all 9 valid node types", () => {
     for (const node of allValidNodes) {
       const result = SdNodeSchema.safeParse(node);
-      assert.equal(result.success, true, `Failed for ${node.type}: ${JSON.stringify(result.error?.issues)}`);
+      assert.equal(
+        result.success,
+        true,
+        `Failed for ${node.type}: ${JSON.stringify(result.error?.issues)}`,
+      );
     }
   });
 
@@ -182,12 +191,18 @@ describe("SdNodeSchema — discriminated union of 9 node types", () => {
 
   describe("string length bounds", () => {
     it("rejects id > 64 chars", () => {
-      const result = SdNodeSchema.safeParse({ ...validClient, id: "x".repeat(65) });
+      const result = SdNodeSchema.safeParse({
+        ...validClient,
+        id: "x".repeat(65),
+      });
       assert.equal(result.success, false);
     });
 
     it("accepts id = 64 chars", () => {
-      const result = SdNodeSchema.safeParse({ ...validClient, id: "x".repeat(64) });
+      const result = SdNodeSchema.safeParse({
+        ...validClient,
+        id: "x".repeat(64),
+      });
       assert.equal(result.success, true);
     });
 
@@ -197,12 +212,18 @@ describe("SdNodeSchema — discriminated union of 9 node types", () => {
     });
 
     it("rejects label > 128 chars", () => {
-      const result = SdNodeSchema.safeParse({ ...validClient, label: "x".repeat(129) });
+      const result = SdNodeSchema.safeParse({
+        ...validClient,
+        label: "x".repeat(129),
+      });
       assert.equal(result.success, false);
     });
 
     it("accepts label = 128 chars", () => {
-      const result = SdNodeSchema.safeParse({ ...validClient, label: "x".repeat(128) });
+      const result = SdNodeSchema.safeParse({
+        ...validClient,
+        label: "x".repeat(128),
+      });
       assert.equal(result.success, true);
     });
 
@@ -214,7 +235,10 @@ describe("SdNodeSchema — discriminated union of 9 node types", () => {
 
   describe("app_server specific bounds", () => {
     it("rejects replicas > 100", () => {
-      const result = SdNodeSchema.safeParse({ ...validAppServer, replicas: 101 });
+      const result = SdNodeSchema.safeParse({
+        ...validAppServer,
+        replicas: 101,
+      });
       assert.equal(result.success, false);
     });
 
@@ -224,12 +248,18 @@ describe("SdNodeSchema — discriminated union of 9 node types", () => {
     });
 
     it("accepts maxConcurrency = null", () => {
-      const result = SdNodeSchema.safeParse({ ...validAppServer, maxConcurrency: null });
+      const result = SdNodeSchema.safeParse({
+        ...validAppServer,
+        maxConcurrency: null,
+      });
       assert.equal(result.success, true);
     });
 
     it("rejects negative maxConcurrency", () => {
-      const result = SdNodeSchema.safeParse({ ...validAppServer, maxConcurrency: -1 });
+      const result = SdNodeSchema.safeParse({
+        ...validAppServer,
+        maxConcurrency: -1,
+      });
       assert.equal(result.success, false);
     });
   });
@@ -253,56 +283,86 @@ describe("SdNodeSchema — discriminated union of 9 node types", () => {
 
   describe("database specific bounds", () => {
     it("rejects readReplicas > 10", () => {
-      const result = SdNodeSchema.safeParse({ ...validDatabase, readReplicas: 11 });
+      const result = SdNodeSchema.safeParse({
+        ...validDatabase,
+        readReplicas: 11,
+      });
       assert.equal(result.success, false);
     });
 
     it("rejects readReplicas < 0", () => {
-      const result = SdNodeSchema.safeParse({ ...validDatabase, readReplicas: -1 });
+      const result = SdNodeSchema.safeParse({
+        ...validDatabase,
+        readReplicas: -1,
+      });
       assert.equal(result.success, false);
     });
 
     it("rejects partitions > 1000", () => {
-      const result = SdNodeSchema.safeParse({ ...validDatabase, partitions: 1001 });
+      const result = SdNodeSchema.safeParse({
+        ...validDatabase,
+        partitions: 1001,
+      });
       assert.equal(result.success, false);
     });
 
     it("rejects partitions < 1", () => {
-      const result = SdNodeSchema.safeParse({ ...validDatabase, partitions: 0 });
+      const result = SdNodeSchema.safeParse({
+        ...validDatabase,
+        partitions: 0,
+      });
       assert.equal(result.success, false);
     });
 
     it("rejects hotKeyShare > 1", () => {
-      const result = SdNodeSchema.safeParse({ ...validDatabase, hotKeyShare: 1.1 });
+      const result = SdNodeSchema.safeParse({
+        ...validDatabase,
+        hotKeyShare: 1.1,
+      });
       assert.equal(result.success, false);
     });
 
     it("rejects hotKeyShare < 0", () => {
-      const result = SdNodeSchema.safeParse({ ...validDatabase, hotKeyShare: -0.1 });
+      const result = SdNodeSchema.safeParse({
+        ...validDatabase,
+        hotKeyShare: -0.1,
+      });
       assert.equal(result.success, false);
     });
   });
 
   describe("load_balancer specific bounds", () => {
     it("accepts rateLimitPerMin = null", () => {
-      const result = SdNodeSchema.safeParse({ ...validLoadBalancer, rateLimitPerMin: null });
+      const result = SdNodeSchema.safeParse({
+        ...validLoadBalancer,
+        rateLimitPerMin: null,
+      });
       assert.equal(result.success, true);
     });
 
     it("rejects rateLimitPerMin <= 0", () => {
-      const result = SdNodeSchema.safeParse({ ...validLoadBalancer, rateLimitPerMin: 0 });
+      const result = SdNodeSchema.safeParse({
+        ...validLoadBalancer,
+        rateLimitPerMin: 0,
+      });
       assert.equal(result.success, false);
     });
 
     it("rejects invalid algorithm", () => {
-      const result = SdNodeSchema.safeParse({ ...validLoadBalancer, algorithm: "invalid" });
+      const result = SdNodeSchema.safeParse({
+        ...validLoadBalancer,
+        algorithm: "invalid",
+      });
       assert.equal(result.success, false);
     });
   });
 
   describe("queue specific bounds", () => {
     it("rejects maxDepth > 1_000_000", () => {
-      const result = SdNodeSchema.safeParse({ ...validQueue, maxDepth: 1_000_001 });
+      const result = SdNodeSchema.safeParse({
+        ...validQueue,
+        maxDepth: 1_000_001,
+      });
       assert.equal(result.success, false);
     });
 
@@ -342,7 +402,11 @@ describe("SdNodeSchema — discriminated union of 9 node types", () => {
   });
 
   it("coordinates (x, y) accept any number", () => {
-    const result = SdNodeSchema.safeParse({ ...validClient, x: -1000, y: 1.5e3 });
+    const result = SdNodeSchema.safeParse({
+      ...validClient,
+      x: -1000,
+      y: 1.5e3,
+    });
     assert.equal(result.success, true);
   });
 });
@@ -388,12 +452,18 @@ describe("SdEdgeSchema", () => {
   });
 
   it("accepts label up to 128 chars", () => {
-    const result = SdEdgeSchema.safeParse({ ...validEdge, label: "x".repeat(128) });
+    const result = SdEdgeSchema.safeParse({
+      ...validEdge,
+      label: "x".repeat(128),
+    });
     assert.equal(result.success, true);
   });
 
   it("rejects label > 128 chars", () => {
-    const result = SdEdgeSchema.safeParse({ ...validEdge, label: "x".repeat(129) });
+    const result = SdEdgeSchema.safeParse({
+      ...validEdge,
+      label: "x".repeat(129),
+    });
     assert.equal(result.success, false);
   });
 
@@ -463,77 +533,122 @@ describe("SdScenarioSchema", () => {
   });
 
   it("rejects arrivalRate <= 0", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, arrivalRate: 0 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      arrivalRate: 0,
+    });
     assert.equal(result.success, false);
   });
 
   it("rejects arrivalRate > 1_000_000", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, arrivalRate: 1_000_001 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      arrivalRate: 1_000_001,
+    });
     assert.equal(result.success, false);
   });
 
   it("rejects writeShare < 0", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, writeShare: -0.1 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      writeShare: -0.1,
+    });
     assert.equal(result.success, false);
   });
 
   it("rejects writeShare > 1", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, writeShare: 1.1 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      writeShare: 1.1,
+    });
     assert.equal(result.success, false);
   });
 
   it("rejects mediaShare < 0", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, mediaShare: -0.1 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      mediaShare: -0.1,
+    });
     assert.equal(result.success, false);
   });
 
   it("rejects mediaShare > 1", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, mediaShare: 1.1 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      mediaShare: 1.1,
+    });
     assert.equal(result.success, false);
   });
 
   it("rejects bytesPerMediaRequest <= 0", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, bytesPerMediaRequest: 0 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      bytesPerMediaRequest: 0,
+    });
     assert.equal(result.success, false);
   });
 
   it("rejects bytesPerMediaRequest > 100_000_000", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, bytesPerMediaRequest: 100_000_001 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      bytesPerMediaRequest: 100_000_001,
+    });
     assert.equal(result.success, false);
   });
 
   it("rejects abusiveShare < 0", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, abusiveShare: -0.1 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      abusiveShare: -0.1,
+    });
     assert.equal(result.success, false);
   });
 
   it("rejects abusiveShare > 1", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, abusiveShare: 1.1 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      abusiveShare: 1.1,
+    });
     assert.equal(result.success, false);
   });
 
   it("rejects latencyJitterMs < 0", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, latencyJitterMs: -1 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      latencyJitterMs: -1,
+    });
     assert.equal(result.success, false);
   });
 
   it("rejects latencyJitterMs > 1000", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, latencyJitterMs: 1001 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      latencyJitterMs: 1001,
+    });
     assert.equal(result.success, false);
   });
 
   it("rejects replicaLagMs < 0", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, replicaLagMs: -1 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      replicaLagMs: -1,
+    });
     assert.equal(result.success, false);
   });
 
   it("rejects replicaLagMs > 60_000", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, replicaLagMs: 60_001 });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      replicaLagMs: 60_001,
+    });
     assert.equal(result.success, false);
   });
 
   it("accepts boolean cacheColdStart", () => {
-    const result = SdScenarioSchema.safeParse({ ...validScenario, cacheColdStart: false });
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      cacheColdStart: false,
+    });
     assert.equal(result.success, true);
   });
 });
@@ -677,7 +792,8 @@ describe("Type inference helpers", () => {
   });
 
   it("SdGraphIn matches SdGraph", () => {
-    const graph: import("../lib/system-design/validation").SdGraphIn = minimalGraph();
+    const graph: import("../lib/system-design/validation").SdGraphIn =
+      minimalGraph();
     assert.ok(graph);
   });
 });

@@ -4,7 +4,12 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { simulate } from "@/lib/system-design/engine";
 import { evaluateCriteria, allRequiredPass } from "@/lib/system-design/rubric";
-import type { SimulationResult, SdGraph, SdFailure, SdPassCriterion } from "@/config/system-design/types";
+import type {
+  SimulationResult,
+  SdGraph,
+  SdFailure,
+  SdPassCriterion,
+} from "@/config/system-design/types";
 import { ShareButton } from "@/components/system-design/ShareButton";
 
 interface SimulationPanelProps {
@@ -30,8 +35,12 @@ export function SimulationPanel({
 }: SimulationPanelProps) {
   const [arrivalRate, setArrivalRate] = useState(graph.scenario.arrivalRate);
   const [latencyHistory, setLatencyHistory] = useState<number[]>([]);
-  const [lastResult, setLastResult] = useState<SimulationResult | null>(simulationResult ?? null);
-  const [verdict, setVerdict] = useState<"idle" | "pass" | "fail" | "running">("idle");
+  const [lastResult, setLastResult] = useState<SimulationResult | null>(
+    simulationResult ?? null,
+  );
+  const [verdict, setVerdict] = useState<"idle" | "pass" | "fail" | "running">(
+    "idle",
+  );
   const animationFrameRef = useRef<number | null>(null);
 
   // Sync arrival rate with graph scenario
@@ -78,18 +87,24 @@ export function SimulationPanel({
     // Run simulation with current graph and failures
     const result = simulate(
       { ...graph, scenario: { ...graph.scenario, arrivalRate } },
-      failures
+      failures,
     );
     onRun(result);
   }, [arrivalRate, failures, graph, onRun]);
 
   const handleArrivalRateChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = Math.max(MIN_ARRIVAL_RATE, Math.min(MAX_ARRIVAL_RATE, parseInt(e.target.value) || MIN_ARRIVAL_RATE));
+      const value = Math.max(
+        MIN_ARRIVAL_RATE,
+        Math.min(
+          MAX_ARRIVAL_RATE,
+          parseInt(e.target.value) || MIN_ARRIVAL_RATE,
+        ),
+      );
       setArrivalRate(value);
       onArrivalRateChange(value);
     },
-    [onArrivalRateChange]
+    [onArrivalRateChange],
   );
 
   // Format number for display
@@ -141,7 +156,13 @@ export function SimulationPanel({
         >
           Run Simulation
         </button>
-        <ShareButton graph={{ nodes: graph.nodes, edges: graph.edges, scenario: graph.scenario }} />
+        <ShareButton
+          graph={{
+            nodes: graph.nodes,
+            edges: graph.edges,
+            scenario: graph.scenario,
+          }}
+        />
       </div>
 
       {/* Latency Sparkline */}
@@ -170,9 +191,11 @@ export function SimulationPanel({
       <div
         className={cn(
           "p-3 rounded-lg text-center font-medium text-sm",
-          verdict === "pass" && "bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20",
-          verdict === "fail" && "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20",
-          verdict === "idle" && "bg-muted text-muted-foreground"
+          verdict === "pass" &&
+            "bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20",
+          verdict === "fail" &&
+            "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20",
+          verdict === "idle" && "bg-muted text-muted-foreground",
         )}
       >
         {verdict === "pass" && "✓ All checks passing"}
@@ -184,20 +207,30 @@ export function SimulationPanel({
       {lastResult && (
         <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border">
           <div className="text-center">
-            <div className="font-mono text-lg text-primary">{fmt(lastResult.throughput)}</div>
+            <div className="font-mono text-lg text-primary">
+              {fmt(lastResult.throughput)}
+            </div>
             <div className="text-xs text-muted-foreground">Throughput</div>
           </div>
           <div className="text-center">
-            <div className="font-mono text-lg text-primary">{(lastResult.errorRate * 100).toFixed(2)}%</div>
+            <div className="font-mono text-lg text-primary">
+              {(lastResult.errorRate * 100).toFixed(2)}%
+            </div>
             <div className="text-xs text-muted-foreground">Error Rate</div>
           </div>
           <div className="text-center">
-            <div className="font-mono text-lg text-primary">{fmtMs(lastResult.latency.p95)}</div>
+            <div className="font-mono text-lg text-primary">
+              {fmtMs(lastResult.latency.p95)}
+            </div>
             <div className="text-xs text-muted-foreground">p95 Latency</div>
           </div>
           <div className="text-center">
-            <div className="font-mono text-lg text-primary">{lastResult.bandwidthMbps.toFixed(1)}</div>
-            <div className="text-xs text-muted-foreground">Bandwidth (Mbps)</div>
+            <div className="font-mono text-lg text-primary">
+              {lastResult.bandwidthMbps.toFixed(1)}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Bandwidth (Mbps)
+            </div>
           </div>
         </div>
       )}

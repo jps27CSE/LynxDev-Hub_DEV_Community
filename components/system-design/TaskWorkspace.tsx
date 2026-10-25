@@ -1060,8 +1060,8 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
                 Start with the broken design
               </p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                Drag a component from the palette below, then connect the request
-                path from client to data store.
+                Drag a component from the palette below, then connect the
+                request path from client to data store.
               </p>
             </div>
           </div>

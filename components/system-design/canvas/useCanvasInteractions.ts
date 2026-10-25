@@ -477,7 +477,9 @@ export function useCanvasInteractions({
               ? nodeId
               : connectionState.fromNodeId;
 
-          const existingEdge = edges.find((e) => e.from === from && e.to === to);
+          const existingEdge = edges.find(
+            (e) => e.from === from && e.to === to,
+          );
           if (!existingEdge) {
             onConnect(from, to);
           }

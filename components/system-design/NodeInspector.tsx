@@ -1,9 +1,20 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { SdNode, SdLoadBalancerNode, SdAppServerNode, SdCacheNode, SdDatabaseNode, SdQueueNode, SdWorkerNode, SdCdnNode, SdObjectStoreNode, SdClientNode } from "@/config/system-design/types";
+import type {
+  SdNode,
+  SdLoadBalancerNode,
+  SdAppServerNode,
+  SdCacheNode,
+  SdDatabaseNode,
+  SdQueueNode,
+  SdWorkerNode,
+  SdCdnNode,
+  SdObjectStoreNode,
+  SdClientNode,
+} from "@/config/system-design/types";
 
-type NodeUpdates = 
+type NodeUpdates =
   | Partial<SdClientNode>
   | Partial<SdLoadBalancerNode>
   | Partial<SdAppServerNode>
@@ -25,7 +36,9 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
   return (
     <div className="space-y-3">
       <div>
-        <label className="text-xs text-muted-foreground block mb-1">Label</label>
+        <label className="text-xs text-muted-foreground block mb-1">
+          Label
+        </label>
         <input
           type="text"
           value={node.label}
@@ -36,10 +49,14 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 
       {node.type === "load_balancer" && (
         <div>
-          <label className="text-xs text-muted-foreground block mb-1">Algorithm</label>
+          <label className="text-xs text-muted-foreground block mb-1">
+            Algorithm
+          </label>
           <select
             value={node.algorithm}
-            onChange={(e) => onUpdate({ algorithm: e.target.value as "rr" | "least_conn" })}
+            onChange={(e) =>
+              onUpdate({ algorithm: e.target.value as "rr" | "least_conn" })
+            }
             className="w-full px-2 py-1 bg-background border border-border rounded text-sm"
           >
             <option value="rr">Round Robin</option>
@@ -67,7 +84,9 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
               type="number"
               min="1"
               value={node.maxConcurrency || 100}
-              onChange={(e) => onUpdate({ maxConcurrency: parseInt(e.target.value) || null })}
+              onChange={(e) =>
+                onUpdate({ maxConcurrency: parseInt(e.target.value) || null })
+              }
               className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
             />
           </label>
@@ -92,7 +111,9 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
               max="1"
               step="0.05"
               value={node.hitRate}
-              onChange={(e) => onUpdate({ hitRate: parseFloat(e.target.value) })}
+              onChange={(e) =>
+                onUpdate({ hitRate: parseFloat(e.target.value) })
+              }
               className="flex-1 h-2 bg-muted rounded-lg appearance-none accent-primary"
             />
             <span className="w-10 text-right font-mono text-sm">
@@ -130,7 +151,9 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
               min="0"
               max="10"
               value={node.readReplicas}
-              onChange={(e) => onUpdate({ readReplicas: parseInt(e.target.value) })}
+              onChange={(e) =>
+                onUpdate({ readReplicas: parseInt(e.target.value) })
+              }
               className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
             />
           </label>
@@ -141,7 +164,9 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
               min="1"
               max="1000"
               value={node.partitions}
-              onChange={(e) => onUpdate({ partitions: parseInt(e.target.value) })}
+              onChange={(e) =>
+                onUpdate({ partitions: parseInt(e.target.value) })
+              }
               className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
             />
           </label>
@@ -153,7 +178,9 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
               max="1"
               step="0.05"
               value={node.hotKeyShare}
-              onChange={(e) => onUpdate({ hotKeyShare: parseFloat(e.target.value) })}
+              onChange={(e) =>
+                onUpdate({ hotKeyShare: parseFloat(e.target.value) })
+              }
               className="flex-1 h-2 bg-muted rounded-lg appearance-none accent-primary"
             />
             <span className="w-10 text-right font-mono text-sm">
@@ -183,7 +210,9 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
               min="0"
               max="100"
               value={node.retryLimit}
-              onChange={(e) => onUpdate({ retryLimit: parseInt(e.target.value) })}
+              onChange={(e) =>
+                onUpdate({ retryLimit: parseInt(e.target.value) })
+              }
               className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
             />
           </label>
@@ -224,7 +253,9 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
               max="1"
               step="0.05"
               value={node.hitRate}
-              onChange={(e) => onUpdate({ hitRate: parseFloat(e.target.value) })}
+              onChange={(e) =>
+                onUpdate({ hitRate: parseFloat(e.target.value) })
+              }
               className="flex-1 h-2 bg-muted rounded-lg appearance-none accent-primary"
             />
             <span className="w-10 text-right font-mono text-sm">

@@ -31,7 +31,9 @@ export function ModuleLayout({ module }: { module: SdModule }) {
                 type="button"
                 onClick={() => setRailOpen((v) => !v)}
                 className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                aria-label={railOpen ? "Collapse lesson list" : "Expand lesson list"}
+                aria-label={
+                  railOpen ? "Collapse lesson list" : "Expand lesson list"
+                }
               >
                 {railOpen ? "‹" : "›"}
               </button>
@@ -72,7 +74,6 @@ export function ModuleLayout({ module }: { module: SdModule }) {
                     </p>
                   )}
                 </nav>
-
               </>
             )}
           </div>
@@ -263,10 +264,7 @@ export function ModuleLayout({ module }: { module: SdModule }) {
                   key={`${index}-${point}`}
                   className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm leading-6 text-muted-foreground"
                 >
-                  <span
-                    aria-hidden="true"
-                    className="font-mono text-sd-accent"
-                  >
+                  <span aria-hidden="true" className="font-mono text-sd-accent">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <span>{point}</span>
@@ -312,7 +310,9 @@ export function ModuleLayout({ module }: { module: SdModule }) {
               <p className="mt-2 text-2xl font-semibold tracking-tight">
                 {module.lessons.length}
               </p>
-              <p className="text-xs text-muted-foreground">lessons in this module</p>
+              <p className="text-xs text-muted-foreground">
+                lessons in this module
+              </p>
               <Link
                 href={`/system-design/${module.slug}/task`}
                 className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sd-accent px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-sd-accent/90"

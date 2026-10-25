@@ -171,7 +171,9 @@ export function LessonFlow({
     function onKey(e: KeyboardEvent) {
       if (e.target && (e.target as HTMLElement).tagName === "INPUT") return;
       if (e.key === "ArrowLeft" && previousLesson) {
-        router.push(`/system-design/${moduleSlug}/lesson/${previousLesson.slug}`);
+        router.push(
+          `/system-design/${moduleSlug}/lesson/${previousLesson.slug}`,
+        );
       } else if (e.key === "ArrowRight" && nextLesson) {
         router.push(`/system-design/${moduleSlug}/lesson/${nextLesson.slug}`);
       }
@@ -229,142 +231,145 @@ export function LessonFlow({
                 );
               })}
             </nav>
-
           </div>
         </aside>
 
         <main className="min-w-0 flex-1 overflow-y-auto pr-2">
           <div className="w-full">
-        <nav
-          aria-label="Breadcrumb"
-          className="mb-6 text-sm text-muted-foreground"
-        >
-          <Link
-            href="/system-design"
-            className="transition-colors hover:text-foreground"
-          >
-            System design
-          </Link>
-          <span aria-hidden="true" className="mx-2">
-            /
-          </span>
-          <Link
-            href={`/system-design/${moduleSlug}`}
-            className="transition-colors hover:text-foreground"
-          >
-            {moduleTitle}
-          </Link>
-          <span aria-hidden="true" className="mx-2">
-            /
-          </span>
-          <span aria-current="page" className="text-foreground">
-            {lesson.title}
-          </span>
-        </nav>
-
-        <header className="mb-10 border-b border-border pb-8">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            <span>
-              Lesson {String(lessonIndex + 1).padStart(2, "0")} /{" "}
-              {String(lessons.length).padStart(2, "0")}
-            </span>
-            <span aria-hidden="true">·</span>
-            <span>{readingMinutes} min read</span>
-            <span aria-hidden="true">·</span>
-            <span className="text-sd-accent">{moduleTitle}</span>
-          </div>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
-            {lesson.title}
-          </h1>
-        </header>
-
-        <div className="space-y-8">
-          {lesson.sections.map((section, index) => (
-            <div key={`${section.kind}-${index}`} id={`section-${index}`} className="scroll-mt-20">
-              <LessonSection
-                section={section}
-                index={index}
-                hasReflected={
-                  section.kind === "your_turn"
-                    ? isPromptReflected(index)
-                    : section.kind === "compare"
-                      ? isComparisonReflected(index)
-                      : false
-                }
-                onReflect={() => markPromptReflected(index)}
-              />
-            </div>
-          ))}
-        </div>
-
-        {lesson.sections.some(
-          (section, index) =>
-            section.kind === "compare" && !isComparisonReflected(index),
-        ) && (
-          <p
-            role="status"
-            className="mx-auto mt-4 max-w-3xl text-sm text-muted-foreground"
-          >
-            Take a moment to think through the question above before opening the
-            comparison.
-          </p>
-        )}
-
-        <section className="mt-10 border-t border-border pt-6">
-          <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-            Sources & synthesis
-          </p>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            {lesson.attribution}
-          </p>
-        </section>
-
-        <footer className="mt-8 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={markComplete}
-              disabled={!isLoaded || !user || isComplete || isSaving}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sd-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sd-accent/90 disabled:cursor-default disabled:opacity-70"
+            <nav
+              aria-label="Breadcrumb"
+              className="mb-6 text-sm text-muted-foreground"
             >
-              {isComplete
-                ? "✓ Lesson complete"
-                : isSaving
-                  ? "Saving…"
-                  : "Mark lesson complete"}
-            </button>
-            <span className="text-xs text-muted-foreground">
-              Progress syncs to your account
-            </span>
-          </div>
-          <div className="flex items-center justify-between gap-3 sm:justify-end">
-            {previousLesson ? (
               <Link
-                href={`/system-design/${moduleSlug}/lesson/${previousLesson.slug}`}
-                className="rounded-xl border border-border px-4 py-2 text-sm transition-colors hover:bg-muted"
+                href="/system-design"
+                className="transition-colors hover:text-foreground"
               >
-                ← Previous
+                System design
               </Link>
-            ) : (
-              <span />
+              <span aria-hidden="true" className="mx-2">
+                /
+              </span>
+              <Link
+                href={`/system-design/${moduleSlug}`}
+                className="transition-colors hover:text-foreground"
+              >
+                {moduleTitle}
+              </Link>
+              <span aria-hidden="true" className="mx-2">
+                /
+              </span>
+              <span aria-current="page" className="text-foreground">
+                {lesson.title}
+              </span>
+            </nav>
+
+            <header className="mb-10 border-b border-border pb-8">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                <span>
+                  Lesson {String(lessonIndex + 1).padStart(2, "0")} /{" "}
+                  {String(lessons.length).padStart(2, "0")}
+                </span>
+                <span aria-hidden="true">·</span>
+                <span>{readingMinutes} min read</span>
+                <span aria-hidden="true">·</span>
+                <span className="text-sd-accent">{moduleTitle}</span>
+              </div>
+              <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+                {lesson.title}
+              </h1>
+            </header>
+
+            <div className="space-y-8">
+              {lesson.sections.map((section, index) => (
+                <div
+                  key={`${section.kind}-${index}`}
+                  id={`section-${index}`}
+                  className="scroll-mt-20"
+                >
+                  <LessonSection
+                    section={section}
+                    index={index}
+                    hasReflected={
+                      section.kind === "your_turn"
+                        ? isPromptReflected(index)
+                        : section.kind === "compare"
+                          ? isComparisonReflected(index)
+                          : false
+                    }
+                    onReflect={() => markPromptReflected(index)}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {lesson.sections.some(
+              (section, index) =>
+                section.kind === "compare" && !isComparisonReflected(index),
+            ) && (
+              <p
+                role="status"
+                className="mx-auto mt-4 max-w-3xl text-sm text-muted-foreground"
+              >
+                Take a moment to think through the question above before opening
+                the comparison.
+              </p>
             )}
-            {nextLesson ? (
-              <Link
-                href={`/system-design/${moduleSlug}/lesson/${nextLesson.slug}`}
-                className="rounded-xl bg-sd-accent/10 px-4 py-2 text-sm font-medium text-sd-accent transition-colors hover:bg-sd-accent/20"
-              >
-                Next lesson →
-              </Link>
-            ) : (
-              <Link
-                href={`/system-design/${moduleSlug}/task`}
-                className="rounded-xl bg-sd-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sd-accent/90"
-              >
-                Go to build task →
-              </Link>
-            )}
-          </div>
-        </footer>
+
+            <section className="mt-10 border-t border-border pt-6">
+              <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                Sources & synthesis
+              </p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {lesson.attribution}
+              </p>
+            </section>
+
+            <footer className="mt-8 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={markComplete}
+                  disabled={!isLoaded || !user || isComplete || isSaving}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sd-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sd-accent/90 disabled:cursor-default disabled:opacity-70"
+                >
+                  {isComplete
+                    ? "✓ Lesson complete"
+                    : isSaving
+                      ? "Saving…"
+                      : "Mark lesson complete"}
+                </button>
+                <span className="text-xs text-muted-foreground">
+                  Progress syncs to your account
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3 sm:justify-end">
+                {previousLesson ? (
+                  <Link
+                    href={`/system-design/${moduleSlug}/lesson/${previousLesson.slug}`}
+                    className="rounded-xl border border-border px-4 py-2 text-sm transition-colors hover:bg-muted"
+                  >
+                    ← Previous
+                  </Link>
+                ) : (
+                  <span />
+                )}
+                {nextLesson ? (
+                  <Link
+                    href={`/system-design/${moduleSlug}/lesson/${nextLesson.slug}`}
+                    className="rounded-xl bg-sd-accent/10 px-4 py-2 text-sm font-medium text-sd-accent transition-colors hover:bg-sd-accent/20"
+                  >
+                    Next lesson →
+                  </Link>
+                ) : (
+                  <Link
+                    href={`/system-design/${moduleSlug}/task`}
+                    className="rounded-xl bg-sd-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sd-accent/90"
+                  >
+                    Go to build task →
+                  </Link>
+                )}
+              </div>
+            </footer>
           </div>
         </main>
 
@@ -407,7 +412,9 @@ export function LessonFlow({
                   / {lessons.length}
                 </span>
               </p>
-              <p className="text-xs text-muted-foreground">lessons in this module</p>
+              <p className="text-xs text-muted-foreground">
+                lessons in this module
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -613,8 +620,8 @@ function LessonDiagram({
                     y={
                       (offsetY(from.y + nodeHeight / 2) +
                         offsetY(to.y + nodeHeight / 2)) /
-                          2 -
-                        8
+                        2 -
+                      8
                     }
                     textAnchor="middle"
                     className="fill-muted-foreground"

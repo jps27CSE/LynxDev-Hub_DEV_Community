@@ -15,7 +15,8 @@ const module: SdModule = {
     {
       slug: "the-45-min-structure",
       title: "A Practical 45-Minute Approach",
-      attribution: "Synthesised from donnemartin/system-design-primer and KodeKloud",
+      attribution:
+        "Synthesised from donnemartin/system-design-primer and KodeKloud",
       sections: [
         {
           kind: "scenario",
@@ -37,20 +38,57 @@ const module: SdModule = {
           caption: "Keep it minimal to start",
           graph: {
             nodes: [
-              (() => { const n = defaultNode("client", "client-1", 60, 180); (n as any).label = "Users"; return n; })(),
-              (() => { const n = defaultNode("app_server", "app-1", 280, 180); (n as any).label = "Monolith"; (n as any).replicas = 1; return n; })(),
-              (() => { const n = defaultNode("database", "db-1", 500, 180); (n as any).label = "DB"; return n; })(),
+              (() => {
+                const n = defaultNode("client", "client-1", 60, 180);
+                (n as any).label = "Users";
+                return n;
+              })(),
+              (() => {
+                const n = defaultNode("app_server", "app-1", 280, 180);
+                (n as any).label = "Monolith";
+                (n as any).replicas = 1;
+                return n;
+              })(),
+              (() => {
+                const n = defaultNode("database", "db-1", 500, 180);
+                (n as any).label = "DB";
+                return n;
+              })(),
             ] as any,
             edges: [
-              { id: "e1", from: "client-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-              { id: "e2", from: "app-1", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+              {
+                id: "e1",
+                from: "client-1",
+                to: "app-1",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
+              {
+                id: "e2",
+                from: "app-1",
+                to: "db-1",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
             ],
-            scenario: { arrivalRate: 100, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+            scenario: {
+              arrivalRate: 100,
+              writeShare: 0.05,
+              mediaShare: 0,
+              bytesPerMediaRequest: 2_000_000,
+              abusiveShare: 0,
+              latencyJitterMs: 0,
+              cacheColdStart: false,
+              replicaLagMs: 0,
+            },
           },
         },
         {
           kind: "your_turn",
-          prompt: "Take 'URL Shortener' and plan your first 10 minutes using this structure. Write what you'd say for each step.",
+          prompt:
+            "Take 'URL Shortener' and plan your first 10 minutes using this structure. Write what you'd say for each step.",
         },
         {
           kind: "compare",
@@ -89,7 +127,8 @@ const module: SdModule = {
         },
         {
           kind: "your_turn",
-          prompt: "Pick ANY two components you'd consider adding to our photo app. For each, list 1 benefit and 1 trade-off.",
+          prompt:
+            "Pick ANY two components you'd consider adding to our photo app. For each, list 1 benefit and 1 trade-off.",
         },
         {
           kind: "compare",
@@ -128,7 +167,8 @@ const module: SdModule = {
         },
         {
           kind: "your_turn",
-          prompt: "Our app has 500 users right now. Should we split into microservices? Explain your answer with reasoning.",
+          prompt:
+            "Our app has 500 users right now. Should we split into microservices? Explain your answer with reasoning.",
         },
         {
           kind: "compare",
@@ -148,33 +188,97 @@ const module: SdModule = {
     },
   ],
   interviewByte: {
-    shape: "Walk me through how you'd approach designing a photo-sharing app from scratch.",
-    strongAnswer: "I'd start by clarifying requirements - core features, scale (DAU), read/write ratio, media type. I'd state assumptions like 'assuming 100k DAU, read-heavy'. Then I'd do rough estimates for QPS and storage. I'd draw a simple high-level design: clients -> app servers -> database, and think about where photos go. I'd deep dive into feed generation. Throughout, I'd call out trade-offs - for example starting with monolith for simplicity vs microservices. I'd wrap up by mentioning bottlenecks like DB reads, media storage, and how I'd scale: caching, CDN, read replicas. I'd keep it simple first and scale incrementally.",
+    shape:
+      "Walk me through how you'd approach designing a photo-sharing app from scratch.",
+    strongAnswer:
+      "I'd start by clarifying requirements - core features, scale (DAU), read/write ratio, media type. I'd state assumptions like 'assuming 100k DAU, read-heavy'. Then I'd do rough estimates for QPS and storage. I'd draw a simple high-level design: clients -> app servers -> database, and think about where photos go. I'd deep dive into feed generation. Throughout, I'd call out trade-offs - for example starting with monolith for simplicity vs microservices. I'd wrap up by mentioning bottlenecks like DB reads, media storage, and how I'd scale: caching, CDN, read replicas. I'd keep it simple first and scale incrementally.",
     trap: "Listing tools without structure. Or designing for billions before clarifying. Show your process, not just your final diagram.",
   },
   task: {
-    brief: "Narrate our photo-sharing app design in 5 boxes as if you're in an interview: (1) Requirements & assumptions (2) Estimates (3) High-level design (4) Deep dive + trade-offs (5) Bottlenecks & scaling plan. Use the monolith+DB design we have.",
+    brief:
+      "Narrate our photo-sharing app design in 5 boxes as if you're in an interview: (1) Requirements & assumptions (2) Estimates (3) High-level design (4) Deep dive + trade-offs (5) Bottlenecks & scaling plan. Use the monolith+DB design we have.",
     startGraph: {
       nodes: [
-        (() => { const n = defaultNode("client", "client-1", 60, 180); (n as any).label = "Users"; return n; })(),
-        (() => { const n = defaultNode("app_server", "app-1", 280, 180); (n as any).label = "Monolith"; (n as any).replicas = 1; return n; })(),
+        (() => {
+          const n = defaultNode("client", "client-1", 60, 180);
+          (n as any).label = "Users";
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("app_server", "app-1", 280, 180);
+          (n as any).label = "Monolith";
+          (n as any).replicas = 1;
+          return n;
+        })(),
       ] as any,
       edges: [
-        { id: "e1", from: "client-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "client-1",
+          to: "app-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
-      scenario: { arrivalRate: 100, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+      scenario: {
+        arrivalRate: 100,
+        writeShare: 0.05,
+        mediaShare: 0,
+        bytesPerMediaRequest: 2_000_000,
+        abusiveShare: 0,
+        latencyJitterMs: 0,
+        cacheColdStart: false,
+        replicaLagMs: 0,
+      },
     },
     solutionGraph: {
       nodes: [
-        (() => { const n = defaultNode("client", "client-1", 60, 180); (n as any).label = "Users"; return n; })(),
-        (() => { const n = defaultNode("app_server", "app-1", 280, 180); (n as any).label = "Monolith"; (n as any).replicas = 1; return n; })(),
-        (() => { const n = defaultNode("database", "db-1", 500, 180); (n as any).label = "DB"; return n; })(),
+        (() => {
+          const n = defaultNode("client", "client-1", 60, 180);
+          (n as any).label = "Users";
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("app_server", "app-1", 280, 180);
+          (n as any).label = "Monolith";
+          (n as any).replicas = 1;
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("database", "db-1", 500, 180);
+          (n as any).label = "DB";
+          return n;
+        })(),
       ] as any,
       edges: [
-        { id: "e1", from: "client-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e2", from: "app-1", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "client-1",
+          to: "app-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e2",
+          from: "app-1",
+          to: "db-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
-      scenario: { arrivalRate: 100, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+      scenario: {
+        arrivalRate: 100,
+        writeShare: 0.05,
+        mediaShare: 0,
+        bytesPerMediaRequest: 2_000_000,
+        abusiveShare: 0,
+        latencyJitterMs: 0,
+        cacheColdStart: false,
+        replicaLagMs: 0,
+      },
     },
     steps: [
       {
@@ -182,16 +286,24 @@ const module: SdModule = {
         title: "Follow the structure",
         brief: "Walk through all 5 steps in order.",
         hint: "Don't skip clarification or wrap-up.",
-        reveal: "Cover requirements, estimates, high-level, deep dive with trade-offs, bottlenecks and next steps.",
-        check: (g) => ({ passed: g.nodes.length >= 1, progress: "✓ Structure in mind" }),
+        reveal:
+          "Cover requirements, estimates, high-level, deep dive with trade-offs, bottlenecks and next steps.",
+        check: (g) => ({
+          passed: g.nodes.length >= 1,
+          progress: "✓ Structure in mind",
+        }),
       },
       {
         id: "call-tradeoffs",
         title: "Call out trade-offs",
         brief: "Mention at least one trade-off explicitly.",
         hint: "Monolith vs microservices is an easy one.",
-        reveal: "Monolith is simple and fast to build, but harder to scale individual parts independently.",
-        check: (g) => ({ passed: g.edges.length >= 0, progress: "✓ Thinking about trade-offs" }),
+        reveal:
+          "Monolith is simple and fast to build, but harder to scale individual parts independently.",
+        check: (g) => ({
+          passed: g.edges.length >= 0,
+          progress: "✓ Thinking about trade-offs",
+        }),
       },
     ],
     passCriteria: [
@@ -199,7 +311,8 @@ const module: SdModule = {
         id: "narrative-complete",
         label: "Clear structured narrative",
         required: true,
-        explain: "Show you can communicate your design logically with reasoning.",
+        explain:
+          "Show you can communicate your design logically with reasoning.",
         assert: (r) => r.valid,
       },
     ],
@@ -211,7 +324,8 @@ const module: SdModule = {
     "Start simple, don't over-engineer",
     "Mention bottlenecks and what you'd do next",
   ],
-  attribution: "Synthesised from donnemartin/system-design-primer, algomaster.io and KodeKloud System Design For Beginners",
+  attribution:
+    "Synthesised from donnemartin/system-design-primer, algomaster.io and KodeKloud System Design For Beginners",
 };
 
 export default module;

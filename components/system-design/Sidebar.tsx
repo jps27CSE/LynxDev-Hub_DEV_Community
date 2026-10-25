@@ -13,7 +13,13 @@ interface SidebarProps {
   onSimulationClose?: () => void;
 }
 
-export function Sidebar({ module, onLessonSelect, onChapterSelect, onSimulationOpen, onSimulationClose }: SidebarProps) {
+export function Sidebar({
+  module,
+  onLessonSelect,
+  onChapterSelect,
+  onSimulationOpen,
+  onSimulationClose,
+}: SidebarProps) {
   const [isSimulationOpen, setIsSimulationOpen] = useState(false);
 
   // Close sidebar when simulation state changes
@@ -33,19 +39,17 @@ export function Sidebar({ module, onLessonSelect, onChapterSelect, onSimulationO
         <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground mb-4">
           {module.partTitle}
         </h2>
-        <h3 className="font-semibold text-lg">
-          {module.title}
-        </h3>
+        <h3 className="font-semibold text-lg">{module.title}</h3>
         <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
           {module.lessons.length} lessons
         </p>
       </div>
 
       <nav aria-label="Chapters navigation" className="flex-1 overflow-y-auto">
-        {module.chapters?.map((chapter) => renderChapter(chapter, onChapterSelect)) || (
-          <div className="p-4 text-muted-foreground">
-            No chapters defined
-          </div>
+        {module.chapters?.map((chapter) =>
+          renderChapter(chapter, onChapterSelect),
+        ) || (
+          <div className="p-4 text-muted-foreground">No chapters defined</div>
         )}
       </nav>
     </aside>
@@ -54,7 +58,7 @@ export function Sidebar({ module, onLessonSelect, onChapterSelect, onSimulationO
 
 function renderChapter(
   chapter: SdChapter,
-  onChapterSelect: ((slug: string) => void) | undefined
+  onChapterSelect: ((slug: string) => void) | undefined,
 ) {
   return (
     <div key={chapter.slug} className="border-b border-border pb-4">

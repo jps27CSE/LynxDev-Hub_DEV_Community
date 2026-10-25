@@ -12,13 +12,25 @@ interface FailurePanelProps {
 
 type FailureKind = "node_down" | "degraded" | "partition" | "replica_lag";
 
-const failureKinds: { kind: FailureKind; label: string; description: string; icon: React.ReactNode }[] = [
+const failureKinds: {
+  kind: FailureKind;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+}[] = [
   {
     kind: "node_down",
     label: "Node Down",
-    description: "Completely remove a node from the topology. Traffic routed through it fails.",
+    description:
+      "Completely remove a node from the topology. Traffic routed through it fails.",
     icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <circle cx="12" cy="12" r="10" />
         <line x1="15" y1="9" x2="9" y2="15" />
         <line x1="9" y1="9" x2="15" y2="15" />
@@ -28,9 +40,16 @@ const failureKinds: { kind: FailureKind; label: string; description: string; ico
   {
     kind: "degraded",
     label: "Degraded",
-    description: "Reduce a node's capacity (e.g., region struggling at 40% capacity).",
+    description:
+      "Reduce a node's capacity (e.g., region struggling at 40% capacity).",
     icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
         <rect x="2" y="11" width="20" height="7" rx="2" />
         <path d="M6 11V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v0" />
@@ -40,9 +59,16 @@ const failureKinds: { kind: FailureKind; label: string; description: string; ico
   {
     kind: "partition",
     label: "Network Partition",
-    description: "Cut specific connections between nodes. Services can no longer talk.",
+    description:
+      "Cut specific connections between nodes. Services can no longer talk.",
     icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <path d="M12 2v20M17 5H7" />
         <path d="M17 19H7" />
         <line x1="8" y1="12" x2="16" y2="12" />
@@ -52,9 +78,16 @@ const failureKinds: { kind: FailureKind; label: string; description: string; ico
   {
     kind: "replica_lag",
     label: "Replica Lag",
-    description: "Add lag to a database replica. Reads return stale data, not errors.",
+    description:
+      "Add lag to a database replica. Reads return stale data, not errors.",
     icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <circle cx="12" cy="12" r="10" />
         <polyline points="12 6 12 12 16 14" />
       </svg>
@@ -68,17 +101,32 @@ const getNodeLabel = (graph: SdGraph, id: string): string => {
   return node ? `${node.label} (${node.type})` : id;
 };
 
-const isDegraded = (f: SdFailure): f is SdFailure & { kind: "degraded"; factor: number } => f.kind === "degraded";
-const isReplicaLag = (f: SdFailure): f is SdFailure & { kind: "replica_lag"; lagMs: number } => f.kind === "replica_lag";
-const isNodeDown = (f: SdFailure): f is SdFailure & { kind: "node_down" } => f.kind === "node_down";
-const isPartition = (f: SdFailure): f is SdFailure & { kind: "partition" } => f.kind === "partition";
+const isDegraded = (
+  f: SdFailure,
+): f is SdFailure & { kind: "degraded"; factor: number } =>
+  f.kind === "degraded";
+const isReplicaLag = (
+  f: SdFailure,
+): f is SdFailure & { kind: "replica_lag"; lagMs: number } =>
+  f.kind === "replica_lag";
+const isNodeDown = (f: SdFailure): f is SdFailure & { kind: "node_down" } =>
+  f.kind === "node_down";
+const isPartition = (f: SdFailure): f is SdFailure & { kind: "partition" } =>
+  f.kind === "partition";
 
-export function FailurePanel({ graph, failures, onFailuresChange }: FailurePanelProps) {
+export function FailurePanel({
+  graph,
+  failures,
+  onFailuresChange,
+}: FailurePanelProps) {
   const [expandedKind, setExpandedKind] = useState<FailureKind | null>(null);
 
   const getFailuresOfKind = useCallback(
-    (kind: FailureKind) => failures.filter((f): f is Extract<SdFailure, { kind: FailureKind }> => f.kind === kind),
-    [failures]
+    (kind: FailureKind) =>
+      failures.filter(
+        (f): f is Extract<SdFailure, { kind: FailureKind }> => f.kind === kind,
+      ),
+    [failures],
   );
 
   const addFailure = useCallback(
@@ -86,7 +134,7 @@ export function FailurePanel({ graph, failures, onFailuresChange }: FailurePanel
       const id = `${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       onFailuresChange([...failures, { kind, ...payload, id } as SdFailure]);
     },
-    [failures, onFailuresChange]
+    [failures, onFailuresChange],
   );
 
   const removeFailure = useCallback(
@@ -94,23 +142,25 @@ export function FailurePanel({ graph, failures, onFailuresChange }: FailurePanel
       const newFailures = failures.filter((f) => f.id !== id);
       onFailuresChange(newFailures);
     },
-    [failures, onFailuresChange]
+    [failures, onFailuresChange],
   );
 
   const updateFailure = useCallback(
     (id: string, updates: Partial<SdFailure>) => {
       const newFailures = failures.map((f) =>
-        f.id === id ? { ...f, ...updates } as SdFailure : f
+        f.id === id ? ({ ...f, ...updates } as SdFailure) : f,
       );
       onFailuresChange(newFailures);
     },
-    [failures, onFailuresChange]
+    [failures, onFailuresChange],
   );
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium text-sm text-foreground">Failure Injection</h3>
+        <h3 className="font-medium text-sm text-foreground">
+          Failure Injection
+        </h3>
         <span className="text-xs text-muted-foreground">
           {failures.length} active
         </span>
@@ -126,28 +176,39 @@ export function FailurePanel({ graph, failures, onFailuresChange }: FailurePanel
               key={kind}
               className={cn(
                 "border border-border rounded-lg overflow-hidden",
-                isExpanded && "ring-1 ring-sd-accent"
+                isExpanded && "ring-1 ring-sd-accent",
               )}
             >
               <button
-                onClick={() => setExpandedKind((k) => (k === kind ? null : kind))}
+                onClick={() =>
+                  setExpandedKind((k) => (k === kind ? null : kind))
+                }
                 className={cn(
                   "w-full px-3 py-2 flex items-center gap-2 text-left transition-colors",
-                  "hover:bg-muted/50"
+                  "hover:bg-muted/50",
                 )}
               >
                 <span className="text-muted-foreground">{icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-sm">{label}</div>
-                  <div className="text-xs text-muted-foreground">{description}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {description}
+                  </div>
                 </div>
-                <span className={cn("px-2 py-0.5 rounded text-xs font-mono", kindFailures.length > 0 ? "bg-primary/10 text-primary" : "text-muted-foreground")}>
+                <span
+                  className={cn(
+                    "px-2 py-0.5 rounded text-xs font-mono",
+                    kindFailures.length > 0
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground",
+                  )}
+                >
                   {kindFailures.length} active
                 </span>
                 <svg
                   className={cn(
                     "w-4 h-4 text-muted-foreground transition-transform",
-                    isExpanded && "rotate-180"
+                    isExpanded && "rotate-180",
                   )}
                   viewBox="0 0 24 24"
                   fill="none"
@@ -174,23 +235,26 @@ export function FailurePanel({ graph, failures, onFailuresChange }: FailurePanel
                         Active ({kindFailures.length})
                       </div>
                       <ul className="space-y-1">
-{kindFailures.map((failure) => (
-                            <FailureItem
-                              key={failure.id}
-                              kind={kind}
-                              failure={failure}
-                              graph={graph}
-                              onUpdate={(updates) => updateFailure(failure.id, updates)}
-                              onRemove={() => removeFailure(failure.id)}
-                            />
-                          ))}
+                        {kindFailures.map((failure) => (
+                          <FailureItem
+                            key={failure.id}
+                            kind={kind}
+                            failure={failure}
+                            graph={graph}
+                            onUpdate={(updates) =>
+                              updateFailure(failure.id, updates)
+                            }
+                            onRemove={() => removeFailure(failure.id)}
+                          />
+                        ))}
                       </ul>
                     </div>
                   )}
 
                   {kindFailures.length === 0 && (
                     <p className="text-xs text-muted-foreground text-center py-2">
-                      No active {label.toLowerCase()} failures. Add one above to test resilience.
+                      No active {label.toLowerCase()} failures. Add one above to
+                      test resilience.
                     </p>
                   )}
                 </div>
@@ -214,7 +278,15 @@ export function FailurePanel({ graph, failures, onFailuresChange }: FailurePanel
 
 // --- Sub-components ---
 
-function AddFailureForm({ kind, graph, onAdd }: { kind: string; graph: any; onAdd: (payload: any) => void }) {
+function AddFailureForm({
+  kind,
+  graph,
+  onAdd,
+}: {
+  kind: string;
+  graph: any;
+  onAdd: (payload: any) => void;
+}) {
   const [formState, setFormState] = useState<Record<string, any>>({});
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -226,13 +298,27 @@ function AddFailureForm({ kind, graph, onAdd }: { kind: string; graph: any; onAd
         failure = { kind: "node_down", nodeId: formState.nodeId, id } as const;
         break;
       case "degraded":
-        failure = { kind: "degraded", nodeId: formState.nodeId, factor: formState.factor ?? 0.5, id } as const;
+        failure = {
+          kind: "degraded",
+          nodeId: formState.nodeId,
+          factor: formState.factor ?? 0.5,
+          id,
+        } as const;
         break;
       case "partition":
-        failure = { kind: "partition", edgeIds: [formState.edgeId], id } as const;
+        failure = {
+          kind: "partition",
+          edgeIds: [formState.edgeId],
+          id,
+        } as const;
         break;
       case "replica_lag":
-        failure = { kind: "replica_lag", nodeId: formState.nodeId, lagMs: formState.lagMs ?? 100, id } as const;
+        failure = {
+          kind: "replica_lag",
+          nodeId: formState.nodeId,
+          lagMs: formState.lagMs ?? 100,
+          id,
+        } as const;
         break;
       default:
         failure = { kind, id } as const;
@@ -261,7 +347,9 @@ function AddFailureForm({ kind, graph, onAdd }: { kind: string; graph: any; onAd
             <span className="w-20 text-muted-foreground">Node</span>
             <select
               value={formState.nodeId || ""}
-              onChange={(e) => setFormState((s) => ({ ...s, nodeId: e.target.value }))}
+              onChange={(e) =>
+                setFormState((s) => ({ ...s, nodeId: e.target.value }))
+              }
               className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
             >
               <option value="">Select node to take down</option>
@@ -272,7 +360,10 @@ function AddFailureForm({ kind, graph, onAdd }: { kind: string; graph: any; onAd
               ))}
             </select>
           </label>
-          <button type="submit" className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90">
+          <button
+            type="submit"
+            className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          >
             Add Node Down
           </button>
         </form>
@@ -285,7 +376,9 @@ function AddFailureForm({ kind, graph, onAdd }: { kind: string; graph: any; onAd
             <span className="w-20 text-muted-foreground">Node</span>
             <select
               value={formState.nodeId || ""}
-              onChange={(e) => setFormState((s) => ({ ...s, nodeId: e.target.value }))}
+              onChange={(e) =>
+                setFormState((s) => ({ ...s, nodeId: e.target.value }))
+              }
               className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
             >
               <option value="">Select node to degrade</option>
@@ -304,14 +397,22 @@ function AddFailureForm({ kind, graph, onAdd }: { kind: string; graph: any; onAd
               max="0.9"
               step="0.1"
               value={formState.factor || 0.5}
-              onChange={(e) => setFormState((s) => ({ ...s, factor: parseFloat(e.target.value) }))}
+              onChange={(e) =>
+                setFormState((s) => ({
+                  ...s,
+                  factor: parseFloat(e.target.value),
+                }))
+              }
               className="flex-1 h-2 bg-muted rounded-lg appearance-none accent-primary"
             />
             <span className="w-10 text-right font-mono text-sm">
               {(formState.factor || 0.5).toFixed(1)}x
             </span>
           </label>
-          <button type="submit" className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90">
+          <button
+            type="submit"
+            className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          >
             Add Degradation
           </button>
         </form>
@@ -324,7 +425,9 @@ function AddFailureForm({ kind, graph, onAdd }: { kind: string; graph: any; onAd
             <span className="w-20 text-muted-foreground">Edge</span>
             <select
               value={formState.edgeId || ""}
-              onChange={(e) => setFormState((s) => ({ ...s, edgeId: e.target.value }))}
+              onChange={(e) =>
+                setFormState((s) => ({ ...s, edgeId: e.target.value }))
+              }
               className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
             >
               <option value="">Select connection to cut</option>
@@ -335,7 +438,10 @@ function AddFailureForm({ kind, graph, onAdd }: { kind: string; graph: any; onAd
               ))}
             </select>
           </label>
-          <button type="submit" className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90">
+          <button
+            type="submit"
+            className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          >
             Add Partition
           </button>
         </form>
@@ -348,7 +454,9 @@ function AddFailureForm({ kind, graph, onAdd }: { kind: string; graph: any; onAd
             <span className="w-20 text-muted-foreground">Database</span>
             <select
               value={formState.nodeId || ""}
-              onChange={(e) => setFormState((s) => ({ ...s, nodeId: e.target.value }))}
+              onChange={(e) =>
+                setFormState((s) => ({ ...s, nodeId: e.target.value }))
+              }
               className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
             >
               <option value="">Select database</option>
@@ -366,12 +474,19 @@ function AddFailureForm({ kind, graph, onAdd }: { kind: string; graph: any; onAd
               min="1"
               max="60000"
               value={formState.lagMs || 100}
-              onChange={(e) => setFormState((s) => ({ ...s, lagMs: parseInt(e.target.value) }))}
+              onChange={(e) =>
+                setFormState((s) => ({ ...s, lagMs: parseInt(e.target.value) }))
+              }
               className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
             />
-            <span className="w-10 text-right text-muted-foreground text-sm">ms</span>
+            <span className="w-10 text-right text-muted-foreground text-sm">
+              ms
+            </span>
           </label>
-          <button type="submit" className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90">
+          <button
+            type="submit"
+            className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          >
             Add Replica Lag
           </button>
         </form>
@@ -401,10 +516,14 @@ function FailureItem({
         #{failure.id.slice(-4)}
       </span>
       <div className="flex-1 min-w-0 text-sm text-muted-foreground truncate">
-        {isNodeDown(failure) && `Node down: ${getNodeLabel(graph, failure.nodeId)}`}
-        {isDegraded(failure) && `Degraded: ${getNodeLabel(graph, failure.nodeId)} × ${failure.factor}x`}
-        {isPartition(failure) && `Partition: ${failure.edgeIds[0] ? graph.edges.find(e => e.id === failure.edgeIds[0])?.from + " → " + graph.edges.find(e => e.id === failure.edgeIds[0])?.to : "unknown"}`}
-        {isReplicaLag(failure) && `Replica lag: ${getNodeLabel(graph, failure.nodeId)} +${failure.lagMs}ms`}
+        {isNodeDown(failure) &&
+          `Node down: ${getNodeLabel(graph, failure.nodeId)}`}
+        {isDegraded(failure) &&
+          `Degraded: ${getNodeLabel(graph, failure.nodeId)} × ${failure.factor}x`}
+        {isPartition(failure) &&
+          `Partition: ${failure.edgeIds[0] ? graph.edges.find((e) => e.id === failure.edgeIds[0])?.from + " → " + graph.edges.find((e) => e.id === failure.edgeIds[0])?.to : "unknown"}`}
+        {isReplicaLag(failure) &&
+          `Replica lag: ${getNodeLabel(graph, failure.nodeId)} +${failure.lagMs}ms`}
       </div>
       {isDegraded(failure) && (
         <input
@@ -432,7 +551,13 @@ function FailureItem({
         className="p-1 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
         title="Remove"
       >
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          className="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
         </svg>
       </button>

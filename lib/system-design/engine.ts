@@ -92,10 +92,13 @@ function precompute(graph: SdGraph, failures: SdFailure[]): Precomputed {
     reverseAdj.set(n.id, []);
   }
 
-  const downNodes = new Set(failures.filter((f) => f.kind === "node_down").map((f) => f.nodeId));
+  const downNodes = new Set(
+    failures.filter((f) => f.kind === "node_down").map((f) => f.nodeId),
+  );
   const partitionedEdges = new Set<string>();
   for (const f of failures) {
-    if (f.kind === "partition") f.edgeIds.forEach((id) => partitionedEdges.add(id));
+    if (f.kind === "partition")
+      f.edgeIds.forEach((id) => partitionedEdges.add(id));
   }
 
   const edgeMap = new Map<string, SdEdge>();
@@ -107,9 +110,20 @@ function precompute(graph: SdGraph, failures: SdFailure[]): Precomputed {
     reverseAdj.get(e.to)?.push(e.from);
   }
 
-  const clients = graph.nodes.filter((n) => n.type === "client" && !downNodes.has(n.id));
+  const clients = graph.nodes.filter(
+    (n) => n.type === "client" && !downNodes.has(n.id),
+  );
   if (clients.length === 0) {
-    return { valid: false, invalidReason: "No reachable client node", adjacency, reverseAdj, edgeMap, nodeById, terminalNodes: [], pathsToTerminals: new Map() };
+    return {
+      valid: false,
+      invalidReason: "No reachable client node",
+      adjacency,
+      reverseAdj,
+      edgeMap,
+      nodeById,
+      terminalNodes: [],
+      pathsToTerminals: new Map(),
+    };
   }
 
   const visited = new Set<string>();
@@ -128,12 +142,26 @@ function precompute(graph: SdGraph, failures: SdFailure[]): Precomputed {
 
   // Terminal nodes are those with no outgoing edges (excluding down nodes)
   const terminalNodes = graph.nodes
-    .filter((n) => !downNodes.has(n.id) && adjacency.get(n.id)!.length === 0 && isDataStore(n.type))
+    .filter(
+      (n) =>
+        !downNodes.has(n.id) &&
+        adjacency.get(n.id)!.length === 0 &&
+        isDataStore(n.type),
+    )
     .map((n) => n.id);
 
   // If no terminals at all (structural issue), fail
   if (terminalNodes.length === 0) {
-    return { valid: false, invalidReason: "No terminal datastore in graph structure", adjacency, reverseAdj, edgeMap, nodeById, terminalNodes: [], pathsToTerminals: new Map() };
+    return {
+      valid: false,
+      invalidReason: "No terminal datastore in graph structure",
+      adjacency,
+      reverseAdj,
+      edgeMap,
+      nodeById,
+      terminalNodes: [],
+      pathsToTerminals: new Map(),
+    };
   }
 
   // For each client, compute paths to each terminal node
@@ -160,7 +188,15 @@ function precompute(graph: SdGraph, failures: SdFailure[]): Precomputed {
     pathsToTerminals.set(client.id, terminalPaths);
   }
 
-  return { valid: true, adjacency, reverseAdj, edgeMap, nodeById, terminalNodes, pathsToTerminals };
+  return {
+    valid: true,
+    adjacency,
+    reverseAdj,
+    edgeMap,
+    nodeById,
+    terminalNodes,
+    pathsToTerminals,
+  };
 }
 
 /** Effective capacity after failures and database partition skew. */
@@ -186,8 +222,7 @@ function effectiveCapacity(
     if (partitions > 1) {
       const readShare = 1 - writeShare;
       const hottestPartitionShare =
-        readShare *
-          (node.hotKeyShare + (1 - node.hotKeyShare) / partitions) +
+        readShare * (node.hotKeyShare + (1 - node.hotKeyShare) / partitions) +
         writeShare / partitions;
       cap /= hottestPartitionShare;
     }
@@ -209,7 +244,12 @@ function isCacheLike(node: SdNode): boolean {
 
 /** Check if a node type is a data store (valid terminal). */
 function isDataStore(type: SdNodeType): boolean {
-  return type === "cache" || type === "database" || type === "object_store" || type === "cdn";
+  return (
+    type === "cache" ||
+    type === "database" ||
+    type === "object_store" ||
+    type === "cdn"
+  );
 }
 
 /** Simulation state for a single request. */
@@ -236,8 +276,20 @@ function runRequest(
   context: SimulationContext,
   prng: () => number,
 ): RequestResult {
-  const { nodeById, edgeMap, pathsToTerminals, downNodes, partitionedEdges, degradedNodes, replicaLagNodes,
-    arrivalRate, latencyJitterMs, cacheColdStart, replicaLagMs, nodeStats } = context;
+  const {
+    nodeById,
+    edgeMap,
+    pathsToTerminals,
+    downNodes,
+    partitionedEdges,
+    degradedNodes,
+    replicaLagNodes,
+    arrivalRate,
+    latencyJitterMs,
+    cacheColdStart,
+    replicaLagMs,
+    nodeStats,
+  } = context;
 
   let requestLatency = 0;
   let requestFailed = false;
@@ -268,9 +320,15 @@ function runRequest(
     // Calculate utilization based on actual arrival rate at this node
     const actualArrivalRate = toStats.arrivals / SIMULATION_WINDOW_SECONDS;
     const utilization = cap > 0 ? actualArrivalRate / cap : 0;
-    const baseQueueWait = utilization >= 1 ? Infinity : (utilization / (cap * (1 - utilization))) * 1000;
+    const baseQueueWait =
+      utilization >= 1
+        ? Infinity
+        : (utilization / (cap * (1 - utilization))) * 1000;
 
-    const jitter = latencyJitterMs > 0 ? (prng() - JITTER_MULTIPLIER) * 2 * latencyJitterMs : 0;
+    const jitter =
+      latencyJitterMs > 0
+        ? (prng() - JITTER_MULTIPLIER) * 2 * latencyJitterMs
+        : 0;
     const queueWait = Math.max(0, baseQueueWait + jitter);
     const thisHopLatency = serviceMs + queueWait;
 
@@ -282,7 +340,8 @@ function runRequest(
     // Cache hit check
     if (isCacheLike(toNode) && hop < state.path.length - 1) {
       const cacheNode = toNode as any;
-      const hitRate = cacheColdStart && toStats.processed === 0 ? 0 : cacheNode.hitRate;
+      const hitRate =
+        cacheColdStart && toStats.processed === 0 ? 0 : cacheNode.hitRate;
       if (prng() < hitRate) {
         toStats.processed++;
         toStats.latencies.push(requestLatency);
@@ -303,7 +362,11 @@ function runRequest(
     }
 
     // Rate limiting on load balancer for abusive clients
-    if (toNode.type === "load_balancer" && state.isAbusive && (toNode as any).rateLimitPerMin) {
+    if (
+      toNode.type === "load_balancer" &&
+      state.isAbusive &&
+      (toNode as any).rateLimitPerMin
+    ) {
       const limitPerSec = (toNode as any).rateLimitPerMin / 60;
       if (arrivalRate * context.abusiveShare > limitPerSec) {
         requestFailed = true;
@@ -387,7 +450,9 @@ function runSimulation(
 } {
   const { nodeById, pathsToTerminals, terminalNodes } = pre;
 
-  const downNodes = new Set(failures.filter((f) => f.kind === "node_down").map((f) => f.nodeId));
+  const downNodes = new Set(
+    failures.filter((f) => f.kind === "node_down").map((f) => f.nodeId),
+  );
 
   const arrivalRate = graph.scenario.arrivalRate;
   const writeShare = graph.scenario.writeShare;
@@ -410,7 +475,8 @@ function runSimulation(
 
   const partitionedEdges = new Set<string>();
   for (const f of failures) {
-    if (f.kind === "partition") f.edgeIds.forEach((id) => partitionedEdges.add(id));
+    if (f.kind === "partition")
+      f.edgeIds.forEach((id) => partitionedEdges.add(id));
   }
 
   // Track per-node statistics
@@ -433,7 +499,12 @@ function runSimulation(
   let totalErrors = 0;
   let totalBytesOut = 0;
   const allLatencies: number[] = [];
-  const errorClasses: Partial<Record<SdErrorClass, number>> = { unreachable: 0, stale: 0, rejected: 0, shed: 0 };
+  const errorClasses: Partial<Record<SdErrorClass, number>> = {
+    unreachable: 0,
+    stale: 0,
+    rejected: 0,
+    shed: 0,
+  };
 
   const context: SimulationContext = {
     nodeById,
@@ -456,11 +527,16 @@ function runSimulation(
     nodeStats,
   };
 
-  const clientNodes = graph.nodes.filter((n) => n.type === "client" && !downNodes.has(n.id));
+  const clientNodes = graph.nodes.filter(
+    (n) => n.type === "client" && !downNodes.has(n.id),
+  );
 
   for (let step = 0; step < TOTAL_STEPS; step++) {
     const arrivalsThisStep = arrivalRate * TIME_STEP_SECONDS;
-    const nArrivals = Math.min(MAX_ARRIVALS_PER_STEP, Math.floor(arrivalsThisStep + prng()));
+    const nArrivals = Math.min(
+      MAX_ARRIVALS_PER_STEP,
+      Math.floor(arrivalsThisStep + prng()),
+    );
 
     for (let i = 0; i < nArrivals; i++) {
       totalArrivals++;
@@ -487,7 +563,8 @@ function runSimulation(
         continue;
       }
       const terminalIds = Array.from(clientTerminalPaths.keys());
-      const targetTerminal = terminalIds[Math.floor(prng() * terminalIds.length)];
+      const targetTerminal =
+        terminalIds[Math.floor(prng() * terminalIds.length)];
       const path = clientTerminalPaths.get(targetTerminal)!;
 
       const requestState: RequestState = {
@@ -504,18 +581,21 @@ function runSimulation(
       if (result.failed) {
         totalErrors++;
         if (result.failClass) {
-          errorClasses[result.failClass] = (errorClasses[result.failClass] ?? 0) + 1;
+          errorClasses[result.failClass] =
+            (errorClasses[result.failClass] ?? 0) + 1;
         }
         if (result.failedAtNodeId) {
           const fs = nodeStats.get(result.failedAtNodeId)!;
           if (result.failClass) {
-            fs.errors[result.failClass] = (fs.errors[result.failClass] ?? 0) + 1;
+            fs.errors[result.failClass] =
+              (fs.errors[result.failClass] ?? 0) + 1;
           }
         }
       } else {
         totalCompleted++;
         allLatencies.push(result.latencyMs);
-        if (requestState.payloadBytes) totalBytesOut += requestState.payloadBytes;
+        if (requestState.payloadBytes)
+          totalBytesOut += requestState.payloadBytes;
       }
     }
   }
@@ -536,8 +616,19 @@ function computeStatistics(
   graph: SdGraph,
   failures: SdFailure[],
   simResult: ReturnType<typeof runSimulation>,
-): Omit<SimulationResult, "valid" | "invalidReason" | "teaching"> & { perNode: SdNodeResult[]; bottleneck: SimulationResult["bottleneck"] } {
-  const { nodeStats, totalArrivals, totalCompleted, totalErrors, totalBytesOut, allLatencies, errorClasses } = simResult;
+): Omit<SimulationResult, "valid" | "invalidReason" | "teaching"> & {
+  perNode: SdNodeResult[];
+  bottleneck: SimulationResult["bottleneck"];
+} {
+  const {
+    nodeStats,
+    totalArrivals,
+    totalCompleted,
+    totalErrors,
+    totalBytesOut,
+    allLatencies,
+    errorClasses,
+  } = simResult;
 
   const throughput = totalCompleted / SIMULATION_WINDOW_SECONDS;
   allLatencies.sort((a, b) => a - b);
@@ -545,10 +636,15 @@ function computeStatistics(
   const p95 = allLatencies[Math.floor(allLatencies.length * 0.95)] ?? 0;
   const p99 = allLatencies[Math.floor(allLatencies.length * 0.99)] ?? 0;
   const errorRate = totalArrivals > 0 ? totalErrors / totalArrivals : 0;
-  const bandwidthMbps = (totalBytesOut * 8) / (SIMULATION_WINDOW_SECONDS * 1_000_000);
+  const bandwidthMbps =
+    (totalBytesOut * 8) / (SIMULATION_WINDOW_SECONDS * 1_000_000);
 
   const perNode: SdNodeResult[] = [];
-  let bottleneckNode: { nodeId: string; reason: string; concurrency: number } | null = null;
+  let bottleneckNode: {
+    nodeId: string;
+    reason: string;
+    concurrency: number;
+  } | null = null;
   let maxUtil = 0;
 
   for (const n of graph.nodes) {
@@ -556,18 +652,22 @@ function computeStatistics(
     const cap = effectiveCapacity(n, failures, graph.scenario.writeShare);
     const actualArrivalRate = stats.arrivals / SIMULATION_WINDOW_SECONDS;
     const util = cap > 0 ? actualArrivalRate / cap : 0;
-    const avgLatency = stats.latencies.length > 0
-      ? stats.latencies.reduce((a, b) => a + b, 0) / stats.latencies.length
-      : 0;
-    const avgQueueWait = stats.queueWaits.length > 0
-      ? stats.queueWaits.reduce((a, b) => a + b, 0) / stats.queueWaits.length
-      : 0;
-    const avgService = stats.services.length > 0
-      ? stats.services.reduce((a, b) => a + b, 0) / stats.services.length
-      : 0;
+    const avgLatency =
+      stats.latencies.length > 0
+        ? stats.latencies.reduce((a, b) => a + b, 0) / stats.latencies.length
+        : 0;
+    const avgQueueWait =
+      stats.queueWaits.length > 0
+        ? stats.queueWaits.reduce((a, b) => a + b, 0) / stats.queueWaits.length
+        : 0;
+    const avgService =
+      stats.services.length > 0
+        ? stats.services.reduce((a, b) => a + b, 0) / stats.services.length
+        : 0;
 
     // Little's Law per node: concurrency = λ * W where λ = arrival rate at node, W = service + queue time
-    const concurrency = actualArrivalRate * ((avgService + avgQueueWait) / 1000);
+    const concurrency =
+      actualArrivalRate * ((avgService + avgQueueWait) / 1000);
 
     if (util > maxUtil && n.type !== "client") {
       maxUtil = util;
@@ -611,15 +711,18 @@ function generateTeaching(
 
   if (stats.bottleneck) {
     teaching.push(
-      `Your ${stats.bottleneck.reason}. At ${arrivalRate} req/s it needs ${Math.round(stats.bottleneck.concurrency)} concurrent connections (L = λW), but a tier-1 instance holds ~${TIER1_CONNECTION_LIMIT}. That is why requests queue here.`
+      `Your ${stats.bottleneck.reason}. At ${arrivalRate} req/s it needs ${Math.round(stats.bottleneck.concurrency)} concurrent connections (L = λW), but a tier-1 instance holds ~${TIER1_CONNECTION_LIMIT}. That is why requests queue here.`,
     );
   }
 
   const cacheNodes = graph.nodes.filter((n) => n.type === "cache");
   const readShare = 1 - writeShare;
-  if (cacheNodes.length === 0 && graph.nodes.some((n) => n.type === "database")) {
+  if (
+    cacheNodes.length === 0 &&
+    graph.nodes.some((n) => n.type === "database")
+  ) {
     teaching.push(
-      `Reads are ${Math.round(readShare * 100)}% of your traffic and you are hitting the database for all of them. A cache in front would absorb most of this.`
+      `Reads are ${Math.round(readShare * 100)}% of your traffic and you are hitting the database for all of them. A cache in front would absorb most of this.`,
     );
   }
 
@@ -627,7 +730,7 @@ function generateTeaching(
   const appServers = graph.nodes.filter((n) => n.type === "app_server");
   if (!hasLb && appServers.length > 1) {
     teaching.push(
-      "You have multiple app servers but no load balancer. Requests cannot spread — add one in front."
+      "You have multiple app servers but no load balancer. Requests cannot spread — add one in front.",
     );
   }
 
@@ -635,7 +738,10 @@ function generateTeaching(
 }
 
 /** Main simulation entry point. */
-export function simulate(graph: SdGraph, failures: SdFailure[] = []): SimulationResult {
+export function simulate(
+  graph: SdGraph,
+  failures: SdFailure[] = [],
+): SimulationResult {
   const seed = graphSeed(graph);
   const prng = createPrng(seed);
 
@@ -657,7 +763,12 @@ export function simulate(graph: SdGraph, failures: SdFailure[] = []): Simulation
 
   const simResult = runSimulation(graph, failures, pre, prng);
   const computed = computeStatistics(graph, failures, simResult);
-  const teaching = generateTeaching(graph, computed, graph.scenario.writeShare, graph.scenario.arrivalRate);
+  const teaching = generateTeaching(
+    graph,
+    computed,
+    graph.scenario.writeShare,
+    graph.scenario.arrivalRate,
+  );
 
   return {
     valid: true,

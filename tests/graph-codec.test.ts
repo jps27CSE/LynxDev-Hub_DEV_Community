@@ -182,7 +182,10 @@ describe("decodeGraph", () => {
       binary += String.fromCharCode(bytes[i]);
     }
     const b64 = btoa(binary);
-    const payload = b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const payload = b64
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
     const result = decodeGraph(payload);
 
     // TextDecoder replaces invalid sequences with �, then JSON.parse fails
@@ -205,7 +208,10 @@ describe("decodeGraph", () => {
   it("rejects valid JSON that fails Zod schema (missing required field)", () => {
     const badGraph = { nodes: [], edges: [], scenario: {} };
     const json = JSON.stringify(badGraph);
-    const encoded = btoa(json).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const encoded = btoa(json)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
     const result = decodeGraph(encoded);
 
     assert.equal(result.success, false);
@@ -219,7 +225,10 @@ describe("decodeGraph", () => {
     const encoded = encodeGraph(graph);
     // Manually construct a payload that has zero nodes to test schema validation
     const badJson = JSON.stringify({ ...graph, nodes: [] });
-    const encodedBad = btoa(badJson).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const encodedBad = btoa(badJson)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
     const result = decodeGraph(encodedBad);
 
     assert.equal(result.success, false);
@@ -235,7 +244,10 @@ describe("decodeGraph", () => {
       edges: [],
       scenario: minimalGraph().scenario,
     });
-    const encodedBad = btoa(badJson).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const encodedBad = btoa(badJson)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
     const result = decodeGraph(encodedBad);
 
     assert.equal(result.success, false);
@@ -259,7 +271,10 @@ describe("decodeGraph", () => {
         },
       ],
     });
-    const encodedBad = btoa(badJson).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const encodedBad = btoa(badJson)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
     const result = decodeGraph(encodedBad);
 
     assert.equal(result.success, false);
@@ -274,7 +289,10 @@ describe("decodeGraph", () => {
       ...graph,
       scenario: { ...graph.scenario, arrivalRate: 0 },
     });
-    const encodedBad = btoa(badJson).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const encodedBad = btoa(badJson)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
     const result = decodeGraph(encodedBad);
 
     assert.equal(result.success, false);
@@ -289,7 +307,10 @@ describe("decodeGraph", () => {
       ...graph,
       scenario: { ...graph.scenario, writeShare: 1.5 },
     });
-    const encodedBad = btoa(badJson).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const encodedBad = btoa(badJson)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
     const result = decodeGraph(encodedBad);
 
     assert.equal(result.success, false);
@@ -303,23 +324,130 @@ describe("decodeGraph", () => {
       nodes: [
         { id: "c1", type: "client", label: "Client", x: 0, y: 0 },
         { id: "cdn1", type: "cdn", label: "CDN", x: 100, y: 0, hitRate: 0.95 },
-        { id: "lb1", type: "load_balancer", label: "LB", x: 200, y: 0, algorithm: "rr", rateLimitPerMin: null },
-        { id: "app1", type: "app_server", label: "App", x: 300, y: 0, replicas: 2, maxConcurrency: null, breakerEnabled: true },
-        { id: "cache1", type: "cache", label: "Cache", x: 400, y: 0, hitRate: 0.9, ttlMs: 60000, stampedeGuard: false },
-        { id: "db1", type: "database", label: "DB", x: 500, y: 0, readReplicas: 2, partitions: 10, hotKeyShare: 0.1 },
-        { id: "queue1", type: "queue", label: "Queue", x: 600, y: 0, maxDepth: 1000, retryLimit: 3, dlqEnabled: true },
-        { id: "worker1", type: "worker", label: "Worker", x: 700, y: 0, replicas: 3 },
+        {
+          id: "lb1",
+          type: "load_balancer",
+          label: "LB",
+          x: 200,
+          y: 0,
+          algorithm: "rr",
+          rateLimitPerMin: null,
+        },
+        {
+          id: "app1",
+          type: "app_server",
+          label: "App",
+          x: 300,
+          y: 0,
+          replicas: 2,
+          maxConcurrency: null,
+          breakerEnabled: true,
+        },
+        {
+          id: "cache1",
+          type: "cache",
+          label: "Cache",
+          x: 400,
+          y: 0,
+          hitRate: 0.9,
+          ttlMs: 60000,
+          stampedeGuard: false,
+        },
+        {
+          id: "db1",
+          type: "database",
+          label: "DB",
+          x: 500,
+          y: 0,
+          readReplicas: 2,
+          partitions: 10,
+          hotKeyShare: 0.1,
+        },
+        {
+          id: "queue1",
+          type: "queue",
+          label: "Queue",
+          x: 600,
+          y: 0,
+          maxDepth: 1000,
+          retryLimit: 3,
+          dlqEnabled: true,
+        },
+        {
+          id: "worker1",
+          type: "worker",
+          label: "Worker",
+          x: 700,
+          y: 0,
+          replicas: 3,
+        },
         { id: "obj1", type: "object_store", label: "Objects", x: 800, y: 0 },
       ],
       edges: [
-        { id: "e1", from: "c1", to: "cdn1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e2", from: "cdn1", to: "lb1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e3", from: "lb1", to: "app1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e4", from: "app1", to: "cache1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e5", from: "cache1", to: "db1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e6", from: "app1", to: "queue1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e7", from: "queue1", to: "worker1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e8", from: "app1", to: "obj1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "c1",
+          to: "cdn1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e2",
+          from: "cdn1",
+          to: "lb1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e3",
+          from: "lb1",
+          to: "app1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e4",
+          from: "app1",
+          to: "cache1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e5",
+          from: "cache1",
+          to: "db1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e6",
+          from: "app1",
+          to: "queue1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e7",
+          from: "queue1",
+          to: "worker1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e8",
+          from: "app1",
+          to: "obj1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
       scenario: minimalGraph().scenario,
     };

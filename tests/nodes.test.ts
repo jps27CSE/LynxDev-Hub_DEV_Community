@@ -57,13 +57,34 @@ describe("NODE_TYPES — the 9 node type specifications", () => {
   it("each spec has required fields", () => {
     for (const [type, spec] of Object.entries(NODE_TYPES)) {
       assert.ok(typeof spec.capacity === "number", `${type}: capacity missing`);
-      assert.ok(typeof spec.serviceMs === "object", `${type}: serviceMs missing`);
-      assert.ok(typeof spec.serviceMs.read === "number", `${type}: serviceMs.read missing`);
-      assert.ok(typeof spec.serviceMs.write === "number", `${type}: serviceMs.write missing`);
-      assert.ok(["traffic", "compute", "data", "async"].includes(spec.category), `${type}: invalid category`);
-      assert.ok(typeof spec.iconKey === "string" && spec.iconKey.length > 0, `${type}: iconKey missing`);
-      assert.ok(typeof spec.label === "string" && spec.label.length > 0, `${type}: label missing`);
-      assert.ok(typeof spec.blurb === "string" && spec.blurb.length > 0, `${type}: blurb missing`);
+      assert.ok(
+        typeof spec.serviceMs === "object",
+        `${type}: serviceMs missing`,
+      );
+      assert.ok(
+        typeof spec.serviceMs.read === "number",
+        `${type}: serviceMs.read missing`,
+      );
+      assert.ok(
+        typeof spec.serviceMs.write === "number",
+        `${type}: serviceMs.write missing`,
+      );
+      assert.ok(
+        ["traffic", "compute", "data", "async"].includes(spec.category),
+        `${type}: invalid category`,
+      );
+      assert.ok(
+        typeof spec.iconKey === "string" && spec.iconKey.length > 0,
+        `${type}: iconKey missing`,
+      );
+      assert.ok(
+        typeof spec.label === "string" && spec.label.length > 0,
+        `${type}: label missing`,
+      );
+      assert.ok(
+        typeof spec.blurb === "string" && spec.blurb.length > 0,
+        `${type}: blurb missing`,
+      );
     }
   });
 
@@ -169,7 +190,11 @@ describe("NODE_TYPES — the 9 node type specifications", () => {
     it("database has write 4x read (the teaching point)", () => {
       assert.equal(NODE_TYPES.database.serviceMs.read, 2);
       assert.equal(NODE_TYPES.database.serviceMs.write, 8);
-      assert.equal(NODE_TYPES.database.serviceMs.write / NODE_TYPES.database.serviceMs.read, 4);
+      assert.equal(
+        NODE_TYPES.database.serviceMs.write /
+          NODE_TYPES.database.serviceMs.read,
+        4,
+      );
     });
   });
 
@@ -278,9 +303,14 @@ describe("NODE_CATEGORY_LABELS", () => {
   });
 
   it("covers all categories used in NODE_TYPES", () => {
-    const usedCategories = new Set(Object.values(NODE_TYPES).map((s) => s.category));
+    const usedCategories = new Set(
+      Object.values(NODE_TYPES).map((s) => s.category),
+    );
     for (const cat of usedCategories) {
-      assert.ok(cat in NODE_CATEGORY_LABELS, `Missing label for category: ${cat}`);
+      assert.ok(
+        cat in NODE_CATEGORY_LABELS,
+        `Missing label for category: ${cat}`,
+      );
     }
   });
 });
@@ -323,12 +353,25 @@ describe("defaultNode — builds complete node with type-specific defaults", () 
     {
       type: "load_balancer",
       id: "lb1",
-      expected: { type: "load_balancer", id: "lb1", label: "Load balancer", algorithm: "rr", rateLimitPerMin: null },
+      expected: {
+        type: "load_balancer",
+        id: "lb1",
+        label: "Load balancer",
+        algorithm: "rr",
+        rateLimitPerMin: null,
+      },
     },
     {
       type: "app_server",
       id: "app1",
-      expected: { type: "app_server", id: "app1", label: "App server", replicas: 1, maxConcurrency: null, breakerEnabled: false },
+      expected: {
+        type: "app_server",
+        id: "app1",
+        label: "App server",
+        replicas: 1,
+        maxConcurrency: null,
+        breakerEnabled: false,
+      },
     },
     {
       type: "worker",
@@ -338,12 +381,26 @@ describe("defaultNode — builds complete node with type-specific defaults", () 
     {
       type: "cache",
       id: "cache1",
-      expected: { type: "cache", id: "cache1", label: "Cache", hitRate: 0.9, ttlMs: 60_000, stampedeGuard: false },
+      expected: {
+        type: "cache",
+        id: "cache1",
+        label: "Cache",
+        hitRate: 0.9,
+        ttlMs: 60_000,
+        stampedeGuard: false,
+      },
     },
     {
       type: "database",
       id: "db1",
-      expected: { type: "database", id: "db1", label: "Database", readReplicas: 0, partitions: 1, hotKeyShare: 0 },
+      expected: {
+        type: "database",
+        id: "db1",
+        label: "Database",
+        readReplicas: 0,
+        partitions: 1,
+        hotKeyShare: 0,
+      },
     },
     {
       type: "object_store",
@@ -353,7 +410,14 @@ describe("defaultNode — builds complete node with type-specific defaults", () 
     {
       type: "queue",
       id: "q1",
-      expected: { type: "queue", id: "q1", label: "Queue", maxDepth: 1_000, retryLimit: 3, dlqEnabled: false },
+      expected: {
+        type: "queue",
+        id: "q1",
+        label: "Queue",
+        maxDepth: 1_000,
+        retryLimit: 3,
+        dlqEnabled: false,
+      },
     },
   ];
 
@@ -472,7 +536,10 @@ describe("Completeness — every SdNodeType is covered", () => {
       "queue",
     ];
     for (const type of allTypes) {
-      assert.ok(NODE_TYPE_ORDER.includes(type), `${type} missing from NODE_TYPE_ORDER`);
+      assert.ok(
+        NODE_TYPE_ORDER.includes(type),
+        `${type} missing from NODE_TYPE_ORDER`,
+      );
     }
   });
 

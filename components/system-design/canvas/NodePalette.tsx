@@ -1,7 +1,13 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { NODE_TYPES, NODE_TYPE_ORDER, NODE_CATEGORY_LABELS, type SdNodeType, type SdNodeCategory } from "@/lib/system-design/nodes";
+import {
+  NODE_TYPES,
+  NODE_TYPE_ORDER,
+  NODE_CATEGORY_LABELS,
+  type SdNodeType,
+  type SdNodeCategory,
+} from "@/lib/system-design/nodes";
 import { createLucideIcon } from "@/components/ui/lucide-icons";
 
 interface NodePaletteProps {
@@ -9,14 +15,18 @@ interface NodePaletteProps {
   disabledTypes?: SdNodeType[];
 }
 
-export function NodePalette({ onDragStart, disabledTypes = [] }: NodePaletteProps) {
+export function NodePalette({
+  onDragStart,
+  disabledTypes = [],
+}: NodePaletteProps) {
   const categories: SdNodeCategory[] = ["traffic", "compute", "data", "async"];
 
   return (
     <div className="flex flex-col gap-4 h-full overflow-y-auto p-3">
       {categories.map((category) => {
         const typesInCategory = NODE_TYPE_ORDER.filter(
-          (t) => NODE_TYPES[t].category === category && !disabledTypes.includes(t)
+          (t) =>
+            NODE_TYPES[t].category === category && !disabledTypes.includes(t),
         );
         if (typesInCategory.length === 0) return null;
 
@@ -34,7 +44,10 @@ export function NodePalette({ onDragStart, disabledTypes = [] }: NodePaletteProp
                     key={type}
                     draggable
                     onDragStart={(e) => {
-                      e.dataTransfer.setData("application/json", JSON.stringify({ type }));
+                      e.dataTransfer.setData(
+                        "application/json",
+                        JSON.stringify({ type }),
+                      );
                       onDragStart(type, e);
                     }}
                     className={cn(
@@ -42,12 +55,15 @@ export function NodePalette({ onDragStart, disabledTypes = [] }: NodePaletteProp
                       "hover:border-primary/50 hover:bg-accent transition-all duration-200",
                       "active:scale-[0.98]",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                      "min-w-0"
+                      "min-w-0",
                     )}
                     title={spec.blurb}
                   >
                     <div className="relative w-10 h-10 flex items-center justify-center rounded bg-muted">
-                      <Icon className="w-5 h-5 text-foreground" strokeWidth={2} />
+                      <Icon
+                        className="w-5 h-5 text-foreground"
+                        strokeWidth={2}
+                      />
                     </div>
                     <span className="text-xs font-medium text-center truncate w-full">
                       {spec.label}

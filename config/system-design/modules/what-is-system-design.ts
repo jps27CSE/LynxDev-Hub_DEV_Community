@@ -63,42 +63,74 @@ const module: SdModule = {
         {
           kind: "scenario",
           title: "The moment things change",
-          body:
-            "Let's stick to our photo-sharing app. At 100 users, a single app server + database is more than enough. At 10,000 users, opening the feed might start taking a second. At 100,000 users, that same setup could go down during peak hours. The question isn't 'which tool is trending?' The question is 'what problem am I actually solving right now?'",
+          body: "Let's stick to our photo-sharing app. At 100 users, a single app server + database is more than enough. At 10,000 users, opening the feed might start taking a second. At 100,000 users, that same setup could go down during peak hours. The question isn't 'which tool is trending?' The question is 'what problem am I actually solving right now?'",
         },
         {
           kind: "concept",
           title: "In simple words",
-          body:
-            "System design is the art of breaking a big, real problem into smaller pieces and deciding how those pieces talk to each other to meet your goals.\n\nThink of it like building a restaurant. For a food stall with 10 customers/hour, one cook can do everything. For a busy restaurant with 500 customers/hour, you need a waiter, cashier, chef, helper, and a way to take orders without chaos. You don't hire 5 chefs on day 1 just because restaurants exist. You scale based on demand and constraints.",
+          body: "System design is the art of breaking a big, real problem into smaller pieces and deciding how those pieces talk to each other to meet your goals.\n\nThink of it like building a restaurant. For a food stall with 10 customers/hour, one cook can do everything. For a busy restaurant with 500 customers/hour, you need a waiter, cashier, chef, helper, and a way to take orders without chaos. You don't hire 5 chefs on day 1 just because restaurants exist. You scale based on demand and constraints.",
         },
         {
           kind: "concept",
           title: "System design vs writing code",
-          body:
-            "Writing code is about making features work correctly. System design is about making the whole system work reliably, efficiently and within your limits when many people use it together.\n\nGood engineers know how to code. Great engineers know when to add complexity and more importantly, when NOT to.",
+          body: "Writing code is about making features work correctly. System design is about making the whole system work reliably, efficiently and within your limits when many people use it together.\n\nGood engineers know how to code. Great engineers know when to add complexity and more importantly, when NOT to.",
         },
         {
           kind: "diagram",
           caption: "Our starting point for the photo-sharing app (100 users)",
           graph: {
             nodes: [
-              (() => { const n = defaultNode("client", "client-1", 40, 200); (n as any).label = "Users (Mobile/Web)"; return n; })(),
-              (() => { const n = defaultNode("app_server", "app-1", 280, 200); (n as any).label = "Monolith (All logic)"; (n as any).replicas = 1; return n; })(),
-              (() => { const n = defaultNode("database", "db-1", 520, 200); (n as any).label = "Relational DB"; return n; })(),
+              (() => {
+                const n = defaultNode("client", "client-1", 40, 200);
+                (n as any).label = "Users (Mobile/Web)";
+                return n;
+              })(),
+              (() => {
+                const n = defaultNode("app_server", "app-1", 280, 200);
+                (n as any).label = "Monolith (All logic)";
+                (n as any).replicas = 1;
+                return n;
+              })(),
+              (() => {
+                const n = defaultNode("database", "db-1", 520, 200);
+                (n as any).label = "Relational DB";
+                return n;
+              })(),
             ] as any,
             edges: [
-              { id: "e1", from: "client-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-              { id: "e2", from: "app-1", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+              {
+                id: "e1",
+                from: "client-1",
+                to: "app-1",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
+              {
+                id: "e2",
+                from: "app-1",
+                to: "db-1",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
             ],
-            scenario: { arrivalRate: 100, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+            scenario: {
+              arrivalRate: 100,
+              writeShare: 0.05,
+              mediaShare: 0,
+              bytesPerMediaRequest: 2_000_000,
+              abusiveShare: 0,
+              latencyJitterMs: 0,
+              cacheColdStart: false,
+              replicaLagMs: 0,
+            },
           },
         },
         {
           kind: "concept",
           title: "Start with constraints, not components",
-          body:
-            "A very common beginner mistake is opening a diagram and immediately drawing a Load Balancer, Redis, Kafka etc. Instead, ask: How many users? What's the read/write ratio? Is it read heavy or write heavy? Do users care more about speed or uptime? What's the budget/time we actually have?\n\nYour answer to these questions should decide what you add, not your excitement to use new tools.",
+          body: "A very common beginner mistake is opening a diagram and immediately drawing a Load Balancer, Redis, Kafka etc. Instead, ask: How many users? What's the read/write ratio? Is it read heavy or write heavy? Do users care more about speed or uptime? What's the budget/time we actually have?\n\nYour answer to these questions should decide what you add, not your excitement to use new tools.",
         },
         {
           kind: "your_turn",
@@ -107,8 +139,7 @@ const module: SdModule = {
         },
         {
           kind: "compare",
-          body:
-            "A beginner asks: 'Which technology should I use?'. A senior engineer asks: 'What constraint am I trying to satisfy?'. Focus on the constraint first. The right tool becomes obvious after that.",
+          body: "A beginner asks: 'Which technology should I use?'. A senior engineer asks: 'What constraint am I trying to satisfy?'. Focus on the constraint first. The right tool becomes obvious after that.",
         },
         {
           kind: "recap",
@@ -124,26 +155,22 @@ const module: SdModule = {
     {
       slug: "performance-vs-scalability",
       title: "Performance vs Scalability",
-      attribution:
-        "Synthesised from donnemartin/system-design-primer",
+      attribution: "Synthesised from donnemartin/system-design-primer",
       sections: [
         {
           kind: "scenario",
           title: "Two very different complaints",
-          body:
-            "User A says: 'The app is taking 4 seconds to load my feed right now'. User B says: 'Last time we got featured, the app crashed for everyone'. These sound similar, but they require completely different fixes.",
+          body: "User A says: 'The app is taking 4 seconds to load my feed right now'. User B says: 'Last time we got featured, the app crashed for everyone'. These sound similar, but they require completely different fixes.",
         },
         {
           kind: "concept",
           title: "In simple words",
-          body:
-            "Performance = How fast is the system for a single user under the load it currently has?\n\nScalability = If we 10x the number of users/requests, can the system keep working by adding more resources (more servers, etc)?\n\nYou can fix 'slow for this user' by making that specific request faster. You fix 'crashes under more users' by making the system able to grow.",
+          body: "Performance = How fast is the system for a single user under the load it currently has?\n\nScalability = If we 10x the number of users/requests, can the system keep working by adding more resources (more servers, etc)?\n\nYou can fix 'slow for this user' by making that specific request faster. You fix 'crashes under more users' by making the system able to grow.",
         },
         {
           kind: "concept",
           title: "Relatable example",
-          body:
-            "Imagine a single coffee shop counter. If it's slow because the barista is inefficient, that's a performance issue. You can train them or make the menu simpler to fix it.\n\nIf it's taking forever only because there are now 200 people in line at 8 AM everyday, that's a scalability issue. Adding another counter/barista is the right way to handle the growth.",
+          body: "Imagine a single coffee shop counter. If it's slow because the barista is inefficient, that's a performance issue. You can train them or make the menu simpler to fix it.\n\nIf it's taking forever only because there are now 200 people in line at 8 AM everyday, that's a scalability issue. Adding another counter/barista is the right way to handle the growth.",
         },
         {
           kind: "your_turn",
@@ -152,8 +179,7 @@ const module: SdModule = {
         },
         {
           kind: "compare",
-          body:
-            "Adding an index to your database is usually about performance (faster queries). Adding more app servers behind a load balancer is usually about scalability (handling more traffic). Sometimes a fix helps both, but you must know which one you're targeting.",
+          body: "Adding an index to your database is usually about performance (faster queries). Adding more app servers behind a load balancer is usually about scalability (handling more traffic). Sometimes a fix helps both, but you must know which one you're targeting.",
         },
         {
           kind: "recap",
@@ -169,32 +195,27 @@ const module: SdModule = {
     {
       slug: "latency-vs-throughput-vs-bandwidth",
       title: "Latency, Throughput & Bandwidth",
-      attribution:
-        "Synthesised from donnemartin/system-design-primer",
+      attribution: "Synthesised from donnemartin/system-design-primer",
       sections: [
         {
           kind: "scenario",
           title: "Three terms, easily confused",
-          body:
-            "In meetings people say 'our app is slow'. But 'slow' could mean: it takes too long to start loading, or it can only serve a few people, or it struggles to transfer large photos. We need to be more precise.",
+          body: "In meetings people say 'our app is slow'. But 'slow' could mean: it takes too long to start loading, or it can only serve a few people, or it struggles to transfer large photos. We need to be more precise.",
         },
         {
           kind: "concept",
           title: "Definitions in plain English",
-          body:
-            "Latency = Time taken for ONE request to go from client to server and back. Measured in milliseconds (ms). Think: 'How long do I wait?'\n\nThroughput = How many requests the system can handle in a given time. Measured in requests/second (req/s). Think: 'How many people can we serve at the same time?'\n\nBandwidth = How much data can travel in a given time. Measured in MB/s, GB/s or Mbps. Think: 'How much stuff can we push through the pipe?'",
+          body: "Latency = Time taken for ONE request to go from client to server and back. Measured in milliseconds (ms). Think: 'How long do I wait?'\n\nThroughput = How many requests the system can handle in a given time. Measured in requests/second (req/s). Think: 'How many people can we serve at the same time?'\n\nBandwidth = How much data can travel in a given time. Measured in MB/s, GB/s or Mbps. Think: 'How much stuff can we push through the pipe?'",
         },
         {
           kind: "concept",
           title: "Everyday analogy",
-          body:
-            "Imagine a water pipe. Bandwidth is the width of the pipe (how much water can flow). Latency is how long it takes for the first drop to reach you. Throughput is how many buckets you can fill per minute. A very wide pipe can still have delay, and a low-delay pipe can be narrow.",
+          body: "Imagine a water pipe. Bandwidth is the width of the pipe (how much water can flow). Latency is how long it takes for the first drop to reach you. Throughput is how many buckets you can fill per minute. A very wide pipe can still have delay, and a low-delay pipe can be narrow.",
         },
         {
           kind: "concept",
           title: "What matters for our photo app",
-          body:
-            "Loading 20 small thumbnails in the feed? You care a LOT about latency. Users want it to feel instant.\n\nUploading/downloading a 2MB photo? Bandwidth becomes more important. \n\nHandling millions of feed requests during a viral moment? Throughput is your concern.\n\nAlso, NEVER look only at average. Look at p50, p95, p99. p99 tells you about the worst experience your users actually feel.",
+          body: "Loading 20 small thumbnails in the feed? You care a LOT about latency. Users want it to feel instant.\n\nUploading/downloading a 2MB photo? Bandwidth becomes more important. \n\nHandling millions of feed requests during a viral moment? Throughput is your concern.\n\nAlso, NEVER look only at average. Look at p50, p95, p99. p99 tells you about the worst experience your users actually feel.",
         },
         {
           kind: "your_turn",
@@ -203,8 +224,7 @@ const module: SdModule = {
         },
         {
           kind: "compare",
-          body:
-            "You can have high throughput but terrible p99 latency (some users wait way too long). A good system design aims for both: reasonable latency AND enough throughput for your expected peak.",
+          body: "You can have high throughput but terrible p99 latency (some users wait way too long). A good system design aims for both: reasonable latency AND enough throughput for your expected peak.",
         },
         {
           kind: "recap",
@@ -224,33 +244,93 @@ const module: SdModule = {
       "Explain the difference between performance and scalability with a real example.",
     strongAnswer:
       "Performance is about speed under current load. Scalability is about handling increased load by adding resources. For example, adding a database index can make a slow feed query faster (performance). If our app suddenly goes from 1,000 to 50,000 users and the monolith can't keep up, we'd add more app servers behind a load balancer to scale horizontally (scalability). They're related, but solving one doesn't automatically solve the other.",
-    trap:
-      "Saying 'scalable means fast'. A system can scale to handle more users but still feel sluggish for each user. Or be very fast for 100 users and completely fall over at 10,000.",
+    trap: "Saying 'scalable means fast'. A system can scale to handle more users but still feel sluggish for each user. Or be very fast for 100 users and completely fall over at 10,000.",
   },
   task: {
     brief:
       "Design the smallest thing that can serve our photo-sharing app's first 100 users. Keep it simple. Your goal is to make it work correctly with good enough latency, not to over-engineer.",
     startGraph: {
       nodes: [
-        (() => { const n = defaultNode("client", "client-1", 60, 180); (n as any).label = "Users"; return n; })(),
-        (() => { const n = defaultNode("app_server", "app-1", 300, 180); (n as any).label = "Monolith"; (n as any).replicas = 1; return n; })(),
+        (() => {
+          const n = defaultNode("client", "client-1", 60, 180);
+          (n as any).label = "Users";
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("app_server", "app-1", 300, 180);
+          (n as any).label = "Monolith";
+          (n as any).replicas = 1;
+          return n;
+        })(),
       ] as any,
       edges: [
-        { id: "e1", from: "client-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "client-1",
+          to: "app-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
-      scenario: { arrivalRate: 100, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+      scenario: {
+        arrivalRate: 100,
+        writeShare: 0.05,
+        mediaShare: 0,
+        bytesPerMediaRequest: 2_000_000,
+        abusiveShare: 0,
+        latencyJitterMs: 0,
+        cacheColdStart: false,
+        replicaLagMs: 0,
+      },
     },
     solutionGraph: {
       nodes: [
-        (() => { const n = defaultNode("client", "client-1", 60, 180); (n as any).label = "Users"; return n; })(),
-        (() => { const n = defaultNode("app_server", "app-1", 280, 180); (n as any).label = "Monolith"; (n as any).replicas = 1; return n; })(),
-        (() => { const n = defaultNode("database", "db-1", 500, 180); (n as any).label = "Database"; return n; })(),
+        (() => {
+          const n = defaultNode("client", "client-1", 60, 180);
+          (n as any).label = "Users";
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("app_server", "app-1", 280, 180);
+          (n as any).label = "Monolith";
+          (n as any).replicas = 1;
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("database", "db-1", 500, 180);
+          (n as any).label = "Database";
+          return n;
+        })(),
       ] as any,
       edges: [
-        { id: "e1", from: "client-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e2", from: "app-1", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "client-1",
+          to: "app-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e2",
+          from: "app-1",
+          to: "db-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
-      scenario: { arrivalRate: 100, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+      scenario: {
+        arrivalRate: 100,
+        writeShare: 0.05,
+        mediaShare: 0,
+        bytesPerMediaRequest: 2_000_000,
+        abusiveShare: 0,
+        latencyJitterMs: 0,
+        cacheColdStart: false,
+        replicaLagMs: 0,
+      },
     },
     steps: [
       {
@@ -263,7 +343,10 @@ const module: SdModule = {
           "For user accounts, posts, follows and likes we need persistent storage. Add a Database node.",
         check: (g) => {
           const hasDb = g.nodes.some((n) => n.type === "database");
-          return { passed: hasDb, progress: hasDb ? "✓ Database added" : "Add a database node" };
+          return {
+            passed: hasDb,
+            progress: hasDb ? "✓ Database added" : "Add a database node",
+          };
         },
       },
       {
@@ -279,7 +362,11 @@ const module: SdModule = {
           if (appNodes.length === 0)
             return { passed: false, progress: "Add an app server first" };
           const connected = appNodes.some((a) =>
-            g.edges.some((e) => e.from === a.id && g.nodes.find((n) => n.id === e.to)?.type === "database"),
+            g.edges.some(
+              (e) =>
+                e.from === a.id &&
+                g.nodes.find((n) => n.id === e.to)?.type === "database",
+            ),
           );
           return {
             passed: connected,

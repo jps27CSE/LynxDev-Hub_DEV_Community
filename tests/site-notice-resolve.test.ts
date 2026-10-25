@@ -26,7 +26,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { resolveActiveNotice } from "../lib/site-notice";
-import type { SiteNoticeSeverity, SiteNoticeDisplay } from "../config/site-notice";
+import type {
+  SiteNoticeSeverity,
+  SiteNoticeDisplay,
+} from "../config/site-notice";
 
 type DbRow = {
   id: number;
@@ -191,14 +194,24 @@ describe("resolveActiveNotice", () => {
       if (result) {
         // These are the ONLY fields in ActiveSiteNotice
         const keys = Object.keys(result).sort();
-        assert.deepEqual(keys, ["display", "message", "severity", "title", "version"]);
+        assert.deepEqual(keys, [
+          "display",
+          "message",
+          "severity",
+          "title",
+          "version",
+        ]);
         // updated_by must NOT be present
         assert.equal("updated_by" in result, false);
       }
     });
 
     it("normalizes severity to allowed values", () => {
-      const validSeverities: SiteNoticeSeverity[] = ["info", "warning", "critical"];
+      const validSeverities: SiteNoticeSeverity[] = [
+        "info",
+        "warning",
+        "critical",
+      ];
       for (const sev of validSeverities) {
         const row = makeRow({ severity: sev });
         const result = resolveActiveNotice(row);
@@ -233,7 +246,7 @@ describe("resolveActiveNotice", () => {
 
     it("preserves title and message exactly", () => {
       const title = "Custom Title";
-      const message = "Custom message with\nnewlines and \"quotes\"";
+      const message = 'Custom message with\nnewlines and "quotes"';
       const row = makeRow({ title, message });
       const result = resolveActiveNotice(row);
       assert.notEqual(result, null);
@@ -266,13 +279,19 @@ describe("resolveActiveNotice", () => {
     });
 
     it("is_enabled=false wins over future expiry", () => {
-      const row = makeRow({ is_enabled: false, expires_at: new Date(Date.now() + 86400_000) });
+      const row = makeRow({
+        is_enabled: false,
+        expires_at: new Date(Date.now() + 86400_000),
+      });
       const result = resolveActiveNotice(row);
       assert.equal(result, null);
     });
 
     it("past expiry wins over is_enabled=true", () => {
-      const row = makeRow({ is_enabled: true, expires_at: new Date(Date.now() - 1000) });
+      const row = makeRow({
+        is_enabled: true,
+        expires_at: new Date(Date.now() - 1000),
+      });
       const result = resolveActiveNotice(row);
       assert.equal(result, null);
     });

@@ -41,7 +41,12 @@ import { runStepCheck } from "../lib/system-design/rubric";
 import type { SdModule } from "../config/system-design/types";
 
 const MANIFEST = path.join(process.cwd(), ".next", "prerender-manifest.json");
-const MODULES_DIR = path.join(process.cwd(), "config", "system-design", "modules");
+const MODULES_DIR = path.join(
+  process.cwd(),
+  "config",
+  "system-design",
+  "modules",
+);
 
 let failures = 0;
 let warnings = 0;
@@ -84,7 +89,9 @@ async function main(): Promise<void> {
   }
 
   if (!fs.existsSync(MANIFEST)) {
-    console.error(`No build output at ${MANIFEST}. Run \`npm run build\` first.`);
+    console.error(
+      `No build output at ${MANIFEST}. Run \`npm run build\` first.`,
+    );
     process.exit(1);
   }
 
@@ -106,7 +113,9 @@ async function main(): Promise<void> {
     if (!mod) {
       // Prototype-key guard (decision 36) makes this unreachable unless the two
       // exported functions disagree — which is exactly what to assert.
-      fail(`${slug}: registered in getAllModuleSlugs() but getModule() returned null`);
+      fail(
+        `${slug}: registered in getAllModuleSlugs() but getModule() returned null`,
+      );
       continue;
     }
     modules.push(mod);
@@ -132,7 +141,9 @@ async function main(): Promise<void> {
       fail(`${mod.slug}: module.slug does not match its registry key`);
     }
     if (!onDisk.includes(mod.slug)) {
-      fail(`${mod.slug}: no file at config/system-design/modules/${mod.slug}.ts`);
+      fail(
+        `${mod.slug}: no file at config/system-design/modules/${mod.slug}.ts`,
+      );
     }
     if (mod.lessons.length === 0) {
       fail(`${mod.slug}: module has no lessons`);
@@ -179,7 +190,9 @@ async function main(): Promise<void> {
       continue;
     }
     if (entry.compute !== "static") {
-      fail(`${route}: prerendered but compute="${entry.compute}", not "static"`);
+      fail(
+        `${route}: prerendered but compute="${entry.compute}", not "static"`,
+      );
     }
   }
   ok(`${expectedRoutes.size} route(s) checked for static prerender`);
@@ -189,14 +202,18 @@ async function main(): Promise<void> {
   console.log("\n--- route -> config ---");
 
   const builtModuleRoutes = Object.keys(manifest.routes).filter(
-    (route) => route.startsWith("/system-design/") && manifest.routes[route].routeType === "page",
+    (route) =>
+      route.startsWith("/system-design/") &&
+      manifest.routes[route].routeType === "page",
   );
 
   for (const route of builtModuleRoutes) {
     // /system-design/<slug>[/task|/lesson/<lesson>]
     const slug = route.split("/")[2];
     if (!registered.has(slug)) {
-      fail(`${route}: prerendered but "${slug}" is not registered in registry.ts`);
+      fail(
+        `${route}: prerendered but "${slug}" is not registered in registry.ts`,
+      );
     }
   }
   ok(`${builtModuleRoutes.length} page route(s) resolve against the registry`);
@@ -226,7 +243,8 @@ async function main(): Promise<void> {
 
     const stepIds = new Set<string>();
     for (const step of mod.task.steps) {
-      if (stepIds.has(step.id)) fail(`${mod.slug}: duplicate step id "${step.id}"`);
+      if (stepIds.has(step.id))
+        fail(`${mod.slug}: duplicate step id "${step.id}"`);
       stepIds.add(step.id);
     }
 
@@ -239,7 +257,9 @@ async function main(): Promise<void> {
     }
 
     if (mod.task.passCriteria.filter((c) => c.required).length === 0) {
-      fail(`${mod.slug}: no required pass criterion — the gate cannot ever hold`);
+      fail(
+        `${mod.slug}: no required pass criterion — the gate cannot ever hold`,
+      );
     }
 
     ok(
@@ -265,7 +285,9 @@ async function main(): Promise<void> {
       }
     }
     if (mod.task.steps.length > 0) {
-      ok(`${mod.slug}: all ${mod.task.steps.length} step(s) pass on the solution`);
+      ok(
+        `${mod.slug}: all ${mod.task.steps.length} step(s) pass on the solution`,
+      );
     }
   }
 
@@ -334,9 +356,15 @@ async function main(): Promise<void> {
     const current = modules[i];
     if (previous.part !== current.part) continue; // Part 0 -> Part 1 changes task kind
 
-    const previousTypes = new Set(previous.task.solutionGraph.nodes.map((n) => n.type));
-    const currentTypes = new Set(current.task.startGraph.nodes.map((n) => n.type));
-    const lost = [...previousTypes].filter((t) => t !== "client" && !currentTypes.has(t));
+    const previousTypes = new Set(
+      previous.task.solutionGraph.nodes.map((n) => n.type),
+    );
+    const currentTypes = new Set(
+      current.task.startGraph.nodes.map((n) => n.type),
+    );
+    const lost = [...previousTypes].filter(
+      (t) => t !== "client" && !currentTypes.has(t),
+    );
 
     if (lost.length > 0) {
       // Warn, not fail: a module may legitimately remove a node it just taught

@@ -32,7 +32,9 @@ export function encodeGraph(graph: SdGraph): string {
 }
 
 /** Decode a base64url string back to a graph, validating the shape. */
-export function decodeGraph(payload: string): { success: true; data: SdGraph } | { success: false; error: string } {
+export function decodeGraph(
+  payload: string,
+): { success: true; data: SdGraph } | { success: false; error: string } {
   let bytes: Uint8Array;
   try {
     bytes = base64UrlDecode(payload);
@@ -56,7 +58,9 @@ export function decodeGraph(payload: string): { success: true; data: SdGraph } |
 
   const validation = SdGraphSchema.safeParse(parsed);
   if (!validation.success) {
-    const issues = validation.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+    const issues = validation.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
     return { success: false, error: `Invalid graph: ${issues}` };
   }
 

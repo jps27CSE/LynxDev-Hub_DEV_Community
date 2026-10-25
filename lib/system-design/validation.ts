@@ -151,7 +151,9 @@ export type SdScenarioIn = z.infer<typeof SdScenarioSchema>;
 export type SdGraphIn = z.infer<typeof SdGraphSchema>;
 
 /** Validation result with detailed errors for the UI. */
-export function validateGraph(data: unknown): { success: true; data: SdGraph } | { success: false; errors: z.ZodIssue[] } {
+export function validateGraph(
+  data: unknown,
+): { success: true; data: SdGraph } | { success: false; errors: z.ZodIssue[] } {
   const result = SdGraphSchema.safeParse(data);
   if (result.success) return { success: true, data: result.data };
   return { success: false, errors: result.error.issues };

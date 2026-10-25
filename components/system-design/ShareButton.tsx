@@ -64,7 +64,13 @@ export function ShareButton({ graph, className }: ShareButtonProps) {
         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-muted hover:bg-muted/80 border border-border transition-colors"
         title="Copy link to clipboard"
       >
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          className="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
           <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
         </svg>
@@ -76,7 +82,13 @@ export function ShareButton({ graph, className }: ShareButtonProps) {
         className="p-2 rounded-lg bg-muted hover:bg-muted/80 border border-border transition-colors"
         title="Share via system dialog"
       >
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          className="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <circle cx="18" cy="5" r="3" />
           <circle cx="6" cy="12" r="3" />
           <circle cx="18" cy="19" r="3" />
@@ -89,7 +101,13 @@ export function ShareButton({ graph, className }: ShareButtonProps) {
         <div className="fixed bottom-4 right-4 z-50 animate-in fade-in slide-in-from-bottom-2">
           <div className="bg-card border border-border rounded-lg shadow-lg p-3">
             <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                className="w-5 h-5 text-green-500"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                 <polyline points="22 4 12 14.01 9 11.01" />
               </svg>

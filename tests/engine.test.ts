@@ -23,11 +23,14 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import {
-  createPrng,
-  simulate,
-} from "../lib/system-design/engine";
-import type { SdGraph, SdNode, SdEdge, SdScenario, SdFailure } from "../config/system-design/types";
+import { createPrng, simulate } from "../lib/system-design/engine";
+import type {
+  SdGraph,
+  SdNode,
+  SdEdge,
+  SdScenario,
+  SdFailure,
+} from "../config/system-design/types";
 
 // ============================================================================
 // Test Helpers
@@ -131,10 +134,38 @@ function cacheGraph(): SdGraph {
       },
     ],
     edges: [
-      { id: "e1", from: "c1", to: "cdn1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-      { id: "e2", from: "cdn1", to: "app1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-      { id: "e3", from: "app1", to: "cache1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-      { id: "e4", from: "cache1", to: "db1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+      {
+        id: "e1",
+        from: "c1",
+        to: "cdn1",
+        label: null,
+        retry: { attempts: 0, backoffMs: 0, jitter: false },
+        partitioned: false,
+      },
+      {
+        id: "e2",
+        from: "cdn1",
+        to: "app1",
+        label: null,
+        retry: { attempts: 0, backoffMs: 0, jitter: false },
+        partitioned: false,
+      },
+      {
+        id: "e3",
+        from: "app1",
+        to: "cache1",
+        label: null,
+        retry: { attempts: 0, backoffMs: 0, jitter: false },
+        partitioned: false,
+      },
+      {
+        id: "e4",
+        from: "cache1",
+        to: "db1",
+        label: null,
+        retry: { attempts: 0, backoffMs: 0, jitter: false },
+        partitioned: false,
+      },
     ],
     scenario: minimalGraph().scenario,
   };
@@ -144,7 +175,15 @@ function loadBalancedGraph(): SdGraph {
   return {
     nodes: [
       { id: "c1", type: "client", label: "Client", x: 0, y: 0 },
-      { id: "lb1", type: "load_balancer", label: "LB", x: 100, y: 0, algorithm: "rr", rateLimitPerMin: null },
+      {
+        id: "lb1",
+        type: "load_balancer",
+        label: "LB",
+        x: 100,
+        y: 0,
+        algorithm: "rr",
+        rateLimitPerMin: null,
+      },
       {
         id: "app1",
         type: "app_server",
@@ -177,11 +216,46 @@ function loadBalancedGraph(): SdGraph {
       },
     ],
     edges: [
-      { id: "e1", from: "c1", to: "lb1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-      { id: "e2", from: "lb1", to: "app1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-      { id: "e3", from: "lb1", to: "app2", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-      { id: "e4", from: "app1", to: "db1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-      { id: "e5", from: "app2", to: "db1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+      {
+        id: "e1",
+        from: "c1",
+        to: "lb1",
+        label: null,
+        retry: { attempts: 0, backoffMs: 0, jitter: false },
+        partitioned: false,
+      },
+      {
+        id: "e2",
+        from: "lb1",
+        to: "app1",
+        label: null,
+        retry: { attempts: 0, backoffMs: 0, jitter: false },
+        partitioned: false,
+      },
+      {
+        id: "e3",
+        from: "lb1",
+        to: "app2",
+        label: null,
+        retry: { attempts: 0, backoffMs: 0, jitter: false },
+        partitioned: false,
+      },
+      {
+        id: "e4",
+        from: "app1",
+        to: "db1",
+        label: null,
+        retry: { attempts: 0, backoffMs: 0, jitter: false },
+        partitioned: false,
+      },
+      {
+        id: "e5",
+        from: "app2",
+        to: "db1",
+        label: null,
+        retry: { attempts: 0, backoffMs: 0, jitter: false },
+        partitioned: false,
+      },
     ],
     scenario: minimalGraph().scenario,
   };
@@ -239,7 +313,10 @@ describe("createPrng — Mulberry32 deterministic PRNG", () => {
     // Each bucket should be ~10% (within 2% for 100k samples)
     for (const count of buckets) {
       const pct = count / samples;
-      assert.ok(pct > 0.08 && pct < 0.12, `Bucket ${pct.toFixed(3)} outside expected range`);
+      assert.ok(
+        pct > 0.08 && pct < 0.12,
+        `Bucket ${pct.toFixed(3)} outside expected range`,
+      );
     }
   });
 });
@@ -266,13 +343,28 @@ describe("simulate — main entry point", () => {
 
   it("different graphs produce different results", () => {
     const r1 = simulate(minimalGraph());
-    const r2 = simulate(simpleClientServerGraph({ scenario: { ...minimalGraph().scenario, arrivalRate: 1000 } }));
+    const r2 = simulate(
+      simpleClientServerGraph({
+        scenario: { ...minimalGraph().scenario, arrivalRate: 1000 },
+      }),
+    );
     assert.notDeepEqual(r1, r2);
   });
 
   it("returns invalid for graph with no client", () => {
     const graph = simpleClientServerGraph({
-      nodes: [{ id: "s1", type: "app_server", label: "App", x: 0, y: 0, replicas: 1, maxConcurrency: null, breakerEnabled: false }],
+      nodes: [
+        {
+          id: "s1",
+          type: "app_server",
+          label: "App",
+          x: 0,
+          y: 0,
+          replicas: 1,
+          maxConcurrency: null,
+          breakerEnabled: false,
+        },
+      ],
       edges: [],
     });
     const result = simulate(graph);
@@ -284,10 +376,26 @@ describe("simulate — main entry point", () => {
     const graph = simpleClientServerGraph({
       nodes: [
         { id: "c1", type: "client", label: "Client", x: 0, y: 0 },
-        { id: "app1", type: "app_server", label: "App", x: 100, y: 0, replicas: 1, maxConcurrency: null, breakerEnabled: false },
+        {
+          id: "app1",
+          type: "app_server",
+          label: "App",
+          x: 100,
+          y: 0,
+          replicas: 1,
+          maxConcurrency: null,
+          breakerEnabled: false,
+        },
       ],
       edges: [
-        { id: "e1", from: "c1", to: "app1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "c1",
+          to: "app1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
     });
     const result = simulate(graph);
@@ -297,7 +405,9 @@ describe("simulate — main entry point", () => {
 
   it("handles node_down failure", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "app1", id: "test-node-down-1" }];
+    const failures: SdFailure[] = [
+      { kind: "node_down", nodeId: "app1", id: "test-node-down-1" },
+    ];
     const result = simulate(graph, failures);
     // App server is down, so all requests fail as unreachable
     assert.equal(result.valid, true); // topology still valid, client exists
@@ -307,7 +417,9 @@ describe("simulate — main entry point", () => {
 
   it("handles degraded node failure", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "degraded", nodeId: "app1", factor: 0.5, id: "test-degraded-1" }];
+    const failures: SdFailure[] = [
+      { kind: "degraded", nodeId: "app1", factor: 0.5, id: "test-degraded-1" },
+    ];
     const result = simulate(graph, failures);
     assert.equal(result.valid, true);
     // Capacity halved, may cause saturation at high arrival rate
@@ -315,7 +427,9 @@ describe("simulate — main entry point", () => {
 
   it("handles partition failure", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "partition", edgeIds: ["e1"], id: "test-partition-1" }];
+    const failures: SdFailure[] = [
+      { kind: "partition", edgeIds: ["e1"], id: "test-partition-1" },
+    ];
     const result = simulate(graph, failures);
     assert.equal(result.valid, true);
     assert.equal(result.errorRate, 1);
@@ -324,7 +438,14 @@ describe("simulate — main entry point", () => {
 
   it("handles replica_lag failure", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "replica_lag", nodeId: "db1", lagMs: 100, id: "test-replica-lag-1" }];
+    const failures: SdFailure[] = [
+      {
+        kind: "replica_lag",
+        nodeId: "db1",
+        lagMs: 100,
+        id: "test-replica-lag-1",
+      },
+    ];
     const result = simulate(graph, failures);
     assert.equal(result.valid, true);
     // May produce stale errors on reads
@@ -341,15 +462,25 @@ describe("simulate — main entry point", () => {
   });
 
   it("scales throughput with arrivalRate (up to capacity)", () => {
-    const low = simulate(simpleClientServerGraph({ scenario: { ...minimalGraph().scenario, arrivalRate: 100 } }));
-    const high = simulate(simpleClientServerGraph({ scenario: { ...minimalGraph().scenario, arrivalRate: 1000 } }));
+    const low = simulate(
+      simpleClientServerGraph({
+        scenario: { ...minimalGraph().scenario, arrivalRate: 100 },
+      }),
+    );
+    const high = simulate(
+      simpleClientServerGraph({
+        scenario: { ...minimalGraph().scenario, arrivalRate: 1000 },
+      }),
+    );
     // Higher arrival rate should give higher throughput (until saturation)
     assert.ok(high.throughput >= low.throughput);
   });
 
   it("saturates at capacity", () => {
     // App server capacity is 2000 req/s, send 5000
-    const graph = simpleClientServerGraph({ scenario: { ...minimalGraph().scenario, arrivalRate: 5000 } });
+    const graph = simpleClientServerGraph({
+      scenario: { ...minimalGraph().scenario, arrivalRate: 5000 },
+    });
     const result = simulate(graph);
     // Should be saturated, errorRate > 0
     assert.ok(result.errorRate > 0);
@@ -366,8 +497,20 @@ describe("simulate — main entry point", () => {
   });
 
   it("cacheColdStart makes first requests miss", () => {
-    const cold = simulate({ ...cacheGraph(), scenario: { ...cacheGraph().scenario, cacheColdStart: true } }, []);
-    const warm = simulate({ ...cacheGraph(), scenario: { ...cacheGraph().scenario, cacheColdStart: false } }, []);
+    const cold = simulate(
+      {
+        ...cacheGraph(),
+        scenario: { ...cacheGraph().scenario, cacheColdStart: true },
+      },
+      [],
+    );
+    const warm = simulate(
+      {
+        ...cacheGraph(),
+        scenario: { ...cacheGraph().scenario, cacheColdStart: false },
+      },
+      [],
+    );
     // Cold start should have more misses initially
     // At minimum, both should complete
     assert.ok(cold.valid);
@@ -375,15 +518,43 @@ describe("simulate — main entry point", () => {
   });
 
   it("writeShare affects database load", () => {
-    const readHeavy = simulate({ ...minimalGraph(), scenario: { ...minimalGraph().scenario, writeShare: 0.1 } }, []);
-    const writeHeavy = simulate({ ...minimalGraph(), scenario: { ...minimalGraph().scenario, writeShare: 0.9 } }, []);
+    const readHeavy = simulate(
+      {
+        ...minimalGraph(),
+        scenario: { ...minimalGraph().scenario, writeShare: 0.1 },
+      },
+      [],
+    );
+    const writeHeavy = simulate(
+      {
+        ...minimalGraph(),
+        scenario: { ...minimalGraph().scenario, writeShare: 0.9 },
+      },
+      [],
+    );
     // Write heavy should have higher latency (DB writes are 4x slower)
     assert.ok(writeHeavy.latency.p50 >= readHeavy.latency.p50);
   });
 
   it("mediaShare increases bandwidth", () => {
-    const noMedia = simulate({ ...minimalGraph(), scenario: { ...minimalGraph().scenario, mediaShare: 0 } }, []);
-    const withMedia = simulate({ ...minimalGraph(), scenario: { ...minimalGraph().scenario, mediaShare: 0.5, bytesPerMediaRequest: 2_000_000 } }, []);
+    const noMedia = simulate(
+      {
+        ...minimalGraph(),
+        scenario: { ...minimalGraph().scenario, mediaShare: 0 },
+      },
+      [],
+    );
+    const withMedia = simulate(
+      {
+        ...minimalGraph(),
+        scenario: {
+          ...minimalGraph().scenario,
+          mediaShare: 0.5,
+          bytesPerMediaRequest: 2_000_000,
+        },
+      },
+      [],
+    );
     assert.ok(noMedia.valid);
     assert.ok(withMedia.valid);
     // With media, there should be some bandwidth (may be 0 if all requests fail before reaching DB)
@@ -392,8 +563,14 @@ describe("simulate — main entry point", () => {
 
   it("abusiveShare triggers rate limiting on LB", () => {
     const graph = loadBalancedGraph();
-    const noAbuse = simulate({ ...graph, scenario: { ...graph.scenario, abusiveShare: 0 } }, []);
-    const withAbuse = simulate({ ...graph, scenario: { ...graph.scenario, abusiveShare: 0.5 } }, []);
+    const noAbuse = simulate(
+      { ...graph, scenario: { ...graph.scenario, abusiveShare: 0 } },
+      [],
+    );
+    const withAbuse = simulate(
+      { ...graph, scenario: { ...graph.scenario, abusiveShare: 0.5 } },
+      [],
+    );
     // With abusive clients and rate limit, should see rejections
     // Note: our LB has no rateLimitPerMin, so this tests the code path exists
     assert.ok(noAbuse.valid);
@@ -401,17 +578,41 @@ describe("simulate — main entry point", () => {
   });
 
   it("latencyJitterMs adds variance", () => {
-    const noJitter = simulate({ ...minimalGraph(), scenario: { ...minimalGraph().scenario, latencyJitterMs: 0 } }, []);
-    const withJitter = simulate({ ...minimalGraph(), scenario: { ...minimalGraph().scenario, latencyJitterMs: 50 } }, []);
+    const noJitter = simulate(
+      {
+        ...minimalGraph(),
+        scenario: { ...minimalGraph().scenario, latencyJitterMs: 0 },
+      },
+      [],
+    );
+    const withJitter = simulate(
+      {
+        ...minimalGraph(),
+        scenario: { ...minimalGraph().scenario, latencyJitterMs: 50 },
+      },
+      [],
+    );
     // Jitter should increase p99 more than p50
     const jitterSpread = withJitter.latency.p99 - withJitter.latency.p50;
     const noJitterSpread = noJitter.latency.p99 - noJitter.latency.p50;
     assert.ok(jitterSpread >= noJitterSpread);
   });
 
-it("replicaLagMs causes stale reads", () => {
-    const noLag = simulate({ ...minimalGraph(), scenario: { ...minimalGraph().scenario, replicaLagMs: 0 } }, []);
-    const withLag = simulate({ ...minimalGraph(), scenario: { ...minimalGraph().scenario, replicaLagMs: 100 } }, []);
+  it("replicaLagMs causes stale reads", () => {
+    const noLag = simulate(
+      {
+        ...minimalGraph(),
+        scenario: { ...minimalGraph().scenario, replicaLagMs: 0 },
+      },
+      [],
+    );
+    const withLag = simulate(
+      {
+        ...minimalGraph(),
+        scenario: { ...minimalGraph().scenario, replicaLagMs: 100 },
+      },
+      [],
+    );
     // With lag, some reads may be stale (probabilistic)
     // At minimum, both should complete
     assert.ok(noLag.valid);
@@ -422,7 +623,9 @@ it("replicaLagMs causes stale reads", () => {
 describe("simulate — bottleneck detection", () => {
   it("identifies bottleneck node", () => {
     // Create a graph where app server is clearly the bottleneck
-    const graph = simpleClientServerGraph({ scenario: { ...minimalGraph().scenario, arrivalRate: 3000 } });
+    const graph = simpleClientServerGraph({
+      scenario: { ...minimalGraph().scenario, arrivalRate: 3000 },
+    });
     const result = simulate(graph);
     assert.ok(result.bottleneck !== null);
     if (result.bottleneck) {
@@ -432,7 +635,9 @@ describe("simulate — bottleneck detection", () => {
   });
 
   it("does not mark client as bottleneck", () => {
-    const graph = simpleClientServerGraph({ scenario: { ...minimalGraph().scenario, arrivalRate: 3000 } });
+    const graph = simpleClientServerGraph({
+      scenario: { ...minimalGraph().scenario, arrivalRate: 3000 },
+    });
     const result = simulate(graph);
     assert.ok(result.bottleneck !== null);
     if (result.bottleneck) {
@@ -441,7 +646,9 @@ describe("simulate — bottleneck detection", () => {
   });
 
   it("bottleneck reason mentions utilisation and capacity", () => {
-    const graph = simpleClientServerGraph({ scenario: { ...minimalGraph().scenario, arrivalRate: 3000 } });
+    const graph = simpleClientServerGraph({
+      scenario: { ...minimalGraph().scenario, arrivalRate: 3000 },
+    });
     const result = simulate(graph);
     assert.ok(result.bottleneck !== null);
     if (result.bottleneck) {
@@ -454,10 +661,16 @@ describe("simulate — bottleneck detection", () => {
 
 describe("simulate — teaching strings", () => {
   it("generates teaching for bottleneck", () => {
-    const graph = simpleClientServerGraph({ scenario: { ...minimalGraph().scenario, arrivalRate: 3000 } });
+    const graph = simpleClientServerGraph({
+      scenario: { ...minimalGraph().scenario, arrivalRate: 3000 },
+    });
     const result = simulate(graph);
     assert.ok(result.teaching.length > 0);
-    assert.ok(result.teaching.some((t) => t.includes("bottleneck") || t.includes("concurrent connections")));
+    assert.ok(
+      result.teaching.some(
+        (t) => t.includes("bottleneck") || t.includes("concurrent connections"),
+      ),
+    );
   });
 
   it("suggests cache when missing and DB present", () => {
@@ -471,20 +684,77 @@ describe("simulate — teaching strings", () => {
     const graph = {
       nodes: [
         { id: "c1", type: "client" as const, label: "Client", x: 0, y: 0 },
-        { id: "app1", type: "app_server" as const, label: "App 1", x: 100, y: -50, replicas: 1, maxConcurrency: null, breakerEnabled: false },
-        { id: "app2", type: "app_server" as const, label: "App 2", x: 100, y: 50, replicas: 1, maxConcurrency: null, breakerEnabled: false },
-        { id: "db1", type: "database" as const, label: "DB", x: 200, y: 0, readReplicas: 0, partitions: 1, hotKeyShare: 0 },
+        {
+          id: "app1",
+          type: "app_server" as const,
+          label: "App 1",
+          x: 100,
+          y: -50,
+          replicas: 1,
+          maxConcurrency: null,
+          breakerEnabled: false,
+        },
+        {
+          id: "app2",
+          type: "app_server" as const,
+          label: "App 2",
+          x: 100,
+          y: 50,
+          replicas: 1,
+          maxConcurrency: null,
+          breakerEnabled: false,
+        },
+        {
+          id: "db1",
+          type: "database" as const,
+          label: "DB",
+          x: 200,
+          y: 0,
+          readReplicas: 0,
+          partitions: 1,
+          hotKeyShare: 0,
+        },
       ],
       edges: [
-        { id: "e1", from: "c1", to: "app1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e2", from: "c1", to: "app2", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e3", from: "app1", to: "db1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e4", from: "app2", to: "db1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "c1",
+          to: "app1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e2",
+          from: "c1",
+          to: "app2",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e3",
+          from: "app1",
+          to: "db1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e4",
+          from: "app2",
+          to: "db1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
       scenario: minimalGraph().scenario,
     };
     const result = simulate(graph);
-    assert.ok(result.teaching.some((t) => t.toLowerCase().includes("load balancer")));
+    assert.ok(
+      result.teaching.some((t) => t.toLowerCase().includes("load balancer")),
+    );
   });
 });
 
@@ -497,7 +767,9 @@ describe("simulate — percentiles", () => {
 
   it("percentiles are 0 when no completed requests", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "c1", id: "test-node-down-5" }]; // Client down = no requests can start
+    const failures: SdFailure[] = [
+      { kind: "node_down", nodeId: "c1", id: "test-node-down-5" },
+    ]; // Client down = no requests can start
     const result = simulate(graph, failures);
     assert.equal(result.latency.p50, 0);
     assert.equal(result.latency.p95, 0);
@@ -510,7 +782,12 @@ describe("simulate — error classes", () => {
     const graph = cacheGraph();
     const failures: SdFailure[] = [
       { kind: "node_down", nodeId: "db1", id: "test-node-down-1" },
-      { kind: "replica_lag", nodeId: "db1", lagMs: 100, id: "test-replica-lag-1" },
+      {
+        kind: "replica_lag",
+        nodeId: "db1",
+        lagMs: 100,
+        id: "test-replica-lag-1",
+      },
     ];
     const result = simulate(graph, failures);
     // Should have unreachable (node_down), possibly stale (replica_lag)
@@ -519,11 +796,16 @@ describe("simulate — error classes", () => {
 
   it("errorClasses sum approximates errorRate * totalArrivals", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "app1", id: "test-node-down-2" }];
+    const failures: SdFailure[] = [
+      { kind: "node_down", nodeId: "app1", id: "test-node-down-2" },
+    ];
     const result = simulate(graph, failures);
     // With app server down, all requests should fail
     assert.equal(result.errorRate, 1);
-    const totalErrors = Object.values(result.errorClasses).reduce((a, b) => a + b, 0);
+    const totalErrors = Object.values(result.errorClasses).reduce(
+      (a, b) => a + b,
+      0,
+    );
     assert.ok(totalErrors > 0);
   });
 });
@@ -553,7 +835,9 @@ describe("simulate — perNode results", () => {
 
   it("marks down nodes correctly", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "app1", id: "test-node-down-3" }];
+    const failures: SdFailure[] = [
+      { kind: "node_down", nodeId: "app1", id: "test-node-down-3" },
+    ];
     const result = simulate(graph, failures);
     const appNode = result.perNode.find((n) => n.id === "app1");
     assert.ok(appNode);
@@ -561,7 +845,9 @@ describe("simulate — perNode results", () => {
   });
 
   it("saturated flag matches utilisation >= 1", () => {
-    const graph = simpleClientServerGraph({ scenario: { ...minimalGraph().scenario, arrivalRate: 5000 } });
+    const graph = simpleClientServerGraph({
+      scenario: { ...minimalGraph().scenario, arrivalRate: 5000 },
+    });
     const result = simulate(graph);
     const appNode = result.perNode.find((n) => n.id === "app1");
     assert.ok(appNode);
@@ -574,14 +860,60 @@ describe("simulate — edge cases", () => {
     const graph: SdGraph = {
       nodes: [
         { id: "c1", type: "client", label: "Client", x: 0, y: 0 },
-        { id: "q1", type: "queue", label: "Queue", x: 100, y: 0, maxDepth: 1000, retryLimit: 3, dlqEnabled: false },
-        { id: "w1", type: "worker", label: "Worker", x: 200, y: 0, replicas: 2 },
-        { id: "db1", type: "database", label: "DB", x: 300, y: 0, readReplicas: 0, partitions: 1, hotKeyShare: 0 },
+        {
+          id: "q1",
+          type: "queue",
+          label: "Queue",
+          x: 100,
+          y: 0,
+          maxDepth: 1000,
+          retryLimit: 3,
+          dlqEnabled: false,
+        },
+        {
+          id: "w1",
+          type: "worker",
+          label: "Worker",
+          x: 200,
+          y: 0,
+          replicas: 2,
+        },
+        {
+          id: "db1",
+          type: "database",
+          label: "DB",
+          x: 300,
+          y: 0,
+          readReplicas: 0,
+          partitions: 1,
+          hotKeyShare: 0,
+        },
       ],
       edges: [
-        { id: "e1", from: "c1", to: "q1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e2", from: "q1", to: "w1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e3", from: "w1", to: "db1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "c1",
+          to: "q1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e2",
+          from: "q1",
+          to: "w1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e3",
+          from: "w1",
+          to: "db1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
       scenario: minimalGraph().scenario,
     };
@@ -594,12 +926,35 @@ describe("simulate — edge cases", () => {
     const graph: SdGraph = {
       nodes: [
         { id: "c1", type: "client", label: "Client", x: 0, y: 0 },
-        { id: "app1", type: "app_server", label: "App", x: 100, y: 0, replicas: 1, maxConcurrency: null, breakerEnabled: false },
+        {
+          id: "app1",
+          type: "app_server",
+          label: "App",
+          x: 100,
+          y: 0,
+          replicas: 1,
+          maxConcurrency: null,
+          breakerEnabled: false,
+        },
         { id: "obj1", type: "object_store", label: "Objects", x: 200, y: 0 },
       ],
       edges: [
-        { id: "e1", from: "c1", to: "app1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e2", from: "app1", to: "obj1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "c1",
+          to: "app1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e2",
+          from: "app1",
+          to: "obj1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
       scenario: minimalGraph().scenario,
     };
@@ -608,14 +963,18 @@ describe("simulate — edge cases", () => {
   });
 
   it("handles high arrivalRate without crashing", () => {
-    const graph = simpleClientServerGraph({ scenario: { ...minimalGraph().scenario, arrivalRate: 1_000_000 } });
+    const graph = simpleClientServerGraph({
+      scenario: { ...minimalGraph().scenario, arrivalRate: 1_000_000 },
+    });
     const result = simulate(graph);
     assert.equal(result.valid, true);
     assert.ok(result.errorRate > 0); // Mostly shed
   });
 
   it("handles zero arrivalRate gracefully", () => {
-    const graph = simpleClientServerGraph({ scenario: { ...minimalGraph().scenario, arrivalRate: 0.001 } });
+    const graph = simpleClientServerGraph({
+      scenario: { ...minimalGraph().scenario, arrivalRate: 0.001 },
+    });
     const result = simulate(graph);
     assert.equal(result.valid, true);
     assert.ok(result.throughput >= 0);
@@ -634,7 +993,9 @@ describe("simulate — edge cases", () => {
 
   it("does not mutate input failures array", () => {
     const graph = minimalGraph();
-    const failures: SdFailure[] = [{ kind: "node_down", nodeId: "s1", id: "test-node-down-4" }];
+    const failures: SdFailure[] = [
+      { kind: "node_down", nodeId: "s1", id: "test-node-down-4" },
+    ];
     const original = JSON.stringify(failures);
     simulate(graph, failures);
     assert.equal(JSON.stringify(failures), original);
@@ -681,7 +1042,9 @@ describe("graphSeed — deterministic seeding", () => {
 
   it("different scenario values → different seed", () => {
     const g1 = minimalGraph();
-    const g2 = simpleClientServerGraph({ scenario: { ...minimalGraph().scenario, arrivalRate: 200 } });
+    const g2 = simpleClientServerGraph({
+      scenario: { ...minimalGraph().scenario, arrivalRate: 200 },
+    });
     const r1 = simulate(g1);
     const r2 = simulate(g2);
     // Both valid, but different arrival rates should produce different results
@@ -707,14 +1070,20 @@ describe("constants — verify values", () => {
 
   it("MAX_ARRIVALS_PER_STEP = 50000 prevents DoS", () => {
     // Even at 1M arrivalRate, per-step capped at 50k
-    const graph = simpleClientServerGraph({ scenario: { ...minimalGraph().scenario, arrivalRate: 1_000_000 } });
+    const graph = simpleClientServerGraph({
+      scenario: { ...minimalGraph().scenario, arrivalRate: 1_000_000 },
+    });
     const result = simulate(graph);
     assert.ok(result.valid); // Should not crash
   });
 });
 
 describe("database partition capacity", () => {
-  function partitionGraph(partitions: number, hotKeyShare: number, arrivalRate = 18_000): SdGraph {
+  function partitionGraph(
+    partitions: number,
+    hotKeyShare: number,
+    arrivalRate = 18_000,
+  ): SdGraph {
     const graph = minimalGraph();
     return {
       ...graph,

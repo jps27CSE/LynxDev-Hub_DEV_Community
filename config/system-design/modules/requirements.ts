@@ -37,15 +37,51 @@ const module: SdModule = {
           caption: "Current design to reason about",
           graph: {
             nodes: [
-              (() => { const n = defaultNode("client", "client-1", 60, 180); (n as any).label = "Users"; return n; })(),
-              (() => { const n = defaultNode("app_server", "app-1", 280, 180); (n as any).label = "Monolith"; (n as any).replicas = 1; return n; })(),
-              (() => { const n = defaultNode("database", "db-1", 500, 180); (n as any).label = "DB"; return n; })(),
+              (() => {
+                const n = defaultNode("client", "client-1", 60, 180);
+                (n as any).label = "Users";
+                return n;
+              })(),
+              (() => {
+                const n = defaultNode("app_server", "app-1", 280, 180);
+                (n as any).label = "Monolith";
+                (n as any).replicas = 1;
+                return n;
+              })(),
+              (() => {
+                const n = defaultNode("database", "db-1", 500, 180);
+                (n as any).label = "DB";
+                return n;
+              })(),
             ] as any,
             edges: [
-              { id: "e1", from: "client-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-              { id: "e2", from: "app-1", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+              {
+                id: "e1",
+                from: "client-1",
+                to: "app-1",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
+              {
+                id: "e2",
+                from: "app-1",
+                to: "db-1",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
             ],
-            scenario: { arrivalRate: 100, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+            scenario: {
+              arrivalRate: 100,
+              writeShare: 0.05,
+              mediaShare: 0,
+              bytesPerMediaRequest: 2_000_000,
+              abusiveShare: 0,
+              latencyJitterMs: 0,
+              cacheColdStart: false,
+              replicaLagMs: 0,
+            },
           },
         },
         {
@@ -55,7 +91,8 @@ const module: SdModule = {
         },
         {
           kind: "your_turn",
-          prompt: "Pick 4 functional requirements and 4 non-functional requirements for our photo-sharing app. Make at least 2 of the NFRs measurable with numbers.",
+          prompt:
+            "Pick 4 functional requirements and 4 non-functional requirements for our photo-sharing app. Make at least 2 of the NFRs measurable with numbers.",
         },
         {
           kind: "compare",
@@ -75,7 +112,8 @@ const module: SdModule = {
     {
       slug: "eliciting-requirements",
       title: "Eliciting Requirements: Ask Before You Design",
-      attribution: "Synthesised from donnemartin/system-design-primer and KodeKloud",
+      attribution:
+        "Synthesised from donnemartin/system-design-primer and KodeKloud",
       sections: [
         {
           kind: "scenario",
@@ -94,7 +132,8 @@ const module: SdModule = {
         },
         {
           kind: "your_turn",
-          prompt: "You're told 'Design a photo-sharing app'. Write 6 specific questions you'd ask, in order of importance. For each, explain WHY you'd ask it.",
+          prompt:
+            "You're told 'Design a photo-sharing app'. Write 6 specific questions you'd ask, in order of importance. For each, explain WHY you'd ask it.",
         },
         {
           kind: "compare",
@@ -115,32 +154,95 @@ const module: SdModule = {
   ],
   interviewByte: {
     shape: "How would you gather requirements before designing Instagram?",
-    strongAnswer: "I'd first clarify scope - should I focus on core features like photo upload, feed, and following, or include stories/reels/DMs? Then I'd ask about scale - DAU and expected growth. I'd find out read/write ratio since social feeds are read-heavy. I'd ask about media - just photos or videos? I'd clarify latency expectations and availability needs. Based on answers, I'd define measurable FRs and NFRs, state my assumptions, and only then start designing. I'd keep it simple for v1 and discuss scaling later.",
+    strongAnswer:
+      "I'd first clarify scope - should I focus on core features like photo upload, feed, and following, or include stories/reels/DMs? Then I'd ask about scale - DAU and expected growth. I'd find out read/write ratio since social feeds are read-heavy. I'd ask about media - just photos or videos? I'd clarify latency expectations and availability needs. Based on answers, I'd define measurable FRs and NFRs, state my assumptions, and only then start designing. I'd keep it simple for v1 and discuss scaling later.",
     trap: "Jumping straight to 'I'd use CDN, Redis, microservices' without asking a single question. Always clarify requirements and state assumptions first.",
   },
   task: {
-    brief: "Fill in the constraints for our photo-sharing app. Write down your Functional Requirements, Non-Functional Requirements, assumptions about scale, and 2-3 key questions you asked. Think like you're about to design it.",
+    brief:
+      "Fill in the constraints for our photo-sharing app. Write down your Functional Requirements, Non-Functional Requirements, assumptions about scale, and 2-3 key questions you asked. Think like you're about to design it.",
     startGraph: {
       nodes: [
-        (() => { const n = defaultNode("client", "client-1", 60, 180); (n as any).label = "Users"; return n; })(),
-        (() => { const n = defaultNode("app_server", "app-1", 280, 180); (n as any).label = "Monolith"; (n as any).replicas = 1; return n; })(),
+        (() => {
+          const n = defaultNode("client", "client-1", 60, 180);
+          (n as any).label = "Users";
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("app_server", "app-1", 280, 180);
+          (n as any).label = "Monolith";
+          (n as any).replicas = 1;
+          return n;
+        })(),
       ] as any,
       edges: [
-        { id: "e1", from: "client-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "client-1",
+          to: "app-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
-      scenario: { arrivalRate: 100, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+      scenario: {
+        arrivalRate: 100,
+        writeShare: 0.05,
+        mediaShare: 0,
+        bytesPerMediaRequest: 2_000_000,
+        abusiveShare: 0,
+        latencyJitterMs: 0,
+        cacheColdStart: false,
+        replicaLagMs: 0,
+      },
     },
     solutionGraph: {
       nodes: [
-        (() => { const n = defaultNode("client", "client-1", 60, 180); (n as any).label = "Users"; return n; })(),
-        (() => { const n = defaultNode("app_server", "app-1", 280, 180); (n as any).label = "Monolith"; (n as any).replicas = 1; return n; })(),
-        (() => { const n = defaultNode("database", "db-1", 500, 180); (n as any).label = "DB"; return n; })(),
+        (() => {
+          const n = defaultNode("client", "client-1", 60, 180);
+          (n as any).label = "Users";
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("app_server", "app-1", 280, 180);
+          (n as any).label = "Monolith";
+          (n as any).replicas = 1;
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("database", "db-1", 500, 180);
+          (n as any).label = "DB";
+          return n;
+        })(),
       ] as any,
       edges: [
-        { id: "e1", from: "client-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e2", from: "app-1", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "client-1",
+          to: "app-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e2",
+          from: "app-1",
+          to: "db-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
-      scenario: { arrivalRate: 100, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+      scenario: {
+        arrivalRate: 100,
+        writeShare: 0.05,
+        mediaShare: 0,
+        bytesPerMediaRequest: 2_000_000,
+        abusiveShare: 0,
+        latencyJitterMs: 0,
+        cacheColdStart: false,
+        replicaLagMs: 0,
+      },
     },
     steps: [
       {
@@ -148,16 +250,24 @@ const module: SdModule = {
         title: "Define functional requirements",
         brief: "List what users can actually do.",
         hint: "Focus on core actions: upload, view feed, follow.",
-        reveal: "Core FRs: Upload photos, view personalized feed, follow/unfollow, like posts.",
-        check: (g) => ({ passed: g.nodes.length >= 1, progress: "✓ Think through features" }),
+        reveal:
+          "Core FRs: Upload photos, view personalized feed, follow/unfollow, like posts.",
+        check: (g) => ({
+          passed: g.nodes.length >= 1,
+          progress: "✓ Think through features",
+        }),
       },
       {
         id: "list-nfr",
         title: "Define non-functional requirements",
         brief: "Make them measurable (latency, availability etc).",
         hint: "Try to add numbers where possible.",
-        reveal: "e.g. Feed p95 < 200ms, 99.9% availability, durable photo storage.",
-        check: (g) => ({ passed: g.edges.length >= 0, progress: "✓ Think through quality needs" }),
+        reveal:
+          "e.g. Feed p95 < 200ms, 99.9% availability, durable photo storage.",
+        check: (g) => ({
+          passed: g.edges.length >= 0,
+          progress: "✓ Think through quality needs",
+        }),
       },
     ],
     passCriteria: [
@@ -165,7 +275,8 @@ const module: SdModule = {
         id: "requirements-thought",
         label: "Requirements reasoning complete",
         required: true,
-        explain: "Show you know the difference between FR and NFR and can ask clarifying questions.",
+        explain:
+          "Show you know the difference between FR and NFR and can ask clarifying questions.",
         assert: (r) => r.valid,
       },
     ],
@@ -177,7 +288,8 @@ const module: SdModule = {
     "Keep core minimal for v1, extend later",
     "Make requirements measurable. Vague words won't help you design",
   ],
-  attribution: "Synthesised from donnemartin/system-design-primer, algomaster.io and KodeKloud System Design For Beginners",
+  attribution:
+    "Synthesised from donnemartin/system-design-primer, algomaster.io and KodeKloud System Design For Beginners",
 };
 
 export default module;

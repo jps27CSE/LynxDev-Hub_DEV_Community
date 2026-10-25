@@ -15,7 +15,8 @@ const module: SdModule = {
     {
       slug: "vertical-vs-horizontal",
       title: "Vertical vs Horizontal Scaling",
-      attribution: "Synthesised from donnemartin/system-design-primer, algomaster.io",
+      attribution:
+        "Synthesised from donnemartin/system-design-primer, algomaster.io",
       sections: [
         {
           kind: "scenario",
@@ -34,7 +35,8 @@ const module: SdModule = {
         },
         {
           kind: "your_turn",
-          prompt: "For our photo app at 10,000 users, would you rather scale vertically or horizontally first? Why? What are you giving up?",
+          prompt:
+            "For our photo app at 10,000 users, would you rather scale vertically or horizontally first? Why? What are you giving up?",
         },
         {
           kind: "compare",
@@ -81,28 +83,116 @@ const module: SdModule = {
           caption: "Load balancer distributing traffic across app servers",
           graph: {
             nodes: [
-              (() => { const n = defaultNode("client", "client-1", 40, 200); (n as any).label = "Users"; return n; })(),
-              (() => { const n = defaultNode("load_balancer", "lb-1", 220, 200); (n as any).label = "Load Balancer"; (n as any).algorithm = "rr"; (n as any).rateLimitPerMin = null; return n; })(),
-              (() => { const n = defaultNode("app_server", "app-1", 440, 120); (n as any).label = "App 1"; (n as any).replicas = 1; return n; })(),
-              (() => { const n = defaultNode("app_server", "app-2", 440, 200); (n as any).label = "App 2"; (n as any).replicas = 1; return n; })(),
-              (() => { const n = defaultNode("app_server", "app-3", 440, 280); (n as any).label = "App 3"; (n as any).replicas = 1; return n; })(),
-              (() => { const n = defaultNode("database", "db-1", 660, 200); (n as any).label = "DB"; return n; })(),
+              (() => {
+                const n = defaultNode("client", "client-1", 40, 200);
+                (n as any).label = "Users";
+                return n;
+              })(),
+              (() => {
+                const n = defaultNode("load_balancer", "lb-1", 220, 200);
+                (n as any).label = "Load Balancer";
+                (n as any).algorithm = "rr";
+                (n as any).rateLimitPerMin = null;
+                return n;
+              })(),
+              (() => {
+                const n = defaultNode("app_server", "app-1", 440, 120);
+                (n as any).label = "App 1";
+                (n as any).replicas = 1;
+                return n;
+              })(),
+              (() => {
+                const n = defaultNode("app_server", "app-2", 440, 200);
+                (n as any).label = "App 2";
+                (n as any).replicas = 1;
+                return n;
+              })(),
+              (() => {
+                const n = defaultNode("app_server", "app-3", 440, 280);
+                (n as any).label = "App 3";
+                (n as any).replicas = 1;
+                return n;
+              })(),
+              (() => {
+                const n = defaultNode("database", "db-1", 660, 200);
+                (n as any).label = "DB";
+                return n;
+              })(),
             ] as any,
             edges: [
-              { id: "e1", from: "client-1", to: "lb-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-              { id: "e2", from: "lb-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-              { id: "e3", from: "lb-1", to: "app-2", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-              { id: "e4", from: "lb-1", to: "app-3", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-              { id: "e5", from: "app-1", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-              { id: "e6", from: "app-2", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-              { id: "e7", from: "app-3", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+              {
+                id: "e1",
+                from: "client-1",
+                to: "lb-1",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
+              {
+                id: "e2",
+                from: "lb-1",
+                to: "app-1",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
+              {
+                id: "e3",
+                from: "lb-1",
+                to: "app-2",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
+              {
+                id: "e4",
+                from: "lb-1",
+                to: "app-3",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
+              {
+                id: "e5",
+                from: "app-1",
+                to: "db-1",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
+              {
+                id: "e6",
+                from: "app-2",
+                to: "db-1",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
+              {
+                id: "e7",
+                from: "app-3",
+                to: "db-1",
+                label: null,
+                retry: { attempts: 0, backoffMs: 0, jitter: false },
+                partitioned: false,
+              },
             ],
-            scenario: { arrivalRate: 1000, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+            scenario: {
+              arrivalRate: 1000,
+              writeShare: 0.05,
+              mediaShare: 0,
+              bytesPerMediaRequest: 2_000_000,
+              abusiveShare: 0,
+              latencyJitterMs: 0,
+              cacheColdStart: false,
+              replicaLagMs: 0,
+            },
           },
         },
         {
           kind: "your_turn",
-          prompt: "Why do we need a load balancer if we have multiple servers? What happens if we don't have health checks?",
+          prompt:
+            "Why do we need a load balancer if we have multiple servers? What happens if we don't have health checks?",
         },
         {
           kind: "compare",
@@ -141,7 +231,8 @@ const module: SdModule = {
         },
         {
           kind: "your_turn",
-          prompt: "Why does making services stateless make horizontal scaling so much easier? Give a concrete example.",
+          prompt:
+            "Why does making services stateless make horizontal scaling so much easier? Give a concrete example.",
         },
         {
           kind: "compare",
@@ -160,41 +251,157 @@ const module: SdModule = {
     },
   ],
   interviewByte: {
-    shape: "Why would you put a load balancer in front of multiple app servers? What problem does it solve?",
-    strongAnswer: "A load balancer distributes incoming traffic across multiple healthy app servers. This enables horizontal scaling - we can handle more users by adding servers. It also gives us high availability because if one server fails, the load balancer routes traffic to others. For this to work well, our app servers need to be stateless so any request can go to any server. We'd typically use round-robin or least-connections and health checks to route only to healthy instances.",
+    shape:
+      "Why would you put a load balancer in front of multiple app servers? What problem does it solve?",
+    strongAnswer:
+      "A load balancer distributes incoming traffic across multiple healthy app servers. This enables horizontal scaling - we can handle more users by adding servers. It also gives us high availability because if one server fails, the load balancer routes traffic to others. For this to work well, our app servers need to be stateless so any request can go to any server. We'd typically use round-robin or least-connections and health checks to route only to healthy instances.",
     trap: "Saying 'to make it faster' without mentioning scaling/availability. Or forgetting that statelessness is required for true horizontal scaling.",
   },
   task: {
-    brief: "Our monolith is struggling at 1000 users. Scale it to survive 20,000 users. Use a load balancer and multiple stateless app servers. Connect everything properly.",
+    brief:
+      "Our monolith is struggling at 1000 users. Scale it to survive 20,000 users. Use a load balancer and multiple stateless app servers. Connect everything properly.",
     startGraph: {
       nodes: [
-        (() => { const n = defaultNode("client", "client-1", 40, 200); (n as any).label = "Users"; return n; })(),
-        (() => { const n = defaultNode("app_server", "app-1", 260, 200); (n as any).label = "Monolith"; (n as any).replicas = 1; return n; })(),
+        (() => {
+          const n = defaultNode("client", "client-1", 40, 200);
+          (n as any).label = "Users";
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("app_server", "app-1", 260, 200);
+          (n as any).label = "Monolith";
+          (n as any).replicas = 1;
+          return n;
+        })(),
       ] as any,
       edges: [
-        { id: "e1", from: "client-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "client-1",
+          to: "app-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
-      scenario: { arrivalRate: 20000, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+      scenario: {
+        arrivalRate: 20000,
+        writeShare: 0.05,
+        mediaShare: 0,
+        bytesPerMediaRequest: 2_000_000,
+        abusiveShare: 0,
+        latencyJitterMs: 0,
+        cacheColdStart: false,
+        replicaLagMs: 0,
+      },
     },
     solutionGraph: {
       nodes: [
-        (() => { const n = defaultNode("client", "client-1", 40, 200); (n as any).label = "Users"; return n; })(),
-        (() => { const n = defaultNode("load_balancer", "lb-1", 220, 200); (n as any).label = "Load Balancer"; (n as any).algorithm = "rr"; (n as any).rateLimitPerMin = null; return n; })(),
-        (() => { const n = defaultNode("app_server", "app-1", 420, 120); (n as any).label = "App 1"; (n as any).replicas = 1; return n; })(),
-        (() => { const n = defaultNode("app_server", "app-2", 420, 200); (n as any).label = "App 2"; (n as any).replicas = 1; return n; })(),
-        (() => { const n = defaultNode("app_server", "app-3", 420, 280); (n as any).label = "App 3"; (n as any).replicas = 1; return n; })(),
-        (() => { const n = defaultNode("database", "db-1", 640, 200); (n as any).label = "DB"; (n as any).readReplicas = 8; return n; })(),
+        (() => {
+          const n = defaultNode("client", "client-1", 40, 200);
+          (n as any).label = "Users";
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("load_balancer", "lb-1", 220, 200);
+          (n as any).label = "Load Balancer";
+          (n as any).algorithm = "rr";
+          (n as any).rateLimitPerMin = null;
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("app_server", "app-1", 420, 120);
+          (n as any).label = "App 1";
+          (n as any).replicas = 1;
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("app_server", "app-2", 420, 200);
+          (n as any).label = "App 2";
+          (n as any).replicas = 1;
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("app_server", "app-3", 420, 280);
+          (n as any).label = "App 3";
+          (n as any).replicas = 1;
+          return n;
+        })(),
+        (() => {
+          const n = defaultNode("database", "db-1", 640, 200);
+          (n as any).label = "DB";
+          (n as any).readReplicas = 8;
+          return n;
+        })(),
       ] as any,
       edges: [
-        { id: "e1", from: "client-1", to: "lb-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e2", from: "lb-1", to: "app-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e3", from: "lb-1", to: "app-2", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e4", from: "lb-1", to: "app-3", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e5", from: "app-1", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e6", from: "app-2", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
-        { id: "e7", from: "app-3", to: "db-1", label: null, retry: { attempts: 0, backoffMs: 0, jitter: false }, partitioned: false },
+        {
+          id: "e1",
+          from: "client-1",
+          to: "lb-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e2",
+          from: "lb-1",
+          to: "app-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e3",
+          from: "lb-1",
+          to: "app-2",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e4",
+          from: "lb-1",
+          to: "app-3",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e5",
+          from: "app-1",
+          to: "db-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e6",
+          from: "app-2",
+          to: "db-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+        {
+          id: "e7",
+          from: "app-3",
+          to: "db-1",
+          label: null,
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
       ],
-      scenario: { arrivalRate: 20000, writeShare: 0.05, mediaShare: 0, bytesPerMediaRequest: 2_000_000, abusiveShare: 0, latencyJitterMs: 0, cacheColdStart: false, replicaLagMs: 0 },
+      scenario: {
+        arrivalRate: 20000,
+        writeShare: 0.05,
+        mediaShare: 0,
+        bytesPerMediaRequest: 2_000_000,
+        abusiveShare: 0,
+        latencyJitterMs: 0,
+        cacheColdStart: false,
+        replicaLagMs: 0,
+      },
     },
     steps: [
       {
@@ -205,7 +412,10 @@ const module: SdModule = {
         reveal: "Add a Load Balancer between clients and app servers.",
         check: (g) => {
           const hasLb = g.nodes.some((n) => n.type === "load_balancer");
-          return { passed: hasLb, progress: hasLb ? "✓ Load balancer added" : "Add a load balancer" };
+          return {
+            passed: hasLb,
+            progress: hasLb ? "✓ Load balancer added" : "Add a load balancer",
+          };
         },
       },
       {
@@ -217,10 +427,21 @@ const module: SdModule = {
         check: (g) => {
           const apps = g.nodes.filter((n) => n.type === "app_server");
           const hasLb = g.nodes.some((n) => n.type === "load_balancer");
-          if (apps.length < 3 || !hasLb) return { passed: false, progress: "Need load balancer + at least 3 app servers" };
+          if (apps.length < 3 || !hasLb)
+            return {
+              passed: false,
+              progress: "Need load balancer + at least 3 app servers",
+            };
           const lbId = g.nodes.find((n) => n.type === "load_balancer")?.id;
-          const lbConnected = g.edges.some((e) => e.from === lbId && apps.some((a) => a.id === e.to));
-          return { passed: lbConnected, progress: lbConnected ? "✓ Traffic routed through LB" : "Connect load balancer to app servers" };
+          const lbConnected = g.edges.some(
+            (e) => e.from === lbId && apps.some((a) => a.id === e.to),
+          );
+          return {
+            passed: lbConnected,
+            progress: lbConnected
+              ? "✓ Traffic routed through LB"
+              : "Connect load balancer to app servers",
+          };
         },
       },
     ],
@@ -229,7 +450,8 @@ const module: SdModule = {
         id: "survive-20k",
         label: "Handle traffic with horizontal scaling",
         required: true,
-        explain: "With horizontal scaling and load balancing, we should handle the load.",
+        explain:
+          "With horizontal scaling and load balancing, we should handle the load.",
         assert: (r) => r.valid,
       },
     ],
@@ -241,7 +463,8 @@ const module: SdModule = {
     "Move sessions to Redis or use JWT",
     "Health checks keep traffic away from broken servers",
   ],
-  attribution: "Synthesised from donnemartin/system-design-primer, algomaster.io and KodeKloud System Design For Beginners",
+  attribution:
+    "Synthesised from donnemartin/system-design-primer, algomaster.io and KodeKloud System Design For Beginners",
 };
 
 export default module;

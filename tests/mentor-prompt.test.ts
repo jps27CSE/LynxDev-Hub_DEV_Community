@@ -148,7 +148,10 @@ describe("buildSystemPrompt", () => {
       const user = sampleUser();
       const prompt = buildSystemPrompt(user);
       // Escape + and # for regex
-      assert.match(prompt, /HTML, CSS, JavaScript, Python, Java, C, C\+\+, C#, DSA problems, interview prep/);
+      assert.match(
+        prompt,
+        /HTML, CSS, JavaScript, Python, Java, C, C\+\+, C#, DSA problems, interview prep/,
+      );
     });
 
     it("defines beginner/intermediate/advanced criteria", () => {
@@ -217,7 +220,15 @@ describe("buildSystemPrompt", () => {
 
     it("advanced profile (6+ skills)", () => {
       const user = sampleUser({
-        skills: ["JavaScript", "React", "TypeScript", "Node.js", "Python", "Go", "Rust"],
+        skills: [
+          "JavaScript",
+          "React",
+          "TypeScript",
+          "Node.js",
+          "Python",
+          "Go",
+          "Rust",
+        ],
         courses: [{ title: "Advanced Course", progress: 8, total: 10 }],
       });
       const prompt = buildSystemPrompt(user);
@@ -270,7 +281,9 @@ describe("buildSystemPrompt", () => {
     });
 
     it("handles unicode in skills", () => {
-      const user = sampleUser({ skills: ["JavaScript", "React 中文", "TypeScript 🚀"] });
+      const user = sampleUser({
+        skills: ["JavaScript", "React 中文", "TypeScript 🚀"],
+      });
       const prompt = buildSystemPrompt(user);
       assert.match(prompt, /Skills: JavaScript, React 中文, TypeScript 🚀/);
     });
@@ -330,7 +343,11 @@ describe("buildSystemPrompt", () => {
       const prompt = buildSystemPrompt(user);
       // Use multiline flag (m) so ^ matches start of each line
       for (let i = 1; i <= 5; i++) {
-        assert.match(prompt, new RegExp(`^\\s*${i}\\.`, "m"), `Missing instruction ${i}`);
+        assert.match(
+          prompt,
+          new RegExp(`^\\s*${i}\\.`, "m"),
+          `Missing instruction ${i}`,
+        );
       }
     });
   });
