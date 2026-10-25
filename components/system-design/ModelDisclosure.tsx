@@ -24,6 +24,11 @@ const limitations = [
       "Database and object store nodes model CPU/service time only. Disk IOPS, write-ahead logs, compaction, and storage capacity limits are not modeled.",
   },
   {
+    title: "Sharding is an aggregate capacity estimate",
+    description:
+      "Partitions scale the database's modeled capacity, while hot-key skew reduces it using the hottest partition's share. The simulator does not route individual keys, measure per-shard latency, or model live data movement during rebalancing.",
+  },
+  {
     title: "No GC pauses or runtime effects",
     description:
       "Languages with garbage collection (Go, Java, Node.js) experience stop-the-world pauses under load. This simulator assumes smooth, continuous service.",

@@ -163,8 +163,12 @@ function precompute(graph: SdGraph, failures: SdFailure[]): Precomputed {
   return { valid: true, adjacency, reverseAdj, edgeMap, nodeById, terminalNodes, pathsToTerminals };
 }
 
-/** Effective capacity after failures. */
-function effectiveCapacity(node: SdNode, failures: SdFailure[]): number {
+/** Effective capacity after failures and database partition skew. */
+function effectiveCapacity(
+  node: SdNode,
+  failures: SdFailure[],
+  writeShare = 0,
+): number {
   const spec = getNodeTypeSpec(node.type);
   let cap = spec.capacity;
 
@@ -173,11 +177,20 @@ function effectiveCapacity(node: SdNode, failures: SdFailure[]): number {
   }
 
   if (node.type === "app_server" || node.type === "worker") {
-    cap *= (node as any).replicas ?? 1;
+    cap *= node.replicas;
   }
 
   if (node.type === "database") {
-    cap *= 1 + ((node as any).readReplicas ?? 0);
+    cap *= 1 + node.readReplicas;
+    const partitions = node.partitions;
+    if (partitions > 1) {
+      const readShare = 1 - writeShare;
+      const hottestPartitionShare =
+        readShare *
+          (node.hotKeyShare + (1 - node.hotKeyShare) / partitions) +
+        writeShare / partitions;
+      cap /= hottestPartitionShare;
+    }
   }
 
   return cap;
@@ -249,7 +262,7 @@ function runRequest(
     }
 
     const spec = getNodeTypeSpec(toNode.type);
-    const cap = effectiveCapacity(toNode, context.failures);
+    const cap = effectiveCapacity(toNode, context.failures, context.writeShare);
     const serviceMs = serviceTime(toNode, state.isWrite);
 
     // Calculate utilization based on actual arrival rate at this node
@@ -540,7 +553,7 @@ function computeStatistics(
 
   for (const n of graph.nodes) {
     const stats = nodeStats.get(n.id)!;
-    const cap = effectiveCapacity(n, failures);
+    const cap = effectiveCapacity(n, failures, graph.scenario.writeShare);
     const actualArrivalRate = stats.arrivals / SIMULATION_WINDOW_SECONDS;
     const util = cap > 0 ? actualArrivalRate / cap : 0;
     const avgLatency = stats.latencies.length > 0

@@ -712,3 +712,42 @@ describe("constants — verify values", () => {
     assert.ok(result.valid); // Should not crash
   });
 });
+
+describe("database partition capacity", () => {
+  function partitionGraph(partitions: number, hotKeyShare: number, arrivalRate = 18_000): SdGraph {
+    const graph = minimalGraph();
+    return {
+      ...graph,
+      nodes: graph.nodes.map((node) => {
+        if (node.type === "app_server") return { ...node, replicas: 10 };
+        if (node.type === "database") {
+          return { ...node, readReplicas: 2, partitions, hotKeyShare };
+        }
+        return node;
+      }),
+      scenario: { ...graph.scenario, arrivalRate, writeShare: 0.05 },
+    };
+  }
+
+  it("scales capacity across partitions and fails a single-shard workload", () => {
+    const unsharded = simulate(partitionGraph(1, 0.8));
+    const sharded = simulate(partitionGraph(16, 0.2));
+    const unshardedDb = unsharded.perNode.find((node) => node.id === "db1");
+    const shardedDb = sharded.perNode.find((node) => node.id === "db1");
+
+    assert.ok(unshardedDb && unshardedDb.utilisation >= 1);
+    assert.ok(shardedDb && shardedDb.utilisation < 0.5);
+    assert.ok(sharded.throughput >= 17_000);
+    assert.ok(sharded.latency.p95 < 300);
+  });
+
+  it("reduces effective database capacity when one key dominates reads", () => {
+    const evenlySpread = simulate(partitionGraph(16, 0.05, 12_000));
+    const skewed = simulate(partitionGraph(16, 0.8, 12_000));
+    const evenDb = evenlySpread.perNode.find((node) => node.id === "db1");
+    const skewedDb = skewed.perNode.find((node) => node.id === "db1");
+
+    assert.ok(evenDb && skewedDb);
+    assert.ok(skewedDb.utilisation > evenDb.utilisation);
+  });
+});

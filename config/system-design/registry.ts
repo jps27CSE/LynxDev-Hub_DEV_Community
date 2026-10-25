@@ -39,6 +39,7 @@ const LOADERS: Record<string, SdModuleLoader> = {
   "load-balancers-and-stateless-services": () => import("./modules/load-balancers-and-stateless-services"),
   caching: () => import("./modules/caching"),
   "read-replicas": () => import("./modules/read-replicas"),
+  "partitioning-and-sharding": () => import("./modules/partitioning-and-sharding"),
 };
 
 /**
