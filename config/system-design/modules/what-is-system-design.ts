@@ -128,6 +128,14 @@ const module: SdModule = {
           },
         },
         {
+          kind: "video",
+          videoId: "DzAt0wd3oWM",
+          title:
+            "System Design Basics in Bangla | Client–Server Model + Database + Scaling Explained",
+          caption:
+            "Beginner-friendly Bangla walkthrough of client–server, database, and scaling.",
+        },
+        {
           kind: "concept",
           title: "Start with constraints, not components",
           body: "A very common beginner mistake is opening a diagram and immediately drawing a Load Balancer, Redis, Kafka etc. Instead, ask: How many users? What's the read/write ratio? Is it read heavy or write heavy? Do users care more about speed or uptime? What's the budget/time we actually have?\n\nYour answer to these questions should decide what you add, not your excitement to use new tools.",
@@ -140,6 +148,11 @@ const module: SdModule = {
         {
           kind: "compare",
           body: "A beginner asks: 'Which technology should I use?'. A senior engineer asks: 'What constraint am I trying to satisfy?'. Focus on the constraint first. The right tool becomes obvious after that.",
+        },
+        {
+          kind: "concept",
+          title: "Go deeper (free reads)",
+          body: "Want to read more? These are free and beginner-friendly:\n\n- [The System Design Primer (GitHub)](https://github.com/donnemartin/system-design-primer) — the most popular free resource. Start with 'System design topics: start here'.\n- [System Design Handbook — System Design Primer](https://www.systemdesignhandbook.com/guides/system-design-primer) — beginner-to-advanced walkthrough.\n- [Intro to architecting systems for scale (lethain.com)](http://lethain.com/introduction-to-architecting-systems-for-scale) — classic essay on scaling a real app.\n- [A plain English introduction to CAP theorem](http://ksat.me/a-plain-english-introduction-to-cap-theorem) — short, clear, free.",
         },
         {
           kind: "recap",
@@ -180,6 +193,19 @@ const module: SdModule = {
         {
           kind: "compare",
           body: "Adding an index to your database is usually about performance (faster queries). Adding more app servers behind a load balancer is usually about scalability (handling more traffic). Sometimes a fix helps both, but you must know which one you're targeting.",
+        },
+        {
+          kind: "concept",
+          title: "Go deeper (free reads)",
+          body: "Free articles to cement the difference:\n\n- [Performance vs. Scalability — Christian Findlay](https://www.christianfindlay.com/blog/performance-vs-scalability) — clear, short, with examples.\n- [System Design: Performance, Scalability, Latency, and Throughput (DEV Community)](https://dev.to/decoders_lord/system-design-performance-scalability-latency-and-throughput-652) — beginner-friendly with analogies.\n- [Scalability in System Design — System Design Handbook](https://www.systemdesignhandbook.com/guides/scalability-in-system-design) — scalability vs performance vs reliability.\n- [donnemartin/system-design-primer — Performance vs scalability](https://github.com/donnemartin/system-design-primer#performance-vs-scalability) — the original short explainer.",
+        },
+        {
+          kind: "video",
+          videoId: "Pfr_6h3Rqew",
+          title:
+            "System Design Basics in Bangla | Scalability + Availability + Consistency + Fault Tolerance Explained",
+          caption:
+            "Bangla walkthrough of scalability, availability, consistency, and fault tolerance.",
         },
         {
           kind: "recap",
@@ -225,6 +251,19 @@ const module: SdModule = {
         {
           kind: "compare",
           body: "You can have high throughput but terrible p99 latency (some users wait way too long). A good system design aims for both: reasonable latency AND enough throughput for your expected peak.",
+        },
+        {
+          kind: "concept",
+          title: "Go deeper (free reads)",
+          body: "Free reading to lock in the three terms:\n\n- [Latency, Throughput, and Bandwidth — DEV Community](https://dev.to/decoders_lord/system-design-performance-scalability-latency-and-throughput-652) — explains all three with a water-pipe analogy.\n- [Latency Numbers Every Programmer Should Know (collected in the Primer)](https://github.com/donnemartin/system-design-primer#latency-numbers-every-programmer-should-know) — the classic latency table.\n- [System Design Basics: Scalability vs Performance (DEV Community)](https://dev.to/ritesh_chopade/system-design-basics-scalability-vs-performance-vs-security-440m) — short beginner overview.\n- [The Ultimate Guide to Scalability & Performance (Medium)](https://medium.com/@aansh0611/the-ultimate-guide-to-scalability-performance-how-to-build-systems-that-survive-growth-fd48918979e8) — performance vs scalability trade-offs.",
+        },
+        {
+          kind: "video",
+          videoId: "SAeOWMysy1U",
+          title:
+            "System Design Basics in Bangla | Internet Protocols: HTTP, TCP, UDP & WebSocket Explained",
+          caption:
+            "Bangla walkthrough of HTTP, TCP, UDP, and WebSocket — the protocols behind latency and throughput.",
         },
         {
           kind: "recap",

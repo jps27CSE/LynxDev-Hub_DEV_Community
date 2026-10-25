@@ -169,6 +169,19 @@ const module: SdModule = {
           body: "A beginner adds replicas and assumes the system is now 'scaled'. A senior engineer asks 'what is the write throughput after this change?' - the answer is unchanged, because writes still hit the primary. Replicas scale reads; they do not scale writes.",
         },
         {
+          kind: "video",
+          videoId: "Q4BUDplOWRE",
+          title:
+            "System Design Basics in Bangla | Load Balancing + Data Sharding + Replication + Caching Explained",
+          caption:
+            "Bangla walkthrough covering replication among other scaling techniques.",
+        },
+        {
+          kind: "concept",
+          title: "Go deeper (free reads)",
+          body: "Free reading on replication:\n\n- [donnemartin/system-design-primer — Database replication](https://github.com/donnemartin/system-design-primer#database-replication) — primer section.\n- [System Design Handbook — Replication](https://www.systemdesignhandbook.com/) — replication patterns.\n- [PostgreSQL Replication (docs)](https://www.postgresql.org/docs/current/high-availability.html) — real-world replication.\n- [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/) — deep dive book (paid).",
+        },
+        {
           kind: "recap",
           points: [
             "Replicas scale reads, not writes",

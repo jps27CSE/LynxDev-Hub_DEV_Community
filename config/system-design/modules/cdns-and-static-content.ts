@@ -204,6 +204,18 @@ const module: SdModule = {
           body: "A beginner sizes the origin for peak media bandwidth. A senior engineer sizes the edge for it and keeps the origin for misses and writes.",
         },
         {
+          kind: "video",
+          videoId: "vz6ShBpxt2U",
+          title:
+            "System Design Basics in Bangla | CDN + Message Queue + API Gateway Explained",
+          caption: "Bangla walkthrough of CDN, message queue, and API gateway.",
+        },
+        {
+          kind: "concept",
+          title: "Go deeper (free reads)",
+          body: "Free reading on CDNs:\n\n- [donnemartin/system-design-primer — CDN](https://github.com/donnemartin/system-design-primer) — primer section.\n- [Cloudflare: What is a CDN?](https://www.cloudflare.com/learning/cdn/what-is-a-cdn/) — free explainer.\n- [AWS CloudFront docs](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html) — how a CDN works.\n- [web.dev: Cache HTTP responses](https://web.dev/articles/http-cache) — caching and TTL.",
+        },
+        {
           kind: "recap",
           points: [
             "Bandwidth = requests × payload size",

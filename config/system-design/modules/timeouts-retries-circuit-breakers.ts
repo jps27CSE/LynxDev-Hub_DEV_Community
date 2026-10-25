@@ -206,6 +206,11 @@ const module: SdModule = {
           body: "A beginner waits indefinitely hoping it recovers. A senior engineer fails fast with a timeout, serves a degraded response, and lets the circuit breaker reopen traffic when the dependency recovers.",
         },
         {
+          kind: "concept",
+          title: "Go deeper (free reads)",
+          body: "Free reading on timeouts, retries, and circuit breakers:\n\n- [donnemartin/system-design-primer](https://github.com/donnemartin/system-design-primer) — reliability section.\n- [AWS: Exponential backoff and jitter](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/) — classic post.\n- [Martin Fowler: Circuit Breaker](https://martinfowler.com/bliki/CircuitBreaker.html) — the original pattern write-up.\n- [Google SRE Book — Handling Overload](https://sre.google/sre-book/handling-overload/) — free online.",
+        },
+        {
           kind: "recap",
           points: [
             "A slow dependency can take down its callers",

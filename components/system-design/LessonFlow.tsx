@@ -517,6 +517,49 @@ function LessonSection({
           Comparison stays closed until you've worked through the prompt above.
         </section>
       );
+    case "video":
+      return (
+        <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <a
+            href={`https://www.youtube.com/watch?v=${section.videoId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative block mx-auto max-w-md"
+          >
+            <img
+              src={`https://i.ytimg.com/vi/${section.videoId}/hqdefault.jpg`}
+              alt={section.title}
+              className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-colors group-hover:bg-black/40">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-red-600 text-white shadow-lg transition-transform group-hover:scale-110">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="ml-1 h-7 w-7"
+                  aria-hidden="true"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </span>
+            </div>
+          </a>
+          <div className="p-4 sm:p-5">
+            <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              Watch on YouTube
+            </p>
+            <p className="mt-1 text-sm font-medium leading-6 text-foreground">
+              {section.title}
+            </p>
+            {section.caption ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {section.caption}
+              </p>
+            ) : null}
+          </div>
+        </section>
+      );
     case "recap":
       return (
         <section className="rounded-2xl border border-sd-success/30 bg-sd-success/5 p-6 sm:p-7">

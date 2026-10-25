@@ -201,6 +201,11 @@ const module: SdModule = {
           body: "A beginner says 'make the operation idempotent by checking if it already happened'. A senior engineer adds a client-generated idempotency key, stores the result, and returns it on retry, so the check is explicit and auditable.",
         },
         {
+          kind: "concept",
+          title: "Go deeper (free reads)",
+          body: "Free reading on idempotency and queues:\n\n- [Stripe: Designing robust and predictable APIs with idempotency](https://stripe.com/blog/idempotency) — the classic post.\n- [AWS: Idempotency in distributed systems](https://aws.amazon.com/builders-library/) — builders' library.\n- [RabbitMQ: Dead Letter Exchanges](https://www.rabbitmq.com/docs/dlx) — DLQ mechanics.\n- [donnemartin/system-design-primer](https://github.com/donnemartin/system-design-primer) — messaging and queues.",
+        },
+        {
           kind: "recap",
           points: [
             "At-least-once delivery produces duplicates",

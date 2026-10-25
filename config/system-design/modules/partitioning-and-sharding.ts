@@ -188,6 +188,19 @@ const module: SdModule = {
           body: "A beginner hears 'the database is slow' and adds replicas. A senior engineer asks which query and key are slow, then decides whether the problem is read volume, write volume, storage size, or skew. Sharding addresses some of those limits, not all of them.",
         },
         {
+          kind: "video",
+          videoId: "Q4BUDplOWRE",
+          title:
+            "System Design Basics in Bangla | Load Balancing + Data Sharding + Replication + Caching Explained",
+          caption:
+            "Bangla walkthrough covering data sharding among other scaling techniques.",
+        },
+        {
+          kind: "concept",
+          title: "Go deeper (free reads)",
+          body: "Free reading on sharding:\n\n- [donnemartin/system-design-primer — Database partitioning](https://github.com/donnemartin/system-design-primer#database-partitioning) — primer section.\n- [System Design Handbook — Sharding](https://www.systemdesignhandbook.com/) — sharding patterns.\n- [Vitess (YouTube's sharding solution)](https://vitess.io/) — real-world sharding.\n- [Consistent hashing explained (Toptal)](https://www.toptal.com/big-data/consistent-hashing) — deep dive.",
+        },
+        {
           kind: "recap",
           points: [
             "Partitioning splits one logical dataset into pieces",

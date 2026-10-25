@@ -225,6 +225,19 @@ const module: SdModule = {
           body: "A beginner load-tests and ships. A senior engineer chaos-tests: kills the leader, partitions a replica, degrades a region, and verifies the design degrades gracefully rather than collapsing.",
         },
         {
+          kind: "video",
+          videoId: "Pfr_6h3Rqew",
+          title:
+            "System Design Basics in Bangla | Scalability + Availability + Consistency + Fault Tolerance Explained",
+          caption:
+            "Bangla walkthrough of fault tolerance — the capstone theme.",
+        },
+        {
+          kind: "concept",
+          title: "Go deeper (free reads)",
+          body: "Free reading on chaos and resilience:\n\n- [Netflix Tech Blog — Chaos Engineering](https://netflixtechblog.com/tagged/chaos-engineering) — origin of chaos engineering.\n- [Principles of Chaos Engineering](https://principlesofchaos.org/) — the manifesto.\n- [Google SRE Book — Embracing Risk](https://sre.google/sre-book/embracing-risk/) — free online.\n- [AWS: Well-Architected Reliability Pillar](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/) — free guide.",
+        },
+        {
           kind: "recap",
           points: [
             "Load is not failure; failure injection is",

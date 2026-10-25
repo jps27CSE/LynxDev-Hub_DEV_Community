@@ -200,6 +200,11 @@ const module: SdModule = {
           body: "A beginner applies one global cap and watches real users get throttled along with the bot. A senior engineer limits per client at the edge so the bot alone pays for its traffic.",
         },
         {
+          kind: "concept",
+          title: "Go deeper (free reads)",
+          body: "Free reading on rate limiting:\n\n- [donnemartin/system-design-primer — Rate limiting](https://github.com/donnemartin/system-design-primer) — primer section.\n- [System Design Handbook — Rate Limiting](https://www.systemdesignhandbook.com/) — algorithms.\n- [Cloudflare: How to rate limit](https://developers.cloudflare.com/waf/rate-limiting-rules/) — real-world rate limiting.\n- [Stripe: Idempotency and rate limiting (blog)](https://stripe.com/blog/idempotency) — practical patterns.",
+        },
+        {
           kind: "recap",
           points: [
             "Rate limiting is per-client; an aggregate cap cannot separate a bot from real users",

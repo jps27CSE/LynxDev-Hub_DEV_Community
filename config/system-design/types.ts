@@ -296,7 +296,8 @@ export type SdLessonSection =
   /** Retrieval practice, before the answer is shown (§10.2). */
   | { kind: "your_turn"; prompt: string }
   | { kind: "compare"; body: string }
-  | { kind: "recap"; points: string[] };
+  | { kind: "recap"; points: string[] }
+  | { kind: "video"; videoId: string; title: string; caption?: string };
 
 export type SdLesson = {
   slug: string;

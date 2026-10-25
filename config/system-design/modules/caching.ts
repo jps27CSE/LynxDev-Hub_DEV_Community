@@ -243,6 +243,19 @@ const module: SdModule = {
           body: "A beginner caches everything. A senior engineer asks 'what is the cost of serving stale data here?' before adding a cache. User profile photos: stale for a minute is fine. Payment status: stale for a second is a bug.",
         },
         {
+          kind: "video",
+          videoId: "mzZ62duH20o",
+          title:
+            "System Design Basics in Bangla | Caching Strategies Explained (Read & Write Strategies)",
+          caption:
+            "Bangla walkthrough of cache-aside, read-through, write-through, write-behind, and write-aside.",
+        },
+        {
+          kind: "concept",
+          title: "Go deeper (free reads)",
+          body: "Free reading on caching:\n\n- [donnemartin/system-design-primer — Caching](https://github.com/donnemartin/system-design-primer#caching) — the 5 strategies.\n- [When to update the cache (Primer)](https://github.com/donnemartin/system-design-primer#when-to-update-the-cache) — invalidation and stampede.\n- [System Design Handbook](https://www.systemdesignhandbook.com/) — caching patterns.\n- [Redis Caching Patterns](https://redis.io/docs/latest/develop/use/patterns/) — practical patterns.",
+        },
+        {
           kind: "recap",
           points: [
             "Cache reads, not writes, as a default",

@@ -43,6 +43,19 @@ const module: SdModule = {
           body: "Start vertical if it's trivial and you're not there yet. Move to horizontal when you need high availability or have hit vertical limits. Most real systems end up doing horizontal scaling.",
         },
         {
+          kind: "video",
+          videoId: "nFbOxUJJeFo",
+          title:
+            "System Design in Bangla | Vertical vs Horizontal Scaling, Load Balancers & DNS Explained",
+          caption:
+            "Bangla walkthrough of vertical vs horizontal scaling, load balancers, and DNS.",
+        },
+        {
+          kind: "concept",
+          title: "Go deeper (free reads)",
+          body: "Free reading on scaling and load balancing:\n\n- [Intro to architecting systems for scale (lethain.com)](http://lethain.com/introduction-to-architecting-systems-for-scale) — classic essay.\n- [Scalability in System Design — System Design Handbook](https://www.systemdesignhandbook.com/guides/scalability-in-system-design) — horizontal vs vertical scaling.\n- [donnemartin/system-design-primer — Load balancing](https://github.com/donnemartin/system-design-primer#load-balancing) — primer section.\n- [System Design: Performance, Scalability, Latency, and Throughput (DEV Community)](https://dev.to/decoders_lord/system-design-performance-scalability-latency-and-throughput-652) — beginner-friendly.",
+        },
+        {
           kind: "recap",
           points: [
             "Scale up = bigger machine. Scale out = more machines",
