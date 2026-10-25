@@ -49,6 +49,7 @@ const LOADERS: Record<string, SdModuleLoader> = {
   "timeouts-retries-circuit-breakers": () =>
     import("./modules/timeouts-retries-circuit-breakers"),
   idempotency: () => import("./modules/idempotency"),
+  "chaos-capstone": () => import("./modules/chaos-capstone"),
 };
 
 /**
