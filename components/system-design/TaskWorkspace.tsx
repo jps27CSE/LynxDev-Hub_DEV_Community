@@ -985,13 +985,13 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
                   stroke={
                     selectedEdgeId === edge.id
                       ? "hsl(var(--primary))"
-                      : "hsl(var(--muted-foreground) / 0.85)"
+                      : "hsl(var(--muted-foreground) / 1)"
                   }
-                  strokeWidth={selectedEdgeId === edge.id ? 3 : 2}
+                  strokeWidth={selectedEdgeId === edge.id ? 3 : 2.5}
                   strokeLinecap="round"
                   strokeDasharray={edge.partitioned ? "7 4" : undefined}
                   markerEnd={`url(#task-arrow-${moduleSlug})`}
-                  className="pointer-events-auto cursor-pointer"
+                  className="pointer-events-auto cursor-pointer drop-shadow-sm"
                   onClick={(event) => {
                     event.stopPropagation();
                     onSelectEdge(edge.id);
