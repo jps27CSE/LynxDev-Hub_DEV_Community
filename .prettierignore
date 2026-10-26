@@ -8,3 +8,6 @@ drizzle/meta
 
 # Generated lockfile
 package-lock.json
+
+# Kilo Agent Manager generated state
+.kilo
