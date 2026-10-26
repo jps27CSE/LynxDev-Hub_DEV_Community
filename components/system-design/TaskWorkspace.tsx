@@ -99,6 +99,24 @@ function createTaskState(graph: SdGraph): SdTaskState {
   };
 }
 
+/**
+ * Highest numeric suffix seen in any node or edge id of the form
+ * `<kind>-<n>`. Used to seed the auto-increment counter so newly generated
+ * ids never collide with ids that arrived from the server or seed data.
+ */
+function maxIdIndex(graph: SdGraph): number {
+  const ids = [...graph.nodes.map((n) => n.id), ...graph.edges.map((e) => e.id)];
+  let max = 0;
+  for (const id of ids) {
+    const match = /^([a-z]+)-(\d+)$/i.exec(id);
+    if (match) {
+      const n = Number.parseInt(match[2], 10);
+      if (Number.isFinite(n) && n > max) max = n;
+    }
+  }
+  return max;
+}
+
 function parseTaskState(value: unknown): SdTaskState | null {
   if (typeof value !== "object" || value === null) return null;
   const candidate = value as Record<string, unknown>;
@@ -206,6 +224,20 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
   const taskStateRef = useRef<SdTaskState | null>(null);
   const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
   const nextNodeIdRef = useRef(0);
+
+  const nextId = useCallback((prefix: string) => {
+      const graph = taskStateRef.current?.graph;
+      const existing = new Set(
+        graph
+          ? [...graph.nodes.map((n) => n.id), ...graph.edges.map((e) => e.id)]
+          : [],
+      );
+      let id = `${prefix}-${nextNodeIdRef.current++}`;
+      while (existing.has(id)) {
+        id = `${prefix}-${nextNodeIdRef.current++}`;
+      }
+      return id;
+    }, []);
 
   const completionStorageKey = user ? `sd-task:${user.id}:${moduleSlug}` : null;
   const currentGraph = taskState?.graph ?? EMPTY_GRAPH;
@@ -322,9 +354,11 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
           const hasSavedTask = Object.hasOwn(tasks, moduleSlug);
           if (hasSavedTask) {
             serverState = parseTaskState(tasks[moduleSlug]);
+            if (!serverState)
+              console.error(
+                "Server task data failed validation and was ignored.",
+              );
           }
-          if (hasSavedTask && !serverState)
-            throw new Error("The server returned invalid task data.");
         } catch (error) {
           console.error("Failed to load server task state", error);
           toast.error(
@@ -350,7 +384,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
         hydrated.steps = currentStepIds(currentModule, hydrated.graph);
       }
 
-      nextNodeIdRef.current = hydrated.graph.nodes.length;
+      nextNodeIdRef.current = maxIdIndex(hydrated.graph);
       taskStateRef.current = hydrated;
       setTaskState(hydrated);
       setCheckedGraph(hydrated.graph);
@@ -490,10 +524,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
     (type: SdNodeType, x: number, y: number) => {
       const graph = taskStateRef.current?.graph;
       if (!graph) return;
-      let id = `${type}-${nextNodeIdRef.current++}`;
-      while (graph.nodes.some((node) => node.id === id)) {
-        id = `${type}-${nextNodeIdRef.current++}`;
-      }
+      const id = nextId(type);
       const node = defaultNode(type, id, x, y);
       updateGraph((current) => ({
         ...current,
@@ -501,7 +532,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
       }));
       setSelectedNodeId(id);
     },
-    [updateGraph],
+    [nextId, updateGraph],
   );
 
   const onNodesChange = useCallback(
@@ -526,7 +557,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
         return;
       }
       const edge: SdEdge = {
-        id: `edge-${nextNodeIdRef.current++}`,
+        id: nextId("edge"),
         from,
         to,
         label: null,

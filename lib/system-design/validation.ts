@@ -138,11 +138,36 @@ export const SdScenarioSchema = z.object({
 }) satisfies z.ZodType<SdScenario>;
 
 /** Full graph schema — shared between client (share links) and server (save). */
-export const SdGraphSchema = z.object({
-  nodes: z.array(SdNodeSchema).min(1).max(40),
-  edges: z.array(SdEdgeSchema).max(120),
-  scenario: SdScenarioSchema,
-}) satisfies z.ZodType<SdGraph>;
+export const SdGraphSchema = z
+  .object({
+    nodes: z.array(SdNodeSchema).min(1).max(40),
+    edges: z.array(SdEdgeSchema).max(120),
+    scenario: SdScenarioSchema,
+  })
+  .superRefine((graph, ctx) => {
+    const nodeIds = new Set<string>();
+    for (const node of graph.nodes) {
+      if (nodeIds.has(node.id)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["nodes"],
+          message: `Duplicate node id "${node.id}".`,
+        });
+      }
+      nodeIds.add(node.id);
+    }
+    const edgeIds = new Set<string>();
+    for (const edge of graph.edges) {
+      if (edgeIds.has(edge.id)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["edges"],
+          message: `Duplicate edge id "${edge.id}".`,
+        });
+      }
+      edgeIds.add(edge.id);
+    }
+  });
 
 /** Inference helpers for TypeScript. */
 export type SdNodeIn = z.infer<typeof SdNodeSchema>;
