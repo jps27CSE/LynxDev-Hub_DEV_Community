@@ -32,7 +32,6 @@ import { getControlPoints } from "@/lib/system-design/geometry";
 import { simulate } from "@/lib/system-design/engine";
 import { defaultNode, NODE_TYPES } from "@/lib/system-design/nodes";
 import { useCanvasInteractions } from "@/components/system-design/canvas/useCanvasInteractions";
-import { EdgePath } from "@/components/system-design/canvas/EdgePath";
 import { NodeCard } from "@/components/system-design/canvas/NodeCard";
 import { NodePalette } from "@/components/system-design/canvas/NodePalette";
 import { SimulationPanel } from "@/components/system-design/SimulationPanel";
@@ -946,7 +945,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
               <path
                 d={`M ${GRID_SIZE * scale} 0 L 0 0 0 ${GRID_SIZE * scale}`}
                 fill="none"
-                stroke="hsl(var(--border))"
+                stroke="var(--border)"
                 strokeWidth="0.6"
               />
             </pattern>
@@ -958,7 +957,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
               refY="4"
               orient="auto"
             >
-              <path d="M0,0 L8,4 L0,8 z" fill="hsl(var(--muted-foreground))" />
+              <path d="M0,0 L8,4 L0,8 z" fill="var(--muted-foreground)" />
             </marker>
           </defs>
           {showGrid && (
@@ -984,8 +983,8 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
                   fill="none"
                   stroke={
                     selectedEdgeId === edge.id
-                      ? "hsl(var(--primary))"
-                      : "hsl(var(--muted-foreground) / 1)"
+                      ? "var(--primary)"
+                      : "var(--muted-foreground)"
                   }
                   strokeWidth={selectedEdgeId === edge.id ? 3 : 2.5}
                   strokeLinecap="round"
@@ -1025,7 +1024,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
                 currentPos: connectionState.currentPos!,
               })}
               fill="none"
-              stroke="hsl(var(--primary))"
+              stroke="var(--primary)"
               strokeWidth="2"
               strokeDasharray="5 4"
             />

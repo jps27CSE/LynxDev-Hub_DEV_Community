@@ -178,7 +178,7 @@ export function SimulationPanel({
             <svg viewBox="0 0 200 40" className="w-full h-full">
               <polyline
                 fill="none"
-                stroke="hsl(var(--primary))"
+                stroke="var(--primary)"
                 strokeWidth="2"
                 points={sparklinePoints}
               />

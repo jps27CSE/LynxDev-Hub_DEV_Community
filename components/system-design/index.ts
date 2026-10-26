@@ -1,6 +1,4 @@
-export { Canvas } from "./canvas/Canvas";
 export { NodeCard } from "./canvas/NodeCard";
-export { EdgePath } from "./canvas/EdgePath";
 export { NodePalette } from "./canvas/NodePalette";
 export { useCanvasInteractions } from "./canvas/useCanvasInteractions";
 export { SimulationPanel } from "./SimulationPanel";
