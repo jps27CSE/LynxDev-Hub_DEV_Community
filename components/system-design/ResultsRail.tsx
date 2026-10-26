@@ -34,7 +34,7 @@ const utilizationColor = (util: number) => {
 export function ResultsRail({ result, selectedNodeId }: ResultsRailProps) {
   if (!result) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-4">
+      <div className="flex min-h-full flex-col items-center justify-center p-4 text-muted-foreground">
         <svg
           className="w-12 h-12 mb-2 opacity-50"
           viewBox="0 0 24 24"
@@ -58,7 +58,15 @@ export function ResultsRail({ result, selectedNodeId }: ResultsRailProps) {
     : null;
 
   return (
-    <div className="flex-1 flex flex-col space-y-4 overflow-y-auto p-2">
+    /*
+      A block scroll container, not a `flex flex-col` one. As a flex column the
+      sections are flex items and shrink to fit the panel instead of scrolling;
+      as blocks they keep their height and this element scrolls. `flex-1` +
+      `min-h-0` only work because the parent in `TaskWorkspace` is a flex column
+      — it was `overflow-hidden` on its own, which clipped the last section
+      (the per-node table) with no way to reach it.
+    */
+    <div className="flex-1 min-h-0 space-y-4 overflow-y-auto p-2 pb-4">
       {/* Global Summary */}
       <section className="space-y-3 p-3 bg-muted/30 rounded-lg border border-border">
         <h3 className="font-medium text-sm text-foreground">Global Summary</h3>
@@ -153,21 +161,45 @@ export function ResultsRail({ result, selectedNodeId }: ResultsRailProps) {
         </section>
       )}
 
-      {/* Per-Node Table */}
       <section>
         <h3 className="font-medium text-sm text-foreground mb-2">
           Per-Node Breakdown
         </h3>
-        <div className="rounded-lg border border-border overflow-hidden">
+        {/*
+            Five columns, not six. At the rail's default width (~296px) a
+            "Status" column pushed the table to a 336px minimum, so `overflow-hidden`
+            silently cut it. Status now sits under the node id and only appears
+            when something is wrong — a healthy node's utilisation is already
+            green.
+          */}
+        <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-muted/50 text-muted-foreground">
-                <th className="text-left px-2 py-1">Node</th>
-                <th className="text-right px-2 py-1">Util</th>
-                <th className="text-right px-2 py-1">Concurrency</th>
-                <th className="text-right px-2 py-1">Service</th>
-                <th className="text-right px-2 py-1">Queue</th>
-                <th className="text-center px-2 py-1">Status</th>
+                <th className="whitespace-nowrap px-1.5 py-1 text-left">
+                  Node
+                </th>
+                <th className="whitespace-nowrap px-1.5 py-1 text-right">
+                  Util
+                </th>
+                <th
+                  className="whitespace-nowrap px-1.5 py-1 text-right"
+                  title="Concurrency"
+                >
+                  Conc.
+                </th>
+                <th
+                  className="whitespace-nowrap px-1.5 py-1 text-right"
+                  title="Service time"
+                >
+                  Svc
+                </th>
+                <th
+                  className="whitespace-nowrap px-1.5 py-1 text-right"
+                  title="Queue wait"
+                >
+                  Queue
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -182,10 +214,17 @@ export function ResultsRail({ result, selectedNodeId }: ResultsRailProps) {
                     )}
                     onClick={() => {}}
                   >
-                    <td className="px-2 py-1.5 font-mono text-foreground truncate max-w-[120px]">
-                      {node.id}
+                    <td className="px-1.5 py-1.5">
+                      <span className="block max-w-[6rem] truncate font-mono text-foreground">
+                        {node.id}
+                      </span>
+                      {(node.down || node.saturated) && (
+                        <span className="mt-0.5 block text-[10px] font-semibold tracking-wide text-red-500">
+                          {node.down ? "DOWN" : "SATURATED"}
+                        </span>
+                      )}
                     </td>
-                    <td className="px-2 py-1.5 text-right">
+                    <td className="whitespace-nowrap px-1.5 py-1.5 text-right">
                       <span
                         className={cn(
                           "font-mono",
@@ -194,27 +233,15 @@ export function ResultsRail({ result, selectedNodeId }: ResultsRailProps) {
                       >
                         {fmtPct(node.utilisation)}
                       </span>
-                      {node.saturated && (
-                        <span className="ml-1 text-red-500">●</span>
-                      )}
                     </td>
-                    <td className="px-2 py-1.5 text-right font-mono text-muted-foreground">
+                    <td className="whitespace-nowrap px-1.5 py-1.5 text-right font-mono text-muted-foreground">
                       {fmt(node.concurrency)}
                     </td>
-                    <td className="px-2 py-1.5 text-right font-mono">
+                    <td className="whitespace-nowrap px-1.5 py-1.5 text-right font-mono">
                       {fmtMs(node.serviceMs)}
                     </td>
-                    <td className="px-2 py-1.5 text-right font-mono">
+                    <td className="whitespace-nowrap px-1.5 py-1.5 text-right font-mono">
                       {fmtMs(node.queueWaitMs)}
-                    </td>
-                    <td className="px-2 py-1.5 text-center">
-                      {node.down ? (
-                        <span className="text-red-500 text-xs">DOWN</span>
-                      ) : node.saturated ? (
-                        <span className="text-red-500 text-xs">SATURATED</span>
-                      ) : (
-                        <span className="text-green-500 text-xs">OK</span>
-                      )}
                     </td>
                   </tr>
                 ))}

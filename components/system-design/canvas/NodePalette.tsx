@@ -15,6 +15,15 @@ interface NodePaletteProps {
   disabledTypes?: SdNodeType[];
 }
 
+/**
+ * One row per node type, not a tile grid.
+ *
+ * Nine types in two wide columns needed ~590px of height, which a bottom panel
+ * capped at ~half of a narrow rail can never give — the last group (Async →
+ * Queue) was always cut mid-tile. A 26px row with the label on the same line as
+ * the icon needs ~381px in total, which fits inside the 47% cap and leaves the
+ * steps above — the part a learner actually reads — the larger share.
+ */
 export function NodePalette({
   onDragStart,
   disabledTypes = [],
@@ -22,7 +31,7 @@ export function NodePalette({
   const categories: SdNodeCategory[] = ["traffic", "compute", "data", "async"];
 
   return (
-    <div className="flex flex-col gap-4 h-full overflow-y-auto p-3">
+    <div className="flex flex-col gap-1.5 p-1">
       {categories.map((category) => {
         const typesInCategory = NODE_TYPE_ORDER.filter(
           (t) =>
@@ -31,11 +40,11 @@ export function NodePalette({
         if (typesInCategory.length === 0) return null;
 
         return (
-          <div key={category} className="space-y-2">
-            <h4 className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <div key={category}>
+            <h4 className="mb-0.5 px-1 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
               {NODE_CATEGORY_LABELS[category]}
             </h4>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col gap-1">
               {typesInCategory.map((type) => {
                 const spec = NODE_TYPES[type];
                 const Icon = createLucideIcon(spec.iconKey);
@@ -50,25 +59,23 @@ export function NodePalette({
                       );
                       onDragStart(type, e);
                     }}
-                    className={cn(
-                      "group relative flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-background",
-                      "hover:border-primary/50 hover:bg-accent transition-all duration-200",
-                      "active:scale-[0.98]",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                      "min-w-0",
-                    )}
                     title={spec.blurb}
+                    className={cn(
+                      "flex w-full cursor-grab items-center gap-2 rounded-md border border-border bg-background px-2 py-0.5 text-left",
+                      "hover:border-primary/50 hover:bg-accent transition-colors",
+                      "active:scale-[0.99] active:cursor-grabbing",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                    )}
                   >
-                    <div className="relative w-10 h-10 flex items-center justify-center rounded bg-muted">
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded bg-muted">
                       <Icon
-                        className="w-5 h-5 text-foreground"
+                        className="size-3 text-foreground"
                         strokeWidth={2}
                       />
-                    </div>
-                    <span className="text-xs font-medium text-center truncate w-full">
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-[11px] font-medium">
                       {spec.label}
                     </span>
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-2 h-2 rounded-full bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
                 );
               })}

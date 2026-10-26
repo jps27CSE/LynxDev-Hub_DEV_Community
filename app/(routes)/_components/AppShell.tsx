@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
 import HelpButton from "./HelpButton";
@@ -8,6 +9,17 @@ import HelpButton from "./HelpButton";
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const pathname = usePathname();
+
+  /**
+   * The build-task workspace fills the viewport with resizable panels, so the
+   * fixed help button (bottom-right, 40px) lands on top of the right rail and
+   * hides the last columns of the results table. It is the only surface with
+   * no free corner, so it opts out instead of padding content out from under it.
+   */
+  const isFullViewportWorkspace = /\/system-design\/[^/]+\/task(?:\/|$)/.test(
+    pathname ?? "",
+  );
 
   useEffect(() => {
     try {
@@ -57,7 +69,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      <HelpButton />
+      {!isFullViewportWorkspace && <HelpButton />}
     </div>
   );
 }

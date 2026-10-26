@@ -113,7 +113,10 @@ function createTaskState(graph: SdGraph): SdTaskState {
  * ids never collide with ids that arrived from the server or seed data.
  */
 function maxIdIndex(graph: SdGraph): number {
-  const ids = [...graph.nodes.map((n) => n.id), ...graph.edges.map((e) => e.id)];
+  const ids = [
+    ...graph.nodes.map((n) => n.id),
+    ...graph.edges.map((e) => e.id),
+  ];
   let max = 0;
   for (const id of ids) {
     const match = /^([a-z]+)-(\d+)$/i.exec(id);
@@ -234,18 +237,18 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
   const nextNodeIdRef = useRef(0);
 
   const nextId = useCallback((prefix: string) => {
-      const graph = taskStateRef.current?.graph;
-      const existing = new Set(
-        graph
-          ? [...graph.nodes.map((n) => n.id), ...graph.edges.map((e) => e.id)]
-          : [],
-      );
-      let id = `${prefix}-${nextNodeIdRef.current++}`;
-      while (existing.has(id)) {
-        id = `${prefix}-${nextNodeIdRef.current++}`;
-      }
-      return id;
-    }, []);
+    const graph = taskStateRef.current?.graph;
+    const existing = new Set(
+      graph
+        ? [...graph.nodes.map((n) => n.id), ...graph.edges.map((e) => e.id)]
+        : [],
+    );
+    let id = `${prefix}-${nextNodeIdRef.current++}`;
+    while (existing.has(id)) {
+      id = `${prefix}-${nextNodeIdRef.current++}`;
+    }
+    return id;
+  }, []);
 
   const completionStorageKey = user ? `sd-task:${user.id}:${moduleSlug}` : null;
   const currentGraph = taskState?.graph ?? EMPTY_GRAPH;
@@ -903,8 +906,19 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
           onRun={handleRun}
         />
       </div>
-      <div className="max-h-[42%] min-h-36 border-t border-border">
-        <div className="border-b border-border px-4 py-2">
+      {/*
+        The block is the scroll container, not a `max-h` box wrapping an
+        `h-full` child — the child then resolves to auto height and its
+        overflow is clipped by the panel instead of scrolling.
+
+        Capped at 47% on purpose: the steps above are what a learner reads, so
+        the palette gives them the larger share. Measured at 26px rows, the
+        nine components need ~387px — content-sized at 1080p, and still inside
+        47% of a shorter 828px column (389px). Below that it scrolls with the
+        thin scrollbar rather than hiding the Async group.
+      */}
+      <div className="max-h-[47%] min-h-36 shrink-0 overflow-y-auto overscroll-contain border-t border-border [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin]">
+        <div className="sticky top-0 z-10 border-b border-border bg-card px-4 py-2">
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             Add a component
           </p>
@@ -1152,7 +1166,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
           </button>
         ))}
       </div>
-      <div className="min-h-0 flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {rightPanel === "results" && (
           <ResultsRail
             result={simulationResult}
