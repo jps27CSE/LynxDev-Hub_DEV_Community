@@ -28,6 +28,7 @@ import type {
   StepResult,
 } from "@/config/system-design/types";
 import { SdGraphSchema, validateGraph } from "@/lib/system-design/validation";
+import { getControlPoints } from "@/lib/system-design/geometry";
 import { simulate } from "@/lib/system-design/engine";
 import { defaultNode, NODE_TYPES } from "@/lib/system-design/nodes";
 import { useCanvasInteractions } from "@/components/system-design/canvas/useCanvasInteractions";
@@ -86,6 +87,14 @@ function cloneGraph(graph: SdGraph): SdGraph {
     })),
     scenario: { ...graph.scenario },
   };
+}
+
+function buildPreviewPath(cs: {
+  fromPortPos: { x: number; y: number };
+  currentPos: { x: number; y: number };
+}): string {
+  const { cp1, cp2 } = getControlPoints(cs.fromPortPos, cs.currentPos);
+  return `M${cs.fromPortPos.x} ${cs.fromPortPos.y} C${cp1.x} ${cp1.y} ${cp2.x} ${cp2.y} ${cs.currentPos.x} ${cs.currentPos.y}`;
 }
 
 function createTaskState(graph: SdGraph): SdTaskState {
@@ -976,9 +985,10 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
                   stroke={
                     selectedEdgeId === edge.id
                       ? "hsl(var(--primary))"
-                      : "hsl(var(--muted-foreground) / 0.7)"
+                      : "hsl(var(--muted-foreground) / 0.85)"
                   }
-                  strokeWidth={selectedEdgeId === edge.id ? 2.5 : 1.6}
+                  strokeWidth={selectedEdgeId === edge.id ? 3 : 2}
+                  strokeLinecap="round"
                   strokeDasharray={edge.partitioned ? "7 4" : undefined}
                   markerEnd={`url(#task-arrow-${moduleSlug})`}
                   className="pointer-events-auto cursor-pointer"
@@ -1010,7 +1020,10 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
           })}
           {connectionState?.currentPos && (
             <path
-              d={`M ${connectionState.fromPortPos.x} ${connectionState.fromPortPos.y} L ${connectionState.currentPos.x} ${connectionState.currentPos.y}`}
+              d={buildPreviewPath({
+                fromPortPos: connectionState.fromPortPos,
+                currentPos: connectionState.currentPos!,
+              })}
               fill="none"
               stroke="hsl(var(--primary))"
               strokeWidth="2"
