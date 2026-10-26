@@ -15,7 +15,8 @@ interface NodeCardProps {
   utilisation?: number;
 }
 
-const PORT_RADIUS = 6;
+const PORT_RADIUS = 7;
+const PORT_SIZE = 12;
 
 export function NodeCard({
   node,
@@ -103,7 +104,11 @@ export function NodeCard({
         </div>
 
         <div
-          className="port absolute -left-3 top-1/2 h-6 w-6 -translate-y-1/2 cursor-pointer rounded-full border-2 border-primary/70 bg-background/90 transition-all hover:scale-150 hover:border-primary hover:bg-primary/30"
+          className="port absolute -left-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-full border-2 border-primary bg-primary/10 transition-all hover:scale-125 hover:border-primary/100 hover:bg-primary/20"
+          style={{
+            width: PORT_SIZE,
+            height: PORT_SIZE,
+          }}
           onMouseDown={(e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -119,7 +124,11 @@ export function NodeCard({
           title="Click to connect"
         />
         <div
-          className="port absolute -right-3 top-1/2 h-6 w-6 -translate-y-1/2 cursor-pointer rounded-full border-2 border-primary/70 bg-background/90 transition-all hover:scale-150 hover:border-primary hover:bg-primary/30"
+          className="port absolute -right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-full border-2 border-primary bg-primary/10 transition-all hover:scale-125 hover:border-primary/100 hover:bg-primary/20"
+          style={{
+            width: PORT_SIZE,
+            height: PORT_SIZE,
+          }}
           onMouseDown={(e) => {
             e.stopPropagation();
             e.preventDefault();

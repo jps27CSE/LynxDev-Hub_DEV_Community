@@ -362,8 +362,7 @@ export function useCanvasInteractions({
             }
           }
         }
-        // Don't clear immediately - allow clicking another port to connect
-        // setConnectionState(null);
+        setConnectionState(null);
       }
     },
     [
