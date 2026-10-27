@@ -6,6 +6,7 @@ const module: SdModule = {
   order: 5,
   part: 1,
   partTitle: "Scaling up",
+  kind: "sim",
   title: "Load Balancers & Stateless Services",
   description:
     "Learn why vertical scaling hits a wall, how horizontal scaling works, and why making services stateless is the key to spreading traffic.",

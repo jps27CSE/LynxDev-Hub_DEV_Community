@@ -128,6 +128,7 @@ const module: SdModule = {
   order: 13,
   part: 3,
   partTitle: "Reliability",
+  kind: "sim",
   title: "Idempotency & Safe Retries",
   description:
     "At-least-once delivery means duplicates. Use idempotency keys and dead-letter queues so a flaky network never creates five uploads.",

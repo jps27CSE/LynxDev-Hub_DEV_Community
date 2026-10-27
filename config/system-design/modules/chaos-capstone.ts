@@ -152,6 +152,7 @@ const module: SdModule = {
   order: 14,
   part: 3,
   partTitle: "Reliability",
+  kind: "sim",
   title: "Chaos — Capstone",
   description:
     "Every chaos toggle at once. Survive node deaths, partitions, degradation, and replica lag with the design you have built across 13 modules.",

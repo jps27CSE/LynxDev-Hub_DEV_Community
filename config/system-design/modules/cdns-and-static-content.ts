@@ -109,6 +109,7 @@ const module: SdModule = {
   order: 10,
   part: 1,
   partTitle: "Scaling up",
+  kind: "sim",
   title: "CDNs & Static Content",
   description:
     "Move 2 MB photos to the edge so the origin barely sees them, and learn what a CDN cannot cache.",

@@ -6,6 +6,7 @@ const module: SdModule = {
   order: 4,
   part: 0,
   partTitle: "Mindset",
+  kind: "sim",
   title: "Back-of-the-envelope Estimation",
   description:
     "Learn to estimate scale with simple math. Powers of two, QPS, storage, bandwidth and Little's Law explained step by step.",

@@ -96,6 +96,7 @@ const module: SdModule = {
   order: 9,
   part: 1,
   partTitle: "Scaling up",
+  kind: "sim",
   title: "Rate Limiting & Backpressure",
   description:
     "Keep one abusive client from drowning out everyone else, and shed load before the whole stack falls over.",

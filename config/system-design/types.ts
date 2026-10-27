@@ -299,10 +299,32 @@ export type SdLessonSection =
   | { kind: "recap"; points: string[] }
   | { kind: "video"; videoId: string; title: string; caption?: string };
 
+/**
+ * One free, external read that goes deeper than the lesson does.
+ *
+ * A rendered block, not a link buried in a paragraph body. Module 1 used to
+ * carry ad-hoc link lists *inside* `concept` bodies — unverified URLs, no
+ * distinct block, and invisible to every gate. `sources` fixes all three: it
+ * renders in one place and `lib/system-design/content-rules.ts` rejects a
+ * non-https URL before it can ship.
+ *
+ * `label` is mandatory because a bare URL gives the learner no reason to click.
+ */
+export type SdSourceRef = {
+  label: string;
+  url: string;
+};
+
 export type SdLesson = {
   slug: string;
   title: string;
   sections: SdLessonSection[];
+  /**
+   * Free reads for this lesson, 1–3 of them. Required on modules that have
+   * opted into the leaf model (see `SdChapter.lessonSlug`); the per-lesson
+   * assignment lives in `.agent/plans/17-system-design-resource-map.md`.
+   */
+  sources?: SdSourceRef[];
   /** Synthesis is ours; the source we learned it from is not (§10.4). */
   attribution: string;
 };
@@ -332,6 +354,26 @@ export type SdTaskDef = {
   passCriteria: SdPassCriterion[];
 };
 
+/**
+ * One node of the left-rail navigation tree. **1 leaf chapter = 1 lesson.**
+ *
+ * A group has `children`; a leaf has `lessonSlug`. The set of leaves must equal
+ * the set of lessons — that is the whole point, and it is enforced by
+ * `lib/system-design/content-rules.ts` (both directions), not by this type.
+ *
+ * Why the gate and not the type: 9 of 14 modules still carry an outline that
+ * predates the rule (50 leaves for 41 lessons — caching alone promises 7 leaves
+ * for 4 lessons). A discriminated union that made `lessonSlug` required would
+ * fail `tsc` for all of them at once, which means deleting authored outlines to
+ * satisfy a type. They are converted one slice at a time (B2, B4–B7) and the
+ * gate is what keeps each conversion honest. **When the last module is
+ * converted, make `lessonSlug` required on `children`-less chapters and remove
+ * this note.**
+ *
+ * Until a module is converted, its outline is decorative: `chapters` is not
+ * rendered by anything that binds a lesson yet, so a leaf title that promises a
+ * lesson is a promise without a page.
+ */
 export type SdChapter = {
   /** Unique identifier for the chapter */
   slug: string;
@@ -341,9 +383,18 @@ export type SdChapter = {
   description?: string;
   /** Nested sub-chapters (for hierarchical chapter structure) */
   children?: SdChapter[];
-  /** Optional lesson slug if this chapter wraps a single lesson */
+  /** Lesson slug this leaf binds to. Required on leaves once converted. */
   lessonSlug?: string;
 };
+
+/**
+ * `sim` — the module ends in a Build Task on the canvas.
+ * `prose` — reading only; no canvas, no `/task` route (Slice B3).
+ *
+ * Explicit rather than inferred from the presence of `task`, because once
+ * `task` is optional (B3) an absent task and a forgotten task look identical.
+ */
+export type SdModuleKind = "sim" | "prose";
 
 export type SdModule = {
   /** Always identical to the filename under `config/system-design/modules/`. */
@@ -354,30 +405,10 @@ export type SdModule = {
   partTitle: string;
   title: string;
   description: string;
+  /** Reading-only module, or one that ends in a Build Task. */
+  kind: SdModuleKind;
   /** Where our app is now, and what just broke. */
   story: string;
-  storyIllustration?: {
-    chapters?: SdChapter[];
-    caption: string;
-    before: {
-      title: string;
-      description: string;
-      diagram?: {
-        nodes: any[];
-        edges: any[];
-        scenario: SdScenario;
-      };
-    };
-    after: {
-      title: string;
-      description: string;
-      diagram?: {
-        nodes: any[];
-        edges: any[];
-        scenario: SdScenario;
-      };
-    };
-  };
   /** Chapters organize the learning content into sections */
   chapters?: SdChapter[];
   lessons: SdLesson[];

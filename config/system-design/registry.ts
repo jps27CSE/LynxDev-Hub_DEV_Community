@@ -18,10 +18,10 @@ import type { SdModule } from "./types";
  * the bundle of any single lesson page. Keying the loaders on slug splits each
  * module into its own chunk, so opening module 6 downloads module 6.
  *
- * The map is empty until Task 13 authors the content. It is built as an empty
- * map rather than with placeholder entries so that `tsc` stays meaningful:
- * pointing `import()` at files that do not exist yet fails the typecheck at
- * Task 1 and keeps it red until Task 13.
+ * **14 modules are registered below** (Phase 6, Task 13). The count is not
+ * asserted here — it would need editing on every slice — and does not need to
+ * be: `check:system-design` fails if a file in `modules/` is missing from this
+ * map, and fails if a key here has no file. Add a module by adding both.
  *
  * KEEP THIS FILE DEPENDENCY-FREE — see the I.9 note at the top of `types.ts`.
  */

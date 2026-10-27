@@ -1,8 +1,8 @@
 import { getAllModuleSlugs, getModule } from "@/config/system-design/registry";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import type { ModuleOverview } from "@/components/system-design/ModuleLayout";
 import { ModuleLayout } from "@/components/system-design/ModuleLayout";
-import type { SdModule } from "@/config/system-design/types";
 
 interface ModulePageProps {
   params: Promise<{ module: string }>;
@@ -34,30 +34,31 @@ export default async function ModulePage({ params }: ModulePageProps) {
 
   if (!mod) notFound();
 
-  // Create a clean module object without functions that can't be serialized
-  // for static generation. The full module with steps will be available client-side.
-  const cleanModule: SdModule = {
+  // The overview page renders titles and counts, never prose. Passing the full
+  // lesson objects would put every lesson's body into the page payload; passing
+  // the task's graphs would add the two biggest objects on the module for a
+  // component that reads one string from them. See `ModuleOverview`.
+  const overview: ModuleOverview = {
     slug: mod.slug,
     order: mod.order,
     part: mod.part,
     partTitle: mod.partTitle,
+    kind: mod.kind,
     title: mod.title,
     description: mod.description,
     story: mod.story,
     chapters: mod.chapters,
-    lessons: mod.lessons,
+    lessons: mod.lessons.map((lesson) => ({
+      slug: lesson.slug,
+      title: lesson.title,
+      sectionCount: lesson.sections.length,
+      sourceCount: lesson.sources?.length ?? 0,
+    })),
     interviewByte: mod.interviewByte,
-    task: {
-      brief: mod.task.brief,
-      startGraph: mod.task.startGraph,
-      solutionGraph: mod.task.solutionGraph,
-      // steps and passCriteria are omitted - loaded client-side
-      steps: [] as any[],
-      passCriteria: [] as any[],
-    },
+    task: { brief: mod.task.brief },
     recap: mod.recap,
     attribution: mod.attribution,
   };
 
-  return <ModuleLayout module={cleanModule} />;
+  return <ModuleLayout module={overview} />;
 }

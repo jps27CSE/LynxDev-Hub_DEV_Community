@@ -6,6 +6,7 @@ const module: SdModule = {
   order: 3,
   part: 0,
   partTitle: "Mindset",
+  kind: "sim",
   title: "Constraints & the Design Process",
   description:
     "A repeatable way to approach any system design. Learn to think out loud, spot trade-offs, and avoid common traps.",

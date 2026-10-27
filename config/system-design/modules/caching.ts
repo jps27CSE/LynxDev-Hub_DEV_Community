@@ -6,6 +6,7 @@ const module: SdModule = {
   order: 6,
   part: 1,
   partTitle: "Scaling up",
+  kind: "sim",
   title: "Caching",
   description:
     "Learn where to put a cache, the five caching strategies, eviction and TTL, the hard problem of invalidation, and how to survive a cache stampede.",

@@ -12,20 +12,31 @@ import type {
 } from "@/config/system-design/types";
 import { AnswerMarkdown } from "@/components/markdown-answer";
 import { NODE_TYPES } from "@/lib/system-design/nodes";
+import {
+  countLessonWords,
+  type LessonNavEntry,
+} from "@/lib/system-design/content-rules";
 import { useRouter } from "next/navigation";
 
 interface LessonFlowProps {
   moduleSlug: string;
   moduleTitle: string;
-  lessons: SdLesson[];
+  /**
+   * Reading order, already resolved against the chapter tree. Only slugs and
+   * titles — the prose of every other lesson in the module stays on the server.
+   */
+  nav: LessonNavEntry[];
   lesson: SdLesson;
+  /** Prose modules have no canvas, so the last lesson must not link to one. */
+  hasTask: boolean;
 }
 
 export function LessonFlow({
   moduleSlug,
   moduleTitle,
-  lessons,
+  nav,
   lesson,
+  hasTask,
 }: LessonFlowProps) {
   const { user, isLoaded } = useUser();
   const [completedLessonKey, setCompletedLessonKey] = useState<string | null>(
@@ -40,25 +51,17 @@ export function LessonFlow({
   const lessonKey = `${moduleSlug}/${lesson.slug}`;
   const isComplete = completedLessonKey === lessonKey;
   const completionStorageKey = user ? `sd-lessons:${user.id}` : null;
-  const lessonIndex = lessons.findIndex((item) => item.slug === lesson.slug);
-  const previousLesson = lessonIndex > 0 ? lessons[lessonIndex - 1] : null;
-  const nextLesson =
-    lessonIndex >= 0 ? (lessons[lessonIndex + 1] ?? null) : null;
+  const lessonIndex = nav.findIndex((item) => item.slug === lesson.slug);
+  const previousLesson = lessonIndex > 0 ? nav[lessonIndex - 1] : null;
+  const nextLesson = lessonIndex >= 0 ? (nav[lessonIndex + 1] ?? null) : null;
   const router = useRouter();
 
-  // Estimated reading time (rough: 200 wpm over section bodies)
-  const wordCount = lesson.sections.reduce((acc, s) => {
-    const text =
-      "body" in s
-        ? s.body
-        : "prompt" in s
-          ? s.prompt
-          : "points" in s
-            ? s.points.join(" ")
-            : "";
-    return acc + (text?.split(/\s+/).length ?? 0);
-  }, 0);
-  const readingMinutes = Math.max(1, Math.round(wordCount / 200));
+  // Same counter the content gate uses (D3), so "4 min read" and the word
+  // budget can never be two different numbers.
+  const readingMinutes = Math.max(
+    1,
+    Math.round(countLessonWords(lesson) / 200),
+  );
 
   useEffect(() => {
     setCompletedLessonKey(null);
@@ -183,7 +186,7 @@ export function LessonFlow({
   }, [previousLesson, nextLesson, moduleSlug, router]);
 
   const progressPct =
-    lessons.length > 0 ? ((lessonIndex + 1) / lessons.length) * 100 : 0;
+    nav.length > 0 ? ((lessonIndex + 1) / nav.length) * 100 : 0;
 
   return (
     <div className="sd-scope flex h-[100dvh] flex-col overflow-hidden">
@@ -210,7 +213,7 @@ export function LessonFlow({
               </p>
             </div>
             <nav className="space-y-1">
-              {lessons.map((item, index) => {
+              {nav.map((item, index) => {
                 const isActive = item.slug === lesson.slug;
                 return (
                   <Link
@@ -267,7 +270,7 @@ export function LessonFlow({
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-xs uppercase tracking-widest text-muted-foreground">
                 <span>
                   Lesson {String(lessonIndex + 1).padStart(2, "0")} /{" "}
-                  {String(lessons.length).padStart(2, "0")}
+                  {String(nav.length).padStart(2, "0")}
                 </span>
                 <span aria-hidden="true">·</span>
                 <span>{readingMinutes} min read</span>
@@ -315,6 +318,48 @@ export function LessonFlow({
               </p>
             )}
 
+            {lesson.sources && lesson.sources.length > 0 && (
+              <section
+                aria-labelledby="go-deeper"
+                className="mt-10 rounded-2xl border border-sd-info/30 bg-sd-info/5 p-6 sm:p-7"
+              >
+                <p className="font-mono text-xs uppercase tracking-[0.18em] text-sd-info">
+                  Go deeper
+                </p>
+                <h2
+                  id="go-deeper"
+                  className="mt-2 text-xl font-semibold tracking-tight"
+                >
+                  Free reads that go further than this lesson
+                </h2>
+                <ul className="mt-4 space-y-3">
+                  {lesson.sources.map((source) => (
+                    <li key={source.url}>
+                      <a
+                        href={source.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-sd-info/40"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="mt-0.5 font-mono text-xs text-sd-info"
+                        >
+                          ↗
+                        </span>
+                        <span className="min-w-0 flex-1 text-sm font-medium leading-6 group-hover:text-sd-info">
+                          {source.label}
+                        </span>
+                        <span className="hidden max-w-[15rem] truncate font-mono text-[10px] text-muted-foreground sm:block">
+                          {source.url.replace(/^https:\/\//, "").split("/")[0]}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
             <section className="mt-10 border-t border-border pt-6">
               <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
                 Sources & synthesis
@@ -360,12 +405,19 @@ export function LessonFlow({
                   >
                     Next lesson →
                   </Link>
-                ) : (
+                ) : hasTask ? (
                   <Link
                     href={`/system-design/${moduleSlug}/task`}
                     className="rounded-xl bg-sd-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sd-accent/90"
                   >
                     Go to build task →
+                  </Link>
+                ) : (
+                  <Link
+                    href={`/system-design/${moduleSlug}`}
+                    className="rounded-xl bg-sd-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sd-accent/90"
+                  >
+                    Back to the module →
                   </Link>
                 )}
               </div>
@@ -409,7 +461,7 @@ export function LessonFlow({
                 {lessonIndex + 1}
                 <span className="text-base text-muted-foreground">
                   {" "}
-                  / {lessons.length}
+                  / {nav.length}
                 </span>
               </p>
               <p className="text-xs text-muted-foreground">

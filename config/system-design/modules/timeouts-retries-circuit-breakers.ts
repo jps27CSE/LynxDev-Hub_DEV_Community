@@ -120,6 +120,7 @@ const module: SdModule = {
   order: 12,
   part: 3,
   partTitle: "Reliability",
+  kind: "sim",
   title: "Timeouts, Retries & Circuit Breakers",
   description:
     "No timeout is worse than a bad one. Add backoff, jitter, bulkheads, and circuit breakers so a dead dependency cannot take the API down.",

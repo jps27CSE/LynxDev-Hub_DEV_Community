@@ -6,6 +6,7 @@ const module: SdModule = {
   order: 7,
   part: 1,
   partTitle: "Scaling up",
+  kind: "sim",
   title: "Read Replicas",
   description:
     "Learn why scaling reads is not the same as scaling writes, how replication lag creates stale data, and what it takes to promote a replica when the primary dies.",

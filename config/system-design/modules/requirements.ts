@@ -6,6 +6,7 @@ const module: SdModule = {
   order: 2,
   part: 0,
   partTitle: "Mindset",
+  kind: "sim",
   title: "Requirements",
   description:
     "Learn to find out what to build before building it. Functional vs non-functional, asking the right questions, and turning vague asks into clear goals.",

@@ -22,6 +22,11 @@
  *                        whose broken start already passes is not a task.
  *   7. cumulative chain  the growing app does not lose components between
  *                        modules (warn only — see below)
+ *   8. content model     1 leaf chapter = 1 lesson, both directions; `order` is
+ *                        exactly 1..N; converted modules meet the 700–900 word
+ *                        depth bar and carry 1–3 https sources. Rules live in
+ *                        `lib/system-design/content-rules.ts` so `npm test` can
+ *                        run the same ones before Build.
  *
  * Why the prerender manifest and not the HTML files: `compute: "static"` on a
  * route entry IS the proof that the `●` route table promise holds. Checking for
@@ -38,6 +43,11 @@ import { getAllModuleSlugs, getModule } from "../config/system-design/registry";
 import { SdGraphSchema } from "../lib/system-design/validation";
 import { simulate } from "../lib/system-design/engine";
 import { runStepCheck } from "../lib/system-design/rubric";
+import {
+  inspectChapterBinding,
+  inspectModuleContent,
+  inspectModuleOrder,
+} from "../lib/system-design/content-rules";
 import type { SdModule } from "../config/system-design/types";
 
 const MANIFEST = path.join(process.cwd(), ".next", "prerender-manifest.json");
@@ -166,6 +176,40 @@ async function main(): Promise<void> {
     }
   }
   ok(`${modules.length} module(s) registered and on disk`);
+
+  // ---- 1b. content model ---------------------------------------------------
+  //
+  // Leaf chapter ↔ lesson equality, contiguous order, and (for converted
+  // modules) the depth bar and source URLs. The rules live in
+  // `lib/system-design/content-rules.ts` so `npm test` can assert the same
+  // things before `Build` — this runner adds them to the post-build gate.
+  //
+  // 9 of 14 modules are not converted yet, so they report as warnings with
+  // counts. That is deliberate: a gate that is red for planned work is not
+  // information. See the header of content-rules.ts.
+
+  console.log("\n--- content model (1 leaf chapter = 1 lesson) ---");
+
+  for (const finding of [
+    ...inspectModuleOrder(modules),
+    ...modules.flatMap(inspectModuleContent),
+  ]) {
+    if (finding.level === "fail") {
+      fail(`[${finding.code}] ${finding.message}`);
+    } else {
+      warn(`[${finding.code}] ${finding.message}`);
+    }
+  }
+
+  const converted = modules.filter(
+    (mod) => inspectChapterBinding(mod).status === "bound",
+  );
+  ok(
+    `${converted.length}/${modules.length} module(s) converted to the leaf model` +
+      (converted.length > 0
+        ? ` (${converted.map((m) => m.slug).join(", ")})`
+        : ""),
+  );
 
   // ---- 2. config -> route (static) -----------------------------------------
 

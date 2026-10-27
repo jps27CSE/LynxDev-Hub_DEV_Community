@@ -1,11 +1,67 @@
 "use client";
 
 import Link from "next/link";
-import type { SdModule } from "@/config/system-design/types";
+import type {
+  SdChapter,
+  SdInterviewByte,
+  SdModuleKind,
+} from "@/config/system-design/types";
+import { lessonNav } from "@/lib/system-design/content-rules";
 import { useState } from "react";
 
-export function ModuleLayout({ module }: { module: SdModule }) {
+/**
+ * The module overview, trimmed to what this page actually renders.
+ *
+ * Deliberately not `SdModule`: that would ship every lesson's prose *and* the
+ * task's `startGraph`/`solutionGraph` in the page payload, none of which this
+ * component reads. Measured before the trim: 65 kB of HTML for a 3-lesson
+ * module; with the new 700–900 word lessons and a 10-lesson module (caching,
+ * Slice B4) the same shape would have been several hundred kilobytes of JSON
+ * repeated in the RSC payload. Only counts cross the boundary.
+ */
+export type ModuleOverview = {
+  slug: string;
+  order: number;
+  part: number;
+  partTitle: string;
+  kind: SdModuleKind;
+  title: string;
+  description: string;
+  story: string;
+  chapters?: SdChapter[];
+  lessons: LessonSummary[];
+  interviewByte: SdInterviewByte;
+  task: { brief: string };
+  recap: string[];
+  attribution: string;
+};
+
+export type LessonSummary = {
+  slug: string;
+  title: string;
+  sectionCount: number;
+  sourceCount: number;
+};
+
+/**
+ * The module page shell: chapter tree on the left, reading column in the
+ * middle, on-page nav on the right.
+ *
+ * **The tree is the point of this file.** Until Slice B1, `module.chapters` was
+ * passed to this component and then dropped on the floor: the rail rendered
+ * `module.lessons` as a flat list, so an authored outline of 75 chapter entries
+ * across 10 modules was invisible, and the module that promised a
+ * "Scalability Patterns" lesson did not have one. Now the outline is what the
+ * learner navigates, and `lib/system-design/content-rules.ts` fails CI if a
+ * leaf and a lesson disagree in either direction.
+ *
+ * Modules that have not been converted yet (no bound leaves) still fall back to
+ * the flat lesson list. That is deliberately visible rather than silent: the
+ * gate prints each one as a warning on every run until its slice lands.
+ */
+export function ModuleLayout({ module }: { module: ModuleOverview }) {
   const [railOpen, setRailOpen] = useState(true);
+  const hasTask = module.kind === "sim";
 
   return (
     <div className="sd-scope flex h-[100dvh] flex-col overflow-hidden">
@@ -50,30 +106,11 @@ export function ModuleLayout({ module }: { module: SdModule }) {
                   </h2>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {module.lessons.length} lessons
+                    {hasTask ? " · build task" : ""}
                   </p>
                 </div>
 
-                <nav aria-label="Lessons in this module" className="space-y-1">
-                  {module.lessons.map((lesson, index) => (
-                    <Link
-                      key={lesson.slug}
-                      href={`/system-design/${module.slug}/lesson/${lesson.slug}`}
-                      className="group flex items-start gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-sd-accent-soft hover:text-sd-accent"
-                    >
-                      <span className="mt-0.5 font-mono text-[10px] text-muted-foreground group-hover:text-sd-accent">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <span className="min-w-0 flex-1 leading-snug">
-                        {lesson.title}
-                      </span>
-                    </Link>
-                  ))}
-                  {module.lessons.length === 0 && (
-                    <p className="px-2 py-1.5 text-xs text-muted-foreground">
-                      Lessons coming soon.
-                    </p>
-                  )}
-                </nav>
+                <LessonRail module={module} />
               </>
             )}
           </div>
@@ -99,6 +136,23 @@ export function ModuleLayout({ module }: { module: SdModule }) {
             </span>
           </nav>
 
+          {/*
+            Below `lg` the rail is `display:none`, so the tree would be
+            unreachable. A `<details>` disclosure rather than a fixed-position
+            drawer: this page has no overlay in it, so there is no z-index to
+            negotiate and nothing to collide with the app sidebar toggle — the
+            failure recorded in feature-tracker 4.7. It is static markup, so the
+            duplicate copy costs bytes and no behaviour.
+          */}
+          <details className="mb-6 rounded-xl border border-border bg-card px-4 py-3 lg:hidden">
+            <summary className="cursor-pointer font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              Contents · {module.lessons.length} lessons
+            </summary>
+            <div className="mt-4">
+              <LessonRail module={module} />
+            </div>
+          </details>
+
           <header className="mb-10">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-xs uppercase tracking-widest text-muted-foreground">
               <span>
@@ -106,6 +160,8 @@ export function ModuleLayout({ module }: { module: SdModule }) {
               </span>
               <span aria-hidden="true">·</span>
               <span>Module {String(module.order).padStart(2, "0")}</span>
+              <span aria-hidden="true">·</span>
+              <span>{module.kind === "sim" ? "Simulated" : "Reading"}</span>
             </div>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
               {module.title}
@@ -170,7 +226,10 @@ export function ModuleLayout({ module }: { module: SdModule }) {
                           {lesson.title}
                         </span>
                         <span className="mt-1 block text-xs text-muted-foreground">
-                          {lesson.sections.length} sections
+                          {lesson.sectionCount} sections
+                          {lesson.sourceCount > 0
+                            ? ` · ${lesson.sourceCount} free read${lesson.sourceCount === 1 ? "" : "s"}`
+                            : ""}
                         </span>
                       </span>
                       <span
@@ -225,30 +284,32 @@ export function ModuleLayout({ module }: { module: SdModule }) {
             </div>
           </section>
 
-          {/* Build task */}
-          <section
-            aria-labelledby="build-heading"
-            className="mb-10 rounded-2xl border border-sd-accent/30 bg-gradient-to-br from-sd-accent-soft/60 to-card p-6 sm:p-8"
-          >
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-sd-accent">
-              Build task
-            </p>
-            <h2
-              id="build-heading"
-              className="mt-2 text-2xl font-semibold tracking-tight"
+          {/* Build task — prose modules have no canvas, so no dead CTA */}
+          {hasTask && (
+            <section
+              aria-labelledby="build-heading"
+              className="mb-10 rounded-2xl border border-sd-accent/30 bg-gradient-to-br from-sd-accent-soft/60 to-card p-6 sm:p-8"
             >
-              Put the design under load.
-            </h2>
-            <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-              {module.task.brief}
-            </p>
-            <Link
-              href={`/system-design/${module.slug}/task`}
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-sd-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-sd-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sd-accent focus-visible:ring-offset-2"
-            >
-              Open build task <span aria-hidden="true">→</span>
-            </Link>
-          </section>
+              <p className="font-mono text-xs uppercase tracking-[0.18em] text-sd-accent">
+                Build task
+              </p>
+              <h2
+                id="build-heading"
+                className="mt-2 text-2xl font-semibold tracking-tight"
+              >
+                Put the design under load.
+              </h2>
+              <p className="mt-3 text-base leading-relaxed text-muted-foreground">
+                {module.task.brief}
+              </p>
+              <Link
+                href={`/system-design/${module.slug}/task`}
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-sd-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-sd-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sd-accent focus-visible:ring-offset-2"
+              >
+                Open build task <span aria-hidden="true">→</span>
+              </Link>
+            </section>
+          )}
 
           {/* Recap */}
           <section
@@ -289,7 +350,7 @@ export function ModuleLayout({ module }: { module: SdModule }) {
                   ["#story-heading", "Where we are"],
                   ["#lessons-heading", "Lessons"],
                   ["#interview-heading", "Interview byte"],
-                  ["#build-heading", "Build task"],
+                  ...(hasTask ? [["#build-heading", "Build task"]] : []),
                   ["#recap-heading", "Keep in mind"],
                 ].map(([href, label]) => (
                   <a
@@ -313,12 +374,14 @@ export function ModuleLayout({ module }: { module: SdModule }) {
               <p className="text-xs text-muted-foreground">
                 lessons in this module
               </p>
-              <Link
-                href={`/system-design/${module.slug}/task`}
-                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sd-accent px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-sd-accent/90"
-              >
-                Open build task →
-              </Link>
+              {hasTask && (
+                <Link
+                  href={`/system-design/${module.slug}/task`}
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sd-accent px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-sd-accent/90"
+                >
+                  Open build task →
+                </Link>
+              )}
             </div>
 
             <Link
@@ -331,5 +394,120 @@ export function ModuleLayout({ module }: { module: SdModule }) {
         </aside>
       </div>
     </div>
+  );
+}
+
+/**
+ * Groups as `<details>`, leaves as links.
+ *
+ * No `useState` for expand/collapse: `<details open>` is keyboard accessible,
+ * survives with JS disabled, and cannot desynchronise from the DOM. The only
+ * state on this page is whether the whole rail is collapsed.
+ */
+function LessonRail({ module }: { module: ModuleOverview }) {
+  const nav = lessonNav(module);
+  const positionBySlug = new Map(
+    nav.map((entry, index) => [entry.slug, index + 1]),
+  );
+  const chapters = module.chapters;
+
+  if (!chapters || chapters.length === 0) {
+    return (
+      <nav aria-label="Lessons in this module" className="space-y-1">
+        {nav.map((entry, index) => (
+          <Link
+            key={entry.slug}
+            href={`/system-design/${module.slug}/lesson/${entry.slug}`}
+            className="group flex items-start gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-sd-accent-soft hover:text-sd-accent"
+          >
+            <span className="mt-0.5 font-mono text-[10px] text-muted-foreground group-hover:text-sd-accent">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span className="min-w-0 flex-1 leading-snug">{entry.title}</span>
+          </Link>
+        ))}
+        {nav.length === 0 && (
+          <p className="px-2 py-1.5 text-xs text-muted-foreground">
+            Lessons coming soon.
+          </p>
+        )}
+      </nav>
+    );
+  }
+
+  return (
+    <nav aria-label="Chapters in this module" className="space-y-2">
+      {chapters.map((chapter) => {
+        const isGroup = Boolean(chapter.children && chapter.children.length);
+        if (!isGroup) {
+          return (
+            <ChapterLeafLink
+              key={chapter.slug}
+              moduleSlug={module.slug}
+              chapter={chapter}
+              position={positionBySlug.get(chapter.lessonSlug ?? "")}
+            />
+          );
+        }
+        return (
+          <details key={chapter.slug} open className="group/chapter">
+            <summary className="cursor-pointer rounded-lg px-2 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:text-foreground">
+              {chapter.title}
+            </summary>
+            <div className="mt-1 space-y-0.5 border-l border-border pl-2">
+              {chapter.children?.map((child) => (
+                <ChapterLeafLink
+                  key={child.slug}
+                  moduleSlug={module.slug}
+                  chapter={child}
+                  position={positionBySlug.get(child.lessonSlug ?? "")}
+                />
+              ))}
+            </div>
+          </details>
+        );
+      })}
+    </nav>
+  );
+}
+
+function ChapterLeafLink({
+  moduleSlug,
+  chapter,
+  position,
+}: {
+  moduleSlug: string;
+  chapter: SdChapter;
+  position: number | undefined;
+}) {
+  // An unbound leaf has no lesson to open. Rendering it as a link would be a
+  // 404 the learner can see; the gate reports it as a failure before that.
+  if (!chapter.lessonSlug) {
+    return (
+      <span className="flex items-start gap-2 rounded-lg px-2 py-1.5 text-sm text-muted-foreground/70">
+        <span className="mt-0.5 font-mono text-[10px]">--</span>
+        <span className="min-w-0 flex-1 leading-snug">{chapter.title}</span>
+        <span className="font-mono text-[9px] uppercase">soon</span>
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      href={`/system-design/${moduleSlug}/lesson/${chapter.lessonSlug}`}
+      className="group flex items-start gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-sd-accent-soft hover:text-sd-accent"
+    >
+      <span className="mt-0.5 font-mono text-[10px] text-muted-foreground group-hover:text-sd-accent">
+        {position ? String(position).padStart(2, "0") : "--"}
+      </span>
+      <span className="min-w-0 flex-1 leading-snug">
+        {chapter.title}
+        {chapter.description ? (
+          <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+            {chapter.description}
+          </span>
+        ) : null}
+      </span>
+    </Link>
   );
 }

@@ -105,6 +105,7 @@ const module: SdModule = {
   order: 11,
   part: 3,
   partTitle: "Reliability",
+  kind: "sim",
   title: "How Systems Fail & Blast Radius",
   description:
     "Find every single point of failure in a design, trace retry storms and cascades before they happen.",

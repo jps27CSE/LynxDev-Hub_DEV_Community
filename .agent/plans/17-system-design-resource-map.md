@@ -21,7 +21,7 @@
 
 ## 1. Playlist inventory — all 31 videos
 
-Status: ✅ already embedded · 🆕 to embed in Phase B · 🔜 belongs to a Phase C/D module.
+Status: ✅ already embedded · 🆕 to embed in Phase B · 🔜 belongs to a Phase C/D module · ⏸ placed by the map, then dropped by the one-video-per-lesson rule.
 
 | # | Clean label | ID | Target | Status |
 |---|---|---|---|---|
@@ -32,7 +32,7 @@ Status: ✅ already embedded · 🆕 to embed in Phase B · 🔜 belongs to a Ph
 | 5 | LB + sharding + replication + caching | `Q4BUDplOWRE` | M9 `why-partition-data` (overview) + M8 `scaling-reads-vs-writes` | ✅ |
 | 6 | CDN + message queue + API gateway | `vz6ShBpxt2U` | M11 `latency-numbers` + M5 `the-gateway-as-one-door` | ✅ |
 | 7 | Scalability, availability, consistency, fault tolerance | `Pfr_6h3Rqew` | M12 `trace-your-own-design` | ✅ (3 embeds) |
-| 8 | How browsers find websites (IP + DNS) | `J_I2E1BmCZg` | M1 `latency-vs-throughput-vs-bandwidth` (request path) | 🆕 |
+| 8 | How browsers find websites (IP + DNS) | `J_I2E1BmCZg` | **no Phase B home** — see §3 | ⏸ |
 | 9 | HTTP, TCP, UDP, WebSocket | `SAeOWMysy1U` | M5 `the-contract-before-the-code` | ✅ |
 | 10 | Forward proxy vs reverse proxy | `WxNLwivRCR0` | M6 `load-balancing` (the trap: proxy ≠ LB) | 🆕 |
 | 11 | API + REST + GraphQL + gRPC | `YNvtSkHb3co` | M5 `the-contract-before-the-code` | 🆕 |
@@ -57,7 +57,7 @@ Status: ✅ already embedded · 🆕 to embed in Phase B · 🔜 belongs to a Ph
 | 30 | YouTube timeline preview | `OKs2670F3V0` | M7 `refresh-ahead` (precompute + edge) | 🆕 |
 | 31 | 5 ms on localhost, 5 s in production | `osfhB8rd55A` | M12 `cascades` | 🆕 |
 
-**Today:** 10 embeds, 7 unique IDs, spread over 8 modules. **After Phase B:** 19 videos placed, 12 reserved for Phase C/D.
+**Today:** 10 embeds, 7 unique IDs, spread over 8 modules. **After Phase B:** 18 videos placed, 13 unplaced — 8 Phase C, 1 with no home at all (video 8), 4 already-embedded duplicates (2, 6, 7, 13).
 
 ---
 
@@ -67,14 +67,41 @@ Legend: **Go deeper** = the free read that actually goes deeper than the lesson,
 
 ### M1 · what-is-system-design (4 lessons)
 
-Videos: `DzAt0wd3oWM` ✅ · `7qWsnq2ecNE` 🆕 · `J_I2E1BmCZg` 🆕
+Videos: `DzAt0wd3oWM` ✅ · `7qWsnq2ecNE` 🆕 · `nFbOxUJJeFo` ✅ (shared with M6)
 
 | Lesson | Video | Go deeper (free) |
 |---|---|---|
-| `choices-not-boxes` | `DzAt0wd3oWM` | [system-design-primer](https://github.com/donnemartin/system-design-primer) · [Hello Interview — in a hurry](https://www.hellointerview.com/learn/system-design/in-a-hurry) |
-| `performance-vs-scalability` | — | [Primer — performance vs scalability](https://github.com/donnemartin/system-design-primer) · [CAP twelve years later](https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed/) |
-| `latency-vs-throughput-vs-bandwidth` | `7qWsnq2ecNE` + `J_I2E1BmCZg` | [Interactive latency numbers](https://colin-scott.github.io/personal_website/research/interactive_latency.html) · [Erlang (unit)](https://en.wikipedia.org/wiki/Erlang_%28unit%29) |
-| `scalability-patterns` | `nFbOxUJJeFo` ✅ | [12factor](https://12factor.net/) · [AWS Builders' Library](https://aws.amazon.com/builders-library/) |
+| `choices-not-boxes` | `DzAt0wd3oWM` | [Netflix — completing the cloud migration](https://about.netflix.com/news/completing-the-netflix-cloud-migration) · [Wikipedia — Netflix](https://en.wikipedia.org/wiki/Netflix) |
+| `performance-vs-scalability` | — | [Wikipedia — scalability](https://en.wikipedia.org/wiki/Scalability) · [AWS Builders' Library](https://aws.amazon.com/builders-library/) |
+| `latency-vs-throughput-vs-bandwidth` | `7qWsnq2ecNE` | [Open Connect](https://openconnect.netflix.com/en/) · [Interactive latency numbers](https://colin-scott.github.io/personal_website/research/interactive_latency.html) · [MDN — understanding latency](https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Understanding_latency) |
+| `scalability-patterns` | `nFbOxUJJeFo` ✅ | [12factor](https://12factor.net/) · [Wikipedia — Netflix Open Connect](https://en.wikipedia.org/wiki/Netflix_Open_Connect) |
+
+**Shipped in B1 as built, not as planned.** The map above is now the shipped set — every URL
+`curl`-verified 200 on 2026-10-27. Four deviations, recorded rather than silently absorbed:
+
+1. `performance-vs-scalability` cites **Wikipedia — scalability** first and the **AWS
+   Builders' Library** index second, not *CAP twelve years later*. CAP is about consistency
+   under partition, which the lesson does not teach; a source that goes somewhere else than
+   the page is decoration.
+2. `latency-vs-throughput-vs-bandwidth`'s second read is **MDN — understanding latency**, not
+   *Erlang (unit)*. Erlang measures offered load, and the lesson's bandwidth section is about
+   bytes per second — adjacent, not deeper.
+3. `J_I2E1BmCZg` (video 8, IP + DNS) lost its slot to `7qWsnq2ecNE`, which covers three of the
+   lesson's five concepts instead of one table row. Under the one-video-per-lesson rule that
+   leaves video 8 with no Phase B home; §3 records it as unplaced rather than pretending the
+   map is complete.
+4. **The case study moved from LynxDEV to Netflix (plan 17 §0 D1, revised), and that
+   replaced three of the four original reads.** *system-design-primer* and *Hello Interview*
+   went from `choices-not-boxes` because they are generic checklists — the one thing a lesson
+   with a named case study does not need. `choices-not-boxes` now opens on Netflix's own
+   sentence about the 2008 corruption, which is the only source in the path that makes the
+   lesson's central claim checkable in four minutes. The AWS Builders' Library **moved** from
+   `scalability-patterns` to `performance-vs-scalability` (it is a general library, and the
+   scaling lesson found a sharper read), which let `scalability-patterns` take **Wikipedia —
+   Netflix Open Connect** instead: the lesson's fourth pattern is *move the work out of the
+   request path*, and Open Connect is that pattern with a real bill attached. The Chaos Monkey read was **removed from this module** when the
+   reliability section moved to M15: a source cited for a claim the lesson no longer makes is
+   decoration too.
 
 ### M2 · requirements (4 lessons)
 
@@ -251,7 +278,9 @@ Videos: `Pfr_6h3Rqew` ✅
 
 ---
 
-## 3. Videos reserved for Phase C / D
+## 3. Videos with no Phase B home
+
+### 3.1 Reserved for Phase C / D
 
 | # | Video | ID | Phase C module |
 |---|---|---|---|
@@ -263,6 +292,18 @@ Videos: `Pfr_6h3Rqew` ✅
 | 24 | Database relationships | `aEvHuCyHhv8` | `choosing-a-datastore` |
 | 25 | Database design step-by-step | `GqX0lhBNHkU` | `choosing-a-datastore` |
 | 28 | Real-time chat | `es_wPdEYgVA` | `events-and-streaming` |
+
+### 3.2 Unplaced — video 8, IP + DNS
+
+| # | Video | ID | Why it has no home | Candidate |
+|---|---|---|---|---|
+| 8 | How browsers find websites (IP + DNS) | `J_I2E1BmCZg` | Its only natural Phase B slot was M1 `latency-vs-throughput-vs-bandwidth`, where the per-hop table already contains a DNS row. `7qWsnq2ecNE` covers three of that lesson's five concepts; the DNS video covers one row. One video per lesson, so it loses. M11 `latency-numbers` is the other fit and is already taken by `vz6ShBpxt2U`. | A Phase C lesson on the first hop (`dns-and-the-request-path`), or M11 `what-a-cdn-cannot-cache` if that lesson ever covers DNS-based steering. Do not force it into a lesson it only decorates. |
+
+**Why this is written down instead of quietly dropped.** The playlist was adopted as a
+completeness check on the path; a map that silently loses one of 31 videos is no longer a
+completeness check, and the loss is invisible on a page that looks fully covered. The
+honest count is 18 placed, not 19.
+
 
 Phase C free reads (one each): [SQL vs NoSQL — MongoDB](https://www.mongodb.com/docs/manual/) · [Use The Index, Luke](https://use-the-index-luke.com/) · [MVCC intro](https://www.postgresql.org/docs/current/mvcc-intro.html) · [Transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html) · [Database index](https://en.wikipedia.org/wiki/Database_index) · [Kafka](https://kafka.apache.org/documentation/) · [SQS DLQ](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) · [Saga](https://microservices.io/patterns/data/saga.html) · [Outbox](https://microservices.io/patterns/data/transactional-outbox.html) · [CQRS](https://microservices.io/patterns/data/cqrs.html) · [Raft](https://raft.github.io/) · [PACELC](https://www.cs.umd.edu/~abadi/papers/abadi-pacelc.pdf) · [Azure/AWS reliability pillar](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html) · [Canary](https://martinfowler.com/bliki/CanaryRelease.html) · [Blue/green](https://martinfowler.com/bliki/BlueGreenDeployment.html) · [Distributed patterns (Fowler)](https://martinfowler.com/articles/patterns-of-distributed-systems/) · [Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)
 
@@ -299,6 +340,8 @@ Run 2026-10-27. **66 URLs tested across four batches; all 200 except the four be
 
 Note: Cloudflare and Nginx serve 403 to non-browser clients. They are good pages; they are simply **not verifiable by the gate**, so they are not in the map. A link the gate cannot check will rot unnoticed.
 
+**Added 2026-10-27 — the Netflix tech blog is in the same class, and it costs us the best sources in the path.** `netflixtechblog.com` and the legacy `techblog.netflix.com` both answer **403** to a non-browser client (Medium's bot wall — and the legacy host now 301s into it). Measured: *A Closer Look at the Christmas Eve Outage*, *Per-Title Encode Optimization* and *The Netflix Simian Army* all returned 403, while `about.netflix.com`, `openconnect.netflix.com` and every `github.com/Netflix/*` repository returned 200. Consequence: the case study is anchored on **those** sources, and the tech-blog posts are cited by title in lesson prose only — never as a `sources` entry. This is a real constraint, not an inconvenience: the Christmas Eve 2012 postmortem is the natural anchor for M12 and it cannot be linked, so M12's anchor is the Simian Army repository instead. If a browser-rendered check is ever added to the gate, these posts come back first.
+
 ---
 
 ## 6. What this changes in plan 17
@@ -306,5 +349,5 @@ Note: Cloudflare and Nginx serve 403 to non-browser clients. They are good pages
 1. **M12 gains a fifth lesson** — `logging-monitoring-and-traces`. Phase B becomes **15 modules / 79 lessons**.
 2. **M5 is video-rich** — 6 of the 31 videos land there, which makes the prose module the best-covered part of the path. It also confirms M5 must come before M6.
 3. **`sources` is now a content requirement**, not an optional field: every Phase B lesson in §2 has at least one verified free read. The gate in §4.4 of plan 17 checks them.
-4. **19 of 31 videos** are placed in Phase B; 8 wait for Phase C; 4 are optional/duplicates (2, 6, 7, 13 already embedded elsewhere).
+4. **18 of 31 videos** are placed in Phase B; 8 wait for Phase C; 1 has no home (video 8, §3.2); 4 are optional/duplicates (2, 6, 7, 13 already embedded elsewhere). 18 + 8 + 1 + 4 = 31 — the map accounts for every video, which is the only way to tell a complete map from a plausible one.
 5. **G1 is an open decision** for you: pull `indexes-are-not-free` into Phase B (recommended — it is the highest-value missing junior topic and the video already exists), or leave indexing to Phase C.

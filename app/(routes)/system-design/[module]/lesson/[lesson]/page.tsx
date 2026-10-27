@@ -1,4 +1,5 @@
 import { getModule } from "@/config/system-design/registry";
+import { lessonNav } from "@/lib/system-design/content-rules";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { LessonFlow } from "@/components/system-design/LessonFlow";
@@ -58,8 +59,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
     <LessonFlow
       moduleSlug={module.slug}
       moduleTitle={module.title}
-      lessons={module.lessons}
+      nav={lessonNav(module)}
       lesson={lesson}
+      hasTask={module.kind === "sim"}
     />
   );
 }

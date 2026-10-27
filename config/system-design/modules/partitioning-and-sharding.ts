@@ -109,6 +109,7 @@ const module: SdModule = {
   order: 8,
   part: 1,
   partTitle: "Scaling up",
+  kind: "sim",
   title: "Partitioning & Sharding",
   description:
     "Split a growing dataset across database partitions, choose a shard key deliberately, and reason about hot keys and rebalancing.",

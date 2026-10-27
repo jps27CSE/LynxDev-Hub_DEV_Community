@@ -13,7 +13,7 @@
 
 | # | Decision | Why |
 |---|---|---|
-| **D1** | The running case study becomes **LynxDEV itself**, not the photo-sharing app | 109 `photo` refs, 13 `follower`, 68 `feed` across 14 modules currently make our project the closest match to the reference site's "Design Instagram" practice problem. Our own app is in no other course, and lessons become checkable against real code (`lib/content-cache.ts`, `lib/db-rate-limit.ts`, `next/image`, `config/db.tsx`). |
+| **D1** | The running case study is **Netflix** — not this app, and not a photo-sharing app | *(Revised 2026-10-27 after the first draft shipped on LynxDEV.)* Three tests, in order: **checkable**, **on-topic**, **not the reference site's example**. Netflix passes all three. `about.netflix.com` is the company's own account of the August 2008 database corruption, the phrase *"vertically scaled single points of failure"*, the forklift-vs-rebuild choice, the seven-year timeline and the January 2016 completion — one URL the learner can read in four minutes, and every number here traces to it or to `openconnect.netflix.com` and `github.com/Netflix/chaosmonkey`. It is **on-topic for our playlist**, which is video-platform-heavy: CDN (Open Connect), deliberate failure injection (Chaos Monkey), circuit breakers (Hystrix) and adaptive limits are all Netflix artefacts, i.e. the exact subjects of Parts 1 and 3. **LynxDEV failed the first test**: no learner can verify our write volume or our p95, so every "our rate limiter does X" sentence is an assertion of trust, and a reviewer cannot diff it against anything published. **Instagram was rejected** because it is the reference site's own practice problem, and the depth of primary-source numbers is thin outside engineering blogs. |
 | **D2** | **1 leaf chapter = 1 lesson.** `chapters` is the navigation tree; every leaf binds to a lesson by `lessonSlug`; the set of leaves must equal the set of lessons | Today `chapters` and `lessons` are two competing tables of contents that never reference each other. Module 1 promises a `Scalability Patterns` lesson that does not exist. Enforced in both directions, like `check:blog-toc`. |
 | **D3** | Depth bar per lesson: **700–900 words**, 1 scenario, 3–5 concept sections, 1 worked numeric example or table, 1 diagram where the topic is scaling-related, `your_turn` + `compare` + `recap` | Today: 41 lessons, 10,630 words, **259 words/lesson**. The bar is ~3×. The bar is checkable, not aspirational. |
 | **D4** | Breadth order: **API → storage → async → replication internals → distributed → patterns.** Big Data deep dive and domain knowledge (geospatial / media / probabilistic) are out of scope | Junior-first audience. The reference site's Big Data block is 19 lessons of senior/staff material — lowest value per authored hour for a learner at this level. |
@@ -79,37 +79,39 @@ The honest summary: the gap is not 121 vs 41 topics — it is **granularity**. T
 
 ## 3. Phase B — module specification
 
-Every module: story rewritten onto **LynxDEV**, lessons split to match the chapter outline, D3 depth bar applied. `S` = simulator module (keeps its Build Task). `P` = prose module.
+Every module: story rewritten onto the **Netflix** case study (D1), lessons split to match the chapter outline, D3 depth bar applied. `S` = simulator module (keeps its Build Task). `P` = prose module.
+
+**The anchor column is the part that stops this being a generic textbook.** Each module must be built around one Netflix artefact or one sentence from a Netflix primary source — not around "a video platform" in the abstract. If a lesson cannot be tied back to its anchor, the lesson is filler and should be cut. Every URL in this column was `curl`-verified **200** on 2026-10-27; the one class excluded is `netflixtechblog.com`, which answers **403** to non-browser clients (Medium bot wall, same class as Cloudflare/Nginx — see resource map §5), so its posts are referenced here by title, never linked as a `sources` entry.
 
 ### Part 0 — Mindset (5 modules, 22 lessons)
 
-| # | Module | Lessons (one leaf chapter each) | Kind |
-|---|---|---|---|
-| 1 | `what-is-system-design` | choices-not-boxes · performance-vs-scalability · latency-vs-throughput-vs-bandwidth · **scalability-patterns** *(new — promised today, absent)* | S |
-| 2 | `requirements` | functional-vs-nonfunctional · eliciting-requirements · **turning-fast-into-a-number** · **what-youre-not-building** | S |
-| 3 | `constraints-and-design-process` | the-45-min-structure · tradeoffs · anti-patterns · **saying-it-out-loud** | S |
-| 4 | `back-of-the-envelope` | powers-of-two-and-latency-numbers · qps-storage-bandwidth · littles-law · **estimation-under-uncertainty** | S |
-| 5 | **`api-and-contracts`** (new) | the-contract-before-the-code · pagination-that-doesnt-lie · who-are-you-vs-what-may-you-do · idempotent-writes · errors-and-status-codes · the-gateway-as-one-door | **P** |
+| # | Module | Lessons (one leaf chapter each) | Kind | Netflix anchor |
+|---|---|---|---|---|
+| 1 | `what-is-system-design` | choices-not-boxes · performance-vs-scalability · latency-vs-throughput-vs-bandwidth · **scalability-patterns** *(new — promised today, absent)* | S | 2008 corruption, forklift-vs-rebuild — `about.netflix.com/news/completing-the-netflix-cloud-migration` |
+| 2 | `requirements` | functional-vs-nonfunctional · eliciting-requirements · **turning-fast-into-a-number** · **what-youre-not-building** | S | Same post: streaming launched broadly while billing stayed in the data centre on purpose — two requirement sets, one company |
+| 3 | `constraints-and-design-process` | the-45-min-structure · tradeoffs · anti-patterns · **saying-it-out-loud** | S | Same post: seven years, phased, and *"we simply could not have racked the servers fast enough"* |
+| 4 | `back-of-the-envelope` | powers-of-two-and-latency-numbers · qps-storage-bandwidth · littles-law · **estimation-under-uncertainty** | S | Same post: 130+ countries in one day (Jan 2016) and *"hundreds of micro-services"* — estimate before you promise |
+| 5 | **`api-and-contracts`** (new) | the-contract-before-the-code · pagination-that-doesnt-lie · who-are-you-vs-what-may-you-do · idempotent-writes · errors-and-status-codes · the-gateway-as-one-door | **P** | Zuul as the single edge — `github.com/Netflix/zuul`; Eureka for who-exists — `github.com/Netflix/eureka` |
 
 ### Part 1 — Scaling up (6 modules, 40 lessons)
 
-| # | Module | Lessons | Kind |
-|---|---|---|---|
-| 6 | `load-balancers-and-stateless-services` | vertical-vs-horizontal · **autoscaling** · load-balancing · **sessions-without-sticky** · stateless-services | S |
-| 7 | `caching` | **why-cache** · where-to-cache · **cache-aside** · **write-through-and-behind** · **refresh-ahead** · **cache-keys-and-cardinality** · ttl-and-eviction · invalidation · cache-stampede · **cold-start-and-failure-modes** | S |
-| 8 | `read-replicas` | scaling-reads-vs-writes · replication-lag · promoting-a-replica · **read-your-own-writes** · **cqrs-and-read-models** · **when-replicas-dont-help** | S |
-| 9 | `partitioning-and-sharding` | why-partition-data · hash-and-range-sharding · hot-keys-and-skew · rebalancing-shards · **consistent-hashing** · **cross-shard-queries** · **when-not-to-shard** | S |
-| 10 | `rate-limiting` | the-bot-in-your-traffic · algorithms · **distributed-rate-limiting** · **quotas-and-tiers** · **load-shedding** · **429-and-retry-after** | S |
-| 11 | `cdns-and-static-content` | latency-numbers · cache-keys-and-ttl · what-a-cdn-cannot-cache · **edge-compute** · **image-and-video-delivery** · **purging-and-versioning** | S |
+| # | Module | Lessons | Kind | Netflix anchor |
+|---|---|---|---|---|
+| 6 | `load-balancers-and-stateless-services` | vertical-vs-horizontal · **autoscaling** · load-balancing · **sessions-without-sticky** · stateless-services | S | Eureka (discovery) + Zuul (edge routing) — `github.com/Netflix/eureka`, `github.com/Netflix/zuul` |
+| 7 | `caching` | **why-cache** · where-to-cache · **cache-aside** · **write-through-and-behind** · **refresh-ahead** · **cache-keys-and-cardinality** · ttl-and-eviction · invalidation · cache-stampede · **cold-start-and-failure-modes** | S | EVCache, their memcached layer — `github.com/Netflix/EVCache` |
+| 8 | `read-replicas` | scaling-reads-vs-writes · replication-lag · promoting-a-replica · **read-your-own-writes** · **cqrs-and-read-models** · **when-replicas-dont-help** | S | Same post: the data model was denormalised and moved to NoSQL rather than replicated as-is |
+| 9 | `partitioning-and-sharding` | why-partition-data · hash-and-range-sharding · hot-keys-and-skew · rebalancing-shards · **consistent-hashing** · **cross-shard-queries** · **when-not-to-shard** | S | Same post: one relational database became many partitioned services; member data had to be split before it could scale |
+| 10 | `rate-limiting` | the-bot-in-your-traffic · algorithms · **distributed-rate-limiting** · **quotas-and-tiers** · **load-shedding** · **429-and-retry-after** | S | Adaptive concurrency limits instead of a fixed number — `github.com/Netflix/concurrency-limits` |
+| 11 | `cdns-and-static-content` | latency-numbers · cache-keys-and-ttl · what-a-cdn-cannot-cache · **edge-compute** · **image-and-video-delivery** · **purging-and-versioning** | S | Open Connect, the CDN they built and put inside ISPs — `openconnect.netflix.com` |
 
 ### Part 3 — Reliability (4 modules, 17 lessons)
 
-| # | Module | Lessons | Kind |
-|---|---|---|---|
-| 12 | `how-systems-fail` | trace-your-own-design · retry-storms · cascades · **blast-radius-and-bulkheads** · **logging-monitoring-and-traces** *(new — the observability gap)* | S |
-| 13 | `timeouts-retries-circuit-breakers` | no-timeout-is-worse · retries-and-jitter · breakers-and-bulkheads · **timeout-budgets** · **fallbacks-and-degradation** | S |
-| 14 | `idempotency` | at-least-once-delivery · idempotency-keys · **exactly-once-is-a-lie** · dead-letter-queues | S |
-| 15 | `chaos-capstone` | chaos-as-practice · surviving-everything · **postmortems-without-blame** | S |
+| # | Module | Lessons | Kind | Netflix anchor |
+|---|---|---|---|---|
+| 12 | `how-systems-fail` | trace-your-own-design · retry-storms · cascades · **blast-radius-and-bulkheads** · **logging-monitoring-and-traces** *(new — the observability gap)* | S | Simian Army, the tool that finds failure on purpose — `github.com/Netflix/SimianArmy` |
+| 13 | `timeouts-retries-circuit-breakers` | no-timeout-is-worse · retries-and-jitter · breakers-and-bulkheads · **timeout-budgets** · **fallbacks-and-degradation** | S | Hystrix, the breaker they open-sourced — `github.com/Netflix/Hystrix` |
+| 14 | `idempotency` | at-least-once-delivery · idempotency-keys · **exactly-once-is-a-lie** · dead-letter-queues | S | Same post: billing was the **last** system to leave the data centre, because money movement cannot be retried carelessly |
+| 15 | `chaos-capstone` | chaos-as-practice · surviving-everything · **postmortems-without-blame** | S | Chaos Monkey terminating production instances — `github.com/Netflix/chaosmonkey` |
 
 ### 3.1 Phase C sketch (not committed)
 
@@ -133,7 +135,7 @@ Every module: story rewritten onto **LynxDEV**, lessons split to match the chapt
 | File | Change | Risk |
 |---|---|---|
 | `config/system-design/types.ts` | Add `SdModule.kind: "sim" \| "prose"`; make `task?: SdTaskDef` (B3); make `SdChapter.lessonSlug` required on leaves; add `SdSourceRef { label, url }` and `SdLesson.sources?: SdSourceRef[]`; **delete `storyIllustration`** (unused, typed `any[]`, violates the no-`any` rule) | Medium — touches every module file, but mechanical |
-| `config/system-design/modules/*.ts` (14) | Story → LynxDEV; lessons split to the outline; depth bar; `sources`; chapter leaves bound | The bulk of the work |
+| `config/system-design/modules/*.ts` (14) | Story → the **Netflix** case study (D1) and its §3 anchor; lessons split to the outline; depth bar; `sources`; chapter leaves bound | The bulk of the work |
 | `config/system-design/modules/api-and-contracts.ts` | **New module** (6 lessons) | First prose module |
 | `config/system-design/registry.ts` | Register the new module; update the header comment (it still says "empty until Task 13" and "14 modules") | Low |
 
@@ -234,8 +236,8 @@ One slice = one review cycle. I read every lesson before the next slice starts. 
 
 | Slice | Deliverable | Acceptance |
 |---|---|---|
-| **B1** | `types.ts` model change + `ModuleLayout` tree + `Sidebar.tsx` deletion + new gates/tests + **module 1 rebuilt** (4 lessons, LynxDEV story, depth bar) | `npm test` green; `check:system-design` green post-build; the tree is visible on `/system-design/what-is-system-design`; `Scalability Patterns` exists; each new assertion mutation-tested; I read module 1 and approve the shape |
-| **B2** | Modules 2, 3, 4 — outlines written, lessons at the depth bar, LynxDEV story | Same gates; four previously outline-less modules now have one; no `photo`/`follower` refs left in these files |
+| **B1** ✅ shipped 2026-10-27 (uncommitted) | `types.ts` model change + `ModuleLayout` tree + `Sidebar.tsx` deletion + new gates/tests + **module 1 rebuilt** (4 lessons, Netflix case study, 898/898/897/893 words, `sources` on each) | Verified: `npm test` 588/588, `tsc` clean, build 120/120, `check:system-design` all checks passed (19 warnings, all pre-existing class), module-1 page 58,299 bytes, 4 lesson pages render `Go deeper` + `4 min read`. Pending: your read + commit. |
+| **B2** | Modules 2, 3, 4 — outlines written, lessons at the depth bar, each built on its §3 Netflix anchor | Same gates; the three modules move from `no-outline` to `bound`; no `photo`/`follower` refs left in these files; no lesson can be read as a generic "video platform" explainer with the anchor deleted |
 | **B3** | Module 5 `api-and-contracts` (new, prose) + `task?` optional + prose-module UX + sitemap/task-route guards | `/system-design/api-and-contracts` renders with no Build Task; `/task` 404s; sitemap has no dead `/task`; the state API rejects `task-save` for it |
 | **B4** | Module 7 `caching` 4 → 10 lessons | Depth bar met; chapter ↔ lesson set equality; client payload compared against P2/P3 |
 | **B5** | Modules 6, 8, 9 | Same |
@@ -243,6 +245,45 @@ One slice = one review cycle. I read every lesson before the next slice starts. 
 | **B7** | Modules 12–15: story rename first, then the depth pass; renumber contiguously; update the tracker and plan 16 | The whole path reads with one app, one voice, no broken link |
 
 **Why this order:** B1 proves the model on the smallest module. B2 fixes the first-run experience, because every learner passes through modules 1–4. B3 proves the prose module without touching the simulator. B4 is the flagship stress test. B5–B7 are repetition at increasing volume.
+
+### 7.1 B1 — shipped 2026-10-27, measured
+
+Recorded here because `tests/system-design-content.test.ts` cites this section as the place the
+mutation tests are written down. A citation to a section that does not exist reads exactly like
+a section that does.
+
+| What was asserted | How it was mutated | What went red |
+|---|---|---|
+| Leaf ↔ lesson set equality | deleted one `lessonSlug` from a bound tree | `outline-half-converted`, 2 failures |
+| No duplicate binding | pointed two leaves at `choices-not-boxes` | `outline-duplicate-binding` + `lesson-not-in-outline` |
+| Depth bar 700–900 | replaced all four lesson bodies with one sentence | `lesson-depth: 231 words, outside 700–900` |
+
+All three restored, suite back to 588 passing / 0 failing.
+
+**Measured, not estimated:**
+
+- **Word counts** — 898 / 898 / 897 / 893 for the four lessons (target 700–900). Gate-enforced,
+  so these numbers cannot drift without CI failing. (First draft was 852/894/871/883 on the LynxDEV case study; the Netflix rewrite landed 898/898/897/893.)
+- **Routes** — 119 static pages, 71 under `/system-design` (14 modules + 42 lessons + 14 tasks +
+  index). Baseline before B1 was 70 routes / 41 lessons.
+- **Build** — exit 0, `Finished TypeScript in 6.2s`, 5.1s static generation.
+- **Payload** — module 1 page **65,625 → 58,299 bytes** despite carrying 4× the prose of the
+  module it replaced (57,791 was the intermediate LynxDEV draft). Achieved by passing `ModuleOverview` (titles and counts only) instead of
+  `SdModule`; the old shape shipped every lesson body *and* both task graphs to a component that
+  reads neither. Caching and rate-limiting pages unchanged at 55,570 / 54,602, which is the
+  control that says the trim did not come from somewhere else.
+- **Gate output** — `OK 1/14 module(s) converted to the leaf model (what-is-system-design)` plus
+  19 warnings naming the other 13. Warnings are deliberate: a gate that is red for planned work
+  stops being information.
+
+**Two deviations from §4.1, both intentional:**
+
+1. `SdChapter.lessonSlug` stayed **optional**. Making it required fails `tsc` for the 13
+   unconverted modules at once, which would mean deleting their authored outlines to satisfy a
+   type. The gate enforces the same rule instead, and `types.ts` carries a TODO to close it at B7.
+2. Both module-1 sources changed for better ones — *CAP twelve years later* and *Erlang (unit)*
+   were replaced because neither goes deeper than the lesson that cited it. Details in the
+   resource map, §2.
 
 ---
 
@@ -277,5 +318,5 @@ One slice = one review cycle. I read every lesson before the next slice starts. 
 1. **P1** — run `SELECT COUNT(*) FROM sd_user_state;`. 0 or not decides reset vs anchor-slug, and it must be answered before content ships.
 2. **P2/P3** — run `npm run build` once now to record the baseline (no file changes).
 3. **P5/P6** — the chapter-tree and prose-module sketches: ASCII in this plan, or build B1's UI first so the shape is visible?
-4. **Naming in prose** — "LynxDEV" directly, or a neutral in-world name ("our learning platform") that still reads correctly at 100k users? Preference: **LynxDEV directly**, because the learner is using it.
+4. ~~**Naming in prose** — "LynxDEV" directly, or a neutral in-world name?~~ **Resolved 2026-10-27:** neither. The case study is a named public system (D1), so the question of what to call *ourselves* in a lesson no longer arises — the prose addresses the learner as "you" and the system as "Netflix".
 5. **Indexing (resource map G1)** — the playlist has a database-index video and the free reading list has `use-the-index-luke`, but Phase B has no indexing lesson; "add an index" is the most common real fix at junior level. Pull `indexes-are-not-free` forward into module 8 or 9 (Phase B → 80 lessons), or leave indexing to Phase C? My preference: **pull it forward**.
