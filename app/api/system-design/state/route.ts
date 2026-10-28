@@ -149,12 +149,13 @@ export async function POST(req: NextRequest) {
     let verifiedCriteriaMet: string[] = [];
     if (parsed.data.kind === "task-save") {
       const taskModule = await getModule(parsed.data.taskSlug);
-      if (!taskModule) {
+      if (!taskModule || taskModule.kind !== "sim" || !taskModule.task) {
         return NextResponse.json(
           { error: "Unknown system-design task" },
           { status: 400 },
         );
       }
+      const task = taskModule.task;
 
       const graphValidation = validateGraph(parsed.data.graph);
       if (!graphValidation.success) {
@@ -166,7 +167,7 @@ export async function POST(req: NextRequest) {
 
       const requestedCriteria = new Set(parsed.data.criteriaMet ?? []);
       const knownCriteria = new Set(
-        taskModule.task.passCriteria.map((criterion) => criterion.id),
+        task.passCriteria.map((criterion) => criterion.id),
       );
       if ([...requestedCriteria].some((id) => !knownCriteria.has(id))) {
         return NextResponse.json(
@@ -196,7 +197,7 @@ export async function POST(req: NextRequest) {
 
       const result = simulate(graphValidation.data, failures);
       verifiedCriteriaMet = result.valid
-        ? taskModule.task.passCriteria
+        ? task.passCriteria
             .filter(
               (criterion) =>
                 requestedCriteria.has(criterion.id) && criterion.assert(result),

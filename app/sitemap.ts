@@ -119,12 +119,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "weekly" as const,
         priority: 0.7,
       });
-      systemDesignPages.push({
-        url: `${BASE_URL}/system-design/${slug}/task`,
-        lastModified: new Date(),
-        changeFrequency: "weekly" as const,
-        priority: 0.7,
-      });
+      if (mod.task) {
+        systemDesignPages.push({
+          url: `${BASE_URL}/system-design/${slug}/task`,
+          lastModified: new Date(),
+          changeFrequency: "weekly" as const,
+          priority: 0.7,
+        });
+      }
       for (const lesson of mod.lessons) {
         systemDesignPages.push({
           url: `${BASE_URL}/system-design/${slug}/lesson/${lesson.slug}`,

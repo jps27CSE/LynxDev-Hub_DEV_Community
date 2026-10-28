@@ -117,7 +117,7 @@ function taskGraph(
 
 const module: SdModule = {
   slug: "timeouts-retries-circuit-breakers",
-  order: 12,
+  order: 13,
   part: 3,
   partTitle: "Reliability",
   kind: "sim",

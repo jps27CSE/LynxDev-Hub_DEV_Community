@@ -328,3 +328,67 @@ describe("content model — modules 2–4 (Netflix case study)", () => {
     });
   }
 });
+
+/**
+ * Module 5, converted in slice B3 — the first *prose* module.
+ *
+ * Prose modules carry no build task: `kind` (not task presence) decides that.
+ * The guards below pin the discriminator so a future "prose module with a
+ * task" or "sim module without one" fails in review instead of silently
+ * rendering as the wrong kind of module.
+ */
+describe("content model — module 5 (prose module)", () => {
+  let mod: SdModule;
+  before(() => {
+    mod = bySlug("api-and-contracts");
+  });
+
+  it("is bound, with 6 leaf chapters for 6 lessons", () => {
+    assert.equal(inspectChapterBinding(mod).status, "bound");
+    assert.equal(collectChapterLeaves(mod.chapters).length, 6);
+    assert.equal(mod.lessons.length, 6);
+    assert.deepEqual(
+      lessonNav(mod).map((entry) => entry.slug),
+      [
+        "the-contract-before-the-code",
+        "pagination-that-doesnt-lie",
+        "who-are-you-vs-what-may-you-do",
+        "idempotent-writes",
+        "errors-and-status-codes",
+        "the-gateway-as-one-door",
+      ],
+      "api-and-contracts: outline order and lesson order disagree",
+    );
+  });
+
+  it("is a prose module with no build task", () => {
+    assert.equal(mod.kind, "prose");
+    assert.equal(mod.task, undefined);
+  });
+
+  it("runs on Netflix, not on this app or a social feed", () => {
+    const prose = JSON.stringify(mod.lessons);
+    assert.ok(
+      prose.includes("Netflix"),
+      "api-and-contracts: no Netflix references — D1 is the published case study",
+    );
+    for (const word of ["LynxDEV", "follower", "photo", "this site"]) {
+      assert.ok(
+        !prose.includes(word),
+        `api-and-contracts: references "${word}" — the case study is Netflix`,
+      );
+    }
+    assert.doesNotMatch(prose, /\bour app\b/i);
+  });
+
+  it("carries 1-3 https sources on every lesson", () => {
+    for (const lesson of mod.lessons) {
+      const sources = lesson.sources ?? [];
+      assert.ok(sources.length >= 1 && sources.length <= 3, lesson.slug);
+      for (const source of sources) {
+        assert.match(source.url, /^https:\/\/\S+$/);
+        assert.ok(source.label.trim().length > 0);
+      }
+    }
+  });
+});

@@ -361,7 +361,7 @@ export type SdTaskDef = {
  * the set of lessons — that is the whole point, and it is enforced by
  * `lib/system-design/content-rules.ts` (both directions), not by this type.
  *
- * Why the gate and not the type: 9 of 14 modules still carry an outline that
+ * Why the gate and not the type: 9 of 15 modules still carry an outline that
  * predates the rule (50 leaves for 41 lessons — caching alone promises 7 leaves
  * for 4 lessons). A discriminated union that made `lessonSlug` required would
  * fail `tsc` for all of them at once, which means deleting authored outlines to
@@ -413,7 +413,13 @@ export type SdModule = {
   chapters?: SdChapter[];
   lessons: SdLesson[];
   interviewByte: SdInterviewByte;
-  task: SdTaskDef;
+  /**
+   * Absent on `prose` modules (Slice B3). Optional, but **not** the thing that
+   * decides whether a module has a task: `kind` is. An absent task on a `sim`
+   * module is a content bug, and `check:system-design` fails it; if presence
+   * were the discriminator, that bug would silently render as a reading module.
+   */
+  task?: SdTaskDef;
   recap: string[];
   attribution: string;
 };

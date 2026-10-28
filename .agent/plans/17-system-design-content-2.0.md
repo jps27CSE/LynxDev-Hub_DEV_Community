@@ -1,7 +1,7 @@
 # System Design 2.0 — Depth, Breadth and Differentiation
 
 > **Date:** 2026-10-27
-> **Status:** Plan. Nothing here is implemented yet. One slice ships at a time, each ending in a manual review by me before the next one starts. No commits by the agent.
+> **Status:** In progress. Slices B1–B3 shipped (uncommitted) on 2026-10-27/28; B4–B7 pending. One slice ships at a time, each ending in a manual review by me before the next one starts. No commits by the agent.
 > **Scope:** the system-design learning path only — `config/system-design/**`, `app/(routes)/system-design/**`, `components/system-design/**`, `scripts/check-system-design.ts`, `tests/`. No DB schema change, no new dependency, no server cost.
 > **Supersedes:** the content sections of `.agent/plans/16-system-design-phase-6.md` §10.0–§10.1 (roadmap and module table). §10.5 visualizers, §11 free-tier check and §12 task list there remain valid.
 > **Companion:** `.agent/plans/17-system-design-resource-map.md` — the 31-video Bangla playlist mapped to modules, plus a verified free read for every lesson. Every link there was HTTP-checked on 2026-10-27.
@@ -245,7 +245,7 @@ One slice = one review cycle. I read every lesson before the next slice starts. 
 |---|---|---|
 | **B1** ✅ shipped 2026-10-27 (uncommitted) | `types.ts` model change + `ModuleLayout` tree + `Sidebar.tsx` deletion + new gates/tests + **module 1 rebuilt** (4 lessons, Netflix case study, 898/898/897/893 words, `sources` on each) | Verified: `npm test` 588/588, `tsc` clean, build 120/120, `check:system-design` all checks passed (19 warnings, all pre-existing class), module-1 page 58,299 bytes, 4 lesson pages render `Go deeper` + `4 min read`. Pending: your read + commit. |
 | **B2** ✅ shipped 2026-10-28 (uncommitted) | Modules 2, 3, 4 — outlines written, lessons at the depth bar, each built on its §3 Netflix anchor | Verified: `npm test` 594/594, `tsc` clean, build 124/124, `check:system-design` all checks passed (14 warnings), 4/14 modules bound, 75 `/system-design` routes, module pages 58,368 / 57,786 / 58,147 bytes. Pending: your read + commit. |
-| **B3** | Module 5 `api-and-contracts` (new, prose) + `task?` optional + prose-module UX + sitemap/task-route guards | `/system-design/api-and-contracts` renders with no Build Task; `/task` 404s; sitemap has no dead `/task`; the state API rejects `task-save` for it |
+| **B3** ✅ shipped 2026-10-28 (uncommitted) | Module 5 `api-and-contracts` (new, prose, 6 lessons) + `task?` optional + prose-module UX + sitemap/task-route/API guards + tests | Verified: `npm test` 598/598, `tsc` clean, build 131/131, `check:system-design` all checks passed (15 modules, 14 warnings). 5/15 modules bound. 82 routes under `/system-design`. Module page bytes TBD. Pending: your read + commit. |
 | **B4** | Module 7 `caching` 4 → 10 lessons | Depth bar met; chapter ↔ lesson set equality; client payload compared against P2/P3 |
 | **B5** | Modules 6, 8, 9 | Same |
 | **B6** | Modules 10, 11 | Same |

@@ -31,7 +31,8 @@ export type ModuleOverview = {
   chapters?: SdChapter[];
   lessons: LessonSummary[];
   interviewByte: SdInterviewByte;
-  task: { brief: string };
+  /** Absent on `prose` modules — the CTA is hidden by `kind`, not by this. */
+  task?: { brief: string };
   recap: string[];
   attribution: string;
 };
@@ -62,6 +63,7 @@ export type LessonSummary = {
 export function ModuleLayout({ module }: { module: ModuleOverview }) {
   const [railOpen, setRailOpen] = useState(true);
   const hasTask = module.kind === "sim";
+  const task = module.task;
 
   return (
     <div className="sd-scope flex h-[100dvh] flex-col overflow-hidden">
@@ -285,7 +287,7 @@ export function ModuleLayout({ module }: { module: ModuleOverview }) {
           </section>
 
           {/* Build task — prose modules have no canvas, so no dead CTA */}
-          {hasTask && (
+          {hasTask && task && (
             <section
               aria-labelledby="build-heading"
               className="mb-10 rounded-2xl border border-sd-accent/30 bg-gradient-to-br from-sd-accent-soft/60 to-card p-6 sm:p-8"
@@ -300,7 +302,7 @@ export function ModuleLayout({ module }: { module: ModuleOverview }) {
                 Put the design under load.
               </h2>
               <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-                {module.task.brief}
+                {task?.brief}
               </p>
               <Link
                 href={`/system-design/${module.slug}/task`}

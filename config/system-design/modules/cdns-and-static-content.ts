@@ -106,7 +106,7 @@ function taskGraph(cdnHitRate: number): SdGraph {
 
 const module: SdModule = {
   slug: "cdns-and-static-content",
-  order: 10,
+  order: 11,
   part: 1,
   partTitle: "Scaling up",
   kind: "sim",

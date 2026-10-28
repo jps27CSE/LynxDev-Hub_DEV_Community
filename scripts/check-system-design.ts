@@ -50,6 +50,8 @@ import {
 } from "../lib/system-design/content-rules";
 import type { SdModule } from "../config/system-design/types";
 
+type SimModule = SdModule & { task: NonNullable<SdModule["task"]> };
+
 const MANIFEST = path.join(process.cwd(), ".next", "prerender-manifest.json");
 const MODULES_DIR = path.join(
   process.cwd(),
@@ -167,6 +169,19 @@ async function main(): Promise<void> {
     }
   }
 
+  for (const mod of modules) {
+    if (mod.kind === "sim" && !mod.task) {
+      fail(
+        `${mod.slug}: kind is "sim" but no task is defined — a simulated module must have a build task`,
+      );
+    }
+    if (mod.kind === "prose" && mod.task) {
+      fail(
+        `${mod.slug}: kind is "prose" but a task is defined — prose modules have no build task`,
+      );
+    }
+  }
+
   for (const fileName of onDisk) {
     if (!registered.has(fileName)) {
       fail(
@@ -184,7 +199,7 @@ async function main(): Promise<void> {
   // `lib/system-design/content-rules.ts` so `npm test` can assert the same
   // things before `Build` — this runner adds them to the post-build gate.
   //
-  // 9 of 14 modules are not converted yet, so they report as warnings with
+  // 9 of 15 modules are not converted yet, so they report as warnings with
   // counts. That is deliberate: a gate that is red for planned work is not
   // information. See the header of content-rules.ts.
 
@@ -218,7 +233,9 @@ async function main(): Promise<void> {
   const expectedRoutes = new Set<string>(["/system-design"]);
   for (const mod of modules) {
     expectedRoutes.add(`/system-design/${mod.slug}`);
-    expectedRoutes.add(`/system-design/${mod.slug}/task`);
+    if (mod.task) {
+      expectedRoutes.add(`/system-design/${mod.slug}/task`);
+    }
     for (const lesson of mod.lessons) {
       expectedRoutes.add(`/system-design/${mod.slug}/lesson/${lesson.slug}`);
     }
@@ -266,7 +283,7 @@ async function main(): Promise<void> {
 
   console.log("\n--- graph integrity ---");
 
-  for (const mod of modules) {
+  for (const mod of modules.filter((m): m is SimModule => !!m.task)) {
     const solution = SdGraphSchema.safeParse(mod.task.solutionGraph);
     if (!solution.success) {
       fail(
@@ -318,7 +335,7 @@ async function main(): Promise<void> {
 
   console.log("\n--- orphan check (steps must be passable) ---");
 
-  for (const mod of modules) {
+  for (const mod of modules.filter((m): m is SimModule => !!m.task)) {
     for (const step of mod.task.steps) {
       const result = runStepCheck(step, mod.task.solutionGraph);
       if (!result.passed) {
@@ -339,7 +356,7 @@ async function main(): Promise<void> {
 
   console.log("\n--- criteria sanity ---");
 
-  for (const mod of modules) {
+  for (const mod of modules.filter((m): m is SimModule => !!m.task)) {
     const required = mod.task.passCriteria.filter((c) => c.required);
     if (required.length === 0) continue;
 
@@ -398,13 +415,14 @@ async function main(): Promise<void> {
   for (let i = 1; i < modules.length; i++) {
     const previous = modules[i - 1];
     const current = modules[i];
+    if (!previous.task || !current.task) continue; // prose modules have no task
     if (previous.part !== current.part) continue; // Part 0 -> Part 1 changes task kind
 
     const previousTypes = new Set(
-      previous.task.solutionGraph.nodes.map((n) => n.type),
+      previous.task!.solutionGraph.nodes.map((n) => n.type),
     );
     const currentTypes = new Set(
-      current.task.startGraph.nodes.map((n) => n.type),
+      current.task!.startGraph.nodes.map((n) => n.type),
     );
     const lost = [...previousTypes].filter(
       (t) => t !== "client" && !currentTypes.has(t),

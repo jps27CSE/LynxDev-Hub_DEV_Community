@@ -20,6 +20,7 @@ import type {
   SdFailure,
   SdGraph,
   SdModule,
+  SdTaskDef,
   SdNode,
   SdNodeType,
   SdPassCriterion,
@@ -53,6 +54,17 @@ const MIN_SCALE = 0.1;
 const MAX_SCALE = 3;
 const GRID_SIZE = 40;
 const TASK_STATE_SCHEMA = SdGraphSchema;
+
+/**
+ * A `sim` module is the only kind that ships a build task. TaskWorkspace is
+ * never mounted for a `prose` module (the route 404s first), so reaching here
+ * without a task is a content bug, not a user state.
+ */
+type SimModule = SdModule & { task: SdTaskDef };
+
+function hasBuildTask(module: SdModule): module is SimModule {
+  return module.task !== undefined;
+}
 
 type WorkspacePanel =
   | "results"
@@ -159,18 +171,18 @@ function parseTaskState(value: unknown): SdTaskState | null {
   };
 }
 
-function graphStepResults(module: SdModule, graph: SdGraph): StepResult[] {
+function graphStepResults(module: SimModule, graph: SdGraph): StepResult[] {
   return module.task.steps.map((step) => step.check(graph));
 }
 
-function currentStepIds(module: SdModule, graph: SdGraph): string[] {
+function currentStepIds(module: SimModule, graph: SdGraph): string[] {
   return module.task.steps
     .filter((step) => step.check(graph).passed)
     .map((step) => step.id);
 }
 
 function mergeTaskStates(
-  module: SdModule,
+  module: SimModule,
   localState: SdTaskState | null,
   serverState: SdTaskState | null,
 ): SdTaskState | null {
@@ -212,7 +224,7 @@ function isSdNodeType(value: string): value is SdNodeType {
 export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
   const { user, isLoaded: isUserLoaded } = useUser();
   const isMobile = useIsMobile();
-  const [module, setModule] = useState<SdModule | null>(null);
+  const [module, setModule] = useState<SimModule | null>(null);
   const [moduleLoadError, setModuleLoadError] = useState(false);
   const [moduleLoadAttempt, setModuleLoadAttempt] = useState(0);
   const [taskState, setTaskState] = useState<SdTaskState | null>(null);
@@ -291,6 +303,11 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
       .then((loadedModule) => {
         if (!loadedModule) {
           throw new Error(`Unknown system-design module "${moduleSlug}".`);
+        }
+        if (!hasBuildTask(loadedModule)) {
+          throw new Error(
+            `System-design module "${moduleSlug}" has no build task.`,
+          );
         }
         if (!cancelled) setModule(loadedModule);
       })

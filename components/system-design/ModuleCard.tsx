@@ -37,11 +37,16 @@ export function ModuleCard({ module }: ModuleCardProps) {
         </p>
       </div>
 
-      <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
-        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-sd-accent" />
-          {module.lessons.length} lessons
-        </span>
+      <div className="mt-6 flex items-center justify-between gap-2 border-t border-border pt-4">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-sd-accent" />
+            {module.lessons.length} lessons
+          </span>
+          <span className="rounded-full border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            {module.kind === "sim" ? "Simulated" : "Reading"}
+          </span>
+        </div>
         <span className="inline-flex items-center gap-1 text-sm font-medium text-sd-accent transition-transform group-hover:translate-x-1">
           Open
           <span aria-hidden="true">→</span>

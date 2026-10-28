@@ -106,7 +106,7 @@ function taskGraph(partitions: number, hotKeyShare: number): SdGraph {
 
 const module: SdModule = {
   slug: "partitioning-and-sharding",
-  order: 8,
+  order: 9,
   part: 1,
   partTitle: "Scaling up",
   kind: "sim",

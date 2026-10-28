@@ -171,16 +171,17 @@ Videos: `WLYgEASg3Io` ✅ · `lf3J10_Lnfc` ✅
 
 ### M5 · api-and-contracts (new, prose)
 
-Videos: `YNvtSkHb3co` 🆕 · `_c_wDV_3ktI` 🆕 · `SAeOWMysy1U` ✅ · `GOgp2lzTo0s` 🆕 · `sP5pzApI72E` 🆕 · `vz6ShBpxt2U` ✅ (gateway)
+Videos used: `YNvtSkHb3co` ✅ (contract) · `sP5pzApI72E` ✅ (OAuth, who-are-you) · `vz6ShBpxt2U` ✅ (gateway).
+Unplaced (recorded in §3): `_c_wDV_3ktI` (upload API — not about pagination), `GOgp2lzTo0s` (forgot password — not authn/authz), `SAeOWMysy1U` (HTTP/TCP/UDP — no slot).
 
 | Lesson | Video | Go deeper |
 |---|---|---|
 | `the-contract-before-the-code` | `YNvtSkHb3co` | [RFC 9110 — HTTP semantics](https://www.rfc-editor.org/rfc/rfc9110.html) · [Google API design guide](https://cloud.google.com/apis/design) |
-| `pagination-that-doesnt-lie` | `_c_wDV_3ktI` | [AIP-158 — pagination](https://google.aip.dev/158) · [Stripe — pagination](https://docs.stripe.com/api/pagination) |
-| `who-are-you-vs-what-may-you-do` | `GOgp2lzTo0s` + `sP5pzApI72E` | [Auth0 — JWT](https://auth0.com/docs/secure/tokens/json-web-tokens) · [MDN — HTTP methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
+| `pagination-that-doesnt-lie` | — | [AIP-158 — pagination](https://google.aip.dev/158) · [Stripe — pagination](https://docs.stripe.com/api/pagination) |
+| `who-are-you-vs-what-may-you-do` | `sP5pzApI72E` | [Auth0 — JWT](https://auth0.com/docs/secure/tokens/json-web-tokens) · [MDN — HTTP methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
 | `idempotent-writes` | — | [Stripe — idempotent requests](https://docs.stripe.com/api/idempotent_requests) · [AWS — retries with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/) |
 | `errors-and-status-codes` | — | [RFC 9457 — problem details](https://www.rfc-editor.org/rfc/rfc9457.html) · [MDN — 429](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429) · [MDN — Retry-After](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After) |
-| `the-gateway-as-one-door` | `vz6ShBpxt2U` ✅ | [microservices.io — API gateway](https://microservices.io/patterns/apigateway.html) · [API gateway](https://en.wikipedia.org/wiki/API_gateway) |
+| `the-gateway-as-one-door` | `vz6ShBpxt2U` | [microservices.io — API gateway](https://microservices.io/patterns/apigateway.html) · [API gateway](https://en.wikipedia.org/wiki/API_gateway) |
 
 ### M6 · load-balancers-and-stateless-services (5 lessons)
 
@@ -341,6 +342,20 @@ honest count is 18 placed, not 19.
 Phase C free reads (one each): [SQL vs NoSQL — MongoDB](https://www.mongodb.com/docs/manual/) · [Use The Index, Luke](https://use-the-index-luke.com/) · [MVCC intro](https://www.postgresql.org/docs/current/mvcc-intro.html) · [Transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html) · [Database index](https://en.wikipedia.org/wiki/Database_index) · [Kafka](https://kafka.apache.org/documentation/) · [SQS DLQ](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) · [Saga](https://microservices.io/patterns/data/saga.html) · [Outbox](https://microservices.io/patterns/data/transactional-outbox.html) · [CQRS](https://microservices.io/patterns/data/cqrs.html) · [Raft](https://raft.github.io/) · [PACELC](https://www.cs.umd.edu/~abadi/papers/abadi-pacelc.pdf) · [Azure/AWS reliability pillar](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html) · [Canary](https://martinfowler.com/bliki/CanaryRelease.html) · [Blue/green](https://martinfowler.com/bliki/BlueGreenDeployment.html) · [Distributed patterns (Fowler)](https://martinfowler.com/articles/patterns-of-distributed-systems/) · [Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)
 
 ---
+
+
+### 3.3 Unplaced — B3 (api-and-contracts) candidates
+
+Verified via YouTube oEmbed on 2026-10-28. Titles drifted from the draft in three cases,
+so the videos were dropped rather than mislabelled.
+
+| # | Video | ID | Why it has no home |
+|---|---|---|---|
+| — | Video Upload & Streaming API Design (Step-by-Step) | `_c_wDV_3ktI` | Title is about upload/streaming APIs, not pagination. The plan originally slotted it into `pagination-that-doesnt-lie`; that lesson now carries no video. |
+| — | How Forgot Password Actually Works | `GOgp2lzTo0s` | Title is about password reset, not authentication/authorisation. The plan originally slotted it into `who-are-you-vs-what-may-you-do`; that lesson uses `sP5pzApI72E` (OAuth 2.0) instead. |
+| — | Internet Protocols: HTTP, TCP, UDP & WebSocket | `SAeOWMysy1U` | No natural slot in Part 0 — the contract lesson already carries `YNvtSkHb3co`, and HTTP semantics are covered by RFC 9110. Reserved for a Phase C lesson on the request path. |
+
+The honest count is now 21 placed (was 18): M5 adds `YNvtSkHb3co`, `sP5pzApI72E`, `vz6ShBpxt2U`.
 
 ## 4. Gaps the playlist exposes
 

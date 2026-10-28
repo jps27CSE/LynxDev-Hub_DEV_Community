@@ -125,7 +125,7 @@ function taskGraph(retryLimit: number, dlqEnabled: boolean): SdGraph {
 
 const module: SdModule = {
   slug: "idempotency",
-  order: 13,
+  order: 14,
   part: 3,
   partTitle: "Reliability",
   kind: "sim",

@@ -102,7 +102,7 @@ function taskGraph(replicas: number, readReplicas: number): SdGraph {
 
 const module: SdModule = {
   slug: "how-systems-fail",
-  order: 11,
+  order: 12,
   part: 3,
   partTitle: "Reliability",
   kind: "sim",

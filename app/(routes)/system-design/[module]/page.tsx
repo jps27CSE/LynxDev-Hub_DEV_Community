@@ -55,7 +55,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
       sourceCount: lesson.sources?.length ?? 0,
     })),
     interviewByte: mod.interviewByte,
-    task: { brief: mod.task.brief },
+    task: mod.task ? { brief: mod.task.brief } : undefined,
     recap: mod.recap,
     attribution: mod.attribution,
   };

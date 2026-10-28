@@ -3,7 +3,7 @@ import { defaultNode } from "@/lib/system-design/nodes";
 
 const module: SdModule = {
   slug: "caching",
-  order: 6,
+  order: 7,
   part: 1,
   partTitle: "Scaling up",
   kind: "sim",

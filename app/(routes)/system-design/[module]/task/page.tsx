@@ -10,7 +10,13 @@ interface TaskPageProps {
 export const dynamicParams = false;
 
 export async function generateStaticParams() {
-  return getAllModuleSlugs().map((module) => ({ module }));
+  const slugs = getAllModuleSlugs();
+  const loaded = await Promise.all(
+    slugs.map(async (slug) => ({ slug, mod: await getModule(slug) })),
+  );
+  return loaded
+    .filter(({ mod }) => mod?.kind === "sim" && !!mod.task)
+    .map(({ slug }) => ({ module: slug }));
 }
 
 export async function generateMetadata({
@@ -18,7 +24,9 @@ export async function generateMetadata({
 }: TaskPageProps): Promise<Metadata> {
   const { module } = await params;
   const mod = await getModule(module);
-  if (!mod) return { title: "Build Task Not Found" };
+  if (!mod || mod.kind !== "sim" || !mod.task) {
+    return { title: "Build Task Not Found" };
+  }
   return {
     title: `Build Task: ${mod.title} — System Design Learning`,
     description: mod.task.brief,
@@ -29,7 +37,7 @@ export default async function TaskPage({ params }: TaskPageProps) {
   const { module } = await params;
   const mod = await getModule(module);
 
-  if (!mod) notFound();
+  if (!mod || mod.kind !== "sim" || !mod.task) notFound();
 
   return <TaskWorkspace moduleSlug={module} />;
 }

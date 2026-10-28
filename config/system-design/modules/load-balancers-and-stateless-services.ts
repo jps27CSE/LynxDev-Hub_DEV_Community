@@ -3,7 +3,7 @@ import { defaultNode } from "@/lib/system-design/nodes";
 
 const module: SdModule = {
   slug: "load-balancers-and-stateless-services",
-  order: 5,
+  order: 6,
   part: 1,
   partTitle: "Scaling up",
   kind: "sim",

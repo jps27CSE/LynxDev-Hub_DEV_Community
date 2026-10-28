@@ -149,7 +149,7 @@ function taskGraph(hardened: boolean): SdGraph {
 
 const module: SdModule = {
   slug: "chaos-capstone",
-  order: 14,
+  order: 15,
   part: 3,
   partTitle: "Reliability",
   kind: "sim",

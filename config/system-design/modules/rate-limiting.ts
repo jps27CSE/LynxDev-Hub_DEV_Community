@@ -93,7 +93,7 @@ function taskGraph(rateLimitPerMin: number | null): SdGraph {
 
 const module: SdModule = {
   slug: "rate-limiting",
-  order: 9,
+  order: 10,
   part: 1,
   partTitle: "Scaling up",
   kind: "sim",

@@ -3,7 +3,7 @@ import { defaultNode } from "@/lib/system-design/nodes";
 
 const module: SdModule = {
   slug: "read-replicas",
-  order: 7,
+  order: 8,
   part: 1,
   partTitle: "Scaling up",
   kind: "sim",

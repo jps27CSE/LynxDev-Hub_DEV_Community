@@ -14,11 +14,11 @@ import type { SdModule } from "./types";
  * never registered.
  *
  * **Why dynamic `import()` and not a barrel.** `[module]/page.tsx` is a dynamic
- * segment. A static import of every module would ship all 14 modules' prose in
+ * segment. A static import of every module would ship all 15 modules' prose in
  * the bundle of any single lesson page. Keying the loaders on slug splits each
  * module into its own chunk, so opening module 6 downloads module 6.
  *
- * **14 modules are registered below** (Phase 6, Task 13). The count is not
+ * **15 modules are registered below** (Phase 6, Task 13). The count is not
  * asserted here — it would need editing on every slice — and does not need to
  * be: `check:system-design` fails if a file in `modules/` is missing from this
  * map, and fails if a key here has no file. Add a module by adding both.
@@ -37,6 +37,7 @@ const LOADERS: Record<string, SdModuleLoader> = {
   "constraints-and-design-process": () =>
     import("./modules/constraints-and-design-process"),
   "back-of-the-envelope": () => import("./modules/back-of-the-envelope"),
+  "api-and-contracts": () => import("./modules/api-and-contracts"),
   "load-balancers-and-stateless-services": () =>
     import("./modules/load-balancers-and-stateless-services"),
   caching: () => import("./modules/caching"),
