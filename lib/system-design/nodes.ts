@@ -1,4 +1,16 @@
-import type { SdNode, SdNodeType } from "@/config/system-design/types";
+import type {
+  SdAppServerNode,
+  SdCacheNode,
+  SdCdnNode,
+  SdClientNode,
+  SdDatabaseNode,
+  SdLoadBalancerNode,
+  SdNode,
+  SdNodeType,
+  SdObjectStoreNode,
+  SdQueueNode,
+  SdWorkerNode,
+} from "@/config/system-design/types";
 
 export type { SdNodeType };
 
@@ -170,7 +182,79 @@ export function getNodeTypeSpec(type: SdNodeType): SdNodeTypeSpec {
  * would leave it. Callers pass the id rather than getting one generated: node
  * ids end up in the PRNG seed, and the engine's determinism guarantee (§5.1)
  * only holds if identical designs produce identical ids.
+ *
+ * Overloaded rather than returning `SdNode`, because the return type is what
+ * makes the factory usable for a *preset*: `{ ...defaultNode("app_server", …),
+ * replicas: 2 }` is otherwise a union spread, and TypeScript rejects it —
+ * `replicas` is not a field of `SdClientNode`, which is one arm of that union.
+ * The literal is a valid `SdAppServerNode`; only the annotation said otherwise.
  */
+export function defaultNode(
+  type: "client",
+  id: string,
+  x: number,
+  y: number,
+): SdClientNode;
+export function defaultNode(
+  type: "load_balancer",
+  id: string,
+  x: number,
+  y: number,
+): SdLoadBalancerNode;
+export function defaultNode(
+  type: "app_server",
+  id: string,
+  x: number,
+  y: number,
+): SdAppServerNode;
+export function defaultNode(
+  type: "worker",
+  id: string,
+  x: number,
+  y: number,
+): SdWorkerNode;
+export function defaultNode(
+  type: "cache",
+  id: string,
+  x: number,
+  y: number,
+): SdCacheNode;
+export function defaultNode(
+  type: "database",
+  id: string,
+  x: number,
+  y: number,
+): SdDatabaseNode;
+export function defaultNode(
+  type: "object_store",
+  id: string,
+  x: number,
+  y: number,
+): SdObjectStoreNode;
+export function defaultNode(
+  type: "queue",
+  id: string,
+  x: number,
+  y: number,
+): SdQueueNode;
+export function defaultNode(
+  type: "cdn",
+  id: string,
+  x: number,
+  y: number,
+): SdCdnNode;
+/**
+ * The general case, for callers that iterate `NODE_TYPE_ORDER` and only know
+ * the type at runtime. It has to be a real overload rather than the
+ * implementation signature: the implementation signature is invisible to
+ * callers, so leaving it out makes `defaultNode(someType, …)` a type error.
+ */
+export function defaultNode(
+  type: SdNodeType,
+  id: string,
+  x: number,
+  y: number,
+): SdNode;
 export function defaultNode(
   type: SdNodeType,
   id: string,

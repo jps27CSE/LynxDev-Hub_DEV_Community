@@ -159,6 +159,13 @@ Every module: story rewritten onto the **Netflix** case study (D1), lessons spli
 | `app/api/system-design/state/route.ts` | `lesson-complete` unchanged; `task-save` must reject modules with no task (it reads `taskModule.task.passCriteria` today) | Low |
 | `lib/system-design/*` | **No change.** The engine is content-agnostic. If a slice needs an engine change, that is a signal the slice is wrong | — |
 
+**One exception, recorded in §7.2 (B2):** `lib/system-design/nodes.ts` gained **type overloads** for
+`defaultNode`. A preset written as `{ ...defaultNode("app_server", …), replicas: 2 }` is a union
+spread, so `tsc` rejected a literal that was always valid. The overloads are annotation only — the
+body, the defaults and the capacity model are untouched, and the engine does not read a type.
+The rule survives: needing a *behavioural* engine change in a content slice is still a signal the
+slice is wrong.
+
 ### 4.4 Gates — where this plan is won or lost
 
 | File | Change |
@@ -237,7 +244,7 @@ One slice = one review cycle. I read every lesson before the next slice starts. 
 | Slice | Deliverable | Acceptance |
 |---|---|---|
 | **B1** ✅ shipped 2026-10-27 (uncommitted) | `types.ts` model change + `ModuleLayout` tree + `Sidebar.tsx` deletion + new gates/tests + **module 1 rebuilt** (4 lessons, Netflix case study, 898/898/897/893 words, `sources` on each) | Verified: `npm test` 588/588, `tsc` clean, build 120/120, `check:system-design` all checks passed (19 warnings, all pre-existing class), module-1 page 58,299 bytes, 4 lesson pages render `Go deeper` + `4 min read`. Pending: your read + commit. |
-| **B2** | Modules 2, 3, 4 — outlines written, lessons at the depth bar, each built on its §3 Netflix anchor | Same gates; the three modules move from `no-outline` to `bound`; no `photo`/`follower` refs left in these files; no lesson can be read as a generic "video platform" explainer with the anchor deleted |
+| **B2** ✅ shipped 2026-10-28 (uncommitted) | Modules 2, 3, 4 — outlines written, lessons at the depth bar, each built on its §3 Netflix anchor | Verified: `npm test` 594/594, `tsc` clean, build 124/124, `check:system-design` all checks passed (14 warnings), 4/14 modules bound, 75 `/system-design` routes, module pages 58,368 / 57,786 / 58,147 bytes. Pending: your read + commit. |
 | **B3** | Module 5 `api-and-contracts` (new, prose) + `task?` optional + prose-module UX + sitemap/task-route guards | `/system-design/api-and-contracts` renders with no Build Task; `/task` 404s; sitemap has no dead `/task`; the state API rejects `task-save` for it |
 | **B4** | Module 7 `caching` 4 → 10 lessons | Depth bar met; chapter ↔ lesson set equality; client payload compared against P2/P3 |
 | **B5** | Modules 6, 8, 9 | Same |
@@ -284,6 +291,60 @@ All three restored, suite back to 588 passing / 0 failing.
 2. Both module-1 sources changed for better ones — *CAP twelve years later* and *Erlang (unit)*
    were replaced because neither goes deeper than the lesson that cited it. Details in the
    resource map, §2.
+
+### 7.2 B2 — shipped 2026-10-28, measured
+
+Modules 2–4 converted: 12 lessons, four per module, each bound to a leaf chapter and each anchored
+to a Netflix primary source except where the map records a deliberate swap (§2, M2–M4).
+
+**Measured, not estimated:**
+
+- **Word counts** — M2 867 / 856 / 847 / 839 · M3 893 / 900 / 900 / 822 · M4 874 / 893 / 872 / 899.
+  Two lessons sit *on* the 900 ceiling. That is allowed, and it is also the useful state: the next
+  edit to either one fails the gate instead of quietly growing.
+- **Binding** — the three modules move `no-outline` → `bound`. Gate summary: `4/14 module(s)
+  converted to the leaf model`.
+- **Tests** — 594 passing / 0 failing (588 after B1, plus two assertions × three modules).
+- **Routes** — 124 static pages, **75 under `/system-design`** (71 after B1). The three modules went
+  2→4, 3→4, 3→4 lessons: +4 routes, nothing removed.
+- **Payload** — module pages **58,368 / 57,786 / 58,147 bytes**, i.e. flat against module 1's
+  58,299 despite comparable prose. The `ModuleOverview` boundary from B1 is what keeps it flat;
+  this slice added 12 lessons without moving it.
+- **Build** — exit 0, 4.7s static generation, `tsc` clean.
+- **Gate output** — `All checks passed for 14 module(s), 14 warning(s)`. B1 left 19 warnings;
+  three modules leaving the `unbound` class accounts for the drop.
+
+**Mutation-tested (the new assertions only):**
+
+| Assertion | Mutation | What went red |
+|---|---|---|
+| rail order = lesson order | swapped two entries of the `requirements` `nav` table | `requirements: outline order and lesson order disagree` |
+| no private-system pronoun | renamed a heading to "Our app requirements" | the `\bour app\b` regex — while the substring checks stayed green, which is why the pronoun is matched separately |
+
+Both restored; suite back to 594 passing.
+
+**Four deviations, each found by running something rather than by reading:**
+
+1. **`defaultNode` gained type overloads** (`lib/system-design/nodes.ts`). A preset written as
+   `{ ...defaultNode("app_server", …), replicas: 2 }` is a union spread, so `tsc` rejected it:
+   `replicas` is not a field of `SdClientNode`, one arm of that union. The literal was always a
+   valid `SdAppServerNode`; only the annotation said otherwise. Nine literal overloads plus the
+   general `SdNodeType → SdNode` case — the general one has to be a real overload, because the
+   implementation signature is invisible to callers and `tests/nodes.test.ts` iterates
+   `NODE_TYPE_ORDER`. No runtime change.
+2. **Module 4's start graph is module 3's solution, unchanged.** The first draft started from
+   client → app → db, and the chain check flagged it as dropping the load balancer module 3 had
+   just taught. Deleting that node unteaches the previous lesson, so the start now inherits it:
+   6,000 r/s against two app replicas (utilisation 1.50) and one store. Re-measured: 33.3% errors,
+   max 1.50 → solution 0% / 0.75.
+3. **Module 2's start graph drops the database on purpose**, and the chain check warns about it on
+   every run. That is the exercise — the canvas is the *membership* service, the second system from
+   "Two systems, one company", so there is no store to inherit — and the brief says so in its first
+   sentence. Written into the module header so the warning has an answer next to it.
+4. **Video titles were fetched, not paraphrased.** YouTube's oEmbed endpoint returned all four on
+   2026-10-28; three draft titles had drifted from the real ones and `5WVl9F_7f7k` was missing from
+   its lesson altogether. Fixed rather than recorded, because a learner searching the title has to
+   find the same string.
 
 ---
 

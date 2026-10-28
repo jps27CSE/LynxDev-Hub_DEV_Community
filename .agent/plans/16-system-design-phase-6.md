@@ -2,6 +2,8 @@
 
 > **Date:** 2026-10-17 (revised 2026-10-25 — Module 8 authored and sharding model verified)
 > **Status:** Tasks 1–9 are implemented. Task 8 is commit `67177e8`. Fourteen modules are registered (Part 0 all 4 + Modules 5–14), with static lesson and task routes; the system-design checker passes. Task 9's interactive workspace is verified by typecheck, tests, and production build; run the A1 manual acceptance checks in §13 before continuing A2 authoring.
+>
+> **Content status (2026-10-28):** the modules are being rebuilt under `.agent/plans/17-system-design-content-2.0.md` — 1 leaf chapter = 1 lesson, 700–900 words per lesson, `sources` on every lesson, Netflix as the case study. **Modules 1–4 are converted** (slice B1: `what-is-system-design`; slice B2: `requirements`, `constraints-and-design-process`, `back-of-the-envelope`), all uncommitted pending review. The other 10 modules still carry their original shorter lessons and unbound outlines, and report warnings in `check:system-design` rather than passing silently.
 > **Scope:** An interactive system-design learning path: read a concept with scenarios and diagrams, then **build that app yourself and run it under traffic and failure**. Full beginner→advanced curriculum designed in §10.0 (~90 topics, Parts 0–9); **Phase A implements Part 0 + Part 1 + Part 3** = 14 modules, each ending in a 🔨 Build Task with hard pass criteria, grown across **one** photo-sharing app (100 users → chaos). Sliced into three independently shippable stages **A1 / A2 / A3** (§10.1).
 > **Phase A engine:** 9 node types, **no new node types needed** — 14 modules reduce to 7 property additions + scenario knobs (§5.2.1).
 > **Stack:** Next.js 16 App Router (Server Components default), React 19, Clerk `auth()`, Drizzle + TiDB MySQL (`connectionLimit:5`), Tailwind v4 + shadcn/ui, `react-resizable-panels` (already installed, currently **unused**), Vercel Hobby Free, TiDB Cloud Starter Free
@@ -753,9 +755,9 @@ Roughly 15 topics in Part 4–5 are *shapeable into a one-hypothesis interactive
 | 10 | *(moved — see Task 13)* | — | Content authoring deferred so every lesson is written against a running engine |
 | 11 | `check:system-design` script + package.json entry | `scripts/check-system-design.ts`, `package.json` | Flip a slug in `registry.ts` → script exits 1 |
 | 12 | Nav + dashboard + sitemap + tracker | `Sidebar.tsx:21-28`, `Header.tsx:7-12`, `sitemap.ts:10-20`, `QuickActions.tsx`, `.agent/feature-tracker.md` | Manual: link works, sitemap lists it, build route table still `●` |
-| 13 | **A1 content** — Part 0, 4 modules × (lessons + Interview Byte + Build Task) | `config/system-design/modules/` | **You read every lesson.** No AI filler |
-| 14 | **A2 content** — Part 1, 6 modules | `config/system-design/modules/` | Same gate. Re-run `check:system-design` |
-| 15 | **A3 content** — Part 3, 4 modules, ending in the chaos capstone | `config/system-design/modules/` | Same gate |
+| 13 | **A1 content** — Part 0, 4 modules × (lessons + Interview Byte + Build Task) | `config/system-design/modules/` | **You read every lesson.** No AI filler. 🟡 Rebuilt under plan 17: all 4 modules converted (B1 + B2), each lesson 700–900 words with `sources` — waiting on your read + commit |
+| 14 | **A2 content** — Part 1, 6 modules | `config/system-design/modules/` | Same gate. Re-run `check:system-design`. 🟡 Authored, not yet converted to the leaf model (plan 17 slices B4–B6) |
+| 15 | **A3 content** — Part 3, 4 modules, ending in the chaos capstone | `config/system-design/modules/` | Same gate. 🟡 Authored, not yet converted (plan 17 slice B7) |
 
 **Gate between slices.** Tasks 1–13 are slice **A1** and must pass the §13 script on their own before Task 14 starts. Do not author A2 content until you have personally used A1 — that is the only way the ordering stays honest.
 

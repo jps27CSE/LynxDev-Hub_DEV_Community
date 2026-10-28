@@ -105,36 +105,69 @@ Videos: `DzAt0wd3oWM` ✅ · `7qWsnq2ecNE` 🆕 · `nFbOxUJJeFo` ✅ (shared wit
 
 ### M2 · requirements (4 lessons)
 
-Videos: `5WVl9F_7f7k` 🆕
+Videos: `5WVl9F_7f7k` ✅
 
 | Lesson | Video | Go deeper |
 |---|---|---|
-| `functional-vs-nonfunctional` | `5WVl9F_7f7k` | [Hello Interview — in a hurry](https://www.hellointerview.com/learn/system-design/in-a-hurry) · [Primer](https://github.com/donnemartin/system-design-primer) |
+| `functional-vs-nonfunctional` | `5WVl9F_7f7k` | [Netflix — completing the cloud migration](https://about.netflix.com/news/completing-the-netflix-cloud-migration) · [Hello Interview — in a hurry](https://www.hellointerview.com/learn/system-design/in-a-hurry) |
 | `eliciting-requirements` | — | [Primer — step 1: use cases, constraints, assumptions](https://github.com/donnemartin/system-design-primer) · [Hello Interview](https://www.hellointerview.com/learn/system-design/in-a-hurry) |
 | `turning-fast-into-a-number` | — | [SRE — service level objectives](https://sre.google/sre-book/service-level-objectives/) · [SRE Workbook — implementing SLOs](https://sre.google/workbook/implementing-slos/) |
-| `what-youre-not-building` | — | [Primer](https://github.com/donnemartin/system-design-primer) · [High availability](https://en.wikipedia.org/wiki/High_availability) |
+| `what-youre-not-building` | — | [Netflix — completing the cloud migration](https://about.netflix.com/news/completing-the-netflix-cloud-migration) · [Primer — scope the problem](https://github.com/donnemartin/system-design-primer) |
+
+**Shipped in B2.** Two source deviations, and one process note:
+
+1. `functional-vs-nonfunctional` opens on **Netflix's migration post**, not the Primer. The lesson's
+   whole claim is "two systems, one company, two requirement sets", and the post is the only source
+   in the path that evidences it with a date. A generic checklist cannot support a case study; it
+   can only follow one, which is the slot Hello Interview keeps.
+2. `what-youre-not-building`'s second read is the **Netflix post** rather than *Wikipedia — high
+   availability*. The lesson is about drawing a not-list and giving each out-item a trigger; the
+   migration's "billing came a year later, for a stated reason" is that idea with a real cost
+   attached. An HA page describes a quality, not a scoping decision.
+3. **All four B2 video ids were checked against YouTube's oEmbed endpoint** (2026-10-28), not
+   trusted from the map: three shipped titles were paraphrases that had drifted from the real ones
+   (`WLYgEASg3Io` had lost "Basics … Explained", `lf3J10_Lnfc` had been rewritten, `EDOK1DWYy4I`
+   had lost "Streaming"). The map's titles are translations; the lesson shows the video's own
+   title, because a learner searching for it must find the same string. `5WVl9F_7f7k` was
+   assigned here by the map and is now embedded — the first draft of the lesson omitted it.
 
 ### M3 · constraints-and-design-process (4 lessons)
 
-Videos: `EDOK1DWYy4I` 🆕
+Videos: `EDOK1DWYy4I` ✅
 
 | Lesson | Video | Go deeper |
 |---|---|---|
 | `the-45-min-structure` | — | [Hello Interview — in a hurry](https://www.hellointerview.com/learn/system-design/in-a-hurry) · [Primer](https://github.com/donnemartin/system-design-primer) |
 | `tradeoffs` | — | [Primer](https://github.com/donnemartin/system-design-primer) · [CAP twelve years later](https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed/) |
-| `anti-patterns` | — | [AWS — avoiding fallback in distributed systems](https://aws.amazon.com/builders-library/avoiding-fallback-in-distributed-systems/) · [SRE — addressing cascading failures](https://sre.google/sre-book/addressing-cascading-failures/) |
+| `anti-patterns` | — | [Fowler — the microservice premium](https://martinfowler.com/bliki/MicroservicePremium.html) · [SRE — addressing cascading failures](https://sre.google/sre-book/addressing-cascading-failures/) |
 | `saying-it-out-loud` | `EDOK1DWYy4I` | [Hello Interview — in a hurry](https://www.hellointerview.com/learn/system-design/in-a-hurry) · [SRE — postmortem culture](https://sre.google/sre-book/postmortem-culture/) |
+
+**Shipped in B2.** One deviation: `anti-patterns` cites **Fowler's microservice premium** where the
+map had *AWS — avoiding fallback in distributed systems*. The lesson's first anti-pattern is
+distributing before the problem demands it, and Fowler names that trade in one page; the map's AWS
+piece is about a *different* mistake (fallback paths that hide failure), which the lesson does not
+make. The SRE cascading-failures read is unchanged and carries the second half.
 
 ### M4 · back-of-the-envelope (4 lessons)
 
-Videos: `WLYgEASg3Io` 🆕 · `lf3J10_Lnfc` 🆕
+Videos: `WLYgEASg3Io` ✅ · `lf3J10_Lnfc` ✅
 
 | Lesson | Video | Go deeper |
 |---|---|---|
 | `powers-of-two-and-latency-numbers` | — | [Interactive latency numbers](https://colin-scott.github.io/personal_website/research/interactive_latency.html) · [Primer — latency numbers](https://github.com/donnemartin/system-design-primer) |
-| `qps-storage-bandwidth` | `WLYgEASg3Io` | [Primer](https://github.com/donnemartin/system-design-primer) · [Hello Interview](https://www.hellointerview.com/learn/system-design/in-a-hurry) |
+| `qps-storage-bandwidth` | `WLYgEASg3Io` | [Primer — back-of-the-envelope](https://github.com/donnemartin/system-design-primer) · [Hello Interview](https://www.hellointerview.com/learn/system-design/in-a-hurry) |
 | `littles-law` | — | [Little's law](https://en.wikipedia.org/wiki/Little%27s_law) · [Erlang (unit)](https://en.wikipedia.org/wiki/Erlang_%28unit%29) |
-| `estimation-under-uncertainty` | `lf3J10_Lnfc` | [Primer](https://github.com/donnemartin/system-design-primer) · [SRE — service level objectives](https://sre.google/sre-book/service-level-objectives/) |
+| `estimation-under-uncertainty` | `lf3J10_Lnfc` | [Wikipedia — Fermi problem](https://en.wikipedia.org/wiki/Fermi_problem) · [Primer — back-of-the-envelope](https://github.com/donnemartin/system-design-primer) |
+
+**Shipped in B2.** Two deviations:
+
+1. `estimation-under-uncertainty` cites the **Fermi problem** instead of SRE *service level
+   objectives*. SLOs are already `turning-fast-into-a-number`'s whole subject one module earlier,
+   and this lesson is about bracketing an unknown input, not about promising an output.
+2. `littles-law` keeps **Erlang (unit)** — the one place it belongs, and the note in M1 §2 above is
+   not contradicted: there the lesson was about bytes per second, here the lesson computes offered
+   load, which is what the Erlang is a unit *of*. Same source, correctly placed in one lesson and
+   decorative in the other.
 
 ### M5 · api-and-contracts (new, prose)
 

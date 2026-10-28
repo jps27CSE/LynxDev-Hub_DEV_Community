@@ -22,6 +22,11 @@
  * `lessonSlug` fails `outline-half-converted`, deleting a lesson from a bound
  * outline fails `lesson-not-in-outline`, and trimming a lesson under 700 words
  * fails `lesson-depth`. Recorded in plan 17 §7 (B1).
+ *
+ * B2's assertions were broken the same way: swapping two entries of a `nav`
+ * array failed `outline order and lesson order disagree`, and renaming a
+ * heading to "Our app requirements" failed the pronoun check while the
+ * substring checks stayed green — which is the point of the separate regex.
  */
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -235,4 +240,91 @@ describe("content model — module 1 (the converted reference)", () => {
       mod.lessons.some((lesson) => lesson.slug === "choices-not-boxes"),
     );
   });
+});
+
+/**
+ * Modules 2–4, converted in slice B2.
+ *
+ * The `nav` arrays are the reading order *and* the progress keys. Slugs are
+ * listed in the order the rail renders them rather than sorted, so a reordered
+ * outline fails here too — prev/next follows this array, and a learner
+ * mid-module would otherwise be sent to a lesson they already read.
+ */
+const B2_MODULES: { slug: string; nav: string[] }[] = [
+  {
+    slug: "requirements",
+    nav: [
+      "functional-vs-nonfunctional",
+      "eliciting-requirements",
+      "turning-fast-into-a-number",
+      "what-youre-not-building",
+    ],
+  },
+  {
+    slug: "constraints-and-design-process",
+    nav: [
+      "the-45-min-structure",
+      "tradeoffs",
+      "anti-patterns",
+      "saying-it-out-loud",
+    ],
+  },
+  {
+    slug: "back-of-the-envelope",
+    nav: [
+      "powers-of-two-and-latency-numbers",
+      "qps-storage-bandwidth",
+      "littles-law",
+      "estimation-under-uncertainty",
+    ],
+  },
+];
+
+describe("content model — modules 2–4 (Netflix case study)", () => {
+  for (const expected of B2_MODULES) {
+    describe(expected.slug, () => {
+      // Resolved in a hook, not in the `describe` body — the registry has not
+      // loaded yet while the file is being defined.
+      let mod: SdModule;
+      before(() => {
+        mod = bySlug(expected.slug);
+      });
+
+      it("is bound, and the rail order is the lesson order", () => {
+        assert.equal(inspectChapterBinding(mod).status, "bound");
+        assert.deepEqual(
+          lessonNav(mod).map((entry) => entry.slug),
+          expected.nav,
+          `${expected.slug}: outline order and lesson order disagree`,
+        );
+        assert.deepEqual(
+          mod.lessons.map((lesson) => lesson.slug).sort(),
+          [...expected.nav].sort(),
+          `${expected.slug}: a lesson exists that the outline does not promise`,
+        );
+      });
+
+      it("runs on Netflix, not on this app or a social feed", () => {
+        // The same guard module 1 carries (plan 17 §0, D1). These three
+        // modules were written against the old LynxDEV/photo-feed draft, so
+        // the failure mode being pinned is a regression to that draft, not a
+        // hypothetical.
+        const prose = JSON.stringify(mod.lessons);
+        assert.ok(
+          prose.includes("Netflix"),
+          `${expected.slug}: no Netflix references — D1 is the published case study`,
+        );
+        for (const word of ["LynxDEV", "follower", "photo", "this site"]) {
+          assert.ok(
+            !prose.includes(word),
+            `${expected.slug}: references "${word}" — the case study is Netflix`,
+          );
+        }
+        // Separate pattern: `\bour app\b` rather than a substring, because
+        // "Four app replicas" contains "ur app" and a plain `includes` would
+        // fail on arithmetic instead of on a pronoun.
+        assert.doesNotMatch(prose, /\bour app\b/i);
+      });
+    });
+  }
 });
