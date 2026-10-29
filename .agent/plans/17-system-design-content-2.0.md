@@ -1,7 +1,7 @@
 # System Design 2.0 — Depth, Breadth and Differentiation
 
 > **Date:** 2026-10-27
-> **Status:** In progress. Slices B1–B3 shipped (uncommitted) on 2026-10-27/28; B4–B7 pending. One slice ships at a time, each ending in a manual review by me before the next one starts. No commits by the agent.
+> **Status:** In progress. Slices B1–B4 shipped (uncommitted) on 2026-10-27/28/29; B5–B7 pending. One slice ships at a time, each ending in a manual review by me before the next one starts. No commits by the agent.
 > **Scope:** the system-design learning path only — `config/system-design/**`, `app/(routes)/system-design/**`, `components/system-design/**`, `scripts/check-system-design.ts`, `tests/`. No DB schema change, no new dependency, no server cost.
 > **Supersedes:** the content sections of `.agent/plans/16-system-design-phase-6.md` §10.0–§10.1 (roadmap and module table). §10.5 visualizers, §11 free-tier check and §12 task list there remain valid.
 > **Companion:** `.agent/plans/17-system-design-resource-map.md` — the 31-video Bangla playlist mapped to modules, plus a verified free read for every lesson. Every link there was HTTP-checked on 2026-10-27.
@@ -246,7 +246,7 @@ One slice = one review cycle. I read every lesson before the next slice starts. 
 | **B1** ✅ shipped 2026-10-27 (uncommitted) | `types.ts` model change + `ModuleLayout` tree + `Sidebar.tsx` deletion + new gates/tests + **module 1 rebuilt** (4 lessons, Netflix case study, 898/898/897/893 words, `sources` on each) | Verified: `npm test` 588/588, `tsc` clean, build 120/120, `check:system-design` all checks passed (19 warnings, all pre-existing class), module-1 page 58,299 bytes, 4 lesson pages render `Go deeper` + `4 min read`. Pending: your read + commit. |
 | **B2** ✅ shipped 2026-10-28 (uncommitted) | Modules 2, 3, 4 — outlines written, lessons at the depth bar, each built on its §3 Netflix anchor | Verified: `npm test` 594/594, `tsc` clean, build 124/124, `check:system-design` all checks passed (14 warnings), 4/14 modules bound, 75 `/system-design` routes, module pages 58,368 / 57,786 / 58,147 bytes. Pending: your read + commit. |
 | **B3** ✅ shipped 2026-10-28 (uncommitted) | Module 5 `api-and-contracts` (new, prose, 6 lessons) + `task?` optional + prose-module UX + sitemap/task-route/API guards + tests | Verified: `npm test` 598/598, `tsc` clean, build 131/131, `check:system-design` all checks passed (15 modules, 14 warnings). 5/15 modules bound. 82 routes under `/system-design`. Module page bytes TBD. Pending: your read + commit. |
-| **B4** | Module 7 `caching` 4 → 10 lessons | Depth bar met; chapter ↔ lesson set equality; client payload compared against P2/P3 |
+| **B4** ✅ shipped 2026-10-29 (uncommitted) | Module 7 `caching` 4 → 10 lessons, on Netflix's **EVCache** tier; task re-measured after the old one was found to pass while shedding 96% of traffic | Verified: `npm test` 602/602, `tsc` clean, build 137/137, `check:system-design` all checks passed (6/15 converted, 13 warnings), caching page 72,989 bytes, 10 lesson pages 62–74 KB. Pending: your read + commit. |
 | **B5** | Modules 6, 8, 9 | Same |
 | **B6** | Modules 10, 11 | Same |
 | **B7** | Modules 12–15: story rename first, then the depth pass; renumber contiguously; update the tracker and plan 16 | The whole path reads with one app, one voice, no broken link |
@@ -346,6 +346,83 @@ Both restored; suite back to 594 passing.
    its lesson altogether. Fixed rather than recorded, because a learner searching the title has to
    find the same string.
 
+### 7.3 B4 — shipped 2026-10-29, measured
+
+Module 7 `caching`: 4 → 10 lessons, 3 → 4 chapter groups, every leaf bound, story moved onto
+**EVCache** (Netflix's memcached tier) and its README, which defines the acronym the module is
+built on: *Ephemeral* (TTL), *Volatile* (evictable), *Cache*.
+
+**Measured, not estimated:**
+
+- **Word counts** — 885 / 861 / 857 / 885 / 721 / 830 / 898 / 856 / 826 / 863 (bar 700–900).
+  `ttl-and-eviction` sits two words under the ceiling; the next edit to it fails the gate.
+- **Binding** — `6/15 module(s) converted`. Gate: `All checks passed for 15 module(s), 13 warning(s)`
+  (B3 left 14; caching leaving the `unbound` class accounts for the drop).
+- **Tests** — 602 passing / 0 failing (598 after B3, plus three assertions for module 7 and one
+  new general invariant).
+- **Routes** — 137 static pages, **87 under `/system-design`** (82 after B3; +6 lessons −1 retired…).
+- **Payload** — module page **55,570 → 72,989 bytes** for 4 → 10 lessons, i.e. ~2.3 KB per added
+  lesson, which is titles and chapter descriptions rather than prose (each lesson body is ~5 KB).
+  The `ModuleOverview` boundary from B1 still holds; nothing here approaches the 150 kB line in P3.
+  For scale: `api-and-contracts` (prose, 6 lessons) is 61,643 bytes, `read-replicas` (3 lessons,
+  unconverted) 51,835.
+- **Build** — exit 0, 137/137 static pages in 3.8 s, `tsc` clean.
+
+**Mutation-tested (every new assertion):**
+
+| Assertion | Mutation | What went red |
+|---|---|---|
+| offered load fits the balancer | caching startGraph `12,000` → `25,000` | `caching (start graph): 25000 r/s offered against 20000 r/s of balancer capacity` |
+| the task measures shedding | `zero-errors` `required: true` → `false` | `caching: no required error-rate criterion` |
+| leaf ↔ lesson equality | deleted the `refresh-ahead` `lessonSlug` | `outline-half-converted`, 2 failures |
+| depth bar | truncated one concept body | `caching/refresh-ahead: 610 words, outside 700–900` |
+
+All restored; suite back to 602 passing.
+
+**The old task was broken, and passing.** The module ran at 50,000 r/s against three app instances
+behind one load balancer whose capacity in `NODE_TYPES` is 20,000. Measured: **start graph 96%
+errors, "solution" 96% errors**, and every pass criterion green — `p95` is computed over the
+requests that *completed*, and only 4% did. A learner could finish the module without ever fixing
+the tier. Re-measured at 12,000 r/s with eight app instances (75% utilisation, so the tier is not
+the lesson): **no cache → store 240%, 58.3% errors, p95 9.4 ms; cache at 0.9 → store 24%, 0%
+errors, p95 3.4 ms**. The task now carries a required `zero-errors` criterion, and a new general
+test asserts that **no converted module may offer more traffic than its own balancer can route**.
+
+**Three defects found outside this slice's content, recorded rather than fixed:**
+
+1. **Modules 6 and 8 have the same broken shape.** Measured: `load-balancers-and-stateless-services`
+   solution **90% errors** at 20,000 r/s, `read-replicas` solution **96%** at 50,000. Both are at or
+   above a single balancer's 20,000 ceiling. The new invariant is deliberately scoped to converted
+   modules, so it does not go red for planned work — but **B5 cannot convert module 6 or 8 without
+   fixing their numbers**, which is the intended forcing function.
+2. **`ttlMs` and `stampedeGuard` are inert.** The engine never reads either (`lib/system-design/engine.ts`
+   models only `hitRate` and `cacheColdStart`), yet the Inspector exposes both and the old lesson
+   claimed toggling `stampedeGuard` would drop DB utilisation. The claim was removed from the lesson
+   rather than kept, and no prose in B4 attributes a simulator result to either knob.
+3. **`cacheColdStart` never warms.** `runRequest` tests `toStats.processed === 0`, and `processed`
+   counts **hits** — which cannot happen while `hitRate` is forced to 0. Measured: cold start =
+   permanently cold (58.3% errors at `hitRate: 0.9`). Not used by this module's task; the
+   cold-start lesson describes real behaviour and points at deleting the cache node instead.
+
+All three want a **small engine slice** (`hitRate` and cold start are the module's core interaction)
+before B5 turns two more modules into content that references them. That is a behavioural engine
+change and is therefore explicitly *not* done here.
+
+**Other deviations, each measured:**
+
+1. **`the-five-strategies` and `ttl-eviction-invalidation` were retired as slugs** rather than kept
+   as anchors (P1 says keep old slugs as split anchors). P1 was answered on 2026-10-29:
+   `SELECT COUNT(*) FROM sd_user_state` → **1 row, one completed key**,
+   `what-is-system-design/choices-not-boxes` — not in this module. This was the last moment the
+   rename was free, so the target slugs from §3 were used exactly.
+2. **`OKs2670F3V0` was not attached to `refresh-ahead`.** The resource map assigns it there, but
+   YouTube's oEmbed endpoint returns the title *“How YouTube's Timeline Preview Actually Works |
+   Backend System Design (Bangla)”*, which does not evidence refresh-ahead. P8 says a module ships
+   without a video rather than with a mismatched one, so the lesson has none. **The resource map
+   needs correcting**, not the lesson.
+3. **P1 is closed** (see above) and **open decision §10.5 (indexing)** is still unanswered; it
+   changes module 8 or 9, which is B5.
+
 ---
 
 ## 8. Verification per slice
@@ -376,7 +453,11 @@ Both restored; suite back to 594 passing.
 
 ## 10. Open decisions
 
-1. **P1** — run `SELECT COUNT(*) FROM sd_user_state;`. 0 or not decides reset vs anchor-slug, and it must be answered before content ships.
+1. ~~**P1** — run `SELECT COUNT(*) FROM sd_user_state;`.~~ **Answered 2026-10-29:** 1 row, with a
+   single completed key, `what-is-system-design/choices-not-boxes` — not in module 7. The two
+   retired caching slugs were therefore free to rename (§7.3), and this was the last moment that
+   was true. The rule still stands for every future split: a lesson with live progress keys may not
+   be renamed, only split around an anchor.
 2. **P2/P3** — run `npm run build` once now to record the baseline (no file changes).
 3. **P5/P6** — the chapter-tree and prose-module sketches: ASCII in this plan, or build B1's UI first so the shape is visible?
 4. ~~**Naming in prose** — "LynxDEV" directly, or a neutral in-world name?~~ **Resolved 2026-10-27:** neither. The case study is a named public system (D1), so the question of what to call *ourselves* in a lesson no longer arises — the prose addresses the learner as "you" and the system as "Netflix".

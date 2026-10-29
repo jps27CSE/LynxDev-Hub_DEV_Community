@@ -42,6 +42,7 @@ import {
   lessonNav,
 } from "../lib/system-design/content-rules";
 import type { SdChapter, SdModule } from "../config/system-design/types";
+import { getNodeTypeSpec } from "../lib/system-design/nodes";
 
 /**
  * Loaded in a `before` hook, not at module scope: test files run as CommonJS
@@ -94,7 +95,10 @@ describe("content rules — chapter leaves", () => {
   });
 
   it("classifies an outline with no bindings as unbound, not as complete", () => {
-    const mod = bySlug("caching");
+    // `caching` was the fixture until slice B4 converted it — the assertion has
+    // to name a module that is still unconverted, or it starts testing the
+    // converted case and quietly stops covering the one it was written for.
+    const mod = bySlug("read-replicas");
     assert.equal(inspectChapterBinding(mod).status, "unbound");
   });
 });
@@ -179,6 +183,42 @@ describe("content model — every module", () => {
           assert.match(source.url, /^https:\/\/\S+$/);
           assert.ok(source.label.trim().length > 0);
         }
+      }
+    }
+  });
+
+  it("offers no converted module more traffic than its own balancer can route", () => {
+    // A load balancer is one node with a fixed capacity in the teaching model,
+    // and the engine sheds at utilisation ≥ 1. A task above that ceiling has no
+    // possible solution: the request dies at the door before it ever reaches
+    // the bottleneck the lesson is about.
+    //
+    // This is not hypothetical — slice B4 found the caching task at 50,000 r/s
+    // against a 20,000 r/s balancer, with **96% shed in the start graph and 96%
+    // in the "solution"**, while every pass criterion was green, because p95 is
+    // computed over the requests that completed and only 4% did.
+    //
+    // Converted modules only: modules 6 and 8 still carry 20,000 and 50,000 and
+    // fixing them is slice B5. A gate that is red for planned work stops being
+    // information, which is the rule the whole file runs on.
+    for (const mod of modules) {
+      if (inspectChapterBinding(mod).status !== "bound" || !mod.task) continue;
+      for (const [name, graph] of [
+        ["start", mod.task.startGraph],
+        ["solution", mod.task.solutionGraph],
+      ] as const) {
+        const routed =
+          graph.nodes.filter((n) => n.type === "load_balancer").length *
+          getNodeTypeSpec("load_balancer").capacity;
+        // No balancer is a legitimate graph — module 1 starts with a single
+        // box, which is the point of that module. The rule only applies once
+        // there is a door to route through.
+        if (routed === 0) continue;
+        assert.ok(
+          graph.scenario.arrivalRate < routed,
+          `${mod.slug} (${name} graph): ${graph.scenario.arrivalRate} r/s offered ` +
+            `against ${routed} r/s of balancer capacity — every request is shed at the door`,
+        );
       }
     }
   });
@@ -390,5 +430,68 @@ describe("content model — module 5 (prose module)", () => {
         assert.ok(source.label.trim().length > 0);
       }
     }
+  });
+});
+
+/**
+ * Module 7, converted in slice B4 — the largest conversion, and the one that
+ * exposed two defects outside its own content.
+ *
+ * The old task ran at 50,000 r/s against a balancer that routes 20,000, so the
+ * start graph and the "solution" both shed 96% of traffic while every criterion
+ * passed. The guards below pin the two things that let it happen: a task with
+ * no error-rate criterion, and a load the balancer cannot carry (the second is
+ * asserted for every converted module, above).
+ */
+describe("content model — module 7 (caching)", () => {
+  let mod: SdModule;
+  before(() => {
+    mod = bySlug("caching");
+  });
+
+  it("is bound, with 10 leaf chapters for 10 lessons", () => {
+    assert.equal(inspectChapterBinding(mod).status, "bound");
+    assert.equal(collectChapterLeaves(mod.chapters).length, 10);
+    assert.equal(mod.lessons.length, 10);
+    assert.deepEqual(
+      lessonNav(mod).map((entry) => entry.slug),
+      [
+        "why-cache",
+        "where-to-cache",
+        "cache-aside",
+        "write-through-and-behind",
+        "refresh-ahead",
+        "cache-keys-and-cardinality",
+        "ttl-and-eviction",
+        "invalidation",
+        "cache-stampede",
+        "cold-start-and-failure-modes",
+      ],
+      "caching: outline order and lesson order disagree",
+    );
+  });
+
+  it("measures shedding, not only latency", () => {
+    // The specific regression: `p95 < 150 ms` is computed over completed
+    // requests, so a design that drops 96% of traffic can satisfy it easily.
+    assert.ok(
+      mod.task?.passCriteria.some((c) => c.id === "zero-errors" && c.required),
+      "caching: no required error-rate criterion — this task once passed while shedding 96%",
+    );
+  });
+
+  it("runs on Netflix's EVCache tier, not on a photo feed", () => {
+    const prose = JSON.stringify(mod.lessons);
+    assert.ok(
+      prose.includes("EVCache"),
+      "caching: the module must be anchored on Netflix's cache tier",
+    );
+    for (const word of ["LynxDEV", "follower", "photo", "this site"]) {
+      assert.ok(
+        !prose.includes(word),
+        `caching: references "${word}" — remains from the pre-B4 photo-app draft`,
+      );
+    }
+    assert.doesNotMatch(prose, /\bour app\b/i);
   });
 });
