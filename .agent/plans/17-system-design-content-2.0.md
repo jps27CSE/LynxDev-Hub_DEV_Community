@@ -247,7 +247,7 @@ One slice = one review cycle. I read every lesson before the next slice starts. 
 | **B2** ✅ shipped 2026-10-28 (uncommitted) | Modules 2, 3, 4 — outlines written, lessons at the depth bar, each built on its §3 Netflix anchor | Verified: `npm test` 594/594, `tsc` clean, build 124/124, `check:system-design` all checks passed (14 warnings), 4/14 modules bound, 75 `/system-design` routes, module pages 58,368 / 57,786 / 58,147 bytes. Pending: your read + commit. |
 | **B3** ✅ shipped 2026-10-28 (uncommitted) | Module 5 `api-and-contracts` (new, prose, 6 lessons) + `task?` optional + prose-module UX + sitemap/task-route/API guards + tests | Verified: `npm test` 598/598, `tsc` clean, build 131/131, `check:system-design` all checks passed (15 modules, 14 warnings). 5/15 modules bound. 82 routes under `/system-design`. Module page bytes TBD. Pending: your read + commit. |
 | **B4** ✅ shipped 2026-10-29 (uncommitted) | Module 7 `caching` 4 → 10 lessons, on Netflix's **EVCache** tier; task re-measured after the old one was found to pass while shedding 96% of traffic | Verified: `npm test` 602/602, `tsc` clean, build 137/137, `check:system-design` all checks passed (6/15 converted, 13 warnings), caching page 72,989 bytes, 10 lesson pages 62–74 KB. Pending: your read + commit. |
-| **B5** | Modules 6, 8, 9 | Same |
+| **B5** 🚧 module 6 shipped 2026-10-29 (uncommitted) | Module 6 `load-balancers-and-stateless-services` 3 → 5 lessons, anchored on Zuul + Eureka; its task re-measured at 4,000 r/s after the old one was found to be *impossible* (20,000 r/s offered to a 20,000 r/s balancer, graded only on topological validity — measured 90% errors, green). Modules 8 and 9 remain | Verified: `npm test` 606/606, `tsc` clean, build 139/139, `check:system-design` all checks passed (7/15 converted, 12 warnings), module page 64,470 bytes. Pending: your read + commit. |
 | **B6** | Modules 10, 11 | Same |
 | **B7** | Modules 12–15: story rename first, then the depth pass; renumber contiguously; update the tracker and plan 16 | The whole path reads with one app, one voice, no broken link |
 
@@ -423,6 +423,107 @@ change and is therefore explicitly *not* done here.
 3. **P1 is closed** (see above) and **open decision §10.5 (indexing)** is still unanswered; it
    changes module 8 or 9, which is B5.
 
+### 7.4 B5, part 1 — module 6, shipped 2026-10-29 (uncommitted)
+
+Module 6 `load-balancers-and-stateless-services`: **3 → 5 lessons**, 3 chapter groups, every leaf
+bound, anchored on the two halves of Netflix's answer to "how does a request find a server":
+
+- **Zuul**, in the path — its README calls it *"an L7 application gateway that provides capabilities
+  for dynamic routing, monitoring, resiliency, security"*;
+- **Eureka**, out of it — *"a RESTful service … for the purpose of discovery, load balancing and
+  failover of middle-tier servers"*.
+
+| Group | Lesson | Words |
+|---|---|---|
+| The wall | `vertical-vs-horizontal` | 860 |
+| Getting traffic to instances | `load-balancing` | 876 |
+| | `autoscaling` *(new)* | 856 |
+| Replaceable instances | `sessions-without-sticky` *(new)* | 884 |
+| | `stateless-services` | 893 |
+
+Two https sources per lesson; three embedded videos (`WxNLwivRCR0` reverse proxy ≠ LB,
+`UQ67LJJkhg8` cloud computing, `tOm35rmGrfg` "log out of all devices").
+
+**Measured, not estimated:**
+
+- **Binding** — `7/15 module(s) converted`. Gate: `All checks passed for 15 module(s), 12 warning(s)`
+  (B4 left 13; module 6 leaving the `unbound` class accounts for the drop).
+- **Tests** — **606 passing / 0 failing** (602 after B4, plus four assertions for module 6). One of
+  them is the first assertion in this file that **runs the engine** rather than reading config:
+  the start graph must fail every criterion and the solution must pass all of them.
+- **Routes** — 139 static pages, **89 under `/system-design`** (87 after B4; +2 lessons).
+- **Payload** — module page **64,470 bytes** for 5 lessons. For scale: `caching` (10 lessons)
+  72,989, `read-replicas` (3, unconverted) 51,835, `partitioning-and-sharding` 52,826. The
+  `ModuleOverview` boundary from B1 still holds; ~2 KB per added lesson is titles, not prose.
+- **Build** — exit 0, 139/139 static pages in 14.2 s, `tsc` clean, `check:migrations` clean.
+- **Chain** — `caching` starts from module 6's finished design, which is what makes the store's 80%
+  in module 6 a hand-off rather than an unfinished answer.
+
+**Mutation-tested (every new assertion, observed red then restored):**
+
+| Assertion | Mutation | What went red |
+|---|---|---|
+| start fails / solution passes, on the engine | `arrivalRate` `4_000` → `15_000` | `module 6: solution fails "zero-errors"` — at 15,000 r/s the store (5,000 r/s) is the bottleneck, so no finish exists |
+| | `replicas` 4 → 2 | same criterion: 4,000 of capacity for 4,000 of load is 100% utilisation, and the engine sheds at `≥ 1` (0.0025% of requests, which is non-zero) |
+| grades shedding, not validity | deleted the `zero-errors` criterion | `module 6: too few criteria to grade a task` |
+| leaf ↔ lesson equality | deleted the `autoscaling` `lessonSlug` | `outline-half-converted`, 2 failures |
+| rail order = lesson order | swapped two chapters of one group | `outline order and lesson order disagree` |
+| case-study anchor | renamed Zuul/Eureka | `module 6: no Zuul reference` |
+| depth bar | emptied one lesson's six bodies | `load-balancers-and-stateless-services/load-balancing: 125 words, outside 700–900` |
+
+**The old task was impossible, and passing.** It offered **20,000 r/s to a single load balancer whose
+capacity in `NODE_TYPES` is exactly 20,000**, so every request that mattered was shed at the door
+before reaching the tier the module is about — and its only criterion was
+`assert: (r) => r.valid`, which is *topological* validity (a client node and a terminal datastore
+exist). Measured on the old "solution": **90% errors, 2,000 of 20,000 served, criterion green.**
+
+Re-measured at **4,000 r/s, 5% writes**:
+
+| | errors | app | store | LB | p95 |
+|---|---|---|---|---|---|
+| start (monolith) | **50.0%** | 200% | 40% | — | 13.2 ms |
+| solution (LB + 4 replicas) | **0%** | 50% | 80% | 20% | 4.0 ms |
+| 3 replicas | 0% | 67% | 80% | 20% | 4.2 ms |
+| 2 replicas | 0.0025% | 100% | 80% | 20% | 10.1 ms |
+
+So the gate is reached by three instances and the reference design uses four; the reveal says
+exactly that rather than pretending three fails. Store at 80% is deliberate — see below.
+
+**Two model defects this slice had to work around, recorded not fixed:**
+
+1. **The engine cannot spread load across parallel app nodes.** Path selection is per *terminal
+   datastore* (`pathsToTerminals`), so `app-1..app-3` sharing one database gives **app-1 200%,
+   app-2 and app-3 0%** (measured on the old three-node solution). The only way to model N instances
+   is `replicas` on one node, which is also the honest abstraction — behind a balancer, eight
+   identical processes *are* one service. Both the module header and lesson 1 state it, because a
+   learner who drags four app nodes onto the canvas would otherwise conclude the simulator is broken.
+2. **`algorithm` (`rr` / `least_conn`) is inert** — present in `validation.ts`'s zod enum, never read
+   by the engine. Same class as `ttlMs` / `stampedeGuard` (§7.3). The prose teaches the algorithms
+   from AWS's documentation and never attributes a canvas result to the setting.
+
+The second is why this slice contains **no engine change**: `hitRate`, `cacheColdStart`, `ttlMs`,
+`stampedeGuard` and `algorithm` are one behavioural slice, and it blocks module 6's and 7's core
+interactions equally. It is queued, not forgotten.
+
+**One deviation from the resource map:** `nFbOxUJJeFo` (vertical vs horizontal) is **not** repeated in
+module 6. Module 1 already embeds it in `scalability-patterns`, and the same video appearing twice in
+one path is a worse outcome than a lesson with none. The map's M6 row needs that correction.
+
+**Decisions taken while writing it (answering §10):**
+
+- **§10.5 indexing → Phase C, not B5.** Module 8 (6 lessons) and 9 (7 lessons) are already at their
+  planned length, and "why an index is not free" does not teach without B-tree/LSM page layout, which
+  is Phase C's `how-databases-store-data`. Grafting it onto a replica module would produce a lesson
+  that asserts rather than explains.
+- **Module 6 goes first in B5, at 4,000 r/s.** Module 7 inherited this module's shape in B4 (12,000
+  r/s, store at 240%, then 24% with a cache), so module 6's numbers decide module 7's premise; and a
+  finished module 6 that leaves the store at 80% is what makes module 7's opening problem real
+  instead of staged.
+
+**Still open in B5:** modules 8 (`read-replicas`) and 9 (`partitioning-and-sharding`). Module 8 still
+carries the 50,000 r/s task measured at 96% errors in §7.3, and the general balancer invariant skips
+it only because it is not converted yet — converting it is the forcing function.
+
 ---
 
 ## 8. Verification per slice
@@ -461,4 +562,4 @@ change and is therefore explicitly *not* done here.
 2. **P2/P3** — run `npm run build` once now to record the baseline (no file changes).
 3. **P5/P6** — the chapter-tree and prose-module sketches: ASCII in this plan, or build B1's UI first so the shape is visible?
 4. ~~**Naming in prose** — "LynxDEV" directly, or a neutral in-world name?~~ **Resolved 2026-10-27:** neither. The case study is a named public system (D1), so the question of what to call *ourselves* in a lesson no longer arises — the prose addresses the learner as "you" and the system as "Netflix".
-5. **Indexing (resource map G1)** — the playlist has a database-index video and the free reading list has `use-the-index-luke`, but Phase B has no indexing lesson; "add an index" is the most common real fix at junior level. Pull `indexes-are-not-free` forward into module 8 or 9 (Phase B → 80 lessons), or leave indexing to Phase C? My preference: **pull it forward**.
+5. **Indexing (resource map G1)** — the playlist has a database-index video and the free reading list has `use-the-index-luke`, but Phase B has no indexing lesson; "add an index" is the most common real fix at junior level. Pull `indexes-are-not-free` forward into module 8 or 9 (Phase B → 80 lessons), or leave indexing to Phase C? **Answered 2026-10-29: Phase C.** Module 8 (6 lessons) and 9 (7 lessons) are already at their planned length, and "an index is not free" does not teach without B-tree/LSM page layout — which is exactly Phase C's `how-databases-store-data` (6 lessons). A lesson grafted onto a replica module would assert instead of explain, which is the failure mode §1 diagnoses. The video stays available in the playlist meanwhile.

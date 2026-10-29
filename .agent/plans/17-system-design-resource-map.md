@@ -185,15 +185,16 @@ Unplaced (recorded in §3): `_c_wDV_3ktI` (upload API — not about pagination),
 
 ### M6 · load-balancers-and-stateless-services (5 lessons)
 
-Videos: `nFbOxUJJeFo` ✅ · `WxNLwivRCR0` 🆕 · `tOm35rmGrfg` 🆕 · `UQ67LJJkhg8` 🆕 (optional)
+Videos: `WxNLwivRCR0` · `tOm35rmGrfg` · `UQ67LJJkhg8` (optional) — **`nFbOxUJJeFo` deliberately not
+repeated**, it is already embedded in M1 `scalability-patterns` (B5, plan 17 §7.4).
 
 | Lesson | Video | Go deeper |
 |---|---|---|
-| `vertical-vs-horizontal` | `nFbOxUJJeFo` ✅ | [Primer](https://github.com/donnemartin/system-design-primer) · [12factor](https://12factor.net/) |
-| `autoscaling` | `UQ67LJJkhg8` (optional) | [Kubernetes HPA](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) · [AWS ELB intro](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html) |
-| `load-balancing` | `WxNLwivRCR0` | [AWS ELB intro](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html) · [Reverse proxy](https://en.wikipedia.org/wiki/Reverse_proxy) |
-| `sessions-without-sticky` | `tOm35rmGrfg` | [12factor — processes](https://12factor.net/) · [AWS — sticky sessions](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/sticky-sessions.html) |
-| `stateless-services` | — | [12factor](https://12factor.net/) · [Kubernetes Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) |
+| `vertical-vs-horizontal` | — (see M1) | [Primer — scalability](https://github.com/donnemartin/system-design-primer) · [12factor — processes](https://12factor.net/processes) |
+| `load-balancing` | `WxNLwivRCR0` | [AWS — Application Load Balancer](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html) · [Netflix Zuul](https://github.com/Netflix/zuul) |
+| `autoscaling` | `UQ67LJJkhg8` (optional) | [Kubernetes HPA](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) · [AWS — Application Load Balancer](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html) |
+| `sessions-without-sticky` | `tOm35rmGrfg` | [12factor — processes](https://12factor.net/processes) · [AWS — sticky sessions](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/sticky-sessions.html) |
+| `stateless-services` | — | [12factor — processes](https://12factor.net/processes) · [Netflix Eureka](https://github.com/Netflix/eureka) |
 
 ### M7 · caching (10 lessons)
 

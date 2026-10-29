@@ -27,6 +27,18 @@
  * array failed `outline order and lesson order disagree`, and renaming a
  * heading to "Our app requirements" failed the pronoun check while the
  * substring checks stayed green — which is the point of the separate regex.
+ *
+ * B5 added the first assertion in this file that runs the engine rather than
+ * reading config: module 6's task is asserted to fail at the start and pass at
+ * the finish. Each new guard was mutated once and observed red — raising
+ * `arrivalRate` from 4,000 to 15,000 (`solution fails "zero-errors"`, the store
+ * becomes the bottleneck at that load), dropping `replicas` from 4 to 2 (same
+ * criterion: two instances are exactly 4,000 of capacity for 4,000 of load),
+ * deleting the `zero-errors` criterion (`too few criteria`), removing a
+ * `lessonSlug` (two failures: `half-converted`, then outline/lesson mismatch),
+ * reordering two chapters (`outline order and lesson order disagree`), renaming
+ * Zuul/Eureka (`no Zuul reference`), and emptying one lesson's bodies (125
+ * words, outside 700–900). Recorded in plan 17 §7.4.
  */
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -43,6 +55,7 @@ import {
 } from "../lib/system-design/content-rules";
 import type { SdChapter, SdModule } from "../config/system-design/types";
 import { getNodeTypeSpec } from "../lib/system-design/nodes";
+import { simulate } from "../lib/system-design/engine";
 
 /**
  * Loaded in a `before` hook, not at module scope: test files run as CommonJS
@@ -198,8 +211,8 @@ describe("content model — every module", () => {
     // in the "solution"**, while every pass criterion was green, because p95 is
     // computed over the requests that completed and only 4% did.
     //
-    // Converted modules only: modules 6 and 8 still carry 20,000 and 50,000 and
-    // fixing them is slice B5. A gate that is red for planned work stops being
+    // Converted modules only: module 8 still carries 50,000 and fixing it is the
+    // rest of slice B5. A gate that is red for planned work stops being
     // information, which is the rule the whole file runs on.
     for (const mod of modules) {
       if (inspectChapterBinding(mod).status !== "bound" || !mod.task) continue;
@@ -490,6 +503,111 @@ describe("content model — module 7 (caching)", () => {
       assert.ok(
         !prose.includes(word),
         `caching: references "${word}" — remains from the pre-B4 photo-app draft`,
+      );
+    }
+    assert.doesNotMatch(prose, /\bour app\b/i);
+  });
+});
+
+/**
+ * Module 6, converted in slice B5 — the module whose task was *impossible*, not
+ * merely unfair.
+ *
+ * It offered 20,000 r/s to a load balancer whose capacity in `NODE_TYPES` is
+ * exactly 20,000, so every request was shed at the door before reaching the
+ * bottleneck the lesson was about; the only criterion was structural validity,
+ * so it passed anyway (measured: 90% errors, 2,000 of 20,000 served).
+ *
+ * The guards below pin the two things that make a task teachable: the *numbers*
+ * produce a solvable finish that fails at the start, and each criterion measures
+ * a real quantity rather than `r.valid`.
+ */
+describe("content model — module 6 (load balancers)", () => {
+  let mod: SdModule;
+  before(() => {
+    mod = bySlug("load-balancers-and-stateless-services");
+  });
+
+  it("is bound, with 5 leaf chapters for 5 lessons", () => {
+    assert.equal(inspectChapterBinding(mod).status, "bound");
+    assert.equal(collectChapterLeaves(mod.chapters).length, 5);
+    assert.equal(mod.lessons.length, 5);
+    assert.deepEqual(
+      lessonNav(mod).map((entry) => entry.slug),
+      [
+        "vertical-vs-horizontal",
+        "load-balancing",
+        "autoscaling",
+        "sessions-without-sticky",
+        "stateless-services",
+      ],
+      "load-balancers: outline order and lesson order disagree",
+    );
+  });
+
+  it("fails at the start and passes at the finish, on the real engine", () => {
+    // The task's whole claim is arithmetic, and arithmetic is the one thing that
+    // can be asserted without a browser. If a later edit raises `arrivalRate` or
+    // drops `replicas`, the solution stops clearing its own gate here rather
+    // than in a learner's canvas.
+    const task = mod.task;
+    assert.ok(task, "module 6 is a sim module and must carry a task");
+
+    const start = simulate(task.startGraph);
+    const solved = simulate(task.solutionGraph);
+
+    const startPassed = task.passCriteria.filter((c) => c.assert(start));
+    assert.deepEqual(
+      startPassed.map((c) => c.id),
+      [],
+      `module 6: the start graph already satisfies ${startPassed.map((c) => c.id).join(", ")}`,
+    );
+    for (const criterion of task.passCriteria) {
+      assert.ok(
+        criterion.assert(solved),
+        `module 6: solution fails "${criterion.id}" — the task has no reachable finish`,
+      );
+    }
+  });
+
+  it("grades shedding and headroom, never structural validity alone", () => {
+    // `assert: (r) => r.valid` is how the previous version passed while 90% of
+    // requests were refused. A criterion may still require validity, but it has
+    // to measure something else as well, and every criterion must be required
+    // so the gate cannot be satisfied by the optional ones.
+    const criteria = mod.task?.passCriteria ?? [];
+    assert.ok(
+      criteria.length >= 3,
+      "module 6: too few criteria to grade a task",
+    );
+    for (const criterion of criteria) {
+      assert.ok(
+        criterion.required,
+        `module 6: "${criterion.id}" is not required`,
+      );
+    }
+    assert.ok(
+      criteria.some((c) => c.id === "zero-errors"),
+      "module 6: no error-rate criterion — this is the exact defect B5 fixed",
+    );
+    assert.ok(
+      criteria.some((c) => c.id === "app-headroom"),
+      "module 6: sizing for the average is not graded without a utilisation bound",
+    );
+  });
+
+  it("runs on Netflix's Zuul and Eureka, not on a photo feed", () => {
+    const prose = JSON.stringify(mod.lessons);
+    for (const anchor of ["Zuul", "Eureka"]) {
+      assert.ok(
+        prose.includes(anchor),
+        `module 6: no ${anchor} reference — the module's anchor is Netflix's gateway and registry`,
+      );
+    }
+    for (const word of ["LynxDEV", "follower", "photo", "this site"]) {
+      assert.ok(
+        !prose.includes(word),
+        `module 6: references "${word}" — remains from the pre-B5 photo-app draft`,
       );
     }
     assert.doesNotMatch(prose, /\bour app\b/i);
