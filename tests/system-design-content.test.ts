@@ -39,6 +39,15 @@
  * reordering two chapters (`outline order and lesson order disagree`), renaming
  * Zuul/Eureka (`no Zuul reference`), and emptying one lesson's bodies (125
  * words, outside 700–900). Recorded in plan 17 §7.4.
+ *
+ * B5 part 2 (modules 8 and 9) added two guards that are not about arithmetic:
+ * a module whose *control* tier is asserted to stay healthy, and — in module 9
+ * — an assertion that pins a **limitation** of the model rather than a feature
+ * of the content. Ten read replicas and no partitioning pass that task's
+ * required criteria, because the engine has no dimension for bytes. The test
+ * asserts that this is still true, so that if a later slice gives the engine a
+ * storage dimension the test fails and the disclosure in the lesson has to be
+ * rewritten instead of quietly becoming a lie.
  */
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -108,10 +117,12 @@ describe("content rules — chapter leaves", () => {
   });
 
   it("classifies an outline with no bindings as unbound, not as complete", () => {
-    // `caching` was the fixture until slice B4 converted it — the assertion has
-    // to name a module that is still unconverted, or it starts testing the
-    // converted case and quietly stops covering the one it was written for.
-    const mod = bySlug("read-replicas");
+    // `caching` was the fixture until slice B4 converted it, then
+    // `read-replicas` until B5 converted it. The assertion has to name a module
+    // that is still unconverted, or it starts testing the converted case and
+    // quietly stops covering the one it was written for. `rate-limiting` is the
+    // next module in line, so it is the last fixture that will survive B6.
+    const mod = bySlug("rate-limiting");
     assert.equal(inspectChapterBinding(mod).status, "unbound");
   });
 });
@@ -608,6 +619,288 @@ describe("content model — module 6 (load balancers)", () => {
       assert.ok(
         !prose.includes(word),
         `module 6: references "${word}" — remains from the pre-B5 photo-app draft`,
+      );
+    }
+    assert.doesNotMatch(prose, /\bour app\b/i);
+  });
+});
+
+/**
+ * Module 8, converted in slice B5 part 2 — the module whose task passed while
+ * being unpassable.
+ *
+ * It offered 50,000 r/s to a 20,000 r/s balancer and a single 2,000 r/s app
+ * replica: measured, the start graph and the "solution" both shed 96% of
+ * traffic, and both graded green because the only criteria were `p95 < 200 ms`
+ * and a store bound, and p95 is computed over the requests that completed.
+ *
+ * The guards below pin the shape that makes the lesson land: the failing tier
+ * is the store *without* a cache, the tier with a cache is the control and must
+ * stay healthy, and the start graph fails every required criterion.
+ */
+describe("content model — module 8 (read replicas)", () => {
+  let mod: SdModule;
+  before(() => {
+    mod = bySlug("read-replicas");
+  });
+
+  it("is bound, with 6 leaf chapters for 6 lessons", () => {
+    assert.equal(inspectChapterBinding(mod).status, "bound");
+    assert.equal(collectChapterLeaves(mod.chapters).length, 6);
+    assert.equal(mod.lessons.length, 6);
+    assert.deepEqual(
+      lessonNav(mod).map((entry) => entry.slug),
+      [
+        "scaling-reads-vs-writes",
+        "replication-lag",
+        "read-your-own-writes",
+        "promoting-a-replica",
+        "cqrs-and-read-models",
+        "when-replicas-dont-help",
+      ],
+      "read-replicas: outline order and lesson order disagree",
+    );
+  });
+
+  it("fails every criterion at the start and passes them all at the finish", () => {
+    const task = mod.task;
+    assert.ok(task, "module 8 is a sim module and must carry a task");
+
+    const start = simulate(task.startGraph);
+    const solved = simulate(task.solutionGraph);
+
+    const startPassed = task.passCriteria.filter((c) => c.assert(start));
+    assert.deepEqual(
+      startPassed.map((c) => c.id),
+      [],
+      `module 8: the start graph already satisfies ${startPassed.map((c) => c.id).join(", ")} — ` +
+        `the pre-wired design is supposed to be broken`,
+    );
+    for (const criterion of task.passCriteria) {
+      assert.ok(
+        criterion.assert(solved),
+        `module 8: solution fails "${criterion.id}" — the task has no reachable finish`,
+      );
+    }
+  });
+
+  it("fails the store a cache cannot help, and leaves the control tier alone", () => {
+    // The lesson is *which* tier is failing. If a later edit makes the title
+    // store the bottleneck, the module starts teaching "add a replica" instead
+    // of "find out which traffic the replica cannot serve" — and the graph, not
+    // the prose, would be the thing lying.
+    const start = simulate(mod.task!.startGraph);
+    const member = start.perNode.find((n) => n.id === "db-member");
+    const title = start.perNode.find((n) => n.id === "db-title");
+    assert.ok(member && title, "module 8: both stores must be in the graph");
+    assert.ok(
+      member.utilisation > 1,
+      `module 8: the member store is at ${(member.utilisation * 100).toFixed(0)}% — it must start over capacity`,
+    );
+    assert.ok(
+      title.utilisation < 0.5,
+      `module 8: the title store is at ${(title.utilisation * 100).toFixed(0)}% — the control tier must start healthy`,
+    );
+  });
+
+  it("grades shedding and headroom, never latency over the survivors", () => {
+    const criteria = mod.task?.passCriteria ?? [];
+    for (const criterion of criteria) {
+      assert.ok(
+        criterion.required,
+        `module 8: "${criterion.id}" is not required`,
+      );
+    }
+    assert.ok(
+      criteria.some((c) => c.id === "zero-errors"),
+      "module 8: no error-rate criterion — the exact defect that let 96% of traffic be refused",
+    );
+    assert.ok(
+      criteria.some((c) => c.id === "member-headroom"),
+      "module 8: no utilisation bound on the member store — one replica (60%) would satisfy the task without surviving a replica",
+    );
+  });
+
+  it("is anchored on Netflix's denormalisation, not on a photo feed", () => {
+    const prose = JSON.stringify(mod.lessons) + JSON.stringify(mod.story ?? "");
+    assert.ok(
+      prose.includes("Netflix"),
+      "read-replicas: no Netflix reference — D1 is the published case study",
+    );
+    for (const word of ["LynxDEV", "follower", "photo", "this site"]) {
+      assert.ok(
+        !prose.includes(word),
+        `read-replicas: references "${word}" — remains from the pre-B5 draft`,
+      );
+    }
+    assert.doesNotMatch(prose, /\bour app\b/i);
+  });
+});
+
+/**
+ * Module 9, converted in slice B5 part 2 — the module whose task the model
+ * cannot fully grade.
+ *
+ * The engine multiplies a database node's whole capacity by `1 + readReplicas`
+ * and has no dimension for bytes, so ten replicas reach 29% with no partitions
+ * at all and satisfy every required criterion. Sharding's actual reason — a
+ * table that no longer fits, a write path that must divide — is exactly what a
+ * request-rate graph cannot see.
+ *
+ * Two guards follow from that. The task's *steps* grade the decision
+ * (`partitions >= 16`, `hotKeyShare <= 0.2`), and the third criterion is
+ * deliberately advisory: it passes on the broken start because the requests it
+ * measures are the 93.7% that completed. The suite asserts the limitation
+ * rather than describing it, so the disclosure in lesson 7 cannot rot into a
+ * claim the code no longer supports.
+ */
+describe("content model — module 9 (partitioning and sharding)", () => {
+  let mod: SdModule;
+  before(() => {
+    mod = bySlug("partitioning-and-sharding");
+  });
+
+  it("is bound, with 7 leaf chapters for 7 lessons", () => {
+    assert.equal(inspectChapterBinding(mod).status, "bound");
+    assert.equal(collectChapterLeaves(mod.chapters).length, 7);
+    assert.equal(mod.lessons.length, 7);
+    assert.deepEqual(
+      lessonNav(mod).map((entry) => entry.slug),
+      [
+        "why-partition-data",
+        "hash-and-range-sharding",
+        "hot-keys-and-skew",
+        "rebalancing-shards",
+        "consistent-hashing",
+        "cross-shard-queries",
+        "when-not-to-shard",
+      ],
+      "partitioning-and-sharding: outline order and lesson order disagree",
+    );
+  });
+
+  it("fails every required criterion at the start and passes them at the finish", () => {
+    const task = mod.task;
+    assert.ok(task, "module 9 is a sim module and must carry a task");
+
+    const start = simulate(task.startGraph);
+    const solved = simulate(task.solutionGraph);
+
+    const required = task.passCriteria.filter((c) => c.required);
+    const startPassed = required.filter((c) => c.assert(start));
+    assert.deepEqual(
+      startPassed.map((c) => c.id),
+      [],
+      `module 9: the start graph already satisfies ${startPassed.map((c) => c.id).join(", ")}`,
+    );
+    for (const criterion of task.passCriteria) {
+      assert.ok(
+        criterion.assert(solved),
+        `module 9: solution fails "${criterion.id}" — the task has no reachable finish`,
+      );
+    }
+  });
+
+  it("makes the hot key, not the partition count, the reason the start fails", () => {
+    // Partitioning alone takes the store from 107% to 83%: real capacity, zero
+    // shed requests, and still no headroom. If that changed, the second step
+    // would be decoration and the module's central number (1.29×) would be a
+    // sentence rather than a measurement.
+    const task = mod.task!;
+    const partitionedOnly = {
+      ...task.startGraph,
+      nodes: task.startGraph.nodes.map((node) =>
+        node.id === "db-member" && node.type === "database"
+          ? { ...node, partitions: 16 }
+          : node,
+      ),
+    };
+    const result = simulate(partitionedOnly);
+    const store = result.perNode.find((n) => n.id === "db-member");
+    assert.ok(store, "module 9: the member store must be in the graph");
+    assert.equal(
+      result.errorRate,
+      0,
+      "module 9: sixteen partitions should stop the shedding",
+    );
+    assert.ok(
+      store.utilisation > 0.6,
+      `module 9: sixteen partitions with the hot key untouched land at ` +
+        `${(store.utilisation * 100).toFixed(0)}% — the point is that they are still near the ceiling`,
+    );
+  });
+
+  it("pins the limitation: replicas pass the gate without partitioning", () => {
+    // Deliberate. `assert` receives a `SimulationResult`, never the graph, so no
+    // capacity threshold can distinguish a shard from a copy — the engine has no
+    // storage dimension to measure. This assertion is the disclosure's
+    // tripwire: give the engine bytes and it fails, forcing lesson 7 and this
+    // test to be rewritten together.
+    const task = mod.task!;
+    const replicaOnly = {
+      ...task.startGraph,
+      nodes: task.startGraph.nodes.map((node) =>
+        node.id === "db-member" && node.type === "database"
+          ? { ...node, readReplicas: 10 }
+          : node,
+      ),
+    };
+    const result = simulate(replicaOnly);
+    assert.equal(result.errorRate, 0);
+    for (const criterion of task.passCriteria.filter((c) => c.required)) {
+      assert.ok(
+        criterion.assert(result),
+        `module 9: "${criterion.id}" now rejects the replica-only design — the engine ` +
+          `gained a dimension the lesson does not describe; update lesson 7 and remove this test`,
+      );
+    }
+    assert.ok(
+      JSON.stringify(mod.lessons).includes("ten read replicas"),
+      "module 9: the model limitation must be stated in the lesson, not only in this test",
+    );
+  });
+
+  it("keeps exactly one advisory criterion, and says why", () => {
+    const criteria = mod.task?.passCriteria ?? [];
+    const advisory = criteria.filter((c) => !c.required);
+    assert.deepEqual(
+      advisory.map((c) => c.id),
+      ["fast-queries"],
+      "module 9: the advisory criterion is a deliberate exception — latency over the " +
+        "requests that completed cannot fail on a shedding design",
+    );
+    assert.match(
+      advisory[0].explain,
+      /advisory/i,
+      "module 9: the advisory criterion must explain that it is advisory",
+    );
+    assert.ok(
+      criteria.filter((c) => c.required).length >= 2,
+      "module 9: two required criteria are the minimum that can grade a design",
+    );
+  });
+
+  it("drops the cache node deliberately, and says so", () => {
+    // `check:system-design` warns about this by design: the canvas is the member
+    // store, the tier no shared cache can help. The warning is answered in the
+    // module header; this asserts the drop is intentional rather than an
+    // omission, and that the next module does not inherit a diagram of a fix.
+    assert.ok(
+      !mod.task!.startGraph.nodes.some((node) => node.type === "cache"),
+      "module 9: a cache node reappeared — the member store is the tier a cache cannot help",
+    );
+  });
+
+  it("is anchored on Netflix's vertical ceiling, not on a photo feed", () => {
+    const prose = JSON.stringify(mod.lessons) + JSON.stringify(mod.story ?? "");
+    assert.ok(
+      prose.includes("Netflix"),
+      "partitioning-and-sharding: no Netflix reference — D1 is the published case study",
+    );
+    for (const word of ["LynxDEV", "follower", "photo", "this site"]) {
+      assert.ok(
+        !prose.includes(word),
+        `partitioning-and-sharding: references "${word}" — remains from the pre-B5 draft`,
       );
     }
     assert.doesNotMatch(prose, /\bour app\b/i);

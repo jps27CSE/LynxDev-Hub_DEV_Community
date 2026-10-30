@@ -6,6 +6,8 @@
 > **Every external link below was HTTP-checked on 2026-10-27** (status cargo in §5). No invented URLs.
 > **Status:** plan only. Nothing here is wired into the content files yet.
 
+**Correction, 2026-10-30 — the line above is no longer true.** Modules **1–9** have shipped and their rows now describe what is actually in `config/system-design/modules/*.ts`, not what was planned: 50 lessons, every one carrying its `sources` and its video block as listed. The rows for modules **10–15** are still the plan (B6 and B7). Two of the planned rows were wrong and are corrected in place — module 8's lesson order (§M8) and module 9's dropped `toptal.com` link (§M9). The link sweep in §5 was re-run on 2026-10-30, which is how the Toptal 403 was found.
+
 ---
 
 ## 0. Rules for this map
@@ -29,7 +31,7 @@ Status: ✅ already embedded · 🆕 to embed in Phase B · 🔜 belongs to a Ph
 | 2 | Vertical vs horizontal scaling, LB, DNS | `nFbOxUJJeFo` | M1 `scalability-patterns` + M6 `vertical-vs-horizontal` | ✅ |
 | 3 | Monolithic architecture | `KLlyEgB-Now` | Phase C `monolith-to-services` | 🔜 |
 | 4 | Microservices + project demo | `Y227d9kvzZ4` | Phase C `monolith-to-services` | 🔜 |
-| 5 | LB + sharding + replication + caching | `Q4BUDplOWRE` | M9 `why-partition-data` (overview) + M8 `scaling-reads-vs-writes` | ✅ |
+| 5 | LB + sharding + replication + caching | `Q4BUDplOWRE` | M9 `why-partition-data` (overview) + M8 `scaling-reads-vs-writes` | ✅ (2 embeds — the only sharding-adjacent video; each caption says so) |
 | 6 | CDN + message queue + API gateway | `vz6ShBpxt2U` | M11 `latency-numbers` + M5 `the-gateway-as-one-door` | ✅ |
 | 7 | Scalability, availability, consistency, fault tolerance | `Pfr_6h3Rqew` | M12 `trace-your-own-design` | ✅ (3 embeds) |
 | 8 | How browsers find websites (IP + DNS) | `J_I2E1BmCZg` | **no Phase B home** — see §3 | ⏸ |
@@ -213,7 +215,7 @@ Videos: `mzZ62duH20o` ✅ · `OKs2670F3V0` 🆕 (refresh-ahead)
 | `cache-stampede` | — | [Cache stampede](https://en.wikipedia.org/wiki/Cache_stampede) · [Thundering herd problem](https://en.wikipedia.org/wiki/Thundering_herd_problem) |
 | `cold-start-and-failure-modes` | — | [AWS — caching challenges](https://aws.amazon.com/builders-library/caching-challenges-and-strategies/) · [Redis — eviction](https://redis.io/docs/latest/develop/reference/eviction/) |
 
-### M8 · read-replicas (6 lessons)
+### M8 · read-replicas (6 lessons) — converted in B5 part 2
 
 Videos: `Q4BUDplOWRE` ✅
 
@@ -221,24 +223,34 @@ Videos: `Q4BUDplOWRE` ✅
 |---|---|---|
 | `scaling-reads-vs-writes` | `Q4BUDplOWRE` ✅ | [Primer](https://github.com/donnemartin/system-design-primer) · [Postgres — WAL](https://www.postgresql.org/docs/current/wal-intro.html) |
 | `replication-lag` | — | [Postgres — replication solutions](https://www.postgresql.org/docs/current/different-replication-solutions.html) · [Hot standby](https://www.postgresql.org/docs/current/hot-standby.html) |
+| `read-your-own-writes` | — | [Eventual consistency](https://en.wikipedia.org/wiki/Eventual_consistency) · [Postgres — hot standby](https://www.postgresql.org/docs/current/hot-standby.html) |
 | `promoting-a-replica` | — | [Postgres — warm standby](https://www.postgresql.org/docs/current/warm-standby.html) · [AWS — leader election](https://aws.amazon.com/builders-library/leader-election-in-distributed-systems/) |
-| `read-your-own-writes` | — | [Eventual consistency](https://en.wikipedia.org/wiki/Eventual_consistency) · [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) |
-| `cqrs-and-read-models` | — | [microservices.io — CQRS](https://microservices.io/patterns/data/cqrs.html) · [Primer](https://github.com/donnemartin/system-design-primer) |
-| `when-replicas-dont-help` | — | [Postgres — replication solutions](https://www.postgresql.org/docs/current/different-replication-solutions.html) · [Primer](https://github.com/donnemartin/system-design-primer) |
+| `cqrs-and-read-models` | — | [Fowler — CQRS](https://martinfowler.com/bliki/CQRS.html) · [microservices.io — CQRS](https://microservices.io/patterns/data/cqrs.html) |
+| `when-replicas-dont-help` | — | [Postgres — replication solutions](https://www.postgresql.org/docs/current/different-replication-solutions.html) · [Netflix — completing the cloud migration](https://about.netflix.com/news/completing-the-netflix-cloud-migration) |
 
-### M9 · partitioning-and-sharding (7 lessons)
+As shipped: 6 lessons, 3 chapter groups, 2 sources each. `promoting-a-replica` sits **before**
+`cqrs-and-read-models` but **after** `read-your-own-writes`, which is a deliberate swap against plan §3
+(the data-loss number in promotion *is* the lag, so the guarantee lesson has to come first).
 
-Videos: `Q4BUDplOWRE` ✅ (overview)
+### M9 · partitioning-and-sharding (7 lessons) — converted in B5 part 2
+
+Videos: `Q4BUDplOWRE` ✅ (overview — the **same** video module 8 opens with; the caption says so and
+names what to watch for this time. The playlist has no sharding-specific video, so this is the honest
+choice rather than a silent duplicate.)
 
 | Lesson | Video | Go deeper |
 |---|---|---|
-| `why-partition-data` | `Q4BUDplOWRE` ✅ | [MongoDB — sharding](https://www.mongodb.com/docs/manual/sharding/) · [Shard](https://en.wikipedia.org/wiki/Shard_%28database_architecture%29) |
-| `hash-and-range-sharding` | — | [MongoDB — sharding](https://www.mongodb.com/docs/manual/sharding/) · [Consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) |
-| `hot-keys-and-skew` | — | [MongoDB — sharding](https://www.mongodb.com/docs/manual/sharding/) · [Primer](https://github.com/donnemartin/system-design-primer) |
+| `why-partition-data` | `Q4BUDplOWRE` ✅ | [Netflix — completing the cloud migration](https://about.netflix.com/news/completing-the-netflix-cloud-migration) · [MongoDB — sharding](https://www.mongodb.com/docs/manual/sharding/) · [Shard](https://en.wikipedia.org/wiki/Shard_%28database_architecture%29) |
+| `hash-and-range-sharding` | — | [MongoDB — sharding](https://www.mongodb.com/docs/manual/sharding/) · [Consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) · [Vitess](https://vitess.io/) |
+| `hot-keys-and-skew` | — | [MongoDB — choose a shard key](https://www.mongodb.com/docs/manual/core/sharding-choose-a-shard-key/) · [Primer](https://github.com/donnemartin/system-design-primer) |
 | `rebalancing-shards` | — | [MongoDB — sharding](https://www.mongodb.com/docs/manual/sharding/) · [Consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) |
-| `consistent-hashing` | — | [Consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) · [Toptal — consistent hashing](https://www.toptal.com/big-data/consistent-hashing) |
+| `consistent-hashing` | — | [Consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) · [Primer](https://github.com/donnemartin/system-design-primer) |
 | `cross-shard-queries` | — | [Shard](https://en.wikipedia.org/wiki/Shard_%28database_architecture%29) · [Database per service](https://microservices.io/patterns/data/database-per-service.html) |
 | `when-not-to-shard` | — | [Use The Index, Luke](https://use-the-index-luke.com/) · [MongoDB — sharding](https://www.mongodb.com/docs/manual/sharding/) |
+
+**Correction to this map's first draft:** `toptal.com/big-data/consistent-hashing` returns **403** to
+non-browser clients (measured), so `consistent-hashing` cites Wikipedia and the primer instead. Every
+URL above was `curl`-verified 200 before the lesson was written.
 
 ### M10 · rate-limiting (6 lessons)
 
@@ -388,6 +400,8 @@ Run 2026-10-27. **66 URLs tested across four batches; all 200 except the four be
 | `https://www.cs.princeton.edu/courses/archive/fall09/cos521/Handouts/consistent.pdf` | 404 | Wikipedia *Consistent hashing* + Toptal explainer |
 
 Note: Cloudflare and Nginx serve 403 to non-browser clients. They are good pages; they are simply **not verifiable by the gate**, so they are not in the map. A link the gate cannot check will rot unnoticed.
+
+**Re-run 2026-10-30, before B5 part 2 shipped — all 65 shipped links pass; the one replacement that had itself gone bad was caught here.** Every URL that appears as a `sources` entry in the nine converted modules (**65 distinct URLs**) returned **200** under the plain-`curl` procedure above. The failure was in a URL that had *not* yet been wired in: `https://www.toptal.com/big-data/consistent-hashing`, the replacement chosen for the Princeton 404 earlier in this section, now returns **403** to a non-browser client. The `consistent-hashing` lesson cites Wikipedia's *Consistent hashing* and the system-design primer instead, and the map row no longer carries Toptal. The 2026-10-27 batch had recorded it as 200, so one of the two measurements is wrong and there is no way from here to know which — either the first check followed a redirect to something cached, or Toptal changed policy in three days. That ambiguity is the argument for re-running the sweep per slice rather than once per plan: the first run is a snapshot of a moving target, and a stale 200 reads exactly like a live link until a learner clicks it. Note also that the 65 that pass were checked with the *same* command that failed Toptal, so this is a comparison and not a softer test.
 
 **Added 2026-10-27 — the Netflix tech blog is in the same class, and it costs us the best sources in the path.** `netflixtechblog.com` and the legacy `techblog.netflix.com` both answer **403** to a non-browser client (Medium's bot wall — and the legacy host now 301s into it). Measured: *A Closer Look at the Christmas Eve Outage*, *Per-Title Encode Optimization* and *The Netflix Simian Army* all returned 403, while `about.netflix.com`, `openconnect.netflix.com` and every `github.com/Netflix/*` repository returned 200. Consequence: the case study is anchored on **those** sources, and the tech-blog posts are cited by title in lesson prose only — never as a `sources` entry. This is a real constraint, not an inconvenience: the Christmas Eve 2012 postmortem is the natural anchor for M12 and it cannot be linked, so M12's anchor is the Simian Army repository instead. If a browser-rendered check is ever added to the gate, these posts come back first.
 

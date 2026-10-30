@@ -1,7 +1,7 @@
 # System Design 2.0 — Depth, Breadth and Differentiation
 
 > **Date:** 2026-10-27
-> **Status:** In progress. Slices B1–B4 shipped (uncommitted) on 2026-10-27/28/29; B5–B7 pending. One slice ships at a time, each ending in a manual review by me before the next one starts. No commits by the agent.
+> **Status:** In progress. Slices B1–B5 shipped (uncommitted) on 2026-10-27/28/29/30; B6–B7 pending. **9 of 15 modules converted** (`what-is-system-design`, `requirements`, `constraints-and-design-process`, `back-of-the-envelope`, `api-and-contracts`, `load-balancers-and-stateless-services`, `caching`, `read-replicas`, `partitioning-and-sharding`); the six remaining unconverted outlines are `rate-limiting`, `cdns-and-static-content`, `how-systems-fail`, `timeouts-retries-circuit-breakers`, `idempotency`, `chaos-capstone`. One slice ships at a time, each ending in a manual review by me before the next one starts. No commits by the agent.
 > **Scope:** the system-design learning path only — `config/system-design/**`, `app/(routes)/system-design/**`, `components/system-design/**`, `scripts/check-system-design.ts`, `tests/`. No DB schema change, no new dependency, no server cost.
 > **Supersedes:** the content sections of `.agent/plans/16-system-design-phase-6.md` §10.0–§10.1 (roadmap and module table). §10.5 visualizers, §11 free-tier check and §12 task list there remain valid.
 > **Companion:** `.agent/plans/17-system-design-resource-map.md` — the 31-video Bangla playlist mapped to modules, plus a verified free read for every lesson. Every link there was HTTP-checked on 2026-10-27.
@@ -35,6 +35,19 @@
 | Diagrams / Bangla videos | 17 / 10 |
 | Static system-design pages | 69 (14 module + 41 lesson + 14 task) |
 
+**Baseline above was measured 2026-10-27, before B1. Current, after B5 part 2** (re-measured from the build output and the content gates, not estimated):
+
+| Measurement | Value |
+|---|---|
+| Modules | **15** (`api-and-contracts` added in B3) |
+| Lessons | **66** — 50 across the 9 converted modules, all at the 700–900 word bar, plus 16 still in the six unconverted outlines (phase target is 79) |
+| Modules on the leaf model, all leaves bound | **9 / 15** |
+| Static system-design pages | **95** (15 module + 66 lesson + 14 task) |
+| `check:system-design` warnings | **10** = 6 unconverted outlines + 4 chain (each chain warning answered in its module header) |
+| Tests | **618** passing, 0 failing (588 after B1) |
+
+The 4 modules listed above as having **no** chapter outline all now have one; the defect was fixed in B1–B3, not by editing the row.
+
 ### 1.1 Four defects, in order of severity
 
 1. **`chapters` is never rendered.** It is passed through `app/(routes)/system-design/[module]/page.tsx:47` and then dropped. `components/system-design/Sidebar.tsx` was written to render it, is imported by nothing, and its hrefs are wrong — `${chapter.slug}` is used as the *module* segment, so every link would 404 if it were mounted.
@@ -67,7 +80,7 @@ The honest summary: the gap is not 121 vs 41 topics — it is **granularity**. T
 
 | Phase | Parts | Modules | Lessons | State |
 |---|---|---|---|---|
-| **B (this plan)** | 0 Mindset, 1 Scaling, 3 Reliability | 15 | 79 | 11 rewritten, 4 story-renamed then deepened |
+| **B (this plan)** | 0 Mindset, 1 Scaling, 3 Reliability | 15 | 79 | **9 converted as of 2026-10-30** (50 lessons at the depth bar); 6 outlines remain. The original plan said "11 rewritten, 4 story-renamed then deepened" — the conversion turned out to be a full rewrite in every case, so that split no longer describes the work |
 | C (later) | 2 Async, 4 Storage, 5 Internals, 6 Distributed, 7 Patterns | 10 | ~57 | new |
 | D (later) | 8 Global, 9 Practice problems | 1 + 7 problems | ~11 | new |
 
@@ -80,6 +93,8 @@ The honest summary: the gap is not 121 vs 41 topics — it is **granularity**. T
 ## 3. Phase B — module specification
 
 Every module: story rewritten onto the **Netflix** case study (D1), lessons split to match the chapter outline, D3 depth bar applied. `S` = simulator module (keeps its Build Task). `P` = prose module.
+
+**Rows 1–9 are now the *shipped* outlines, not the plan** — slugs re-read from `config/system-design/modules/*.ts` on 2026-10-30 and matched one-for-one against the bound leaves by `npm test`. Two rows changed from the original spec: module 6 swaps `load-balancing` and `autoscaling` (the balancer has to exist before taking more than one of it means anything), and module 8 puts `read-your-own-writes` before `promoting-a-replica`. Rows 10–15 are still the plan; they are the B6 and B7 deliverables.
 
 **The anchor column is the part that stops this being a generic textbook.** Each module must be built around one Netflix artefact or one sentence from a Netflix primary source — not around "a video platform" in the abstract. If a lesson cannot be tied back to its anchor, the lesson is filler and should be cut. Every URL in this column was `curl`-verified **200** on 2026-10-27; the one class excluded is `netflixtechblog.com`, which answers **403** to non-browser clients (Medium bot wall, same class as Cloudflare/Nginx — see resource map §5), so its posts are referenced here by title, never linked as a `sources` entry.
 
@@ -97,9 +112,9 @@ Every module: story rewritten onto the **Netflix** case study (D1), lessons spli
 
 | # | Module | Lessons | Kind | Netflix anchor |
 |---|---|---|---|---|
-| 6 | `load-balancers-and-stateless-services` | vertical-vs-horizontal · **autoscaling** · load-balancing · **sessions-without-sticky** · stateless-services | S | Eureka (discovery) + Zuul (edge routing) — `github.com/Netflix/eureka`, `github.com/Netflix/zuul` |
+| 6 | `load-balancers-and-stateless-services` | vertical-vs-horizontal · load-balancing · autoscaling · sessions-without-sticky · stateless-services | S | Eureka (discovery) + Zuul (edge routing) — `github.com/Netflix/eureka`, `github.com/Netflix/zuul` |
 | 7 | `caching` | **why-cache** · where-to-cache · **cache-aside** · **write-through-and-behind** · **refresh-ahead** · **cache-keys-and-cardinality** · ttl-and-eviction · invalidation · cache-stampede · **cold-start-and-failure-modes** | S | EVCache, their memcached layer — `github.com/Netflix/EVCache` |
-| 8 | `read-replicas` | scaling-reads-vs-writes · replication-lag · promoting-a-replica · **read-your-own-writes** · **cqrs-and-read-models** · **when-replicas-dont-help** | S | Same post: the data model was denormalised and moved to NoSQL rather than replicated as-is |
+| 8 | `read-replicas` | scaling-reads-vs-writes · replication-lag · **read-your-own-writes** · promoting-a-replica · **cqrs-and-read-models** · **when-replicas-dont-help** | S | Same post: the data model was denormalised and moved to NoSQL rather than replicated as-is. *(Shipped order puts `read-your-own-writes` before `promoting-a-replica`: you have to know what a stale read costs you before deciding when to promote — §7.5)* |
 | 9 | `partitioning-and-sharding` | why-partition-data · hash-and-range-sharding · hot-keys-and-skew · rebalancing-shards · **consistent-hashing** · **cross-shard-queries** · **when-not-to-shard** | S | Same post: one relational database became many partitioned services; member data had to be split before it could scale |
 | 10 | `rate-limiting` | the-bot-in-your-traffic · algorithms · **distributed-rate-limiting** · **quotas-and-tiers** · **load-shedding** · **429-and-retry-after** | S | Adaptive concurrency limits instead of a fixed number — `github.com/Netflix/concurrency-limits` |
 | 11 | `cdns-and-static-content` | latency-numbers · cache-keys-and-ttl · what-a-cdn-cannot-cache · **edge-compute** · **image-and-video-delivery** · **purging-and-versioning** | S | Open Connect, the CDN they built and put inside ISPs — `openconnect.netflix.com` |
@@ -134,8 +149,8 @@ Every module: story rewritten onto the **Netflix** case study (D1), lessons spli
 
 | File | Change | Risk |
 |---|---|---|
-| `config/system-design/types.ts` | Add `SdModule.kind: "sim" \| "prose"`; make `task?: SdTaskDef` (B3); make `SdChapter.lessonSlug` required on leaves; add `SdSourceRef { label, url }` and `SdLesson.sources?: SdSourceRef[]`; **delete `storyIllustration`** (unused, typed `any[]`, violates the no-`any` rule) | Medium — touches every module file, but mechanical |
-| `config/system-design/modules/*.ts` (14) | Story → the **Netflix** case study (D1) and its §3 anchor; lessons split to the outline; depth bar; `sources`; chapter leaves bound | The bulk of the work |
+| `config/system-design/types.ts` | Add `SdModule.kind: "sim" \| "prose"`; make `task?: SdTaskDef` (B3); add `SdSourceRef { label, url }` and `SdLesson.sources?: SdSourceRef[]`; **delete `storyIllustration`** (unused, typed `any[]`, violates the no-`any` rule); make `SdChapter.lessonSlug` required on leaves — **done in B1 except this last item, which is still optional**: making it required now would fail `tsc` on 13 modules at once, so it lands in B7 when the last outline converts (§7.2) | Medium — touches every module file, but mechanical |
+| `config/system-design/modules/*.ts` (15) | Story → the **Netflix** case study (D1) and its §3 anchor; lessons split to the outline; depth bar; `sources`; chapter leaves bound. **9 of 15 converted as of 2026-10-30** | The bulk of the work |
 | `config/system-design/modules/api-and-contracts.ts` | **New module** (6 lessons) | First prose module |
 | `config/system-design/registry.ts` | Register the new module; update the header comment (it still says "empty until Task 13" and "14 modules") | Low |
 
@@ -247,7 +262,7 @@ One slice = one review cycle. I read every lesson before the next slice starts. 
 | **B2** ✅ shipped 2026-10-28 (uncommitted) | Modules 2, 3, 4 — outlines written, lessons at the depth bar, each built on its §3 Netflix anchor | Verified: `npm test` 594/594, `tsc` clean, build 124/124, `check:system-design` all checks passed (14 warnings), 4/14 modules bound, 75 `/system-design` routes, module pages 58,368 / 57,786 / 58,147 bytes. Pending: your read + commit. |
 | **B3** ✅ shipped 2026-10-28 (uncommitted) | Module 5 `api-and-contracts` (new, prose, 6 lessons) + `task?` optional + prose-module UX + sitemap/task-route/API guards + tests | Verified: `npm test` 598/598, `tsc` clean, build 131/131, `check:system-design` all checks passed (15 modules, 14 warnings). 5/15 modules bound. 82 routes under `/system-design`. Module page bytes TBD. Pending: your read + commit. |
 | **B4** ✅ shipped 2026-10-29 (uncommitted) | Module 7 `caching` 4 → 10 lessons, on Netflix's **EVCache** tier; task re-measured after the old one was found to pass while shedding 96% of traffic | Verified: `npm test` 602/602, `tsc` clean, build 137/137, `check:system-design` all checks passed (6/15 converted, 13 warnings), caching page 72,989 bytes, 10 lesson pages 62–74 KB. Pending: your read + commit. |
-| **B5** 🚧 module 6 shipped 2026-10-29 (uncommitted) | Module 6 `load-balancers-and-stateless-services` 3 → 5 lessons, anchored on Zuul + Eureka; its task re-measured at 4,000 r/s after the old one was found to be *impossible* (20,000 r/s offered to a 20,000 r/s balancer, graded only on topological validity — measured 90% errors, green). Modules 8 and 9 remain | Verified: `npm test` 606/606, `tsc` clean, build 139/139, `check:system-design` all checks passed (7/15 converted, 12 warnings), module page 64,470 bytes. Pending: your read + commit. |
+| **B5** ✅ shipped 2026-10-29 / 10-30 (uncommitted), in two parts | **Part 1** — module 6 `load-balancers-and-stateless-services` 3 → 5 lessons, anchored on Zuul + Eureka; its task re-measured at 4,000 r/s after the old one was found to be *impossible* (20,000 r/s offered to a 20,000 r/s balancer, graded only on topological validity — measured 90% errors, green). **Part 2** — module 8 `read-replicas` 3 → 6 lessons and module 9 `partitioning-and-sharding` 4 → 7 lessons; both tasks rebuilt after measuring that the old ones passed while shedding 96% of their traffic | Verified: `npm test` **618/618** (606 after part 1), `tsc` clean, build **145** static pages, `check:system-design` all checks passed (**9/15 converted, 10 warnings**), 95 `/system-design` routes, module pages 64,470 (m6) / 66,185 (m8) / 70,768 (m9) bytes, all 13 new lessons inside 700–900 words, **12 new assertions mutation-tested red and restored**. Pending: your read + commit. |
 | **B6** | Modules 10, 11 | Same |
 | **B7** | Modules 12–15: story rename first, then the depth pass; renumber contiguously; update the tracker and plan 16 | The whole path reads with one app, one voice, no broken link |
 
@@ -523,6 +538,188 @@ one path is a worse outcome than a lesson with none. The map's M6 row needs that
 **Still open in B5:** modules 8 (`read-replicas`) and 9 (`partitioning-and-sharding`). Module 8 still
 carries the 50,000 r/s task measured at 96% errors in §7.3, and the general balancer invariant skips
 it only because it is not converted yet — converting it is the forcing function.
+
+---
+
+### 7.5 B5, part 2 — modules 8 and 9, shipped 2026-10-30 (uncommitted)
+
+Two modules, both `kind: "sim"`, both anchored on the same published post as modules 1 and 8's
+predecessors — but on **different sentences** of it, because the two modules answer different
+questions and one quote for both would have flattened the distinction:
+
+| | Module 8 `read-replicas` | Module 9 `partitioning-and-sharding` |
+|---|---|---|
+| Lessons | 3 → **6** | 4 → **7** |
+| Chapter groups | 3 | 5 |
+| Anchor sentence | *"denormalized … our data model, using NoSQL databases"* | *"move away from vertically scaled single points of failure"* / *"could not have racked the servers fast enough"* |
+| Question | can a copy fix this? | can a bigger machine hold this? |
+
+**Module 8 — lessons and depth**
+
+| Group | Lesson | Words |
+|---|---|---|
+| The asymmetry | `scaling-reads-vs-writes` | 900 |
+| What lag does | `replication-lag` | 822 |
+| | `read-your-own-writes` | 891 |
+| Failover, and the bill | `promoting-a-replica` | 897 |
+| | `cqrs-and-read-models` | 890 |
+| | `when-replicas-dont-help` | 857 |
+
+**Lesson order deviates from plan §3.** §3 lists `promoting-a-replica` before `read-your-own-writes`.
+The swap is deliberate: lag (§lag) → the three session guarantees → promotion. Promotion's data-loss
+number *is* the lag at the instant of failure, so putting failover between the two makes the reader
+hold a number for a page before it is used. Recorded here rather than silently reordered.
+
+**Module 8's old task was broken and passing.** It offered **50,000 r/s** to a 20,000 r/s balancer and
+a **single** 2,000 r/s app replica. Measured on both shipped graphs: **96% of traffic shed, balancer at
+250%, app tier at 1,000%** — and every criterion green, because the only two were `p95 < 200 ms` and a
+store bound, and **p95 is computed over the requests that completed**. Eight thousand requests a second
+died at the door and the gate reported success.
+
+Rebuilt so the cache cannot be the cheat: **two stores**, the title store behind EVCache (0.9 hit
+rate, at 12%) and a member store the cache cannot help. Re-measured at **12,000 r/s, 95% reads, 8 app
+instances (75%)**:
+
+| | errors | member store | title store | p95 |
+|---|---|---|---|---|
+| start (0 replicas) | **8.5%** | **120%** | 12% | 6.6 ms |
+| 1 replica | 0% | 60% | 12% | 3.5 ms |
+| **solution (2 replicas)** | **0%** | **40%** | 12% | 3.4 ms |
+| 2 replicas on the *title* store | **8.5%** | 120% | 4% | 6.6 ms |
+
+The last row is the control and it is measured, not asserted: a replica on the tier the failing
+traffic never reaches changes nothing. `fast-reads` was tightened from **p95 < 10 ms to < 5 ms** for a
+reason worth recording — at 10 ms it *passed on the broken start* (6.6 ms over the 91% that finished),
+which would have let the module ship the exact defect it documents. Criteria now: `zero-errors`,
+`member-headroom` (< 50%), `fast-reads` (p95 < 5 ms); all three fail at the start.
+
+**Module 9 — lessons and depth**
+
+| Group | Lesson | Words |
+|---|---|---|
+| Why split at all | `why-partition-data` | 899 |
+| Choosing the key | `hash-and-range-sharding` | 703 |
+| What skew does | `hot-keys-and-skew` | 759 |
+| Moving data | `rebalancing-shards` | 796 |
+| | `consistent-hashing` | 889 |
+| The bill | `cross-shard-queries` | 766 |
+| | `when-not-to-shard` | 812 |
+
+**Module 9's numbers are the slice's finding.** Measured at 16,000 r/s (10 app instances, 80%;
+balancer 80%; member store at 2 replicas, inherited from module 8's solution):
+
+| partitions | hot key | member store | errors |
+|---|---|---|---|
+| 1 | 0.8 | **107%** | 6.3% (start) |
+| 16 | 0.8 | **83%** | 0% |
+| 16 | 0.2 | **26%** (solution) | 0% |
+| 1,000 | 0.8 | 81.1% | 0% |
+| 1,000 | 0.2 | 20.4% | 0% |
+| 8 / 4 / 2 | 0.2 | 31% / 42% / 63% | 0% |
+
+So partitioning alone bought **1.29×**, not 16×, and four orders of magnitude of partitions bought
+1.32×. The busiest partition's share is `readShare × (h + (1−h)/P) + writeShare/P`, whose `h` term
+never shrinks — the hot key is a **floor**, and the lesson states that floor as the module's central
+number instead of implying that partition count is the lever.
+
+**A limitation of the model, disclosed rather than hidden.** Ten read replicas and **no** partitions
+reach **29%** and satisfy every required criterion. `assert` receives a `SimulationResult` and never the
+graph, so no capacity threshold can distinguish a shard from a copy — the engine has no dimension for
+bytes, write amplification or per-shard cost, which is precisely what sharding is for. Three responses,
+all shipped:
+
+1. The task's **steps** grade the decision (`partitions >= 16`, `hotKeyShare <= 0.2`); the criteria
+   grade only capacity.
+2. Lesson 7 (`when-not-to-shard`) states the shortcut in the module's own voice — the learner is told
+   the number the gate cannot see.
+3. `tests/system-design-content.test.ts` **asserts that the shortcut still works** — a tripwire, so
+   that adding a storage dimension to the engine fails that test and forces the lesson and the test to
+   be rewritten together.
+
+The third criterion is therefore **advisory** (`fast-queries`, p95 < 15 ms) — it passes on the broken
+start because it measures the 93.7% that completed, and its `explain` says so. This is the first
+advisory criterion in Phase B; module 6's suite asserts *every* criterion is required, so module 9's
+suite asserts the single exception and its reason instead.
+
+**Chain warning, answered in the module header.** Module 9's start graph drops the `cache` node that
+module 8's solution had, because the canvas is the member store — the tier no shared cache can help —
+and drawing EVCache would point the learner at the wrong box. `check:system-design` warns by design; the
+module header carries the answer, and a test asserts the cache stays dropped.
+
+**File paths and the two compressed-slice decisions.** No new dependencies, no engine change:
+
+- `config/system-design/modules/read-replicas.ts` — rewritten (6 lessons, 3 groups, new task + criteria)
+- `config/system-design/modules/partitioning-and-sharding.ts` — rewritten (7 lessons, 5 groups, new task)
+- `tests/system-design-content.test.ts` — fixture `read-replicas` → `rate-limiting` for the
+  `unbound` case (B4's lesson, applied again), plus **12 assertions** for modules 8 and 9
+
+**Measured, not estimated:**
+
+- **Binding** — `9/15 module(s) converted`. Gate: `All checks passed for 15 module(s), 10 warning(s)`.
+  Composition: **6 unconverted outlines** (was 8) + **4 chain**; module 8 no longer warns because its
+  start graph keeps the cache, module 9 now does and answers it in its header. Net 12 → 10 — the two
+  modules leaving the `unbound` class and one chain warning arriving from the *other* direction cancel
+  out to a smaller number than the conversion alone would suggest, which is why the count alone is not
+  a progress metric.
+- **Tests** — **618 passing / 0 failing** (606 after B5 part 1). All **12** new assertions were
+  mutation-tested and observed red, one at a time, then restored byte-identically (`diff -q` against a
+  backup):
+
+| Mutation | Observed red |
+|---|---|
+| m8 solution `memberGraph(2)` → `memberGraph(1)` | `module 8: solution fails "member-headroom"` |
+| m8 cache `hitRate 0.9` → `0.0` (title store becomes the bottleneck) | `fails the store a cache cannot help…` + the all-fail assertion |
+| m8 `member-headroom` criterion renamed | `grades shedding and headroom…` |
+| m8 "follower" inserted into a lesson body | `is anchored on Netflix's denormalisation…` |
+| m8 every "Netflix" in lessons/story replaced | same assertion (the anchor check fires) |
+| m8 two chapter bindings swapped | `outline order and lesson order disagree` |
+| m9 two chapter bindings swapped | same, module 9 |
+| m9 `startGraph` → `memberGraph(16, 0.2)` | `fails every required criterion at the start…` |
+| m9 start hot key 0.8 → 0.5 | `makes the hot key, not the partition count, the reason…` |
+| m9 headroom `< 0.4` → `< 0.25` | `pins the limitation: replicas pass the gate…` (the tripwire works) |
+| m9 `fast-queries` `required: false` → `true` | `keeps exactly one advisory criterion…` |
+| m9 cache node added back to `memberGraph` | `drops the cache node deliberately…` |
+| m9 "photo" inserted into a lesson body | `is anchored on Netflix's vertical ceiling…` |
+
+- **Routes** — **95** prerendered pages under `/system-design` (89 after B5 part 1; +6, because the two
+  modules went 3 → 6 and 4 → 7 lessons). Measured from `.next/server/app/system-design`: **15 module
+  pages + 66 lesson pages + 14 task pages**.
+- **Payload** — module pages **66,185 bytes** (`read-replicas`, 6 lessons) and **70,768 bytes**
+  (`partitioning-and-sharding`, 7 lessons); for scale, `caching` with 10 lessons was 72,989. Representative
+  lesson pages: 70,513 (`scaling-reads-vs-writes`), 64,859 (`hot-keys-and-skew`).
+- **Build** — `Compiled successfully`, 145 static pages generated, `tsc --noEmit` clean.
+- **Sources** — every URL `curl`-verified 200 before use. **`toptal.com/big-data/consistent-hashing`
+  returns 403 to non-browser clients** and was dropped from the map's `consistent-hashing` row; the
+  lesson cites Wikipedia's consistent-hashing article and the primer instead.
+
+**Two deviations from the resource map:** the dropped Toptal link above, and `Q4BUDplOWRE` being
+embedded in **both** module 8's first lesson and module 9's first lesson. The map planned that
+duplication (it is the playlist's only sharding-adjacent video), but two consecutive modules opening
+with the same 20-minute overview is a worse outcome than one lesson with none — the module 9 caption
+says it is the same video and names what to watch for this time. The map row needs that note.
+
+**Proofreading pass, after all twelve mutations were restored.** Five sentences were re-read against the
+engine's actual arithmetic rather than against how they sounded, and three were wrong enough to change
+the meaning:
+
+- `read-replicas` lesson 1 claimed *"the other half goes to the title store"*. Only **600** of the
+  remaining 6,000 requests reach it — EVCache answers nine in ten. Reworded to say so; a reader who
+  trusted the old sentence would have expected the title store to be at 120% too, and the lesson's whole
+  point (the cache is a tier, the member store is not cacheable) depended on the wrong number. Lesson
+  sat at 895 words against the 900 cap, so the replacement had to be word-neutral enough: it lands at
+  **900**, exactly on the bar, which is worth knowing before anything else is added to it.
+- Two `partitioning-and-sharding` fixes: `Nine nodes Each owning a ninth` → `, each owning` (just a
+  typo), and the `your_turn` on lesson 5 asked *"what fraction of the ring's keys a single node failure
+  takes offline"* — **with three replicas per key, the answer is zero**, so the question taught the
+  wrong instinct about what replication buys. Now asks how many keys need re-reading from a second
+  position, which is the quantity that actually changes.
+- Words re-measured after the edits: 900 / 822 / 891 / 897 / 890 / 857 (m8) and
+  899 / 703 / 759 / 796 / 889 / 766 / 812 (m9) — all inside 700–900, `npm test` **618 passing**, build
+  145 pages, `check:system-design` unchanged at 10 warnings.
+
+**Next:** B5 is complete. B6 is modules 10 (`rate-limiting`) and 11 (`cdns-and-static-content`), and
+module 11's chain warning ("drops `database`") already exists and will need the same header treatment
+module 9 just got.
 
 ---
 
