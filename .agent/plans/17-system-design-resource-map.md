@@ -6,7 +6,9 @@
 > **Every external link below was HTTP-checked on 2026-10-27** (status cargo in §5). No invented URLs.
 > **Status:** plan only. Nothing here is wired into the content files yet.
 
-**Correction, 2026-10-30 — the line above is no longer true.** Modules **1–9** have shipped and their rows now describe what is actually in `config/system-design/modules/*.ts`, not what was planned: 50 lessons, every one carrying its `sources` and its video block as listed. The rows for modules **10–15** are still the plan (B6 and B7). Two of the planned rows were wrong and are corrected in place — module 8's lesson order (§M8) and module 9's dropped `toptal.com` link (§M9). The link sweep in §5 was re-run on 2026-10-30, which is how the Toptal 403 was found.
+**Correction, 2026-10-30 — the line above is no longer true.** Modules **1–9** have shipped and their rows now describe what is actually in `config/system-design/modules/*.ts`, not what was planned: 50 lessons, every one carrying its `sources` and its video block as listed. Two of the planned rows were wrong and are corrected in place — module 8's lesson order (§M8) and module 9's dropped `toptal.com` link (§M9). The link sweep in §5 was re-run on 2026-10-30, which is how the Toptal 403 was found.
+
+**2026-11-01 — modules 10 and 11 joined them (B6).** **62 lessons across 11 converted modules** now carry their `sources` and video block exactly as listed below; the rows for modules **12–15** are still the plan (B7). Both new headings are written from the shipped files, and the two rows that changed are called out in place: module 10's `distributed-rate-limiting` cites the primer rather than Wikipedia (already cited one lesson earlier), and module 11's `edge-compute` carries a third source — `openconnect.netflix.com` is the module's anchor, so it belongs in a lesson and not only in a header comment. All 14 URLs in M10/M11 were `curl`-verified 200 on 2026-11-01.
 
 ---
 
@@ -252,31 +254,45 @@ choice rather than a silent duplicate.)
 non-browser clients (measured), so `consistent-hashing` cites Wikipedia and the primer instead. Every
 URL above was `curl`-verified 200 before the lesson was written.
 
-### M10 · rate-limiting (6 lessons)
+### M10 · rate-limiting (6 lessons) — converted in B6
 
-Videos: none specific — the module relies on the simulator (that is the point of the module)
+Videos: none specific — the module relies on the simulator (that is the point of the module). The
+Netflix anchor is `github.com/Netflix/concurrency-limits`, cited in the module header and in
+`distributed-rate-limiting`; it is a repository, not a video, so it lives in prose.
 
 | Lesson | Go deeper |
 |---|---|
 | `the-bot-in-your-traffic` | [Stripe — rate limits](https://docs.stripe.com/rate-limits) · [Rate limiting](https://en.wikipedia.org/wiki/Rate_limiting) |
 | `algorithms` | [Token bucket](https://en.wikipedia.org/wiki/Token_bucket) · [Leaky bucket](https://en.wikipedia.org/wiki/Leaky_bucket) |
-| `distributed-rate-limiting` | [Stripe — rate limits](https://docs.stripe.com/rate-limits) · [Rate limiting](https://en.wikipedia.org/wiki/Rate_limiting) |
+| `distributed-rate-limiting` | [Stripe — rate limits](https://docs.stripe.com/rate-limits) · [system-design-primer](https://github.com/donnemartin/system-design-primer) |
 | `quotas-and-tiers` | [Stripe — rate limits](https://docs.stripe.com/rate-limits) · [MDN — 429](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429) |
 | `load-shedding` | [SRE — handling overload](https://sre.google/sre-book/handling-overload/) · [AWS — load shedding](https://aws.amazon.com/builders-library/using-load-shedding-to-avoid-overload/) |
 | `429-and-retry-after` | [MDN — 429](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429) · [MDN — Retry-After](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After) |
 
-### M11 · cdns-and-static-content (6 lessons)
+**One deviation from the plan:** `distributed-rate-limiting` was mapped to Wikipedia's rate-limiting
+article, which `the-bot-in-your-traffic` already cites. The shipped row cites the primer instead, so
+two consecutive lessons do not hand the learner the same tab twice.
 
-Videos: `vz6ShBpxt2U` ✅
+### M11 · cdns-and-static-content (6 lessons) — converted in B6
+
+Videos: `vz6ShBpxt2U` ✅ (one lesson only — see the note below).
 
 | Lesson | Video | Go deeper |
 |---|---|---|
 | `latency-numbers` | `vz6ShBpxt2U` ✅ | [web.dev — content delivery networks](https://web.dev/articles/content-delivery-networks) · [CDN (MDN glossary)](https://developer.mozilla.org/en-US/docs/Glossary/CDN) |
 | `cache-keys-and-ttl` | — | [Cloudflare — cache-control](https://developers.cloudflare.com/cache/concepts/cache-control/) · [MDN — Cache-Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) |
 | `what-a-cdn-cannot-cache` | — | [MDN — CDN](https://developer.mozilla.org/en-US/docs/Glossary/CDN) · [Content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) |
-| `edge-compute` | — | [Edge computing](https://en.wikipedia.org/wiki/Edge_computing) · [web.dev — CDNs](https://web.dev/articles/content-delivery-networks) |
-| `image-and-video-delivery` | — | [web.dev — CDNs](https://web.dev/articles/content-delivery-networks) · [S3 overview](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html) |
 | `purging-and-versioning` | — | [Cloudflare cache docs](https://developers.cloudflare.com/cache/) · [MDN — HTTP caching](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching) |
+| `edge-compute` | — | [Edge computing](https://en.wikipedia.org/wiki/Edge_computing) · [web.dev — CDNs](https://web.dev/articles/content-delivery-networks) · [Netflix Open Connect](https://openconnect.netflix.com/en/) |
+| `image-and-video-delivery` | — | [web.dev — CDNs](https://web.dev/articles/content-delivery-networks) · [S3 overview](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html) |
+
+**Two deviations from the plan.** The lesson order is `purging-and-versioning` before `edge-compute`
+and `image-and-video-delivery`: a purge is the consequence of the cache key, so it reads as the end of
+the caching argument rather than an appendix after segmentation (plan 17 §7.6). And `edge-compute`
+carries a third source, `openconnect.netflix.com`, because the module's anchor is a *cache* programme
+being deliberately not a compute platform — the point is only checkable against Netflix's own page.
+`vz6ShBpxt2U` stays on `latency-numbers` alone: it is a 15-minute overview of CDN + message queue +
+API gateway, and a second lesson re-embedding it would be a duplicate, not a supplement.
 
 ### M12 · how-systems-fail (5 lessons — one added)
 
@@ -400,6 +416,8 @@ Run 2026-10-27. **66 URLs tested across four batches; all 200 except the four be
 | `https://www.cs.princeton.edu/courses/archive/fall09/cos521/Handouts/consistent.pdf` | 404 | Wikipedia *Consistent hashing* + Toptal explainer |
 
 Note: Cloudflare and Nginx serve 403 to non-browser clients. They are good pages; they are simply **not verifiable by the gate**, so they are not in the map. A link the gate cannot check will rot unnoticed.
+
+**Re-run 2026-11-01, before B6 shipped — all 76 shipped links pass, and the two new modules added 11 of them.** Every `sources` URL in the eleven converted modules (**76 distinct URLs across 62 lessons**) returned **200** under the same plain-`curl` procedure, with nothing to replace this time. The count grew by 11 rather than 12 because module 10's `distributed-rate-limiting` reuses Stripe's rate-limits page already cited by two lessons in the same module. `openconnect.netflix.com/en/` was checked the same way and is in the set — it is the only URL here whose *content* was read rather than merely status-checked, because it is quoted verbatim in module 11's header and in three lesson bodies.
 
 **Re-run 2026-10-30, before B5 part 2 shipped — all 65 shipped links pass; the one replacement that had itself gone bad was caught here.** Every URL that appears as a `sources` entry in the nine converted modules (**65 distinct URLs**) returned **200** under the plain-`curl` procedure above. The failure was in a URL that had *not* yet been wired in: `https://www.toptal.com/big-data/consistent-hashing`, the replacement chosen for the Princeton 404 earlier in this section, now returns **403** to a non-browser client. The `consistent-hashing` lesson cites Wikipedia's *Consistent hashing* and the system-design primer instead, and the map row no longer carries Toptal. The 2026-10-27 batch had recorded it as 200, so one of the two measurements is wrong and there is no way from here to know which — either the first check followed a redirect to something cached, or Toptal changed policy in three days. That ambiguity is the argument for re-running the sweep per slice rather than once per plan: the first run is a snapshot of a moving target, and a stale 200 reads exactly like a live link until a learner clicks it. Note also that the 65 that pass were checked with the *same* command that failed Toptal, so this is a comparison and not a softer test.
 

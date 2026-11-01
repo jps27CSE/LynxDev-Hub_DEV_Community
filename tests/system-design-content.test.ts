@@ -62,8 +62,12 @@ import {
   inspectModuleOrder,
   lessonNav,
 } from "../lib/system-design/content-rules";
-import type { SdChapter, SdModule } from "../config/system-design/types";
-import { getNodeTypeSpec } from "../lib/system-design/nodes";
+import type {
+  SdChapter,
+  SdGraph,
+  SdModule,
+} from "../config/system-design/types";
+import { defaultNode, getNodeTypeSpec } from "../lib/system-design/nodes";
 import { simulate } from "../lib/system-design/engine";
 
 /**
@@ -117,12 +121,13 @@ describe("content rules — chapter leaves", () => {
   });
 
   it("classifies an outline with no bindings as unbound, not as complete", () => {
-    // `caching` was the fixture until slice B4 converted it, then
-    // `read-replicas` until B5 converted it. The assertion has to name a module
-    // that is still unconverted, or it starts testing the converted case and
-    // quietly stops covering the one it was written for. `rate-limiting` is the
-    // next module in line, so it is the last fixture that will survive B6.
-    const mod = bySlug("rate-limiting");
+    // `caching` was the fixture until slice B4 converted it, then `read-replicas`
+    // until B5 converted it, then `rate-limiting` and `cdns-and-static-content`
+    // until B6 converted both. The assertion has to name a module that is still
+    // unconverted, or it starts testing the converted case and quietly stops
+    // covering the one it was written for. `how-systems-fail` is the next
+    // module in line (B7).
+    const mod = bySlug("how-systems-fail");
     assert.equal(inspectChapterBinding(mod).status, "unbound");
   });
 });
@@ -901,6 +906,427 @@ describe("content model — module 9 (partitioning and sharding)", () => {
       assert.ok(
         !prose.includes(word),
         `partitioning-and-sharding: references "${word}" — remains from the pre-B5 draft`,
+      );
+    }
+    assert.doesNotMatch(prose, /\bour app\b/i);
+  });
+});
+
+/**
+ * Module 10, converted in slice B6 — the first module whose task grades a
+ * *rejection* rather than a capacity problem.
+ *
+ * The hazard here is the opposite of modules 6 and 8: a criterion that only
+ * asks for errors to fall is satisfied by shedding the abusive client along
+ * with everyone else. `real-users-complete` therefore counts every non-rejected
+ * failure class, and `app-headroom` makes sure the throughput was *moved*, not
+ * merely refused at the door. A limit set above the bot's own rate rejects
+ * nothing, and that is pinned too: it is the difference between a rate limit and
+ * a configuration field with a number in it.
+ */
+describe("content model — module 10 (rate limiting)", () => {
+  let mod: SdModule;
+  before(() => {
+    mod = bySlug("rate-limiting");
+  });
+
+  it("is bound, with 6 leaf chapters for 6 lessons", () => {
+    assert.equal(inspectChapterBinding(mod).status, "bound");
+    assert.equal(collectChapterLeaves(mod.chapters).length, 6);
+    assert.equal(mod.lessons.length, 6);
+    assert.deepEqual(
+      lessonNav(mod).map((entry) => entry.slug),
+      [
+        "the-bot-in-your-traffic",
+        "algorithms",
+        "distributed-rate-limiting",
+        "quotas-and-tiers",
+        "load-shedding",
+        "429-and-retry-after",
+      ],
+      "rate-limiting: outline order and lesson order disagree",
+    );
+  });
+
+  it("fails every required criterion at the start and passes them at the finish", () => {
+    const task = mod.task;
+    assert.ok(task, "module 10 is a sim module and must carry a task");
+
+    const start = simulate(task.startGraph);
+    const solved = simulate(task.solutionGraph);
+
+    const required = task.passCriteria.filter((c) => c.required);
+    const startPassed = required.filter((c) => c.assert(start));
+    assert.deepEqual(
+      startPassed.map((c) => c.id),
+      [],
+      `module 10: the start graph already satisfies ${startPassed.map((c) => c.id).join(", ")}`,
+    );
+    for (const criterion of task.passCriteria) {
+      assert.ok(
+        criterion.assert(solved),
+        `module 10: solution fails "${criterion.id}" — the task has no reachable finish`,
+      );
+    }
+  });
+
+  it("makes the app tier, not the balancer, the thing the bot breaks", () => {
+    // The lesson is that the limiter sits *in front of* the expensive tier.
+    // If a later edit makes the balancer the bottleneck, the module starts
+    // teaching "buy a bigger door" instead of "refuse the bot at the door".
+    const start = simulate(mod.task!.startGraph);
+    const app = start.perNode.find((n) => n.id === "app-1");
+    const lb = start.perNode.find((n) => n.id === "lb-1");
+    assert.ok(
+      app && lb,
+      "module 10: the app tier and the balancer must be in the graph",
+    );
+    assert.ok(
+      app.utilisation > 1,
+      `module 10: the app tier starts at ${(app.utilisation * 100).toFixed(0)}% — the bot must put it over capacity`,
+    );
+    assert.ok(
+      lb.utilisation < 0.5,
+      `module 10: the balancer starts at ${(lb.utilisation * 100).toFixed(0)}% — it is not the tier the bot exhausts`,
+    );
+    assert.equal(
+      start.errorClasses.rejected ?? 0,
+      0,
+      "module 10: nothing can be rejected before a limit exists",
+    );
+  });
+
+  it("rejects only the bot, and sheds nothing for anyone else", () => {
+    const solved = simulate(mod.task!.solutionGraph);
+    assert.ok(
+      (solved.errorClasses.rejected ?? 0) > 0,
+      "module 10: the bot must receive 429s at the solution",
+    );
+    assert.equal(
+      solved.errorClasses.shed ?? 0,
+      0,
+      "module 10: real users are shed at the solution — the limit moved load instead of removing it",
+    );
+  });
+
+  it("has no limit above the bot's rate, because that rejects nothing", () => {
+    // `bot-gets-429s` can only pass when the allowance sits below the abusive
+    // client's own rate. Pinned because a limit is a number that *looks*
+    // configured even when it is too generous to do anything.
+    const generous = {
+      ...mod.task!.startGraph,
+      nodes: mod.task!.startGraph.nodes.map((node) =>
+        node.type === "load_balancer"
+          ? { ...node, rateLimitPerMin: 200_000 }
+          : node,
+      ),
+    };
+    const result = simulate(generous);
+    assert.equal(
+      result.errorClasses.rejected ?? 0,
+      0,
+      "module 10: a 200,000 req/min allowance rejected traffic — the engine's comparison changed",
+    );
+    assert.ok(
+      !mod
+        .task!.passCriteria.filter((c) => c.required)
+        .every((c) => c.assert(result)),
+      "module 10: a limit too generous to reject the bot now passes the task",
+    );
+  });
+
+  it("pins the criteria's blind spot: one request per minute passes all three", () => {
+    // This is module 10's version of module 9's advisory-criterion problem, and
+    // it is the defect the *previous* task shipped: a limit of 1 req/min rejects
+    // the bot — and every real uploader with it — yet `bot-gets-429s`,
+    // `real-users-complete` and `app-headroom` all pass, because the engine flags
+    // only the *abusive* client as rejected and cannot model a real client's
+    // rate. No criterion on `errorClasses` can see the difference.
+    //
+    // So the decision is graded by a step instead, and this test proves the
+    // criteria alone cannot do it: if the engine ever gains per-client
+    // modelling, `app-headroom` or a new criterion will start failing here and
+    // the step can be relaxed to match.
+    const starved = {
+      ...mod.task!.startGraph,
+      nodes: mod.task!.startGraph.nodes.map((node) =>
+        node.type === "load_balancer" ? { ...node, rateLimitPerMin: 1 } : node,
+      ),
+    };
+    const result = simulate(starved);
+    for (const criterion of mod.task!.passCriteria) {
+      assert.ok(
+        criterion.assert(result),
+        `module 10: a 1 req/min limit now fails "${criterion.id}" — the engine gained per-client ` +
+          `modelling, so the criteria can grade this and \`leave-room-for-real-clients\` should be revisited`,
+      );
+    }
+    const step = mod.task!.steps.find(
+      (candidate) => candidate.id === "leave-room-for-real-clients",
+    );
+    assert.ok(
+      step,
+      "module 10: the step that rejects a starved allowance is missing",
+    );
+    assert.equal(
+      step.check(starved).passed,
+      false,
+      "module 10: a 1 req/min allowance passes the step — nothing rejects it",
+    );
+    assert.equal(
+      step.check(mod.task!.solutionGraph).passed,
+      true,
+      "module 10: the solution's allowance fails the step that defines the band",
+    );
+  });
+
+  it("does not let lowering the arrival rate pass as a fix", () => {
+    // The `keep-the-load` gate. Without it, "fixing" the incident by serving
+    // 1,000 r/s passes every criterion — the same defect module 11's old task
+    // had, found in module 10 while writing this suite.
+    const quieter = {
+      ...mod.task!.solutionGraph,
+      scenario: { ...mod.task!.solutionGraph.scenario, arrivalRate: 1_000 },
+    };
+    const result = simulate(quieter);
+    assert.ok(
+      mod.task!.passCriteria.every((c) => c.assert(result)),
+      "module 10: at 1,000 r/s the criteria should still pass — that is the shortcut being pinned",
+    );
+    const step = mod.task!.steps.find(
+      (candidate) => candidate.id === "keep-the-load",
+    );
+    assert.ok(step, "module 10: the `keep-the-load` step is missing");
+    assert.equal(
+      step.check(quieter).passed,
+      false,
+      "module 10: lowering the arrival rate to 1,000 r/s passes the task",
+    );
+  });
+
+  it("grades the bot's 429s and the app's headroom, not just the error count", () => {
+    const criteria = mod.task?.passCriteria ?? [];
+    for (const criterion of criteria) {
+      assert.ok(
+        criterion.required,
+        `module 10: "${criterion.id}" is not required`,
+      );
+    }
+    assert.ok(
+      criteria.length >= 3,
+      "module 10: rejecting the bot and protecting real users are two different claims",
+    );
+    assert.ok(
+      criteria.some((c) => c.id === "bot-gets-429s"),
+      "module 10: without a rejection criterion the task passes with no limit at all",
+    );
+    assert.ok(
+      criteria.some((c) => c.id === "app-headroom"),
+      "module 10: without a utilisation bound, shedding the bot and everyone else looks like a fix",
+    );
+  });
+
+  it("is anchored on Netflix's adaptive limit, not on a photo feed", () => {
+    const prose = JSON.stringify(mod.lessons) + JSON.stringify(mod.story ?? "");
+    assert.ok(
+      prose.includes("concurrency-limits"),
+      "rate-limiting: no reference to Netflix's adaptive limit — that is the module's anchor",
+    );
+    for (const word of ["LynxDEV", "follower", "photo", "this site"]) {
+      assert.ok(
+        !prose.includes(word),
+        `rate-limiting: references "${word}" — remains from the pre-B5 photo-app draft`,
+      );
+    }
+    assert.doesNotMatch(prose, /\bour app\b/i);
+  });
+});
+
+/**
+ * Module 11, converted in slice B6 — the module whose interesting claim is an
+ * economic one: the origin's *arrival rate* is what a CDN moves, not the bytes a
+ * viewer receives.
+ *
+ * Two guards follow. A second origin store reaches full throughput with zero
+ * errors and still fails `origin-headroom`, which is the difference between
+ * buying capacity and moving traffic — the criterion's `explain` says so, and
+ * this suite proves it. And `bandwidthMbps` is asserted to be identical at a 50%
+ * and a 95% hit rate, because the lesson states that limitation out loud; if the
+ * engine ever bills bytes per node, the lesson and this test have to change
+ * together rather than the disclosure quietly becoming false.
+ */
+describe("content model — module 11 (CDNs and static content)", () => {
+  let mod: SdModule;
+  before(() => {
+    mod = bySlug("cdns-and-static-content");
+  });
+
+  it("is bound, with 6 leaf chapters for 6 lessons", () => {
+    assert.equal(inspectChapterBinding(mod).status, "bound");
+    assert.equal(collectChapterLeaves(mod.chapters).length, 6);
+    assert.equal(mod.lessons.length, 6);
+    assert.deepEqual(
+      lessonNav(mod).map((entry) => entry.slug),
+      [
+        "latency-numbers",
+        "cache-keys-and-ttl",
+        "what-a-cdn-cannot-cache",
+        "purging-and-versioning",
+        "edge-compute",
+        "image-and-video-delivery",
+      ],
+      "cdns-and-static-content: outline order and lesson order disagree",
+    );
+  });
+
+  it("fails every required criterion at the start and passes them at the finish", () => {
+    const task = mod.task;
+    assert.ok(task, "module 11 is a sim module and must carry a task");
+
+    const start = simulate(task.startGraph);
+    const solved = simulate(task.solutionGraph);
+
+    const required = task.passCriteria.filter((c) => c.required);
+    const startPassed = required.filter((c) => c.assert(start));
+    assert.deepEqual(
+      startPassed.map((c) => c.id),
+      [],
+      `module 11: the start graph already satisfies ${startPassed.map((c) => c.id).join(", ")}`,
+    );
+    for (const criterion of task.passCriteria) {
+      assert.ok(
+        criterion.assert(solved),
+        `module 11: solution fails "${criterion.id}" — the task has no reachable finish`,
+      );
+    }
+  });
+
+  it("makes the origin, not the app tier, the thing that breaks", () => {
+    // Which tier is failing is the lesson. If the app tier ever becomes the
+    // bottleneck, the task teaches "add replicas" — and the graph, not the
+    // prose, would be the thing lying.
+    const start = simulate(mod.task!.startGraph);
+    const origin = start.perNode.find((n) => n.id === "origin-1");
+    const app = start.perNode.find((n) => n.id === "app-1");
+    assert.ok(
+      origin && app,
+      "module 11: origin and app tier must be in the graph",
+    );
+    assert.ok(
+      origin.utilisation > 1,
+      `module 11: the origin starts at ${(origin.utilisation * 100).toFixed(0)}% — it must be over capacity`,
+    );
+    assert.ok(
+      app.utilisation < 0.8,
+      `module 11: the app tier starts at ${(app.utilisation * 100).toFixed(0)}% — the app is not what is on fire`,
+    );
+  });
+
+  it("pins the distinction: more origin capacity is not a CDN", () => {
+    // The cheap wrong answer. Two origin stores split the misses, serve every
+    // request, and never touch the edge — 60% each. It passes the throughput and
+    // error criteria because it *is* a working system; it fails the one that
+    // names the goal. If this ever passes, `origin-headroom` has stopped grading
+    // the decision and the module is teaching "buy a second store".
+    const task = mod.task!;
+    const secondStore = defaultNode("object_store", "origin-2", 820, 340);
+    const twoOrigins: SdGraph = {
+      ...task.startGraph,
+      nodes: [...task.startGraph.nodes, secondStore],
+      edges: [
+        ...task.startGraph.edges,
+        {
+          id: "e5",
+          from: "cdn-1",
+          to: "origin-2",
+          label: "misses",
+          retry: { attempts: 0, backoffMs: 0, jitter: false },
+          partitioned: false,
+        },
+      ],
+    };
+    const result = simulate(twoOrigins);
+    assert.ok(
+      result.valid,
+      "module 11: two origin stores must be a valid topology",
+    );
+    assert.equal(
+      result.errorRate,
+      0,
+      "module 11: two stores should absorb the miss rate",
+    );
+    const criterion = (id: string) =>
+      task.passCriteria.find((c) => c.id === id)!;
+    assert.ok(
+      criterion("zero-errors").assert(result),
+      "module 11: two stores should stop the shedding — this is the control",
+    );
+    assert.ok(
+      !criterion("origin-headroom").assert(result),
+      "module 11: a second origin store now passes `origin-headroom` — the criterion has " +
+        "stopped distinguishing capacity from caching",
+    );
+  });
+
+  it("pins the limitation: bandwidth does not fall when the hit rate rises", () => {
+    // `bandwidthMbps` counts bytes delivered to viewers, per completed request.
+    // A CDN changes where the bytes come from, not how many arrive, so the
+    // figure is identical at 50% and 95%. Lesson 5 says this out loud; give the
+    // engine a per-node byte dimension and this assertion fails, forcing the
+    // lesson and the test to be rewritten together.
+    const task = mod.task!;
+    const halfCache = {
+      ...task.startGraph,
+      nodes: task.startGraph.nodes.map((node) =>
+        node.type === "cdn" ? { ...node, hitRate: 0.5 } : node,
+      ),
+    };
+    const half = simulate(halfCache);
+    const solved = simulate(task.solutionGraph);
+    assert.ok(
+      Math.abs(half.bandwidthMbps - solved.bandwidthMbps) < 1,
+      `module 11: bandwidth is now a function of the hit rate ` +
+        `(${half.bandwidthMbps.toFixed(0)} vs ${solved.bandwidthMbps.toFixed(0)} Mbit/s) — ` +
+        `lesson 5's "what this simulator cannot show" is no longer true`,
+    );
+    assert.ok(
+      JSON.stringify(mod.lessons).includes("bandwidthMbps"),
+      "module 11: the limitation must be stated in the lesson, not only in this test",
+    );
+  });
+
+  it("grades the origin's headroom and the load it kept", () => {
+    const criteria = mod.task?.passCriteria ?? [];
+    for (const criterion of criteria) {
+      assert.ok(
+        criterion.required,
+        `module 11: "${criterion.id}" is not required`,
+      );
+    }
+    assert.ok(
+      criteria.some((c) => c.id === "origin-headroom"),
+      "module 11: without a headroom bound the task is satisfied by a second origin store",
+    );
+    assert.ok(
+      criteria.some((c) => c.id === "capacity-served"),
+      "module 11: without a throughput floor, deleting the origin would pass",
+    );
+    assert.ok(
+      criteria.some((c) => c.id === "zero-errors"),
+      "module 11: the start graph sheds traffic and no criterion counts it",
+    );
+  });
+
+  it("is anchored on Netflix's Open Connect, not on a photo feed", () => {
+    const prose = JSON.stringify(mod.lessons) + JSON.stringify(mod.story ?? "");
+    assert.ok(
+      prose.includes("Open Connect"),
+      "cdns-and-static-content: no Open Connect reference — that is the module's anchor",
+    );
+    for (const word of ["LynxDEV", "follower", "photo", "this site"]) {
+      assert.ok(
+        !prose.includes(word),
+        `cdns-and-static-content: references "${word}" — remains from the pre-B6 draft`,
       );
     }
     assert.doesNotMatch(prose, /\bour app\b/i);

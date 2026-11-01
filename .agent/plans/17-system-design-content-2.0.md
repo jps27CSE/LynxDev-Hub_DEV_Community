@@ -1,7 +1,7 @@
 # System Design 2.0 — Depth, Breadth and Differentiation
 
 > **Date:** 2026-10-27
-> **Status:** In progress. Slices B1–B5 shipped (uncommitted) on 2026-10-27/28/29/30; B6–B7 pending. **9 of 15 modules converted** (`what-is-system-design`, `requirements`, `constraints-and-design-process`, `back-of-the-envelope`, `api-and-contracts`, `load-balancers-and-stateless-services`, `caching`, `read-replicas`, `partitioning-and-sharding`); the six remaining unconverted outlines are `rate-limiting`, `cdns-and-static-content`, `how-systems-fail`, `timeouts-retries-circuit-breakers`, `idempotency`, `chaos-capstone`. One slice ships at a time, each ending in a manual review by me before the next one starts. No commits by the agent.
+> **Status:** In progress. Slices B1–B6 shipped and committed (2026-10-27/28/29/30, 2026-11-01); B7 pending. **11 of 15 modules converted** (`what-is-system-design`, `requirements`, `constraints-and-design-process`, `back-of-the-envelope`, `api-and-contracts`, `load-balancers-and-stateless-services`, `caching`, `read-replicas`, `partitioning-and-sharding`, `rate-limiting`, `cdns-and-static-content`); the four remaining unconverted outlines are `how-systems-fail`, `timeouts-retries-circuit-breakers`, `idempotency`, `chaos-capstone` — all of them B7. One slice ships at a time, each ending in a manual review and a commit by me before the next one starts; the agent does not commit.
 > **Scope:** the system-design learning path only — `config/system-design/**`, `app/(routes)/system-design/**`, `components/system-design/**`, `scripts/check-system-design.ts`, `tests/`. No DB schema change, no new dependency, no server cost.
 > **Supersedes:** the content sections of `.agent/plans/16-system-design-phase-6.md` §10.0–§10.1 (roadmap and module table). §10.5 visualizers, §11 free-tier check and §12 task list there remain valid.
 > **Companion:** `.agent/plans/17-system-design-resource-map.md` — the 31-video Bangla playlist mapped to modules, plus a verified free read for every lesson. Every link there was HTTP-checked on 2026-10-27.
@@ -35,16 +35,16 @@
 | Diagrams / Bangla videos | 17 / 10 |
 | Static system-design pages | 69 (14 module + 41 lesson + 14 task) |
 
-**Baseline above was measured 2026-10-27, before B1. Current, after B5 part 2** (re-measured from the build output and the content gates, not estimated):
+**Baseline above was measured 2026-10-27, before B1. Current, after B6** (re-measured from the build output and the content gates, not estimated):
 
 | Measurement | Value |
 |---|---|
 | Modules | **15** (`api-and-contracts` added in B3) |
-| Lessons | **66** — 50 across the 9 converted modules, all at the 700–900 word bar, plus 16 still in the six unconverted outlines (phase target is 79) |
-| Modules on the leaf model, all leaves bound | **9 / 15** |
-| Static system-design pages | **95** (15 module + 66 lesson + 14 task) |
-| `check:system-design` warnings | **10** = 6 unconverted outlines + 4 chain (each chain warning answered in its module header) |
-| Tests | **618** passing, 0 failing (588 after B1) |
+| Lessons | **72** — 62 across the 11 converted modules, every one at the 700–900 word bar, plus 10 still in the four unconverted outlines (phase target is 79) |
+| Modules on the leaf model, all leaves bound | **11 / 15** |
+| Static system-design pages | **101** (15 module + 72 lesson + 14 task) + the `/system-design` index = 102 files |
+| `check:system-design` warnings | **8** = 4 unconverted outlines + 4 chain (each chain warning answered in its module header) |
+| Tests | **634** passing, 0 failing (618 after B5 part 2) |
 
 The 4 modules listed above as having **no** chapter outline all now have one; the defect was fixed in B1–B3, not by editing the row.
 
@@ -80,7 +80,7 @@ The honest summary: the gap is not 121 vs 41 topics — it is **granularity**. T
 
 | Phase | Parts | Modules | Lessons | State |
 |---|---|---|---|---|
-| **B (this plan)** | 0 Mindset, 1 Scaling, 3 Reliability | 15 | 79 | **9 converted as of 2026-10-30** (50 lessons at the depth bar); 6 outlines remain. The original plan said "11 rewritten, 4 story-renamed then deepened" — the conversion turned out to be a full rewrite in every case, so that split no longer describes the work |
+| **B (this plan)** | 0 Mindset, 1 Scaling, 3 Reliability | 15 | 79 | **11 converted as of 2026-11-01** (62 lessons at the depth bar); 4 outlines remain, all of them B7. The original plan said "11 rewritten, 4 story-renamed then deepened" — the conversion turned out to be a full rewrite in every case, so that split no longer describes the work |
 | C (later) | 2 Async, 4 Storage, 5 Internals, 6 Distributed, 7 Patterns | 10 | ~57 | new |
 | D (later) | 8 Global, 9 Practice problems | 1 + 7 problems | ~11 | new |
 
@@ -94,7 +94,7 @@ The honest summary: the gap is not 121 vs 41 topics — it is **granularity**. T
 
 Every module: story rewritten onto the **Netflix** case study (D1), lessons split to match the chapter outline, D3 depth bar applied. `S` = simulator module (keeps its Build Task). `P` = prose module.
 
-**Rows 1–9 are now the *shipped* outlines, not the plan** — slugs re-read from `config/system-design/modules/*.ts` on 2026-10-30 and matched one-for-one against the bound leaves by `npm test`. Two rows changed from the original spec: module 6 swaps `load-balancing` and `autoscaling` (the balancer has to exist before taking more than one of it means anything), and module 8 puts `read-your-own-writes` before `promoting-a-replica`. Rows 10–15 are still the plan; they are the B6 and B7 deliverables.
+**Rows 1–11 are now the *shipped* outlines, not the plan** — slugs re-read from `config/system-design/modules/*.ts` on 2026-11-01 and matched one-for-one against the bound leaves by `npm test`. Two rows changed from the original spec: module 6 swaps `load-balancing` and `autoscaling` (the balancer has to exist before taking more than one of it means anything), and module 8 puts `read-your-own-writes` before `promoting-a-replica`. Module 11 also ships `purging-and-versioning` before `edge-compute`/`image-and-video-delivery`, because a purge is the consequence of the cache key and reads badly after the media lessons introduce segmentation (§7.6). Rows 12–15 are still the plan; they are the B7 deliverable.
 
 **The anchor column is the part that stops this being a generic textbook.** Each module must be built around one Netflix artefact or one sentence from a Netflix primary source — not around "a video platform" in the abstract. If a lesson cannot be tied back to its anchor, the lesson is filler and should be cut. Every URL in this column was `curl`-verified **200** on 2026-10-27; the one class excluded is `netflixtechblog.com`, which answers **403** to non-browser clients (Medium bot wall, same class as Cloudflare/Nginx — see resource map §5), so its posts are referenced here by title, never linked as a `sources` entry.
 
@@ -117,7 +117,7 @@ Every module: story rewritten onto the **Netflix** case study (D1), lessons spli
 | 8 | `read-replicas` | scaling-reads-vs-writes · replication-lag · **read-your-own-writes** · promoting-a-replica · **cqrs-and-read-models** · **when-replicas-dont-help** | S | Same post: the data model was denormalised and moved to NoSQL rather than replicated as-is. *(Shipped order puts `read-your-own-writes` before `promoting-a-replica`: you have to know what a stale read costs you before deciding when to promote — §7.5)* |
 | 9 | `partitioning-and-sharding` | why-partition-data · hash-and-range-sharding · hot-keys-and-skew · rebalancing-shards · **consistent-hashing** · **cross-shard-queries** · **when-not-to-shard** | S | Same post: one relational database became many partitioned services; member data had to be split before it could scale |
 | 10 | `rate-limiting` | the-bot-in-your-traffic · algorithms · **distributed-rate-limiting** · **quotas-and-tiers** · **load-shedding** · **429-and-retry-after** | S | Adaptive concurrency limits instead of a fixed number — `github.com/Netflix/concurrency-limits` |
-| 11 | `cdns-and-static-content` | latency-numbers · cache-keys-and-ttl · what-a-cdn-cannot-cache · **edge-compute** · **image-and-video-delivery** · **purging-and-versioning** | S | Open Connect, the CDN they built and put inside ISPs — `openconnect.netflix.com` |
+| 11 | `cdns-and-static-content` | latency-numbers · cache-keys-and-ttl · what-a-cdn-cannot-cache · **purging-and-versioning** · **edge-compute** · **image-and-video-delivery** | S | Open Connect, the CDN they built and put inside ISPs — `openconnect.netflix.com` |
 
 ### Part 3 — Reliability (4 modules, 17 lessons)
 
@@ -263,7 +263,7 @@ One slice = one review cycle. I read every lesson before the next slice starts. 
 | **B3** ✅ shipped 2026-10-28 (uncommitted) | Module 5 `api-and-contracts` (new, prose, 6 lessons) + `task?` optional + prose-module UX + sitemap/task-route/API guards + tests | Verified: `npm test` 598/598, `tsc` clean, build 131/131, `check:system-design` all checks passed (15 modules, 14 warnings). 5/15 modules bound. 82 routes under `/system-design`. Module page bytes TBD. Pending: your read + commit. |
 | **B4** ✅ shipped 2026-10-29 (uncommitted) | Module 7 `caching` 4 → 10 lessons, on Netflix's **EVCache** tier; task re-measured after the old one was found to pass while shedding 96% of traffic | Verified: `npm test` 602/602, `tsc` clean, build 137/137, `check:system-design` all checks passed (6/15 converted, 13 warnings), caching page 72,989 bytes, 10 lesson pages 62–74 KB. Pending: your read + commit. |
 | **B5** ✅ shipped 2026-10-29 / 10-30 (uncommitted), in two parts | **Part 1** — module 6 `load-balancers-and-stateless-services` 3 → 5 lessons, anchored on Zuul + Eureka; its task re-measured at 4,000 r/s after the old one was found to be *impossible* (20,000 r/s offered to a 20,000 r/s balancer, graded only on topological validity — measured 90% errors, green). **Part 2** — module 8 `read-replicas` 3 → 6 lessons and module 9 `partitioning-and-sharding` 4 → 7 lessons; both tasks rebuilt after measuring that the old ones passed while shedding 96% of their traffic | Verified: `npm test` **618/618** (606 after part 1), `tsc` clean, build **145** static pages, `check:system-design` all checks passed (**9/15 converted, 10 warnings**), 95 `/system-design` routes, module pages 64,470 (m6) / 66,185 (m8) / 70,768 (m9) bytes, all 13 new lessons inside 700–900 words, **12 new assertions mutation-tested red and restored**. Pending: your read + commit. |
-| **B6** | Modules 10, 11 | Same |
+| **B6** ✅ shipped 2026-11-01 (uncommitted) | Modules 10 `rate-limiting` (3 → 6 lessons, Netflix `concurrency-limits`) and 11 `cdns-and-static-content` (3 → 6, Netflix Open Connect); both tasks re-measured after the old ones were found to grade a typed number and an idle origin rather than a decision | Verified: `npm test` **634/634**, `tsc` clean, build **151** static pages, `check:system-design` all checks passed (**11/15 converted, 8 warnings**), **101** prerendered `/system-design` pages (15 + 72 + 14) + the index, module pages 63,531 / 65,072 bytes, all 12 new lessons inside 700–900 words, **16 new assertions mutation-tested red and restored**. Committed 2026-11-01. |
 | **B7** | Modules 12–15: story rename first, then the depth pass; renumber contiguously; update the tracker and plan 16 | The whole path reads with one app, one voice, no broken link |
 
 **Why this order:** B1 proves the model on the smallest module. B2 fixes the first-run experience, because every learner passes through modules 1–4. B3 proves the prose module without touching the simulator. B4 is the flagship stress test. B5–B7 are repetition at increasing volume.
@@ -720,6 +720,239 @@ the meaning:
 **Next:** B5 is complete. B6 is modules 10 (`rate-limiting`) and 11 (`cdns-and-static-content`), and
 module 11's chain warning ("drops `database`") already exists and will need the same header treatment
 module 9 just got.
+
+---
+
+### 7.6 B6 — modules 10 and 11, shipped 2026-11-01 (uncommitted)
+
+Both are `kind: "sim"`, both went 3 → 6 lessons, and both are anchored on a Netflix artefact that is
+not a blog post — which is the point: modules 1–9 quote writing *about* a system, and these two quote
+the system itself.
+
+| | Module 10 `rate-limiting` | Module 11 `cdns-and-static-content` |
+|---|---|---|
+| Lessons | 3 → **6** | 3 → **6** |
+| Chapter groups | 3 | 3 |
+| Anchor | `github.com/Netflix/concurrency-limits` — *"we maintain a limit on the number of concurrent in-flight requests and adjust it based on latency"* | `openconnect.netflix.com` — appliances *"offload a substantial amount of Netflix content traffic from peering or transport circuits"* |
+| Question | who is allowed to use the capacity? | where do the bytes wait? |
+
+**Module 10 — lessons and depth**
+
+| Group | Lesson | Words |
+|---|---|---|
+| Why rate limit | `the-bot-in-your-traffic` | 759 |
+| | `algorithms` | 728 |
+| Limits in a real system | `distributed-rate-limiting` | 782 |
+| | `quotas-and-tiers` | 707 |
+| Backpressure and shedding | `load-shedding` | 710 |
+| | `429-and-retry-after` | 715 |
+
+The first two chapter groups were **re-bounded, and one renamed**, to match the order the lessons need:
+`algorithms` moved in beside the bot (a token bucket is a *shape of allowance*, which is the question
+"why rate limit" is asking), `distributed-rate-limiting` moved in beside `quotas-and-tiers` (both are
+what a limit becomes once there is a real system around it), and `algorithms-and-placement` became
+`limits-in-a-real-system`. The third group is untouched. Old → new, measured against
+`config/system-design/modules/rate-limiting.ts`:
+
+| Old | New |
+|---|---|
+| `why-rate-limit` {bot, distributed} | `why-rate-limit` {bot, algorithms} |
+| `algorithms-and-placement` {algorithms, quotas} | `limits-in-a-real-system` {distributed, quotas} |
+| `backpressure-and-shedding` {load-shedding, 429} | unchanged |
+
+Recorded because the binding gate cannot see a *bad* grouping, only an unbound one — and this module's
+first sight of that gate was already the new grouping, since the old outline carried no `lessonSlug`
+fields at all (`rate-limiting` *was* the suite's `unbound` fixture until this slice). A regrouping of a
+bound module would be invisible to every gate in the repo: the leaves stay bound, the order stays
+consistent, and the only symptom is two lesson titles sitting under a heading that describes neither.
+
+**Module 10's old task was graded on a field, not on a decision.** It offered **1,000 r/s** to four app
+instances (8,000 r/s) and a database with two read replicas, so the app tier sat at **12.5%** and the
+store at **6.7%** — nothing was over capacity, in the start graph or in the "solution". The two
+criteria were `bot-gets-429s` (rejected > 0) and `real-users-safe` (shed/unreachable/stale all zero),
+and the second one **ignored `rejected`**, so it passed before a limit existed. Measured across the
+whole range: every limit from **1 to 23,999 req/min** produces the *identical* simulation (4,017
+rejected, app 7.5%), and **24,000 and above** rejects nothing and fails. The learner's task was
+therefore a single bit — "type a number below the bot's own 400 r/s" — and a limit of *one request per
+minute*, which would reject every real user in production, passed both criteria.
+
+That is not a bug in the module, it is a bug in what the criteria asked. The engine's limiter is a
+threshold on the **aggregate** abusive arrival rate (`arrivalRate × abusiveShare > limitPerSec`), so it
+has exactly two outcomes; no criterion built on `errorClasses` can grade a per-client bucket. Rebuilt at
+**6,000 r/s with the same 40% abusive share** so the app tier is the tier that breaks:
+
+| | rejected | shed | app tier | db | throughput | p95 |
+|---|---|---|---|---|---|---|
+| start (no limit) | 0 | **20,001** | **150%** | 80% | 4,000 | 14.2 ms |
+| solution (`rateLimitPerMin: 3600`) | **24,064** | **0** | **90%** | 72% | 3,594 | 10.9 ms |
+
+Criteria: `bot-gets-429s` (rejected > 0), `real-users-complete` (every non-rejected failure class at
+zero, so shedding the bot *and* the users no longer reads as a fix), `app-headroom` (< 95%). Three
+steps: `set-rate-limit` (an allowance exists, is positive, and is below the bot's 24,000 req/min),
+`keep-the-load` (`arrivalRate >= 6_000`), and `leave-room-for-real-clients` (the allowance is at least
+600 req/min and below 24,000).
+
+**That third step exists because the criteria provably cannot see the defect it grades, and this was
+found by writing the record rather than by running the gate.** The first draft of the rebuilt task had
+two steps, and the second one (`verify-real-users`) evaluated the *identical* condition as the first —
+a decorative step that renders as progress. It also had no load gate at all, so lowering
+`arrivalRate` to 1,000 r/s passed all three criteria: app at 25%, nothing shed, bot still rejected. Two
+measured pins now hold that down, both mutation-tested:
+
+- **A 1 req/min allowance passes every criterion.** The engine flags only the *abusive* client as
+  `rejected`, so it cannot model what that allowance does to a real uploader, and
+  `real-users-complete` only counts the failure classes the bot is not in. This is the old task's exact
+  defect, reproduced inside the new one — the criteria are blind to it, and `leave-room-for-real-clients`
+  is the only gate that sees it. The test asserts the blindness so that an engine that gains
+  per-client modelling fails loudly instead of leaving the step as folklore.
+- **At 1,000 r/s every criterion still passes.** Also asserted, with `keep-the-load` the only thing
+  that fires — the same shortcut module 11's old task allowed.
+
+The limit band at 6,000 r/s is **anything below 144,000 req/min**, because the engine compares
+`arrivalRate × abusiveShare` against the limit rather than tracking a client: the limiter has exactly
+two outcomes. The solution's 3,600 is chosen because 3,600/60 = 60 r/s is a defensible per-client
+allowance for an upload API, which is the number the lesson argues for rather than the number the
+engine needs.
+
+**Module 11 — lessons and depth**
+
+| Group | Lesson | Words |
+|---|---|---|
+| Distance and bytes | `latency-numbers` | 737 |
+| | `cache-keys-and-ttl` | 731 |
+| What the edge cannot do | `what-a-cdn-cannot-cache` | 745 |
+| | `purging-and-versioning` | 715 |
+| The edge as a platform | `edge-compute` | 768 |
+| | `image-and-video-delivery` | 791 |
+
+**Module 11's old task had one criterion, and a second origin store satisfied it.** The start graph was
+a `client → lb → app → cdn → object_store` chain with a CDN whose hit rate was node-definable, and the
+task's single required criterion was `origin < 10%`. Wiring a **second** `object_store` in parallel
+splits the misses, drops each store to 60%, and passes — capacity, not caching — while the lesson is
+about moving bytes. Rebuilt at **12,000 r/s, every request a 2 MB segment, 8 app instances**:
+
+| | origin | errors | throughput | p95 |
+|---|---|---|---|---|
+| start (hit rate 0) | **120%**, 20,001 shed | **16.7%** | 10,000 | 5.24 ms |
+| hit rate 0.5 | 60.1% | 0% | 12,000 | 3.51 ms |
+| hit rate 0.9 | 12.1% | 0% | 12,000 | 3.27 ms |
+| **solution (0.95)** | **6.1%** | **0%** | **12,000** | **3.20 ms** |
+
+Criteria: `origin-headroom` (< 10%, and its `explain` names the second-store shortcut), `zero-errors`,
+`capacity-served` (≥ 11,500 r/s). Three steps, including `keep-the-load` (`arrivalRate >= 12_000`) —
+without it, "fixing" the incident by lowering traffic to 1,000 r/s passes every criterion, which is the
+same defect module 10 shipped for two slices. The measured control is in the suite: two origin stores
+reach `errorRate 0` and 12,000 r/s and still fail `origin-headroom`.
+
+**A model limitation, disclosed in the lesson and asserted in the test.** The engine has no dimension
+for **bytes**: `effectiveCapacity` is requests per second, so 12,000 requests for 2 MB segments cost the
+origin exactly as much as 12,000 tiny JSON responses, and the 24 GB/s arithmetic that motivates the
+whole module is done on paper rather than measured. Worse for the story, `SimulationResult.bandwidthMbps`
+counts bytes delivered **to viewers per completed request**, so it reads **192,000 Mbit/s at a 0.5 hit
+rate and 192,000 at 0.95** — identical, because a CDN changes where the bytes came from, not what
+arrives. Lesson 5 says both out loud under a heading that names itself a limitation, and
+`tests/system-design-content.test.ts` asserts the bandwidth figure is unchanged, so an engine that
+gains a storage dimension fails the suite instead of quietly falsifying the lesson. This is the same
+device module 9 used for replicas-pass-as-sharding: a limitation stated in prose rots, a limitation
+asserted by a test forces the rewrite.
+
+**Chain warning, answered in the module header.** Module 11's `startGraph` drops the `database` node
+that module 10's solution had. `check:system-design` warns by design. The answer: this canvas is the
+media path, and terminals are picked at random per request, so a second terminal halves every arrival
+before the hit rate is computed — the one number the module grades would stop describing the graph. The
+database is off this canvas for the same reason module 9 dropped the cache, and module 12 brings its
+own failure subject.
+
+**Files and cost.** No new dependency, no engine change:
+
+- `config/system-design/modules/rate-limiting.ts` — rewritten (6 lessons, 3 renamed groups, task +
+  criteria rebuilt, 3 steps)
+- `config/system-design/modules/cdns-and-static-content.ts` — rewritten (6 lessons, 3 groups, task +
+  criteria rebuilt, 3 steps)
+- `tests/system-design-content.test.ts` — fixture `rate-limiting` → `how-systems-fail` for the
+  `unbound` case (fourth time this fixture has moved, and the comment now says why), plus **14
+  assertions** for modules 10 and 11
+
+**Measured, not estimated:**
+
+- **Binding** — `11/15 module(s) converted`. Gate: `All checks passed for 15 module(s), 8 warning(s)`.
+  Composition: **4 unconverted outlines** (all B7) + **4 chain**, each chain warning answered in its
+  module header. `10 → 8`, and both modules left the `unbound` class simultaneously, which is why the
+  warning count fell by two while the lesson count rose by six.
+- **Tests** — **634 passing / 0 failing** (618 after B5). All **16** new assertions were mutated one at
+  a time and observed red, then restored byte-identically (`diff -q` against a backup):
+
+| Mutation | Observed red |
+|---|---|
+| m10 two chapter bindings swapped | `outline order and lesson order disagree` |
+| m10 `startGraph` → `taskGraph(3600)` | `the start graph already satisfies` |
+| m10 app `replicas: 2` → `4` | `the bot must put it over capacity` |
+| m10 solution limit → `200000` | `the bot must receive 429s at the solution` |
+| m10 engine compares `arrivalRate` not `× abusiveShare` | `a 200,000 req/min allowance rejected traffic` |
+| m10 `bot-gets-429s` renamed | `without a rejection criterion` |
+| m10 `concurrency-limits` anchor removed | `no reference to Netflix's adaptive limit` |
+| m10 `leave-room-for-real-clients` lower bound `>= 600` removed | `a 1 req/min allowance passes the step` |
+| m10 `keep-the-load` step deleted | ``module 10: the `keep-the-load` step is missing`` |
+| m11 two chapter bindings swapped | `outline order and lesson order disagree` |
+| m11 `startGraph` → `graph(0.95)` | `the start graph already satisfies` |
+| m11 app `replicas: 8` → `2` | `the origin starts at 40%` |
+| m11 `origin-headroom` bound `< 0.1` → `< 0.7` | `stopped distinguishing capacity from caching` |
+| m11 `bandwidthMbps` made a function of the hit rate | `bandwidth is now a function of the hit rate` |
+| m11 `origin-headroom` renamed | `without a headroom bound` |
+| m11 `Open Connect` anchor removed | `no Open Connect reference` |
+
+  The last engine mutation is the interesting one: it is the only case in the suite that mutates
+  `lib/system-design/engine.ts` to prove a *content* disclosure still holds.
+- **Routes** — **101** prerendered pages under `/system-design` (95 after B5 part 2; +6, because two
+  modules went 3 → 6 lessons). Measured from `.next/server/app/system-design`: **15 module pages + 72
+  lesson pages + 14 task pages** — 14, not 15, because module 5 `api-and-contracts` is a prose module
+  with no task, and that is worth writing down: the arithmetic `modules + lessons + tasks` is wrong by
+  one whenever a prose module exists, and it was wrong in this plan's §1 row until now. Add the
+  `/system-design` index and the route count is 102.
+- **Payload** — module pages **63,531 bytes** (`rate-limiting`) and **65,072** (`cdns-and-static-content`),
+  both 6 lessons, against `caching` at 72,989 for 10 — the overview-type boundary from B2 is holding as
+  lessons are added.
+- **Build** — `Compiled successfully`, **151** static pages generated, `tsc --noEmit` clean.
+- **Sources** — **76 distinct URLs across 62 lessons**, every one `curl`-verified **200** on 2026-11-01.
+  Nothing to replace this time. `openconnect.netflix.com/en/` is the only URL in the set whose *content*
+  was read rather than merely status-checked, because module 11 quotes it in its header and in three
+  lessons.
+
+**Three deviations from the resource map**, all recorded there too:
+
+1. Module 11 ships `purging-and-versioning` **before** `edge-compute` and `image-and-video-delivery`. A
+   purge is the consequence of the cache key, so it closes the caching argument; after segmentation it
+   reads as an appendix to a topic the learner has not met yet.
+2. `edge-compute` carries a **third source**, `openconnect.netflix.com`. The module's anchor is a *cache*
+   programme that deliberately is not a compute platform, and that claim is only checkable against
+   Netflix's own page — a comment above the module is not a source a learner can open.
+3. Module 10's "photo" became **"asset"** throughout (11 occurrences). The D1 ban list rejects the word
+   `photo` because the pre-B4 draft was a photo-sharing app; after B6 every converted module must pass
+   the same substring check, and renaming the noun was cheaper and more honest than exempting a module
+   from a gate the other ten obey.
+
+**What three slices in a row found.** B4, B5 and B6 each began with the same discovery, and it is worth
+naming once rather than three times: **a criterion that measures a consequence can always be satisfied
+by a workaround that does not address the decision.** B4's task shed 96% of traffic and passed a p95
+bound computed over survivors; B5's offered 20,000 r/s to a 20,000 r/s balancer and graded only
+topological validity; B6's graded "a number exists" (m10) and "the origin is idle", satisfiable by a
+second origin (m11). The response has converged and is now the pattern: **steps grade the decision,
+criteria grade the consequence, a control graph proves the workaround is still detectable, and the
+lesson states any limitation the engine cannot measure.** A test asserts the control, so a change that
+makes the workaround pass fails loudly instead of shipping as a lesson that teaches the workaround.
+
+**The pattern applied to B6 caught B6.** The first draft of module 10's rebuilt task repeated the
+defect it was fixing: a second step that evaluated the same expression as the first, and no load gate,
+so the incident could be "solved" by lowering traffic. Neither the build nor the existing suite could
+see it — a step that checks the right thing and a step that checks the same right thing render
+identically. What found it was writing down the step list for this section. That is one more data point
+for the rule that a slice record is a review artefact, not paperwork: the prose forced a claim
+("three steps, each grading something different") that the code could not support.
+
+**Next:** B7 — modules 12–15 (`how-systems-fail`, `timeouts-retries-circuit-breakers`, `idempotency`,
+`chaos-capstone`), 10 lessons, 4 outlines. Story rename first, then the depth pass; renumber contiguously;
+make `SdChapter.lessonSlug` **required** (deferred from B1, safe once no outline is unbound); update the
+tracker and plan 16.
 
 ---
 
