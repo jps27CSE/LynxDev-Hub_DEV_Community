@@ -357,22 +357,26 @@ export type SdTaskDef = {
 /**
  * One node of the left-rail navigation tree. **1 leaf chapter = 1 lesson.**
  *
- * A group has `children`; a leaf has `lessonSlug`. The set of leaves must equal
- * the set of lessons — that is the whole point, and it is enforced by
- * `lib/system-design/content-rules.ts` (both directions), not by this type.
+ * A group has `children`; a leaf binds exactly one lesson. The set of leaves
+ * must equal the set of lessons — that is the whole point, and it is enforced
+ * both directions by `lib/system-design/content-rules.ts`.
  *
- * Why the gate and not the type: 9 of 15 modules still carry an outline that
- * predates the rule (50 leaves for 41 lessons — caching alone promises 7 leaves
- * for 4 lessons). A discriminated union that made `lessonSlug` required would
- * fail `tsc` for all of them at once, which means deleting authored outlines to
- * satisfy a type. They are converted one slice at a time (B2, B4–B7) and the
- * gate is what keeps each conversion honest. **When the last module is
- * converted, make `lessonSlug` required on `children`-less chapters and remove
- * this note.**
+ * **The union below is the second half of that rule, and it is now affordable.**
+ * Until slice B7 it could not be: 9 of 15 modules still carried an outline that
+ * predated the leaf model (50 leaves for 41 lessons — `caching` alone promised 7
+ * leaves for 4 lessons), so requiring `lessonSlug` would have failed `tsc` for
+ * all of them at once and the fix would have been deleting authored outlines to
+ * satisfy a type. They were converted a slice at a time (B2, B4–B7); every leaf
+ * in `config/system-design/modules/` is bound, so the type can now say so and a
+ * new leaf without a lesson is a compile error instead of a warning two gates
+ * later.
  *
- * Until a module is converted, its outline is decorative: `chapters` is not
- * rendered by anything that binds a lesson yet, so a leaf title that promises a
- * lesson is a promise without a page.
+ * The second arm is what keeps this honest rather than merely strict: it exists
+ * so a *group* can omit `lessonSlug`, which is why `children` appears in both
+ * arms. `ChapterLeafLink` still checks `!chapter.lessonSlug` and renders "soon",
+ * because the outline can also arrive as data (`SdModule.chapters` is read from
+ * config, and a future CMS would not be type-checked at all). A type that
+ * removed the possibility would delete the guard along with it.
  */
 export type SdChapter = {
   /** Unique identifier for the chapter */
@@ -381,11 +385,20 @@ export type SdChapter = {
   title: string;
   /** Description or summary of the chapter */
   description?: string;
-  /** Nested sub-chapters (for hierarchical chapter structure) */
+  /** Nested sub-chapters. An empty array still counts as a leaf — see `collectChapterLeaves`. */
   children?: SdChapter[];
-  /** Lesson slug this leaf binds to. Required on leaves once converted. */
-  lessonSlug?: string;
-};
+} & (
+  | {
+      /** The lesson this leaf opens. Required: a leaf with no lesson is a broken link. */
+      lessonSlug: string;
+    }
+  | {
+      /** Absent on a group — a group opens nothing. */
+      lessonSlug?: undefined;
+      /** A group must have children. An empty array is a leaf, and cannot be written this way. */
+      children: SdChapter[];
+    }
+);
 
 /**
  * `sim` — the module ends in a Build Task on the canvas.

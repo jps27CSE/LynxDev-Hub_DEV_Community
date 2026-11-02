@@ -181,8 +181,7 @@ const module: SdModule = {
     {
       slug: "moving-data",
       title: "Moving data",
-      description:
-        "Ownership changes while traffic continues. Twice.",
+      description: "Ownership changes while traffic continues. Twice.",
       children: [
         {
           slug: "rebalancing-shards-chapter",

@@ -1,151 +1,122 @@
-import type { SdGraph, SdModule } from "../types";
+import type { SdEdge, SdGraph, SdModule } from "../types";
+import { defaultNode } from "@/lib/system-design/nodes";
 
-const NO_RETRY = { attempts: 0, backoffMs: 0, jitter: false };
-const WITH_RETRY = { attempts: 3, backoffMs: 50, jitter: true };
+/**
+ * Module 15 — the chaos capstone, converted in slice B7 (plan 17).
+ *
+ * **Netflix anchor.** Chaos Monkey is the tool that made failure a design input
+ * rather than an incident: `github.com/Netflix/chaosmonkey` describes a service
+ * that terminates instances in production at random, on purpose, on a schedule.
+ * The reasoning behind it is the module's thesis — a system whose survival
+ * assumes no instance ever dies is a system with an untested assumption in the
+ * most expensive possible place. Chaos Kong, one level up, does the same to a
+ * whole region.
+ *
+ * **The task.** This is the capstone, so it uses every tier the path has
+ * taught and asks one question: can the design survive being degraded? At
+ * 12,000 requests a second with 5 app instances, no read replicas and an edge
+ * cache that misses everything, the start graph sheds 16.7% of traffic, runs
+ * the API at 120%, the store at 100.1% and the origin at 49.9%. The solution —
+ * 10 app instances, 2 read replicas, a 95% edge hit rate — serves all 12,000
+ * with the API at 60%, the store at 40% and the origin at 3%, and still serves
+ * all 12,000 when both compute tiers are degraded to two thirds (90% and 60%).
+ *
+ * **Why the acceptance test is degradation, not instance death.** `replicas` is
+ * a capacity multiplier in this model, so a `node_down` on `app-1` removes the
+ * node and every replica with it: measured, that is 100% unreachable, which
+ * grades nothing. `degraded` multiplies capacity and is the only dimension the
+ * engine has for "a third of this tier is gone", so that is what the tests
+ * assert — and they assert the `node_down` blindness alongside it, so a later
+ * engine slice fails the suite instead of quietly invalidating the lesson.
+ *
+ * **A second terminal reroutes, it does not fail.** With both `origin-1` and
+ * `db-1` as terminals, taking `cdn-1` down sends its traffic to the surviving
+ * path: measured, 0% errors and the store at 80%. That is not a modelling bug —
+ * a reroute is a real behaviour — but it means "take the CDN away" cannot be
+ * graded as a failure scenario here, so this module does not pretend to.
+ *
+ * **Chain note.** `check:system-design` warns that this `startGraph` drops the
+ * `cache`, `queue` and `worker` nodes module 14's solution carried. Intentional
+ * and answered here: the capstone is the playback path, not the upload path,
+ * and carrying a queue with no traffic through it would make the canvas read as
+ * though the uploader were part of serving a viewer. Three nodes out of eight
+ * is the smallest honest canvas that still contains every tier the reliability
+ * part taught.
+ *
+ * **Video note.** `Pfr_6h3Rqew` is the same walkthrough module 12 opened with,
+ * reused deliberately as the capstone's summary; the caption says so rather
+ * than duplicating it silently.
+ */
 
-function baseNodes(
-  replicas: number,
+const plain = { attempts: 0, backoffMs: 0, jitter: false } as const;
+
+function wire(
+  id: string,
+  from: string,
+  to: string,
+  label: string | null = null,
+): SdEdge {
+  return { id, from, to, label, retry: { ...plain }, partitioned: false };
+}
+
+function playbackGraph(
+  appReplicas: number,
   readReplicas: number,
-  partitions: number,
-  cacheHit: number,
-  cdnHit: number,
-  breaker: boolean,
-): SdGraph["nodes"] {
-  return [
-    { id: "client-1", type: "client", label: "Users", x: 40, y: 200 },
-    {
-      id: "lb-1",
-      type: "load_balancer",
-      label: "Load Balancer",
-      x: 170,
-      y: 200,
-      algorithm: "least_conn",
-      rateLimitPerMin: 6000,
-    },
-    {
-      id: "app-1",
-      type: "app_server",
-      label: "API",
-      x: 320,
-      y: 200,
-      replicas,
-      maxConcurrency: 50,
-      breakerEnabled: breaker,
-    },
-    {
-      id: "cache-1",
-      type: "cache",
-      label: "Cache",
-      x: 490,
-      y: 120,
-      hitRate: cacheHit,
-      ttlMs: 60000,
-      stampedeGuard: true,
-    },
-    { id: "cdn-1", type: "cdn", label: "CDN", x: 490, y: 280, hitRate: cdnHit },
-    {
-      id: "db-1",
-      type: "database",
-      label: "Database",
-      x: 680,
-      y: 200,
-      readReplicas,
-      partitions,
-      hotKeyShare: 0.1,
-    },
-    {
-      id: "queue-1",
-      type: "queue",
-      label: "Queue",
-      x: 860,
-      y: 200,
-      maxDepth: 1000,
-      retryLimit: 3,
-      dlqEnabled: true,
-    },
-  ];
-}
-
-function baseEdges(): SdGraph["edges"] {
-  return [
-    {
-      id: "e1",
-      from: "client-1",
-      to: "lb-1",
-      label: null,
-      retry: NO_RETRY,
-      partitioned: false,
-    },
-    {
-      id: "e2",
-      from: "lb-1",
-      to: "app-1",
-      label: null,
-      retry: NO_RETRY,
-      partitioned: false,
-    },
-    {
-      id: "e3",
-      from: "app-1",
-      to: "cache-1",
-      label: "read",
-      retry: NO_RETRY,
-      partitioned: false,
-    },
-    {
-      id: "e4",
-      from: "app-1",
-      to: "cdn-1",
-      label: "media",
-      retry: NO_RETRY,
-      partitioned: false,
-    },
-    {
-      id: "e5",
-      from: "app-1",
-      to: "db-1",
-      label: "write",
-      retry: WITH_RETRY,
-      partitioned: false,
-    },
-    {
-      id: "e6",
-      from: "app-1",
-      to: "queue-1",
-      label: "enqueue",
-      retry: NO_RETRY,
-      partitioned: false,
-    },
-  ];
-}
-
-function diagramGraph(hardened: boolean): SdGraph {
+  cdnHitRate: number,
+): SdGraph {
   return {
-    nodes: baseNodes(
-      hardened ? 4 : 1,
-      hardened ? 2 : 0,
-      hardened ? 8 : 1,
-      hardened ? 0.9 : 0,
-      hardened ? 0.95 : 0,
-      hardened,
-    ),
-    edges: baseEdges(),
+    nodes: [
+      { ...defaultNode("client", "client-1", 40, 200), label: "Viewers" },
+      { ...defaultNode("load_balancer", "lb-1", 200, 200), label: "Edge" },
+      {
+        ...defaultNode("app_server", "app-1", 380, 200),
+        label: "Playback API",
+        replicas: appReplicas,
+      },
+      {
+        ...defaultNode("cdn", "cdn-1", 560, 120),
+        label: "Open Connect",
+        hitRate: cdnHitRate,
+      },
+      {
+        ...defaultNode("object_store", "origin-1", 740, 120),
+        label: "Video store",
+      },
+      {
+        ...defaultNode("database", "db-1", 560, 300),
+        label: "Playback store",
+        readReplicas,
+      },
+    ],
+    edges: [
+      wire("e1", "client-1", "lb-1"),
+      wire("e2", "lb-1", "app-1"),
+      wire("e3", "app-1", "cdn-1", "media"),
+      wire("e4", "cdn-1", "origin-1", "misses"),
+      wire("e5", "app-1", "db-1", "metadata"),
+    ],
     scenario: {
-      arrivalRate: 2_000,
+      arrivalRate: 12_000,
       writeShare: 0.15,
-      mediaShare: 0.5,
+      mediaShare: 0.6,
       bytesPerMediaRequest: 2_000_000,
-      abusiveShare: 0.05,
-      latencyJitterMs: 5,
+      abusiveShare: 0,
+      latencyJitterMs: 0,
       cacheColdStart: false,
-      replicaLagMs: 20,
+      replicaLagMs: 0,
     },
   };
 }
 
-function taskGraph(hardened: boolean): SdGraph {
-  return diagramGraph(hardened);
-}
+const taskStartGraph = playbackGraph(5, 0, 0);
+const taskSolutionGraph = playbackGraph(10, 2, 0.95);
+
+/** The same design at 1,000 r/s — the load a rehearsal at the wrong size uses. */
+const conceptGraph = (() => {
+  const graph = playbackGraph(5, 0, 0);
+  graph.scenario = { ...graph.scenario, arrivalRate: 1_000 };
+  return graph;
+})();
 
 const module: SdModule = {
   slug: "chaos-capstone",
@@ -153,44 +124,54 @@ const module: SdModule = {
   part: 3,
   partTitle: "Reliability",
   kind: "sim",
-  title: "Chaos — Capstone",
+  title: "Chaos Capstone: Survive the Loss",
   description:
-    "Every chaos toggle at once. Survive node deaths, partitions, degradation, and replica lag with the design you have built across 13 modules.",
+    "One design, every tier, and a deliberate loss. Size the playback path so a third of it can disappear, cache at the edge so the origin never sees the load, and write the postmortem that makes the next rehearsal cheaper than the next outage.",
   story:
-    "This is the capstone. The photo-sharing app has grown from 100 users to a system with load balancing, caching, replicas, sharding, rate limiting, a CDN, timeouts, circuit breakers, bulkheads, idempotency, and a dead-letter queue. Now turn on every chaos toggle at once — kill the leader, partition a replica, degrade a region — and watch whether the design holds. This is what load testing cannot teach.",
+    "Chaos Monkey exists because nobody trusts a system that has only ever been observed while healthy. The playback path is now as complete as this path will make it: an edge, an API tier, a CDN with an origin behind it, and a store with replicas. Twelve thousand requests a second arrive, and the question is not whether any single piece works — every piece works — but whether the design still serves when two thirds of a tier is what remains. We will break it on purpose, measure what is left, and then write down what we learned in the form that makes the next engineer's decision cheaper.",
   chapters: [
     {
-      slug: "chaos-practice",
-      title: "Chaos as a practice",
+      slug: "failure-as-a-practice",
+      title: "Failure as a practice",
       description:
-        "Inject failure on purpose, before production does it for you.",
+        "An untested assumption about failure is a guess with a production deployment.",
       children: [
         {
-          slug: "why-inject",
-          title: "Why inject failure",
-          description: "Find weaknesses in a controlled setting.",
-        },
-        {
-          slug: "what-silently-returns-wrong-data",
-          title: "What silently returns wrong data",
-          description: "Replica lag produces wrong answers, not errors.",
+          slug: "chaos-chapter",
+          title: "Chaos, deliberately",
+          description:
+            "Experiment, steady state, blast radius — the shape of a rehearsal.",
+          lessonSlug: "chaos-as-practice",
         },
       ],
     },
     {
-      slug: "surviving-everything",
-      title: "Surviving everything",
-      description: "All four failure kinds at once.",
+      slug: "the-whole-design",
+      title: "The whole design",
+      description:
+        "Every tier sized for a loss, and an honest accounting of what the canvas cannot show.",
       children: [
         {
-          slug: "node-down",
-          title: "Node down",
-          description: "A node is gone; traffic must reroute.",
+          slug: "surviving-chapter",
+          title: "Surviving the loss",
+          description:
+            "Headroom on each tier, a cache at the edge, and the failures that reroute instead of failing.",
+          lessonSlug: "surviving-everything",
         },
+      ],
+    },
+    {
+      slug: "learning-from-it",
+      title: "Learning from it",
+      description:
+        "The artifact that turns one incident into a permanent improvement.",
+      children: [
         {
-          slug: "partition-and-degrade",
-          title: "Partition and degrade",
-          description: "Network splits and regional degradation.",
+          slug: "postmortem-chapter",
+          title: "Postmortems",
+          description:
+            "Timeline, contributing factors, action items — and no names.",
+          lessonSlug: "postmortems-without-blame",
         },
       ],
     },
@@ -198,32 +179,60 @@ const module: SdModule = {
   lessons: [
     {
       slug: "chaos-as-practice",
-      title: "Chaos as a practice",
-      attribution: "Synthesised from donnemartin/system-design-primer",
+      title: "Break it on purpose",
+      attribution:
+        "Synthesised from Netflix's Chaos Monkey and Simian Army projects, and the AWS Builders' Library on static stability using availability zones.",
+      sources: [
+        {
+          label: "Netflix — Chaos Monkey",
+          url: "https://github.com/Netflix/chaosmonkey",
+        },
+        {
+          label:
+            "AWS Builders' Library — static stability using availability zones",
+          url: "https://aws.amazon.com/builders-library/static-stability-using-availability-zones/",
+        },
+      ],
       sections: [
         {
           kind: "scenario",
-          title: "Everything breaks at once",
-          body: "Load testing shows a design handles 100k req/s. It says nothing about what happens when a node dies, a replica lags, or a network partitions. Real designs die in those moments. Chaos engineering injects those failures on purpose, in a controlled setting, before production does it for you.",
+          title: "The design that has only ever been seen healthy",
+          body: "The playback path is complete: an edge balancer, a Playback API tier, an edge cache with an origin behind it, and a store. Twelve thousand requests a second arrive, every dashboard is green, and nobody has ever observed what happens when a piece of it goes away.\n\nThat is the position every design is in on the day it launches, and it is a position of ignorance rather than safety. The design's failure behaviour exists whether or not anyone has looked at it — the only question is whether the first observation happens in a rehearsal or in an incident. Measured on this canvas with the design as it stands: five API instances against 12,000 requests a second run at 120% of their capacity, the store at 100.1%, and 16.7% of all traffic is shed while every individual component is doing exactly what it was configured to do.",
         },
         {
           kind: "concept",
-          title: "The four failure kinds",
-          body: "Node down: the node is gone and requests through it fail. Degraded: capacity drops (a struggling region). Partition: named edges stop carrying traffic. Replica lag: reads return stale data, not errors. The last is the dangerous one — it produces silently wrong data, not an outage, which is why it is so hard to detect in production.",
+          title: "A rehearsal needs a steady state, not a hope",
+          body: "Chaos engineering is an experiment, and an experiment needs a hypothesis with a measurable answer: *the system serves 12,000 requests a second with zero shed while one tier is degraded*. State it before touching anything, because without it a rehearsal has no pass condition and every outcome can be called a success.\n\nThe steady state is deliberately about what users experience, not about the internals. A CPU number going up is not a violation; requests being shed is. Choosing user-visible metrics as the hypothesis is what prevents the most common failure of these exercises — running them, seeing the graphs move, and concluding something useful happened.",
+        },
+        {
+          kind: "concept",
+          title: "Small, then bigger, then the one you fear",
+          body: "Netflix's tools form a ladder of blast radius: Chaos Monkey terminates instances at random in production, Chaos Gorilla removes a whole availability zone, Chaos Kong removes a whole region. Each rung asks the same question at a different size, and the order matters because the small failure teaches you whether the instrumentation and the runbook work before the big one tests the architecture.\n\nThe ladder also keeps the exercise honest about cost. An instance loss should be a non-event — if it pages someone, the design has no headroom and the larger experiments should wait. A zone loss should be survivable with the surviving capacity, which is the arithmetic this module's task measures. A region loss is a business decision about how much redundancy you are willing to pay for continuously, and it should be written down as one rather than discovered as a surprise.",
+        },
+        {
+          kind: "concept",
+          title: "Inject the failure where the system can learn from it",
+          body: "There are three ways to find out how a design behaves under loss, and they differ in who pays. Read the diagram and reason about it: free, and wrong surprisingly often, because the interaction between two tiers is not visible in either. Wait for production: accurate, and paid for by users. Or inject the failure deliberately, in a controlled window, with the hypothesis written down: accurate, and paid for by an engineering team that chose the time.\n\nThe third option is the only one that produces both knowledge and confidence. It also has a side benefit that is easy to underestimate: the rehearsal exercises the *people*, not just the machines. The runbook, the dashboards, the alert routing and the question of who is allowed to make the call all get tested, and all of them fail in ways no architecture review would reveal.",
+        },
+        {
+          kind: "concept",
+          title: "Rehearse at the load you actually run",
+          body: "An experiment at 1,000 requests a second is not an experiment on a system that serves 12,000. On this canvas the start graph at 1,000 has the API at 10%, the store at 10.2% and the origin at 4.9%: every tier looks comfortable, every degradation is absorbable, and the rehearsal produces a reassuring result that says nothing about production.\n\nThe headroom question only has an answer at the real load, and the answer changes completely — 10% becomes 120% at twelve times the traffic, because capacity is fixed and load is not. This is the single most common way a chaos exercise is worse than none: it certifies a system at a size it never runs at, and the certificate is what people remember when the incident happens.",
         },
         {
           kind: "diagram",
-          caption: "The full hardened design",
-          graph: diagramGraph(true),
+          caption:
+            "The same design at 1,000 r/s: the API at 10%, the store at 10.2%, the origin at 4.9%. Comfortable, and the reason a rehearsal at this load proves nothing about 12,000",
+          graph: conceptGraph,
         },
         {
           kind: "your_turn",
           prompt:
-            "Pick one node in the hardened design. What happens if it dies? Which users are affected, and for how long?",
+            "Write the steady-state hypothesis for a system you know, at the load it actually serves. Then name the smallest failure you could inject this week that would tell you something you do not already know.",
         },
         {
           kind: "compare",
-          body: "A beginner load-tests and ships. A senior engineer chaos-tests: kills the leader, partitions a replica, degrades a region, and verifies the design degrades gracefully rather than collapsing.",
+          body: "A beginner tests the failure behaviour by waiting for it, which means the first experiment is a real outage with real users and no hypothesis. A senior engineer writes the hypothesis, injects the smallest failure that could falsify it, and learns while the window is chosen.\n\nThe trap is rehearsing at a comfortable load. Every tier passes at a fraction of production traffic, the report says the system is resilient, and the number that would have failed — the real one — was never tried.",
         },
         {
           kind: "video",
@@ -231,55 +240,158 @@ const module: SdModule = {
           title:
             "System Design Basics in Bangla | Scalability + Availability + Consistency + Fault Tolerance Explained",
           caption:
-            "Bangla walkthrough of fault tolerance — the capstone theme.",
-        },
-        {
-          kind: "concept",
-          title: "Go deeper (free reads)",
-          body: "Free reading on chaos and resilience:\n\n- [Netflix Tech Blog — Chaos Engineering](https://netflixtechblog.com/tagged/chaos-engineering) — origin of chaos engineering.\n- [Principles of Chaos Engineering](https://principlesofchaos.org/) — the manifesto.\n- [Google SRE Book — Embracing Risk](https://sre.google/sre-book/embracing-risk/) — free online.\n- [AWS: Well-Architected Reliability Pillar](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/) — free guide.",
+            "The same walkthrough that opened this part, deliberately reused as the capstone's summary of fault tolerance.",
         },
         {
           kind: "recap",
           points: [
-            "Load is not failure; failure injection is",
-            "Node down, degraded, partition, replica lag",
-            "Replica lag produces wrong data, not errors",
-            "Chaos finds weaknesses before production does",
+            "An unrehearsed failure behaviour is a guess with a production deployment",
+            "State the steady state first, in numbers users can feel",
+            "Small failures first: instance, then zone, then the one you are afraid of",
+            "Rehearse at the real load — 10% at 1,000 r/s becomes 120% at 12,000",
+            "Measured here: the unrehearsed design sheds 16.7% while every dashboard is green",
           ],
         },
       ],
     },
     {
       slug: "surviving-everything",
-      title: "Surviving everything",
-      attribution: "Synthesised from donnemartin/system-design-primer",
+      title: "Every tier, sized for the loss",
+      attribution:
+        "Synthesised from the AWS Builders' Library on static stability and avoiding fallback, and Google's SRE Book chapter on addressing cascading failures.",
+      sources: [
+        {
+          label:
+            "AWS Builders' Library — static stability using availability zones",
+          url: "https://aws.amazon.com/builders-library/static-stability-using-availability-zones/",
+        },
+        {
+          label: "SRE Book — addressing cascading failures",
+          url: "https://sre.google/sre-book/addressing-cascading-failures/",
+        },
+        {
+          label:
+            "AWS Builders' Library — avoiding fallback in distributed systems",
+          url: "https://aws.amazon.com/builders-library/avoiding-fallback-in-distributed-systems/",
+        },
+      ],
       sections: [
         {
           kind: "scenario",
-          title: "All toggles on",
-          body: "Turn on every chaos toggle at once: kill a node, partition an edge, degrade a region, lag a replica. The design should not collapse. Some requests may fail or return stale data, but the system stays up and recovers when the failure clears.",
+          title: "Three ceilings, one at a time",
+          body: "The design has three places it can run out, and each one has to be fixed in order, because fixing the first exposes the second. Ten API instances and no replicas: the API drops to 60%, the store goes to 120%, and 8.4% of traffic is still shed. Add one read replica: the store drops to 60% and nothing is shed — and the origin is now at 60%, which is a ceiling nobody had looked at because the store was louder.\n\nAdd a second replica and the store sits at 40%; the origin is still at 60%. Only when the edge cache starts absorbing its share does the origin fall — to 29.9% at a 50% hit rate, 6% at 90%, and 3% at 95%. Then both compute tiers can be degraded to two thirds and the design still serves all 12,000 with the API at 90% and the store at 60%.",
         },
         {
           kind: "concept",
-          title: "Graceful degradation",
-          body: "A resilient system degrades gracefully: it serves cached or stale data, returns degraded responses, and sheds load rather than collapsing. The goal is not zero failures; it is bounded blast radius and recovery. Every module you have built contributes: replicas absorb deaths, breakers stop cascades, bulkheads cap damage, DLQs park poison messages.",
+          title: "Sizing is division, not intuition",
+          body: "The rule this module's task enforces is one line of arithmetic: capacity must exceed peak load divided by the fraction of the tier that survives. Lose a third and the fraction is two thirds, so the tier needs 1.5× the peak — and the corresponding headroom line is 66%, because a tier at 66% of capacity is exactly at 99% after losing a third.\n\nThat is why nine API instances fail and ten pass: nine is 18,000 of capacity against 12,000 — 66.7% — and 66.7% degraded to two thirds is 100%, so a tier that was fine a second ago is now shedding. The criterion is that arithmetic, checked when the design is degraded rather than when it is healthy.",
+        },
+        {
+          kind: "concept",
+          title: "A cache at the edge is a capacity decision",
+          body: "It is tempting to treat the CDN as a latency feature and size it after the tiers that matter. The canvas shows the opposite: the origin is a tier with a ceiling, and whether it is a bottleneck depends entirely on what the cache absorbs. At a 0% hit rate the origin carries half the traffic and sits at 60% with the compute tiers already fixed; at 95% it carries 3%.\n\nThat is a read replica one layer further out: you are not making the origin faster, you are removing requests from it. And the criterion is written at 40% rather than at 66% for exactly this reason — an origin at 66% of its capacity is an origin that cannot absorb the reroute when the cache path is unavailable, which is a measured consequence rather than a precaution.",
+        },
+        {
+          kind: "concept",
+          title: "Some failures reroute instead of failing",
+          body: "Take the edge cache away in this graph and the result is surprising: zero requests shed, and the store goes to 80%. Traffic that had two paths now has one, and the engine sends all of it down the surviving path. Take the origin away instead and the result is the same kind of number — nothing shed, the store at 40%.\n\nThat is real behaviour, not a modelling accident: a second terminal means a reroute, which is what a fallback does. It is also a reminder that a fallback's capacity is the thing that decides whether the reroute was a save or a second outage. With one read replica in place of two, the same cache failure sends the store to 120% and sheds 16.7% — the reroute happened, and there was nothing there to receive it.",
+        },
+        {
+          kind: "concept",
+          title: "What this canvas cannot show, and why the test says so",
+          body: "Two limits are worth naming, because each one is a question a reviewer will ask. First, `replicas` is a capacity multiplier, not redundancy: a `node_down` on the API removes the node and every replica with it, which is measured at 100% unreachable. So 'one of thirteen instances died' is not expressible here, and the acceptance test uses `degraded` instead — a capacity factor, which is the honest model of a zone at two thirds of normal.\n\nSecond, the reverse case is equally unflattering: three separate failures — cache down, origin down, store down — all produce zero errors, because each one reroutes. That means this canvas cannot grade 'survives losing the cache' as a failure at all. Both are asserted in the suite, so an engine slice that adds real redundancy or real terminal failure fails it.",
+        },
+        {
+          kind: "diagram",
+          caption:
+            "The finished design at 12,000 r/s: the API at 60%, the store at 40%, the origin at 3%, and nothing shed — with 90% and 60% after both compute tiers are degraded to two thirds",
+          graph: taskSolutionGraph,
         },
         {
           kind: "your_turn",
           prompt:
-            "With all four failure kinds active, which user-facing symptom would you accept, and which would you refuse to ship?",
+            "Remove one thing at a time from the canvas — an API instance, a read replica, the edge cache — and predict each number before you run it. Which did you get wrong, and why?",
         },
         {
           kind: "compare",
-          body: "A beginner claims the design is 'highly available' without testing failure. A senior engineer runs the chaos toggles, measures blast radius, and ships only when degradation is bounded and recovery is automatic.",
+          body: "A beginner sizes each tier for the load it carries today, which produces a design that is exactly adequate and has no answer to a loss. A senior engineer sizes each tier for peak divided by the survival fraction, then checks what the surviving paths carry after a reroute.\n\nThe trap is fixing tiers in the order they appear on the graph rather than the order they saturate. This design had three ceilings and only one was visible at a time; the store's replica exposed the origin, and the origin's cache exposed nothing, because by then the design had room.",
         },
         {
           kind: "recap",
           points: [
-            "Graceful degradation beats collapse",
-            "Bounded blast radius is the goal",
-            "Recovery must be automatic",
-            "Every module contributes to resilience",
+            "Capacity must exceed peak divided by the fraction that survives — 1.5× for a lost third",
+            "A tier at 66% is exactly at 100% after losing a third, which is why nine instances fail",
+            "The edge cache is a capacity decision: 60% of the origin becomes 3%",
+            "A reroute moves the load, so the surviving path needs capacity for all of it",
+            "This canvas models degradation, not instance loss — and the suite asserts both limits",
+          ],
+        },
+      ],
+    },
+    {
+      slug: "postmortems-without-blame",
+      title: "The postmortem nobody is afraid of",
+      attribution:
+        "Synthesised from Google's SRE Book chapter on postmortem culture, and the PagerDuty postmortem documentation.",
+      sources: [
+        {
+          label: "SRE Book — postmortem culture: learning from failure",
+          url: "https://sre.google/sre-book/postmortem-culture/",
+        },
+        {
+          label: "PagerDuty — postmortem documentation",
+          url: "https://postmortems.pagerduty.com/",
+        },
+      ],
+      sections: [
+        {
+          kind: "scenario",
+          title: "The dashboard that reported 9.8 ms",
+          body: "During the incident the latency dashboard was healthy: p95 at 9.8 milliseconds, better than the week before. Throughput was 9,994 requests a second, which looked close enough to the 12,000 the system was designed for. The number that told the truth was a ratio nobody had put on the wall: 16.7% of requests were never served at all.\n\nThat is the shape of most incidents that get written up badly. The metrics were correct; the question was missing. A latency percentile computed over the requests that completed cannot see the ones that were turned away, and a throughput number without the offered rate beside it cannot tell a busy system from a refusing one. The postmortem's first job is to establish what was actually being measured, because the timeline of a metric that was never taken is a fiction.",
+        },
+        {
+          kind: "concept",
+          title: "A timeline, then contributing factors — not a root cause",
+          body: "A useful postmortem has a timeline with timestamps: when the first bad request was served, when it was noticed, when someone understood it, when the mitigation went in, when it was over. Those five moments separate detection from diagnosis from response, and the gaps between them are where most of the improvement lives.\n\nThe reason to write *contributing factors* instead of *root cause* is that a single root cause is almost always a story told backwards. This design had three ceilings — the API at 120%, the store at 100.1%, the origin at 49.9% — and none of them was the cause; the cause was a capacity plan that assumed none of them would ever be lost. 'Root cause: the database was slow' ends the investigation one question too early, and the question it skips is the one that generalises.",
+        },
+        {
+          kind: "concept",
+          title: "Blamelessness is a data-quality requirement",
+          body: "The argument for blameless postmortems is usually made on ethical grounds, and it is sound. The engineering argument is stronger: a postmortem that assigns fault gets a sanitised timeline. The person closest to the action has the most accurate account of it and the most to lose from telling it, so blame selects for the version that protects people rather than the version that is true.\n\nThat matters because the output of a postmortem is a *change*. A timeline that omits 'I ran the command because I had seen it fix this before' produces action items that do not prevent the incident, because the incident was never described. The practical form is simple: name roles and systems in the timeline, not people, and treat every human action as a reasonable response to the information available at that moment.",
+        },
+        {
+          kind: "concept",
+          title: "Action items that are code, not intentions",
+          body: "Every postmortem produces a short list, and the quality test for each item is whether it can be closed by a diff. 'Improve monitoring' cannot be closed; 'alert when served divided by offered drops below 0.98 for five minutes' can. 'Be more careful with capacity' cannot; 'ready check requires peak ÷ survival fraction × 1.1 on every tier' can.\n\nTwo habits make the list useful. Cap it at three or four items, because a list of fourteen is a list of zero. And split it into *mitigated* (this specific failure cannot recur) and *prevented* (the class of failure is less likely), because the first kind is cheap and the second kind is where the real improvement comes from — the capacity formula in this module, and the degradation test in its suite, are both the second kind.",
+        },
+        {
+          kind: "concept",
+          title: "The rehearsal is the last action item",
+          body: "The capstone closes where it opened: the way to know whether the action items worked is to inject the failure again, at the real load, with the same steady-state hypothesis. A design that has been fixed but never re-broken has a new set of untested assumptions, and they are the expensive kind, because they are believed.\n\nThe loop is what makes the practice compound. Each rehearsal produces a postmortem, each postmortem produces diffs, and each diff makes the next rehearsal cheaper to run and less likely to find anything. Netflix's failure injectors are not a stunt; they are the mechanism that keeps a very large system's assumptions from silently decaying between incidents.",
+        },
+        {
+          kind: "diagram",
+          caption:
+            "What the postmortem has to explain: 16.7% of 12,000 requests never served, while p95 reads 9.8 ms over the requests that completed",
+          graph: taskStartGraph,
+        },
+        {
+          kind: "your_turn",
+          prompt:
+            "Write the timeline of one incident you remember, in five moments: first bad request, noticed, understood, mitigated, over. Then write one action item that is a diff and one that is only an intention, and say which you would actually ship.",
+        },
+        {
+          kind: "compare",
+          body: "A beginner writes 'root cause: a bad deploy' and closes the ticket. A senior engineer writes the timeline, names the contributing factors, and produces two diffs and one rehearsal date — because the interesting question is not which change broke it, but why the system was arranged so that one change could.\n\nThe trap is a postmortem with no owner for each item. An action item without a name and a date is a wish, and a wish is what the next postmortem cites as the previous one's conclusion.",
+        },
+        {
+          kind: "recap",
+          points: [
+            "Metrics were correct and the question was missing: p95 over survivors hides the shed requests",
+            "Timeline first, then contributing factors — root cause ends the investigation too early",
+            "Blamelessness is what makes the timeline accurate, not just what makes people comfortable",
+            "Close each action item with a diff, and keep the list to three or four",
+            "Re-inject the failure at the real load, or the fixes are the next set of untested assumptions",
           ],
         },
       ],
@@ -287,100 +399,164 @@ const module: SdModule = {
   ],
   interviewByte: {
     shape:
-      "Every chaos toggle at once. How does your design survive, and what degrades?",
+      "Here is a playback path: edge, API tier, CDN, origin, store. Twelve thousand requests a second. Convince me it survives losing a third of any tier.",
     strongAnswer:
-      "With replicas, a node death is absorbed by the load balancer. With a circuit breaker, a dead dependency stops being called and the API serves degraded responses. With a bulkhead, concurrency to a slow dependency is capped. With a CDN and cache, most reads never reach the origin. With rate limiting, a bot cannot drown real users. With idempotency keys and a DLQ, retries are safe and poison messages are parked. Under all four failure kinds, the app degrades: some requests fail or return stale data, but the system stays up and recovers automatically when failures clear.",
-    trap: "Claiming the design has zero failures under chaos. A resilient system degrades; it does not pretend nothing broke.",
+      "I would answer with numbers rather than adjectives. At 12,000 requests a second, 10 API instances put the tier at 60% and 2 read replicas put the store at 40%, so degrading either to two thirds lands at 90% and 60% with nothing shed — that is the arithmetic I would put in the review. The CDN matters because it changes what the origin sees: a 95% hit rate takes the origin from 50% to 3%, which is the difference between an origin that is a bottleneck and one that is a cache-fill service. Then I would say what the model cannot prove: replicas are capacity, not redundancy, so losing a node is not the same as losing a third of a tier, and a second terminal reroutes rather than fails. And I would rehearse it, because a design that has never been broken is a design whose failure behaviour is unknown.",
+    trap: "Answering with 'we have three availability zones' and no headroom number, or claiming the design survives a node loss when all replicas of a tier live on one node. Both sound like resilience and neither is measured.",
   },
   task: {
     brief:
-      "The full hardened design. Verify it stays up with healthy utilisation across all nodes.",
-    startGraph: taskGraph(false),
-    solutionGraph: taskGraph(true),
+      "This is the capstone: 12,000 requests a second through the edge, the API tier, the CDN and the store. Size every tier so that losing a third of either compute tier still serves every request, and cache at the edge so the origin is not the bottleneck. Zero requests shed, at least 11,900 served, and no tier above the headroom line.",
+    startGraph: taskStartGraph,
+    solutionGraph: taskSolutionGraph,
     steps: [
       {
-        id: "harden-design",
-        title: "Harden the design",
+        id: "size-the-api",
+        title: "Size the API for a lost third",
         brief:
-          "Enable redundancy across app, database, cache, CDN, and breaker so no single node is a SPOF.",
-        hint: "Raise replicas, read replicas, partitions, cache hit rate, CDN hit rate, and enable the breaker.",
+          "Five instances put the API at 120% of capacity before anything fails. Ten put it at 60%, which is what makes a two-thirds degradation survivable.",
+        hint: "Select the Playback API and raise Replicas.",
         reveal:
-          "Set app replicas 4, db read replicas 2, partitions 8, cache hit 0.9, CDN hit 0.95, breaker on, maxConcurrency 50.",
+          "At 12,000 requests a second an instance serves 2,000, so five instances are 10,000 of capacity — already over the load. Nine are 18,000 and land at 66.7%, just over the line; ten are 20,000 and sit at 60%, and 90% when degraded to two thirds.",
         check: (graph) => {
-          const app = graph.nodes.find((n) => n.type === "app_server");
-          const db = graph.nodes.find((n) => n.type === "database");
-          const cache = graph.nodes.find((n) => n.type === "cache");
-          const cdn = graph.nodes.find((n) => n.type === "cdn");
-          const passed =
-            !!app &&
-            (app as any).replicas >= 4 &&
-            !!db &&
-            (db as any).readReplicas >= 2 &&
-            (db as any).partitions >= 8 &&
-            !!cache &&
-            (cache as any).hitRate >= 0.9 &&
-            !!cdn &&
-            (cdn as any).hitRate >= 0.95 &&
-            !!app &&
-            (app as any).breakerEnabled === true;
+          const app = graph.nodes.find((node) => node.type === "app_server");
+          const replicas = app?.type === "app_server" ? app.replicas : 0;
+          const passed = replicas >= 10;
           return {
             passed,
             progress: passed
-              ? "✓ Design hardened"
-              : "Enable redundancy on all nodes",
+              ? `✓ ${replicas} instances — ${((12_000 / (replicas * 2_000)) * 100).toFixed(0)}% at 12,000 r/s`
+              : `${replicas} instances — ${((12_000 / Math.max(1, replicas * 2_000)) * 100).toFixed(0)}% at 12,000 r/s, raise to 10`,
+          };
+        },
+      },
+      {
+        id: "size-the-store",
+        title: "Size the store for a lost third",
+        brief:
+          "One store node is 5,000 requests a second of capacity against 12,000 of load. Two read replicas take it to 25% of the load and leave room for a lost third.",
+        hint: "Select the Playback store and raise Read Replicas.",
+        reveal:
+          "The store serves 5,000 requests a second per replica set, and each read replica adds one. One replica is 10,000 of capacity and passes the headroom line at 60% — until the edge cache is taken away and the whole 12,000 reroutes here: measured, one replica then goes to 120% and sheds 16.7%. Two replicas are 15,000, sit at 40%, and reach 60% when degraded to two thirds.",
+        check: (graph) => {
+          const db = graph.nodes.find((node) => node.type === "database");
+          const replicas = db?.type === "database" ? db.readReplicas : 0;
+          const capacity = 5_000 * (1 + replicas);
+          const passed = replicas >= 2;
+          return {
+            passed,
+            progress: passed
+              ? `✓ ${replicas} read replica(s) — ${capacity.toLocaleString()} r/s of capacity`
+              : `${replicas} read replica(s) — ${capacity.toLocaleString()} r/s of capacity, raise to 2`,
+          };
+        },
+      },
+      {
+        id: "cache-at-the-edge",
+        title: "Take the origin out of the request path",
+        brief:
+          "An edge cache that misses everything makes the origin a tier on every media request. Raise the hit rate so the origin only sees the misses.",
+        hint: "Select Open Connect and raise its hit rate. At 0, every media request reaches the origin.",
+        reveal:
+          "At a 95% hit rate the origin sees 3% of the traffic instead of 50%. The criterion only asks for under 40%, and a 50% hit rate gets there — but a cache that serves half its traffic is a cache sized for the load it was supposed to remove.",
+        check: (graph) => {
+          const cdn = graph.nodes.find((node) => node.type === "cdn");
+          const hitRate = cdn?.type === "cdn" ? cdn.hitRate : 0;
+          const passed = hitRate >= 0.9;
+          return {
+            passed,
+            progress: passed
+              ? `✓ ${(hitRate * 100).toFixed(0)}% edge hit rate`
+              : `${(hitRate * 100).toFixed(0)}% edge hit rate — the origin sees the misses`,
+          };
+        },
+      },
+      {
+        id: "keep-the-load",
+        title: "Do not shrink the problem",
+        brief:
+          "12,000 requests a second is the design load. Lowering the arrival rate makes every criterion pass while nothing has been sized.",
+        hint: "Check the scenario's arrival rate in the inspector.",
+        reveal:
+          "At 1,000 requests a second the start graph passes everything. The capstone is not about a quiet system; it is about this one, at this load, losing a third of a tier.",
+        check: (graph) => {
+          const arrivals = graph.scenario.arrivalRate;
+          return {
+            passed: arrivals >= 12_000,
+            progress:
+              arrivals >= 12_000
+                ? `✓ ${arrivals.toLocaleString()} r/s — the load is unchanged`
+                : `${arrivals.toLocaleString()} r/s is below the 12,000 r/s the design must serve`,
           };
         },
       },
     ],
     passCriteria: [
       {
-        id: "p95",
-        label: "p95 < 200 ms",
+        id: "zero-errors",
+        label: "Zero requests shed",
         required: true,
         explain:
-          "With caching, replicas, and breakers, latency stays low even under load.",
-        assert: (result) => result.valid && result.latency.p95 < 200,
+          "The start graph sheds 16.7% of traffic across three separate ceilings — the API at 120%, the store at 100.1% and the origin at 49.9%. Every failure class has to be zero.",
+        assert: (result) =>
+          result.valid &&
+          (result.errorClasses.shed ?? 0) === 0 &&
+          (result.errorClasses.unreachable ?? 0) === 0 &&
+          (result.errorClasses.stale ?? 0) === 0 &&
+          (result.errorClasses.rejected ?? 0) === 0,
       },
       {
-        id: "error-rate",
-        label: "Error rate < 5%",
+        id: "capacity-served",
+        label: "At least 11,900 requests a second served",
         required: true,
         explain:
-          "Redundancy and breakers keep failures bounded so almost all requests succeed.",
-        assert: (result) => result.valid && result.errorRate < 0.05,
+          "Throughput has to reach the offered rate. The start graph settles at 9,994 a second, and a design that stops shedding at the edge while the origin still saturates has moved the queue, not removed it.",
+        assert: (result) => result.valid && result.throughput >= 11_900,
       },
       {
-        id: "app-headroom",
-        label: "App utilisation < 50%",
+        id: "api-headroom",
+        label: "API tier under 66% utilisation",
         required: true,
         explain:
-          "Four app replicas spread load so no single instance is saturated.",
+          "Under 66% is what makes a lost third survivable: degrade the tier to two thirds and it lands at 99%, still serving. The start graph is at 120%, which is not a headroom problem but an outage.",
         assert: (result) => {
           const app = result.perNode.find((node) => node.id === "app-1");
-          return result.valid && !!app && app.utilisation < 0.5;
+          return result.valid && !!app && app.utilisation < 0.66;
         },
       },
       {
-        id: "db-headroom",
-        label: "Database utilisation < 50%",
+        id: "store-headroom",
+        label: "Store under 66% utilisation",
         required: true,
-        explain: "Caching and replicas keep the database out of saturation.",
+        explain:
+          "The store is at 100.1% in the start graph, which is why the capstone cannot be solved by sizing compute alone. It has its own criterion because it is its own failure.",
         assert: (result) => {
           const db = result.perNode.find((node) => node.id === "db-1");
-          return result.valid && !!db && db.utilisation < 0.5;
+          return result.valid && !!db && db.utilisation < 0.66;
+        },
+      },
+      {
+        id: "origin-headroom",
+        label: "Origin under 40% utilisation",
+        required: true,
+        explain:
+          "The origin is the tier caching exists to protect. At 49.9% in the start graph it is not a cache-fill service, it is a tier serving half the traffic — and a CDN whose misses are that expensive is a CDN that has not been finished.",
+        assert: (result) => {
+          const origin = result.perNode.find((node) => node.id === "origin-1");
+          return result.valid && !!origin && origin.utilisation < 0.4;
         },
       },
     ],
   },
   recap: [
-    "Load is not failure; failure injection is",
-    "Node down, degraded, partition, replica lag",
-    "Replica lag produces wrong data, not errors",
-    "Graceful degradation beats collapse",
-    "Every module contributes to resilience",
+    "Inject failure on purpose, or the first test of your failure behaviour is an incident",
+    "State the steady state first, so a rehearsal has an answer to compare against",
+    "Size every tier for the fraction that survives — and measure it before the outage",
+    "A cache at the edge changes what the origin is asked to do, which is the whole point of it",
+    "Write the postmortem without names, or the next one will not contain the truth",
   ],
   attribution:
-    "Synthesised from donnemartin/system-design-primer (375k★), algomaster.io and KodeKloud System Design For Beginners",
+    "Synthesised from Netflix's Chaos Monkey and Simian Army projects, the AWS Builders' Library on static stability, Google's SRE Book on cascading failures, handling overload and postmortem culture, and the PagerDuty postmortem documentation. Sources are linked per lesson; every capacity figure and error rate comes from this module's canvas.",
 };
 
 export default module;

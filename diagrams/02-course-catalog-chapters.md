@@ -60,7 +60,7 @@ sequenceDiagram
 7. If signed in, calls `getEnrollmentsByClerkId(userId)` -> `SELECT ... FROM enrollments WHERE user_id=?`.
 8. TiDB returns enrollment rows with JSON `progress`.
 9. Finds the enrollment for this course.
-10. Computes: `completedIds` = Set of `progress.completedChapters`; `completedCount` = chapters filtered by completedIds; `isEnrolled` = !!enrollment; `courseComplete` = isEnrolled && chapters.length>0 && completedCount===chapters.length; `pct` = round(completedCount/chapters.length*100); `resumeHref` = enrollment.nextChapterId ? `/learn/{id}/{nextChapterId}` : `/learn/{id}/{chapters[0].id}`.
+10. Computes: `completedIds` = Set of `progress.completedChapters`; `completedCount` = chapters filtered by completedIds; `isEnrolled` = !!enrollment; `courseComplete` = isEnrolled && chapters.length>0 && completedCount===chapters.length; `pct` = round(completedCount/chapters.length\*100); `resumeHref` = enrollment.nextChapterId ? `/learn/{id}/{nextChapterId}` : `/learn/{id}/{chapters[0].id}`.
 11. Renders: hero card (title, difficulty badge, icon, points), ChapterTimeline with completed ticks, and EnrollButton if not enrolled OR Resume button + progress bar + % if enrolled.
 
 ## Data flow

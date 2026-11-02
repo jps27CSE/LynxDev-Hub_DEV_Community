@@ -294,7 +294,9 @@ being deliberately not a compute platform — the point is only checkable agains
 `vz6ShBpxt2U` stays on `latency-numbers` alone: it is a 15-minute overview of CDN + message queue +
 API gateway, and a second lesson re-embedding it would be a duplicate, not a supplement.
 
-### M12 · how-systems-fail (5 lessons — one added)
+### M12 · how-systems-fail (5 lessons) — converted in B7
+
+Anchor: Simian Army / Chaos Monkey — `github.com/Netflix/SimianArmy`, `github.com/Netflix/chaosmonkey`.
 
 Videos: `Pfr_6h3Rqew` ✅ · `osfhB8rd55A` 🆕 · `8itMutVwl_c` 🆕
 
@@ -302,42 +304,74 @@ Videos: `Pfr_6h3Rqew` ✅ · `osfhB8rd55A` 🆕 · `8itMutVwl_c` 🆕
 |---|---|---|
 | `trace-your-own-design` | `Pfr_6h3Rqew` ✅ | [AWS — static stability](https://aws.amazon.com/builders-library/static-stability-using-availability-zones/) · [SRE — cascading failures](https://sre.google/sre-book/addressing-cascading-failures/) |
 | `retry-storms` | — | [AWS — timeouts, retries, backoff with jitter](https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/) · [SRE — cascading failures](https://sre.google/sre-book/addressing-cascading-failures/) |
-| `cascades` | `osfhB8rd55A` | [SRE — addressing cascading failures](https://sre.google/sre-book/addressing-cascading-failures/) · [AWS — avoiding fallback](https://aws.amazon.com/builders-library/avoiding-fallback-in-distributed-systems/) |
-| `blast-radius-and-bulkheads` | — | [AWS — static stability](https://aws.amazon.com/builders-library/static-stability-using-availability-zones/) · [AWS — leader election](https://aws.amazon.com/builders-library/leader-election-in-distributed-systems/) |
-| **`logging-monitoring-and-traces`** (new) | `8itMutVwl_c` | [OpenTelemetry — observability primer](https://opentelemetry.io/docs/concepts/observability-primer/) · [Brendan Gregg — USE method](https://www.brendangregg.com/usemethod.html) · [SRE — postmortem culture](https://sre.google/sre-book/postmortem-culture/) |
+| `cascades` | `osfhB8rd55A` 🆕 | [SRE — addressing cascading failures](https://sre.google/sre-book/addressing-cascading-failures/) · [AWS — avoiding fallback](https://aws.amazon.com/builders-library/avoiding-fallback-in-distributed-systems/) |
+| `blast-radius-and-bulkheads` | — | [AWS — static stability](https://aws.amazon.com/builders-library/static-stability-using-availability-zones/) · [Netflix — Simian Army](https://github.com/Netflix/SimianArmy) |
+| **`logging-monitoring-and-traces`** (new) | `8itMutVwl_c` 🆕 | [OpenTelemetry — observability primer](https://opentelemetry.io/docs/concepts/observability-primer/) · [Brendan Gregg — USE method](https://www.brendangregg.com/usemethod.html) · [SRE — postmortem culture](https://sre.google/sre-book/postmortem-culture/) |
 
-### M13 · timeouts-retries-circuit-breakers (5 lessons)
+`blast-radius-and-bulkheads` originally carried **leader election** as its second read, which is a
+different problem (who is primary, not how much damage a failure does). It was replaced with the module's
+own anchor, so the last lesson of the failure block can be checked against the tool that creates failures
+on purpose.
 
-Videos: none specific — the failure simulator is the teaching device
+### M13 · timeouts-retries-circuit-breakers (5 lessons) — converted in B7
+
+Anchor: Hystrix — `github.com/Netflix/Hystrix`. Videos: none specific; the failure simulator on the
+canvas is the teaching device, and the module's own measurements carry the argument.
 
 | Lesson | Go deeper |
 |---|---|
 | `no-timeout-is-worse` | [AWS — timeouts, retries, backoff](https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/) · [SRE — cascading failures](https://sre.google/sre-book/addressing-cascading-failures/) |
 | `retries-and-jitter` | [AWS — timeouts, retries, backoff with jitter](https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/) · [AWS — idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/) |
-| `breakers-and-bulkheads` | [Fowler — circuit breaker](https://martinfowler.com/bliki/CircuitBreaker.html) · [Circuit breaker pattern](https://en.wikipedia.org/wiki/Circuit_breaker_design_pattern) |
+| `breakers-and-bulkheads` | [Fowler — circuit breaker](https://martinfowler.com/bliki/CircuitBreaker.html) · [Circuit breaker pattern](https://en.wikipedia.org/wiki/Circuit_breaker_design_pattern) · [Netflix — Hystrix](https://github.com/Netflix/Hystrix) |
 | `timeout-budgets` | [AWS — timeouts, retries, backoff](https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/) · [SRE — handling overload](https://sre.google/sre-book/handling-overload/) |
 | `fallbacks-and-degradation` | [AWS — avoiding fallback](https://aws.amazon.com/builders-library/avoiding-fallback-in-distributed-systems/) · [SRE — handling overload](https://sre.google/sre-book/handling-overload/) |
 
-### M14 · idempotency (4 lessons)
+`breakers-and-bulkheads` takes the module's **third** source — Hystrix itself — because the lesson's
+central claim is about what a real breaker does when it opens, and neither Fowler's bliki nor Wikipedia
+shows the implementation that made the pattern standard.
+
+### M14 · idempotency (4 lessons) — converted in B7
+
+Anchor: the cloud-migration post's ordering — billing left the data centre **last**, seven years in.
+`about.netflix.com/en/news/completing-the-netflix-cloud-migration` is the linkable source. The companion
+piece, *Netflix Billing Migration to AWS*, says it best — *"for a company, its billing solution is its
+financial lifeline"* — and is cited **by title only**: `netflixtechblog.com` returns 403 to non-browser
+clients (§5), so it cannot be a `sources` entry.
 
 Videos: none specific
 
 | Lesson | Go deeper |
 |---|---|
-| `at-least-once-delivery` | [Kafka documentation](https://kafka.apache.org/documentation/) · [SQS — dead-letter queues](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) |
-| `idempotency-keys` | [Stripe — idempotent requests](https://docs.stripe.com/api/idempotent_requests) · [AWS — idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/) |
+| `at-least-once-delivery` | [Kafka documentation](https://kafka.apache.org/documentation/) · [AWS — idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/) |
+| `idempotency-keys` | [Stripe — idempotent requests](https://docs.stripe.com/api/idempotent_requests) · [AWS — idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/) · [Idempotence](https://en.wikipedia.org/wiki/Idempotence) |
 | `exactly-once-is-a-lie` | [Kafka documentation](https://kafka.apache.org/documentation/) · [Idempotence](https://en.wikipedia.org/wiki/Idempotence) |
 | `dead-letter-queues` | [SQS — DLQ](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) · [AWS — insurmountable queue backlogs](https://aws.amazon.com/builders-library/avoiding-insurmountable-queue-backlogs/) |
 
-### M15 · chaos-capstone (3 lessons)
+Two changes from the plan: `at-least-once-delivery` swaps the SQS DLQ guide for the AWS idempotent-APIs
+article (the DLQ is the *fourth* lesson's subject, and lesson 1 is about delivery semantics), and
+`idempotency-keys` gains the Wikipedia definition as a third read so the lesson's first claim — "applying
+it twice leaves the same state" — has a source that states it plainly.
 
-Videos: `Pfr_6h3Rqew` ✅
+### M15 · chaos-capstone (3 lessons) — converted in B7
+
+Anchor: the blast-radius ladder — Chaos Monkey (an instance), Chaos Gorilla (a zone), Chaos Kong (a
+region). `github.com/Netflix/chaosmonkey` is the source for the first rung.
+
+Videos: `Pfr_6h3Rqew` ✅ — **reused from M12, deliberately.** The playlist has no chaos-specific video,
+so the capstone re-embeds the fault-tolerance walkthrough that opens the reliability part and the caption
+says it is a repeat. An honest repeat is better than a paraphrase presented as new material.
 
 | Lesson | Video | Go deeper |
 |---|---|---|
-| `chaos-as-practice` | `Pfr_6h3Rqew` ✅ | [AWS — static stability](https://aws.amazon.com/builders-library/static-stability-using-availability-zones/) · [PagerDuty postmortems](https://postmortems.pagerduty.com/) |
-| `surviving-everything` | — | [SRE — cascading failures](https://sre.google/sre-book/addressing-cascading-failures/) · [SRE — handling overload](https://sre.google/sre-book/handling-overload/) |
+| `chaos-as-practice` | `Pfr_6h3Rqew` ✅ | [Netflix — Chaos Monkey](https://github.com/Netflix/chaosmonkey) · [AWS — static stability](https://aws.amazon.com/builders-library/static-stability-using-availability-zones/) |
+| `surviving-everything` | — | [AWS — static stability](https://aws.amazon.com/builders-library/static-stability-using-availability-zones/) · [SRE — cascading failures](https://sre.google/sre-book/addressing-cascading-failures/) · [AWS — avoiding fallback](https://aws.amazon.com/builders-library/avoiding-fallback-in-distributed-systems/) |
 | `postmortems-without-blame` | — | [SRE — postmortem culture](https://sre.google/sre-book/postmortem-culture/) · [PagerDuty postmortems](https://postmortems.pagerduty.com/) |
+
+`surviving-everything` carries **three** reads because it makes three claims a learner may want to check
+separately: that headroom is sized for the surviving fraction (static stability), that a cascade is what
+a lost third actually looks like (SRE), and that a fallback's capacity decides whether a reroute is a save
+(avoiding fallback). The capstone is where those three meet, so it is the one lesson where the 3-source
+limit is fully used rather than merely permitted.
 
 ---
 
@@ -417,6 +451,8 @@ Run 2026-10-27. **66 URLs tested across four batches; all 200 except the four be
 
 Note: Cloudflare and Nginx serve 403 to non-browser clients. They are good pages; they are simply **not verifiable by the gate**, so they are not in the map. A link the gate cannot check will rot unnoticed.
 
+**Re-run 2026-11-02, before B7 shipped — all 91 distinct `sources` URLs pass, and Phase B is complete.** The sweep covered **every** `sources` entry in all **fifteen** converted modules (79 lessons): **91 distinct URLs**, **91 × 200**, nothing to replace. The four B7 modules contribute **20 distinct URLs**, and the union is 91 rather than 96 because **five** of those 20 were already cited elsewhere in the path — SRE's *cascading failures*, *handling overload* and *postmortem culture* chapters, AWS's *idempotent APIs* article, and Stripe's *idempotent requests* page. The sweep is over the set: a URL used by three modules is one check, so `76 + 20 − 5 = 91` is the arithmetic and the per-module totals add up to more. The three video ids embedded in B7 (`Pfr_6h3Rqew`, `osfhB8rd55A`, `8itMutVwl_c`) were checked through YouTube's **oEmbed** endpoint rather than by status alone, so the titles are confirmed rather than assumed — a video id that resolves is not the same as a video that is what the lesson says it is. Worth noting what the sweep could *not* check: `about.netflix.com/en/news/completing-the-netflix-cloud-migration` is in the set and is quoted verbatim in three modules, but only its status was machine-checked; the sentence module 14 is built on (*"a secure and durable cloud path for our billing infrastructure"*) came from reading the page.
+
 **Re-run 2026-11-01, before B6 shipped — all 76 shipped links pass, and the two new modules added 11 of them.** Every `sources` URL in the eleven converted modules (**76 distinct URLs across 62 lessons**) returned **200** under the same plain-`curl` procedure, with nothing to replace this time. The count grew by 11 rather than 12 because module 10's `distributed-rate-limiting` reuses Stripe's rate-limits page already cited by two lessons in the same module. `openconnect.netflix.com/en/` was checked the same way and is in the set — it is the only URL here whose *content* was read rather than merely status-checked, because it is quoted verbatim in module 11's header and in three lesson bodies.
 
 **Re-run 2026-10-30, before B5 part 2 shipped — all 65 shipped links pass; the one replacement that had itself gone bad was caught here.** Every URL that appears as a `sources` entry in the nine converted modules (**65 distinct URLs**) returned **200** under the plain-`curl` procedure above. The failure was in a URL that had *not* yet been wired in: `https://www.toptal.com/big-data/consistent-hashing`, the replacement chosen for the Princeton 404 earlier in this section, now returns **403** to a non-browser client. The `consistent-hashing` lesson cites Wikipedia's *Consistent hashing* and the system-design primer instead, and the map row no longer carries Toptal. The 2026-10-27 batch had recorded it as 200, so one of the two measurements is wrong and there is no way from here to know which — either the first check followed a redirect to something cached, or Toptal changed policy in three days. That ambiguity is the argument for re-running the sweep per slice rather than once per plan: the first run is a snapshot of a moving target, and a stale 200 reads exactly like a live link until a learner clicks it. Note also that the 65 that pass were checked with the *same* command that failed Toptal, so this is a comparison and not a softer test.
@@ -427,7 +463,7 @@ Note: Cloudflare and Nginx serve 403 to non-browser clients. They are good pages
 
 ## 6. What this changes in plan 17
 
-1. **M12 gains a fifth lesson** — `logging-monitoring-and-traces`. Phase B becomes **15 modules / 79 lessons**.
+1. **M12 gains a fifth lesson** — `logging-monitoring-and-traces`. Phase B becomes **15 modules / 79 lessons**, and that is the count that shipped: 79 lessons, every leaf bound, 108 prerendered files under `/system-design` (plan 17 §7.7).
 2. **M5 is video-rich** — 6 of the 31 videos land there, which makes the prose module the best-covered part of the path. It also confirms M5 must come before M6.
 3. **`sources` is now a content requirement**, not an optional field: every Phase B lesson in §2 has at least one verified free read. The gate in §4.4 of plan 17 checks them.
 4. **18 of 31 videos** are placed in Phase B; 8 wait for Phase C; 1 has no home (video 8, §3.2); 4 are optional/duplicates (2, 6, 7, 13 already embedded elsewhere). 18 + 8 + 1 + 4 = 31 — the map accounts for every video, which is the only way to tell a complete map from a plausible one.

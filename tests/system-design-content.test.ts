@@ -121,14 +121,44 @@ describe("content rules — chapter leaves", () => {
   });
 
   it("classifies an outline with no bindings as unbound, not as complete", () => {
-    // `caching` was the fixture until slice B4 converted it, then `read-replicas`
-    // until B5 converted it, then `rate-limiting` and `cdns-and-static-content`
-    // until B6 converted both. The assertion has to name a module that is still
-    // unconverted, or it starts testing the converted case and quietly stops
-    // covering the one it was written for. `how-systems-fail` is the next
-    // module in line (B7).
-    const mod = bySlug("how-systems-fail");
-    assert.equal(inspectChapterBinding(mod).status, "unbound");
+    // The fixture used to be a real module, named in turn as each one was
+    // converted (`caching` → `read-replicas` → `rate-limiting` →
+    // `cdns-and-static-content` → `how-systems-fail`). Slice B7 converted the
+    // last of them, so there is no unconverted module left to point at — and the
+    // assertion had already stopped covering what it was written for a slice
+    // earlier, because it was testing whichever module happened to still be
+    // behind rather than the rule.
+    //
+    // So the fixture is now local, and it has to step outside the type to exist:
+    // `SdChapter` requires `lessonSlug` on a leaf (see the union in
+    // `config/system-design/types.ts`), which is exactly the guarantee this
+    // rule provides at runtime for outlines that arrive as data. A hand-authored
+    // or CMS-authored chapter is not type-checked, so the status still has to be
+    // reachable and still has to be correct.
+    const unbound: SdChapter = {
+      slug: "unbound-leaf",
+      title: "Unbound",
+      lessonSlug: undefined as unknown as string,
+    };
+    assert.equal(
+      inspectChapterBinding({ chapters: [unbound] }).status,
+      "unbound",
+    );
+
+    // `partial` is the state that must never be intentional: some leaves bound,
+    // some not. It gets its own fixture for the same reason.
+    const partial: SdChapter = {
+      slug: "group",
+      title: "Group",
+      children: [
+        unbound,
+        { slug: "bound-leaf", title: "Bound", lessonSlug: "b" },
+      ],
+    };
+    assert.equal(
+      inspectChapterBinding({ chapters: [partial] }).status,
+      "partial",
+    );
   });
 });
 
@@ -1330,5 +1360,647 @@ describe("content model — module 11 (CDNs and static content)", () => {
       );
     }
     assert.doesNotMatch(prose, /\bour app\b/i);
+  });
+});
+
+describe("content model — module 12 (how systems fail)", () => {
+  let mod: SdModule;
+  before(() => {
+    mod = bySlug("how-systems-fail");
+  });
+
+  const withFailures = (
+    graph: SdGraph,
+    kind: "degraded" | "node_down",
+    ids: string[],
+  ) =>
+    simulate(
+      graph,
+      ids.map((nodeId, index) => ({
+        id: `f${index}`,
+        kind,
+        nodeId,
+        ...(kind === "degraded" ? { factor: 2 / 3 } : {}),
+      })) as Parameters<typeof simulate>[1],
+    );
+
+  it("is bound, with 5 leaf chapters for 5 lessons", () => {
+    assert.equal(inspectChapterBinding(mod).status, "bound");
+    assert.equal(collectChapterLeaves(mod.chapters).length, 5);
+    assert.equal(mod.lessons.length, 5);
+    assert.deepEqual(
+      lessonNav(mod).map((entry) => entry.slug),
+      [
+        "trace-your-own-design",
+        "retry-storms",
+        "cascades",
+        "blast-radius-and-bulkheads",
+        "logging-monitoring-and-traces",
+      ],
+      "how-systems-fail: outline order and lesson order disagree",
+    );
+  });
+
+  it("fails every required criterion at the start and passes them at the finish", () => {
+    const task = mod.task;
+    assert.ok(task, "module 12 is a sim module and must carry a task");
+
+    const start = simulate(task.startGraph);
+    const solved = simulate(task.solutionGraph);
+
+    const required = task.passCriteria.filter((c) => c.required);
+    const startPassed = required.filter((c) => c.assert(start));
+    assert.deepEqual(
+      startPassed.map((c) => c.id),
+      [],
+      `module 12: the start graph already satisfies ${startPassed.map((c) => c.id).join(", ")}`,
+    );
+    for (const criterion of task.passCriteria) {
+      assert.ok(
+        criterion.assert(solved),
+        `module 12: solution fails "${criterion.id}" — the task has no reachable finish`,
+      );
+    }
+  });
+
+  it("survives a tier degraded to two thirds, which is what the task claims", () => {
+    // The acceptance test is capacity after loss, not instance death — see the
+    // module header. `degraded` multiplies capacity, so this is the only failure
+    // kind in the engine that can express "a third of this tier is gone".
+    const task = mod.task!;
+    const survived = withFailures(task.solutionGraph, "degraded", [
+      "app-1",
+      "db-1",
+    ]);
+    assert.equal(
+      survived.errorRate,
+      0,
+      `module 12: the solution sheds ${(survived.errorRate * 100).toFixed(1)}% when both tiers lose a third`,
+    );
+    assert.ok(
+      survived.throughput >= 11_900,
+      `module 12: the degraded solution serves ${survived.throughput.toFixed(0)} r/s, not the offered 12,000`,
+    );
+
+    const broken = withFailures(task.startGraph, "degraded", ["app-1", "db-1"]);
+    assert.ok(
+      broken.errorRate > 0.4,
+      `module 12: the start graph only sheds ${(broken.errorRate * 100).toFixed(1)}% when degraded — ` +
+        "the criterion would pass on the design the module calls broken",
+    );
+  });
+
+  it("pins the limitation: replicas are capacity, not redundancy", () => {
+    // A `node_down` removes the node and every replica with it, so "one of ten
+    // instances died" is not expressible. The module says so in its header; this
+    // is the tripwire that fails if the engine ever gains per-replica failure,
+    // forcing the lesson and this test to be rewritten together.
+    const task = mod.task!;
+    const appDown = withFailures(task.solutionGraph, "node_down", ["app-1"]);
+    assert.ok(
+      appDown.errorRate === 1 && appDown.throughput === 0,
+      "module 12: taking the app node down no longer kills every replica — the " +
+        "canvas can now express instance loss, and the header's limitation note is stale",
+    );
+
+    // And with the store gone there is no terminal at all, so the topology is
+    // rejected rather than simulated. Two different kinds of blindness in one
+    // failure kind, both worth naming.
+    const storeDown = withFailures(task.solutionGraph, "node_down", ["db-1"]);
+    assert.equal(storeDown.valid, false);
+    assert.match(String(storeDown.invalidReason), /terminal/i);
+  });
+
+  it("makes the headroom criterion the arithmetic, not a taste for bigger numbers", () => {
+    // 12,000 r/s, 2,000 per instance: nine instances are 66.7% and fail, ten are
+    // 60% and pass. If the threshold ever drifts, the module starts teaching
+    // "add one more" without a reason.
+    const task = mod.task!;
+    const criterion = task.passCriteria.find((c) => c.id === "api-headroom")!;
+    const at = (replicas: number) => {
+      const graph: SdGraph = {
+        ...task.solutionGraph,
+        nodes: task.solutionGraph.nodes.map((node) =>
+          node.type === "app_server" && node.id === "app-1"
+            ? { ...node, replicas }
+            : node,
+        ),
+      };
+      return simulate(graph);
+    };
+    assert.ok(
+      !criterion.assert(at(9)),
+      "module 12: nine instances now pass `api-headroom` — 9 × 2,000 is 18,000 and cannot lose a third",
+    );
+    assert.ok(
+      criterion.assert(at(10)),
+      "module 12: ten instances no longer pass `api-headroom` — the criterion is stricter than the module states",
+    );
+  });
+
+  it("is anchored on Netflix's failure injectors, not a generic outage story", () => {
+    const prose = JSON.stringify(mod.lessons) + JSON.stringify(mod.story ?? "");
+    assert.ok(
+      prose.includes("Simian Army") || prose.includes("Chaos Monkey"),
+      "how-systems-fail: no Simian Army or Chaos Monkey reference — that is the module's anchor",
+    );
+    for (const word of ["LynxDEV", "follower", "photo", "this site"]) {
+      assert.ok(
+        !prose.includes(word),
+        `how-systems-fail: references "${word}" — remains from the pre-B7 draft`,
+      );
+    }
+    assert.doesNotMatch(prose, /\bour app\b/i);
+  });
+});
+
+describe("content model — module 13 (timeouts, retries, circuit breakers)", () => {
+  let mod: SdModule;
+  before(() => {
+    mod = bySlug("timeouts-retries-circuit-breakers");
+  });
+
+  it("is bound, with 5 leaf chapters for 5 lessons", () => {
+    assert.equal(inspectChapterBinding(mod).status, "bound");
+    assert.equal(collectChapterLeaves(mod.chapters).length, 5);
+    assert.equal(mod.lessons.length, 5);
+    assert.deepEqual(
+      lessonNav(mod).map((entry) => entry.slug),
+      [
+        "no-timeout-is-worse",
+        "retries-and-jitter",
+        "breakers-and-bulkheads",
+        "timeout-budgets",
+        "fallbacks-and-degradation",
+      ],
+      "timeouts-retries-circuit-breakers: outline order and lesson order disagree",
+    );
+  });
+
+  it("fails every required criterion at the start and passes them at the finish", () => {
+    const task = mod.task;
+    assert.ok(task, "module 13 is a sim module and must carry a task");
+
+    const start = simulate(task.startGraph);
+    const solved = simulate(task.solutionGraph);
+
+    const required = task.passCriteria.filter((c) => c.required);
+    const startPassed = required.filter((c) => c.assert(start));
+    assert.deepEqual(
+      startPassed.map((c) => c.id),
+      [],
+      `module 13: the start graph already satisfies ${startPassed.map((c) => c.id).join(", ")}`,
+    );
+    for (const criterion of task.passCriteria) {
+      assert.ok(
+        criterion.assert(solved),
+        `module 13: solution fails "${criterion.id}" — the task has no reachable finish`,
+      );
+    }
+  });
+
+  it("makes the fallback's capacity the second half of the task", () => {
+    // Deleting the resize edge and leaving the store at one node stops the
+    // resize tier from shedding — and moves 100% of the traffic onto a store
+    // that cannot carry it (measured 120%, 16.7% shed). If this ever passes, the
+    // step that asks for a replica has become ceremony.
+    const task = mod.task!;
+    const fallbackOnly: SdGraph = {
+      ...task.solutionGraph,
+      nodes: task.solutionGraph.nodes.map((node) =>
+        node.type === "database" && node.id === "db-1"
+          ? { ...node, readReplicas: 0 }
+          : node,
+      ),
+    };
+    const result = simulate(fallbackOnly);
+    assert.ok(
+      result.errorRate > 0.1,
+      `module 13: a fallback with one store node sheds ${(result.errorRate * 100).toFixed(1)}% — ` +
+        "the lesson says it sheds 16.7%, so either the graph or the prose is wrong",
+    );
+    assert.ok(
+      !task.passCriteria
+        .filter((c) => c.required)
+        .every((c) => c.assert(result)),
+      "module 13: removing the dependency without sizing the fallback now passes every criterion",
+    );
+  });
+
+  it("keeps the advisory criterion advisory, and says why", () => {
+    // `metadata-headroom` is green at the start, because the resize tier absorbs
+    // the damage and only half the traffic reaches the store. A criterion that
+    // passes on the broken design can only be advisory; marking it required
+    // would make the start graph pass a required criterion and fail the suite's
+    // first assertion instead of documenting what the metric cannot see.
+    const task = mod.task!;
+    const advisory = task.passCriteria.filter((c) => !c.required);
+    assert.deepEqual(
+      advisory.map((c) => c.id),
+      ["metadata-headroom"],
+      "module 13: exactly one criterion may be advisory — it is the one that is green on the broken start",
+    );
+    const start = simulate(task.startGraph);
+    assert.ok(
+      advisory[0].assert(start),
+      "module 13: the advisory criterion now fails at the start — it is no longer documenting a blind spot",
+    );
+  });
+
+  it("pins the limitation: the breaker and bulkhead fields change no number", () => {
+    // `breakerEnabled` and `maxConcurrency` are persisted with the graph and read
+    // by nothing in the engine. The task grades the decision (the dependency is
+    // out of the path) and lesson 3 says so; this assertion is what makes the
+    // disclosure executable.
+    const task = mod.task!;
+    const toggled: SdGraph = {
+      ...task.startGraph,
+      nodes: task.startGraph.nodes.map((node) =>
+        node.type === "app_server" && node.id === "api-1"
+          ? { ...node, breakerEnabled: true, maxConcurrency: 50 }
+          : node,
+      ),
+      edges: task.startGraph.edges.map((edge) => ({
+        ...edge,
+        retry: { attempts: 3, backoffMs: 100, jitter: true },
+      })),
+    };
+    const plainRun = simulate(task.startGraph);
+    const toggledRun = simulate(toggled);
+    assert.equal(
+      toggledRun.throughput,
+      plainRun.throughput,
+      "module 13: enabling the breaker now changes throughput — the engine reads it, " +
+        "so lesson 3's disclosure is stale",
+    );
+    assert.equal(toggledRun.errorRate, plainRun.errorRate);
+  });
+
+  it("is anchored on Netflix's Hystrix, not a generic slow-service story", () => {
+    const prose = JSON.stringify(mod.lessons) + JSON.stringify(mod.story ?? "");
+    assert.ok(
+      prose.includes("Hystrix"),
+      "timeouts-retries-circuit-breakers: no Hystrix reference — that is the module's anchor",
+    );
+    for (const word of ["LynxDEV", "follower", "photo", "this site"]) {
+      assert.ok(
+        !prose.includes(word),
+        `timeouts-retries-circuit-breakers: references "${word}" — remains from the pre-B7 draft`,
+      );
+    }
+    assert.doesNotMatch(prose, /\bour app\b/i);
+  });
+});
+
+describe("content model — module 14 (idempotency)", () => {
+  let mod: SdModule;
+  before(() => {
+    mod = bySlug("idempotency");
+  });
+
+  const withTier = (
+    graph: SdGraph,
+    id: string,
+    patch: Record<string, unknown>,
+  ) =>
+    ({
+      ...graph,
+      nodes: graph.nodes.map((node) =>
+        node.id === id ? ({ ...node, ...patch } as typeof node) : node,
+      ),
+    }) as SdGraph;
+
+  it("is bound, with 4 leaf chapters for 4 lessons", () => {
+    assert.equal(inspectChapterBinding(mod).status, "bound");
+    assert.equal(collectChapterLeaves(mod.chapters).length, 4);
+    assert.equal(mod.lessons.length, 4);
+    assert.deepEqual(
+      lessonNav(mod).map((entry) => entry.slug),
+      [
+        "at-least-once-delivery",
+        "idempotency-keys",
+        "exactly-once-is-a-lie",
+        "dead-letter-queues",
+      ],
+      "idempotency: outline order and lesson order disagree",
+    );
+  });
+
+  it("fails every required criterion at the start and passes them at the finish", () => {
+    const task = mod.task;
+    assert.ok(task, "module 14 is a sim module and must carry a task");
+
+    const start = simulate(task.startGraph);
+    const solved = simulate(task.solutionGraph);
+
+    const required = task.passCriteria.filter((c) => c.required);
+    const startPassed = required.filter((c) => c.assert(start));
+    assert.deepEqual(
+      startPassed.map((c) => c.id),
+      [],
+      `module 14: the start graph already satisfies ${startPassed.map((c) => c.id).join(", ")}`,
+    );
+    for (const criterion of task.passCriteria) {
+      assert.ok(
+        criterion.assert(solved),
+        `module 14: solution fails "${criterion.id}" — the task has no reachable finish`,
+      );
+    }
+  });
+
+  it("pins the cheat: workers scale the duplicates instead of absorbing them", () => {
+    // The task's fourth step, in one measurement. Five workers with the
+    // idempotency store at zero absorb nothing and still pass every criterion —
+    // which is why `absorb-duplicates` is a step and not a pass criterion. The
+    // criterion counts what the engine can see (shed requests, throughput,
+    // headroom); only the step can see whether the duplicates were removed.
+    const task = mod.task!;
+    const scaledUp = withTier(task.startGraph, "worker-1", { replicas: 5 });
+    const result = simulate(scaledUp);
+    assert.equal(
+      result.errorRate,
+      0,
+      "module 14: five workers should clear the shedding",
+    );
+    for (const criterion of task.passCriteria.filter((c) => c.required)) {
+      assert.ok(
+        criterion.assert(result),
+        `module 14: "${criterion.id}" now rejects five workers — the cheat this test ` +
+          "documents has been closed, so the step is no longer load-bearing",
+      );
+    }
+    const absorbStep = task.steps.find(
+      (step) => step.id === "absorb-duplicates",
+    )!;
+    assert.equal(
+      absorbStep.check(scaledUp).passed,
+      false,
+      "module 14: five workers now pass `absorb-duplicates` — nothing grades the duplicate share",
+    );
+
+    // And at four workers the headroom criterion does the work on its own:
+    // 4 × 1,000 against 4,000 arrivals is exactly 100%.
+    const four = simulate(
+      withTier(task.startGraph, "worker-1", { replicas: 4 }),
+    );
+    const headroom = task.passCriteria.find((c) => c.id === "worker-headroom")!;
+    assert.ok(
+      !headroom.assert(four),
+      "module 14: four workers now pass `worker-headroom` at 100% utilisation",
+    );
+  });
+
+  it("pins the limitation: the queue's retry limit and DLQ change no number", () => {
+    // `maxDepth`, `retryLimit` and `dlqEnabled` are stored, rendered in the
+    // inspector, and read by nothing in the engine. Lesson 4 says so and the
+    // task grades the decision as a step; this assertion is what makes the
+    // disclosure executable rather than a paragraph.
+    const task = mod.task!;
+    const start = simulate(task.startGraph);
+    for (const patch of [
+      { dlqEnabled: true, retryLimit: 0 },
+      { dlqEnabled: true, retryLimit: 3 },
+      { dlqEnabled: false, retryLimit: 100, maxDepth: 1 },
+    ]) {
+      const run = simulate(withTier(task.startGraph, "queue-1", patch));
+      assert.equal(
+        run.throughput,
+        start.throughput,
+        `module 14: queue ${JSON.stringify(patch)} changes throughput — the engine reads the ` +
+          "queue's retry fields, so lesson 4's disclosure is stale",
+      );
+      assert.equal(run.errorRate, start.errorRate);
+    }
+  });
+
+  it("is anchored on Netflix moving billing last, not on a generic upload story", () => {
+    const prose = JSON.stringify(mod.lessons) + JSON.stringify(mod.story ?? "");
+    assert.ok(
+      prose.includes("billing"),
+      "idempotency: no billing reference — that is the module's anchor",
+    );
+    for (const word of ["LynxDEV", "follower", "photo", "this site"]) {
+      assert.ok(
+        !prose.includes(word),
+        `idempotency: references "${word}" — remains from the pre-B7 draft`,
+      );
+    }
+    assert.doesNotMatch(prose, /\bour app\b/i);
+  });
+});
+
+describe("content model — module 15 (chaos capstone)", () => {
+  let mod: SdModule;
+  before(() => {
+    mod = bySlug("chaos-capstone");
+  });
+
+  const withTier = (
+    graph: SdGraph,
+    id: string,
+    patch: Record<string, unknown>,
+  ) =>
+    ({
+      ...graph,
+      nodes: graph.nodes.map((node) =>
+        node.id === id ? ({ ...node, ...patch } as typeof node) : node,
+      ),
+    }) as SdGraph;
+
+  const degraded = (graph: SdGraph, ids: string[]) =>
+    simulate(
+      graph,
+      ids.map(
+        (nodeId, index) =>
+          ({
+            id: `f${index}`,
+            kind: "degraded",
+            nodeId,
+            factor: 2 / 3,
+          }) as Parameters<typeof simulate>[1] extends (infer T)[] | undefined
+            ? T
+            : never,
+      ),
+    );
+
+  it("is bound, with 3 leaf chapters for 3 lessons", () => {
+    assert.equal(inspectChapterBinding(mod).status, "bound");
+    assert.equal(collectChapterLeaves(mod.chapters).length, 3);
+    assert.equal(mod.lessons.length, 3);
+    assert.deepEqual(
+      lessonNav(mod).map((entry) => entry.slug),
+      [
+        "chaos-as-practice",
+        "surviving-everything",
+        "postmortems-without-blame",
+      ],
+      "chaos-capstone: outline order and lesson order disagree",
+    );
+  });
+
+  it("fails every required criterion at the start and passes them at the finish", () => {
+    const task = mod.task;
+    assert.ok(task, "module 15 is a sim module and must carry a task");
+
+    const start = simulate(task.startGraph);
+    const solved = simulate(task.solutionGraph);
+
+    const required = task.passCriteria.filter((c) => c.required);
+    const startPassed = required.filter((c) => c.assert(start));
+    assert.deepEqual(
+      startPassed.map((c) => c.id),
+      [],
+      `module 15: the start graph already satisfies ${startPassed.map((c) => c.id).join(", ")}`,
+    );
+    for (const criterion of task.passCriteria) {
+      assert.ok(
+        criterion.assert(solved),
+        `module 15: solution fails "${criterion.id}" — the task has no reachable finish`,
+      );
+    }
+  });
+
+  it("survives both compute tiers degraded to two thirds", () => {
+    const task = mod.task!;
+    const survived = degraded(task.solutionGraph, ["app-1", "db-1"]);
+    assert.equal(
+      survived.errorRate,
+      0,
+      `module 15: the degraded capstone sheds ${(survived.errorRate * 100).toFixed(1)}%`,
+    );
+    assert.ok(
+      survived.throughput >= 11_900,
+      `module 15: the degraded capstone serves ${survived.throughput.toFixed(0)} r/s, not 12,000`,
+    );
+
+    const broken = degraded(task.startGraph, ["app-1", "db-1"]);
+    assert.ok(
+      broken.errorRate > 0.4,
+      `module 15: the start graph only sheds ${(broken.errorRate * 100).toFixed(1)}% when degraded — ` +
+        "the capstone would be solvable without sizing anything",
+    );
+  });
+
+  it("pins the reroute: a second terminal absorbs a node loss instead of failing", () => {
+    // Both lesson 2 and the module header claim this, and both would be wrong if
+    // the engine ever grew real terminal failure. Three of the five nodes can be
+    // taken down without a single error, because their traffic reroutes to the
+    // surviving terminal — and the API node, which has no alternative path,
+    // takes everything with it. Both halves are asserted so neither the claim nor
+    // its exception can rot.
+    const task = mod.task!;
+    for (const nodeId of ["cdn-1", "origin-1", "db-1"]) {
+      const result = simulate(task.solutionGraph, [
+        { id: "f", kind: "node_down", nodeId },
+      ] as Parameters<typeof simulate>[1]);
+      assert.equal(
+        result.errorRate,
+        0,
+        `module 15: taking ${nodeId} down now sheds traffic — the reroute note is stale`,
+      );
+    }
+    const apiDown = simulate(task.solutionGraph, [
+      { id: "f", kind: "node_down", nodeId: "app-1" },
+    ] as Parameters<typeof simulate>[1]);
+    assert.ok(
+      apiDown.errorRate === 1,
+      "module 15: the API node can now be taken down without losing every request — " +
+        "the header's 'no alternative path' claim is stale",
+    );
+  });
+
+  it("makes each step earn its place: nine instances and one replica both fail", () => {
+    // Steps that ask for more than the criteria need are ceremony. These three
+    // measurements are why the numbers in the task are the numbers: nine
+    // instances are 66.7% (over the 66% line), one read replica is 60% until the
+    // cache path is taken away and it inherits everything (120%), and a hit rate
+    // of zero leaves the origin at 60%.
+    const task = mod.task!;
+    const nine = simulate(
+      withTier(task.solutionGraph, "app-1", { replicas: 9 }),
+    );
+    assert.ok(
+      task.passCriteria.find((c) => c.id === "api-headroom")!.assert(nine) ===
+        false,
+      "module 15: nine instances now pass `api-headroom` — the step asks for a number the criteria do not need",
+    );
+
+    const oneReplica = withTier(task.solutionGraph, "db-1", {
+      readReplicas: 1,
+    });
+    assert.ok(
+      task.passCriteria.every((c) => c.assert(simulate(oneReplica))),
+      "module 15: one read replica no longer passes at base load — the step's justification is stale",
+    );
+    const rerouted = simulate(oneReplica, [
+      { id: "f", kind: "node_down", nodeId: "cdn-1" },
+    ] as Parameters<typeof simulate>[1]);
+    assert.ok(
+      rerouted.errorRate > 0.1,
+      `module 15: one replica absorbs the reroute (${(rerouted.errorRate * 100).toFixed(1)}% shed) — ` +
+        "the second replica no longer has a measured reason",
+    );
+
+    const noCache = simulate(
+      withTier(task.solutionGraph, "cdn-1", { hitRate: 0 }),
+    );
+    assert.ok(
+      task.passCriteria
+        .find((c) => c.id === "origin-headroom")!
+        .assert(noCache) === false,
+      "module 15: a 0% edge hit rate now passes `origin-headroom` — the cache is no longer graded",
+    );
+  });
+
+  it("is anchored on Netflix's deliberate failure injectors, not a generic resilience story", () => {
+    const prose = JSON.stringify(mod.lessons) + JSON.stringify(mod.story ?? "");
+    assert.ok(
+      prose.includes("Chaos Monkey") && prose.includes("Chaos Kong"),
+      "chaos-capstone: the blast-radius ladder (instance → zone → region) is the anchor",
+    );
+    for (const word of ["LynxDEV", "follower", "photo", "this site"]) {
+      assert.ok(
+        !prose.includes(word),
+        `chaos-capstone: references "${word}" — remains from the pre-B7 draft`,
+      );
+    }
+    assert.doesNotMatch(prose, /\bour app\b/i);
+  });
+});
+
+describe("content model — every task has a reachable finish", () => {
+  // `check:system-design`'s orphan check asserts this after the build, and it
+  // found the defect this test now prevents: module 14's solution passed every
+  // pass criterion while failing its own `park-what-cannot-be-processed` step,
+  // because the step graded a queue field the criteria cannot see. The gate
+  // reported it as "no learner can ever pass this step" — which is exactly a
+  // property, so it belongs here too, where it costs seconds instead of a build.
+  //
+  // The assertion is one-directional on purpose. A step that passes on the
+  // *start* graph is legitimate — several modules open with a guard step
+  // ("do not shrink the problem") whose whole job is to be green and stay green.
+  // A step that fails on the *solution* is never legitimate: it is a task that
+  // cannot be completed.
+  it("passes every step on each module's own solution graph", () => {
+    const sims = modules.filter((mod) => mod.task);
+    assert.ok(
+      sims.length >= 14,
+      "expected at least 14 modules with a build task",
+    );
+
+    for (const mod of sims) {
+      const task = mod.task!;
+      const failed = task.steps
+        .map((step) => ({
+          id: step.id,
+          result: step.check(task.solutionGraph),
+        }))
+        .filter((entry) => !entry.result.passed);
+      assert.deepEqual(
+        failed.map((entry) => `${entry.id}: ${entry.result.progress}`),
+        [],
+        `${mod.slug}: the solution graph fails its own steps — no learner can finish this task`,
+      );
+    }
   });
 });
