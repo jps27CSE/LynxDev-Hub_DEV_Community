@@ -9,22 +9,17 @@ import {
   badJson,
   unauthorized,
   payloadTooLarge,
-  serverError,
+  rateLimited,
 } from "@/lib/api-error";
-import { createLogger } from "@/lib/logger";
-import { enforceDbRateLimit } from "@/lib/db-rate-limit";
+import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
+import type { MemoryRateLimiter } from "@/lib/memory-rate-limit";
+import { getRateLimitConfig } from "@/config/rate-limits";
 import { withRequestLog } from "@/lib/request-log";
 import { SdGraphSchema, validateGraph } from "@/lib/system-design/validation";
 import { criteriaNeedingVerification } from "@/lib/system-design/criteria";
 import { getModule } from "@/config/system-design/registry";
 import { simulate } from "@/lib/system-design/engine";
-import type {
-  SdGraph,
-  SdUserState,
-  SdTaskState,
-} from "@/config/system-design/types";
-
-const log = createLogger("system-design-state");
+import type { SdUserState, SdTaskState } from "@/config/system-design/types";
 
 /**
  * Largest body this route will read. A schema-valid task-save (40 nodes,
@@ -36,6 +31,34 @@ const log = createLogger("system-design-state");
  * check does not fire and the platform's own request-body limit is the bound.
  */
 const MAX_BODY_BYTES = 64 * 1024;
+
+const ROUTE_PATH = "/api/system-design/state";
+
+/**
+ * Per-instance limits, not the shared TiDB counter every other route uses —
+ * see `lib/memory-rate-limit.ts` for the trade-off. The numbers still come from
+ * `config/rate-limits.ts`, so the two limiters cannot drift apart.
+ */
+const taskSaveLimiter = createMemoryRateLimiter(
+  getRateLimitConfig(ROUTE_PATH, "POST"),
+);
+const taskLoadLimiter = createMemoryRateLimiter(
+  getRateLimitConfig(ROUTE_PATH, "GET"),
+);
+
+function enforceInstanceRateLimit(
+  limiter: MemoryRateLimiter,
+  userId: string,
+): Response | null {
+  const decision = limiter(userId);
+  if (decision.allowed) return null;
+  return rateLimited(
+    Math.ceil((decision.resetMs - Date.now()) / 1000),
+    decision.limit,
+    decision.remaining,
+    decision.resetMs,
+  );
+}
 
 /**
  * Criteria this learner has already earned for a task.
@@ -110,18 +133,11 @@ export async function GET(req: NextRequest) {
     const { userId } = await auth();
     if (!userId) return unauthorized();
 
-    try {
-      const rateLimitedResponse = await enforceDbRateLimit(
-        userId,
-        "system-design",
-        "/api/system-design/state",
-        "GET",
-      );
-      if (rateLimitedResponse) return rateLimitedResponse;
-    } catch (error) {
-      log.error("rate limit check failed", error, { userId });
-      return serverError("Failed to check rate limit");
-    }
+    const rateLimitedResponse = enforceInstanceRateLimit(
+      taskLoadLimiter,
+      userId,
+    );
+    if (rateLimitedResponse) return rateLimitedResponse;
 
     const userResult = await db
       .select({ id: usersTable.id })
@@ -159,18 +175,11 @@ export async function POST(req: NextRequest) {
     const { userId } = await auth();
     if (!userId) return unauthorized();
 
-    try {
-      const rateLimitedResponse = await enforceDbRateLimit(
-        userId,
-        "system-design",
-        "/api/system-design/state",
-        "POST",
-      );
-      if (rateLimitedResponse) return rateLimitedResponse;
-    } catch (error) {
-      log.error("rate limit check failed", error, { userId });
-      return serverError("Failed to check rate limit");
-    }
+    const rateLimitedResponse = enforceInstanceRateLimit(
+      taskSaveLimiter,
+      userId,
+    );
+    if (rateLimitedResponse) return rateLimitedResponse;
 
     // Before parsing: `req.json()` buffers the whole body, so a 50 MB payload
     // is read into memory before Zod can reject it.

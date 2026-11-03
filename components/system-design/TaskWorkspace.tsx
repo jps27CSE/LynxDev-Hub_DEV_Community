@@ -56,6 +56,23 @@ const GRID_SIZE = 40;
 const TASK_STATE_SCHEMA = SdGraphSchema;
 
 /**
+ * How long the workspace waits after the last change before pushing the design
+ * to the server.
+ *
+ * The learner's copy is never at risk while waiting: `commitTaskState` writes
+ * localStorage synchronously on every change, so this timer only paces the
+ * *cross-device* copy. Each save costs ~6 TiDB statements (~600 RU), and at a
+ * 2 s cadence one session produced 20–30 of them — on its own that consumed the
+ * whole free-tier RU allowance at 500 active learners (production review §2.4).
+ * At 10 s it is ~4.
+ *
+ * The waiting window is covered from three sides — `pagehide`,
+ * `visibilitychange` and every Run — so a learner who stops editing and leaves
+ * still syncs.
+ */
+const AUTOSAVE_DEBOUNCE_MS = 10_000;
+
+/**
  * A `sim` module is the only kind that ships a build task. TaskWorkspace is
  * never mounted for a `prose` module (the route 404s first), so reaching here
  * without a task is a content bug, not a user state.
@@ -246,6 +263,12 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const taskStateRef = useRef<SdTaskState | null>(null);
   const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const saveTimerRef = useRef<number | null>(null);
+  const pendingSaveRef = useRef<{
+    snapshot: SdTaskState;
+    taskSlug: string;
+  } | null>(null);
+  const persistedStateRef = useRef<SdTaskState | null>(null);
   const nextNodeIdRef = useRef(0);
 
   const nextId = useCallback((prefix: string) => {
@@ -416,6 +439,12 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
       taskStateRef.current = hydrated;
       setTaskState(hydrated);
       setCheckedGraph(hydrated.graph);
+      // Only a local copy can hold something the server has not already seen.
+      // With no local state, `hydrated` is either exactly what the server
+      // returned or a brand-new start graph, so marking it persisted keeps the
+      // first autosave from re-sending it on every page load — one POST per
+      // session for no new information.
+      if (!localState) persistedStateRef.current = hydrated;
       setIsReady(true);
     }
 
@@ -428,7 +457,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
   const commitTaskState = useCallback(
     (update: (current: SdTaskState) => SdTaskState, persistLocally = true) => {
       const current = taskStateRef.current;
-      if (!current) return;
+      if (!current) return null;
       const next = {
         ...update(current),
         updatedAt: new Date().toISOString(),
@@ -457,6 +486,8 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
           });
         }
       }
+
+      return next;
     },
     [completionStorageKey, isReady, isSharedDesign],
   );
@@ -465,13 +496,27 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
     (
       snapshot: SdTaskState,
       taskSlug: string,
-      run?: { criteriaMet: string[]; failures: SdFailure[] },
+      options?: {
+        run?: { criteriaMet: string[]; failures: SdFailure[] };
+        keepalive?: boolean;
+      },
     ) => {
+      // Optimistic by design: localStorage already holds this snapshot, so a
+      // failed POST costs the cross-device copy, never the learner's work.
+      // Recording it here (rather than on the response) is also what lets the
+      // autosave effect below skip a second save for a state a Run just
+      // persisted.
+      persistedStateRef.current = snapshot;
+      const run = options?.run;
       saveQueueRef.current = saveQueueRef.current.then(async () => {
         try {
           const response = await fetch("/api/system-design/state", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            // `keepalive` lets the request finish after the page is gone, which
+            // is the whole point of the unload flush. The route caps bodies at
+            // 64 KB, inside the keepalive budget.
+            keepalive: options?.keepalive ?? false,
             body: JSON.stringify({
               kind: "task-save",
               taskSlug,
@@ -497,6 +542,27 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
     [],
   );
 
+  /**
+   * Sends whatever the debounce timer is holding, if anything, and cancels the
+   * timer. Called by the timer itself, by `pagehide`/`visibilitychange`, and on
+   * unmount — the three ways a learner can stop editing without waiting out the
+   * debounce.
+   */
+  const flushPendingSave = useCallback(
+    (keepalive = false) => {
+      if (saveTimerRef.current !== null) {
+        window.clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+      const pending = pendingSaveRef.current;
+      pendingSaveRef.current = null;
+      if (pending) {
+        queueTaskSave(pending.snapshot, pending.taskSlug, { keepalive });
+      }
+    },
+    [queueTaskSave],
+  );
+
   useEffect(() => {
     if (
       !isReady ||
@@ -509,22 +575,59 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
       return;
     }
 
-    const snapshot = taskState;
-    const timeout = window.setTimeout(() => {
-      queueTaskSave(snapshot, moduleSlug);
-    }, 2000);
+    // A Run persists the state it commits, so it is the same object that
+    // arrives here. Queueing it again would be the duplicate POST that used to
+    // follow every Run. Any older pending snapshot is dropped too: flushing it
+    // on unload would write a stale graph over the one the Run just stored.
+    if (taskState === persistedStateRef.current) {
+      pendingSaveRef.current = null;
+      return;
+    }
 
-    return () => window.clearTimeout(timeout);
+    pendingSaveRef.current = { snapshot: taskState, taskSlug: moduleSlug };
+    if (saveTimerRef.current !== null) {
+      window.clearTimeout(saveTimerRef.current);
+    }
+    saveTimerRef.current = window.setTimeout(() => {
+      saveTimerRef.current = null;
+      flushPendingSave();
+    }, AUTOSAVE_DEBOUNCE_MS);
+
+    return () => {
+      if (saveTimerRef.current !== null) {
+        window.clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+    };
   }, [
     completionStorageKey,
+    flushPendingSave,
     isReady,
     isSharedDesign,
     module,
     moduleSlug,
-    queueTaskSave,
     taskState,
     user,
   ]);
+
+  useEffect(() => {
+    const flush = () => flushPendingSave(true);
+    const flushWhenHidden = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", flushWhenHidden);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", flushWhenHidden);
+      // An in-app navigation fires neither event, so without this the last
+      // edit would only reach the server on the learner's next visit.
+      flush();
+    };
+    // `moduleSlug` is not read here on purpose: it is in the list so moving to
+    // another task flushes this task's pending save. The snapshot carries its
+    // own slug, so the flush lands on the right row either way.
+  }, [flushPendingSave, moduleSlug]);
 
   const updateGraph = useCallback(
     (update: (graph: SdGraph) => SdGraph, persistLocally = true) => {
@@ -683,23 +786,22 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
             .filter((criterion) => criterion.assert(result))
             .map((criterion) => criterion.id)
         : [];
-      const runSnapshot: SdTaskState = {
-        ...current,
-        criteriaMet: [
-          ...new Set([...current.criteriaMet, ...passedCriterionIds]),
-        ],
-        attempts: current.attempts + 1,
-      };
-      commitTaskState((latest) => ({
+      // One state object for both the screen and the wire. Building a separate
+      // `runSnapshot` here is what used to make the committed state and the
+      // saved state different objects, so the debounce effect could not tell a
+      // Run's own save from an edit and POSTed the same thing again.
+      const runSnapshot = commitTaskState((latest) => ({
         ...latest,
         steps: currentStepIds(module, latest.graph),
-        criteriaMet: runSnapshot.criteriaMet,
-        attempts: runSnapshot.attempts,
+        criteriaMet: [
+          ...new Set([...latest.criteriaMet, ...passedCriterionIds]),
+        ],
+        attempts: latest.attempts + 1,
       }));
+      if (!runSnapshot) return;
       if (user && completionStorageKey && !isSharedDesign) {
         queueTaskSave(runSnapshot, moduleSlug, {
-          criteriaMet: passedCriterionIds,
-          failures,
+          run: { criteriaMet: passedCriterionIds, failures },
         });
       }
     },

@@ -1,6 +1,6 @@
 # Production Review — System Design Module
 
-> **Date:** 2026-11-03 (reviewed). **P0 fixes 1, 3, 4 and P2 fix 12 applied the same day — see §11 for the measured before/after and what is still open.**
+> **Date:** 2026-11-03 (reviewed). **P0 fixes 1, 3, 4 and P2 fix 12 applied the same day — see §11. RU fixes applied the same day — see §12.** Both sections record the measured before/after and what is still open.
 > **Scope:** Phase 6 system design path — `/system-design`, the 15 module routes, 79 lesson routes, 14 task routes, `components/system-design/*`, `lib/system-design/*`, `config/system-design/*`, and `app/api/system-design/state/route.ts` + `sd_user_state`.
 > **Target:** 500 users on TiDB Cloud Starter (free, 50M RU/mo) + Vercel Hobby (free, 4 CPU-hrs/mo).
 > **Companion docs:** `docs/production-review-500-users.md` (app-wide), `docs/production-review-blog-module.md` (review format), `.agent/plans/16-system-design-phase-6.md` (original design).
@@ -38,7 +38,7 @@ Nothing here is a correctness emergency — the feature works and its security m
 |---|---|---|
 | 1 — cost linear in a learner-typed field | 🟢 **Closed at the boundary** | `SdGraphSchema` now clamps `arrivalRate` to `SD_MAX_ARRIVAL_RATE = 20_000`, so the most expensive *schema-valid* request is 246 ms / ~10 MB. The engine is still linear internally; no input that reaches it can be expensive. |
 | 2 — one user can take the whole app down | 🟡 **19× harder, not eliminated** | ~3 h → ~49 h of sustained 20 req/min. An attacker can still force a simulation by claiming criteria the graph fails, so this stays open until P0 fix 2 (constant-cost simulation). |
-| 3 — every autosave pays for a verification | 🟡 **CPU closed, RU open** | Autosaves no longer run `simulate()` (~95% of saves). They still cost the same **6 statements**, so the RU ceiling in §2.4 is untouched. |
+| 3 — every autosave pays for a verification | 🟡 **CPU closed, RU cut ~4×** | Autosaves no longer run `simulate()` (~95% of saves), and §12 cut the saves themselves plus the two limiter statements: ~76M → ~17M RU/month at 500 fully-active learners. Still open: the whole-blob rewrite (§8.5). |
 
 ---
 
@@ -181,6 +181,8 @@ After that the whole app 504s, not just this module. This is more severe than th
 - 30 saves/session → **72M RU — over budget on this feature alone.**
 
 `sd_user_state.tasks` is the multiplier: **the whole 15-task JSON blob is rewritten on every save**, so per-save cost grows with learner progress. A learner on module 15 pays ~15× the write RU of a learner on module 1 for a one-task edit — O(N) write amplification.
+
+> **Reduced ~4× on 2026-11-03 (§12)** — fewer saves (10 s cadence instead of 2 s) and two fewer statements per request (the limiter moved off TiDB). The table above still describes the *shape* of the cost, and the normalisation in §8.5 is still the fix for it: the blob rewrite is untouched, and a learner on module 15 still pays more per keystroke than a learner on module 1.
 
 `steps` (up to 40 × 120 chars per task) is stored but **never read** — `mergeTaskStates` recomputes it from the graph (`TaskWorkspace.tsx:212`). That is 10–20 KB of dead weight rewritten on every save: the "field only ever written, never read" class already recorded in Known Debt.
 
@@ -379,7 +381,7 @@ Fix 1 was then implemented as **"skip when no *new* criteria are claimed"**, not
 
 ### 11.6 Still open
 
-§8.2 (constant-cost simulation), §8.5–8.10 (RU, ordering, drag perf, timeouts), §8.11, §8.13–8.16. The cheapest next item is the duplicate POST after every Run (`TaskWorkspace.tsx:693`): it no longer costs CPU but still costs 6 statements.
+§8.2 (constant-cost simulation), §8.5–8.10 (RU, ordering, drag perf, timeouts), §8.11, §8.13–8.16. ~~The cheapest next item is the duplicate POST after every Run (`TaskWorkspace.tsx:693`): it no longer costs CPU but still costs 6 statements.~~ **Done in §12** — a Run now commits and saves one state object, so the debounce effect recognises it as persisted.
 
 ### 11.7 One gap this change did not close
 
@@ -387,10 +389,85 @@ Fix 1 was then implemented as **"skip when no *new* criteria are claimed"**, not
 
 ---
 
+## 12. RU fixes applied — 2026-11-03
+
+§11 closed CPU and left RU exactly where it was: every autosave still paid 6 statements, 2 of them for a rate limiter, and the client still produced 20–30 of them per session. This is the second half.
+
+### 12.1 What changed
+
+| File | Change |
+|---|---|
+| `components/system-design/TaskWorkspace.tsx` | Autosave debounce **2 s → 10 s**; a pending snapshot is flushed on `pagehide`, on `visibilitychange` → hidden, on unmount, on task change, and on Run. A Run now commits and saves **one** state object, so the debounce effect recognises it as persisted and no longer POSTs it again. A page load with no local copy no longer POSTs at all. |
+| `app/api/system-design/state/route.ts` | The shared TiDB limiter is replaced by a per-instance counter on both GET and POST — **2 statements per request**, ~33% of the route's RU |
+| `lib/memory-rate-limit.ts` *(new)* | `createMemoryRateLimiter({ limit, windowMs, maxKeys })` — fixed window, injectable clock, LRU-bounded |
+| `lib/db-rate-limit.ts` | `"system-design"` removed from `RateLimitScope`; nothing else used it |
+| `config/rate-limits.ts` | **Unchanged** — the in-memory limiter reads the same table, so the two cannot drift |
+| `tests/memory-rate-limit.test.ts` *(new)* | 9 tests |
+
+### 12.2 Why the cadence, and what protects the learner
+
+The server copy is **cross-device truth**, not the working copy. `commitTaskState` writes localStorage synchronously on every change, so waiting 10 s costs a learner nothing they can see — it costs them the ability to open the same task on a second device in the next 9 seconds. In exchange, a session's 20–30 saves become ~4.
+
+The waiting window is covered from four sides, because a debounce with no flush is just a data-loss timer: `pagehide` (tab close, navigation away, bfcache), `visibilitychange` → hidden (mobile backgrounding, which often kills the page with no `pagehide`), component unmount (an in-app navigation fires neither event), and every Run. The three unload paths send with `fetch(..., { keepalive: true })` so the request outlives the page; bodies are already capped at 64 KB by the route, inside the keepalive budget.
+
+### 12.3 The duplicate POST, finally
+
+§11 made the duplicate POST free of CPU but not of statements — `acceptSimulationResult` built a `runSnapshot` *and* committed a separately-constructed state, so the debounce effect saw "something changed" and re-sent the same graph 2 s later. Now the Run commits one object, saves that object, and records it as persisted; the effect compares identity and stands down. One Run = one POST.
+
+### 12.4 The rate limiter: what was traded, stated plainly
+
+The DB limiter is global across serverless instances and survives a cold start. The replacement is neither. A client spread over N warm instances gets N × the limit, and a cold start resets the counter.
+
+That is acceptable **here and nowhere else in the app**, for three reasons: the route spends no external money (no Mistral, no generation); the resource actually at risk is CPU on the instance handling the request, which is exactly what a per-instance counter measures; and the cost of the global counter was 2 of the route's 6 statements — a third of the whole feature's RU budget — to protect a route whose expensive path is already bounded by `SD_MAX_ARRIVAL_RATE` and the criteria gate.
+
+It also removes a failure mode rather than adding one: `lib/db-rate-limit.ts` is **fail-closed**, so a TiDB blip used to turn every autosave into a 500. There is no I/O here, so there is nothing to fail.
+
+The other 12 limited routes keep the global counter. They spend money, and that is the line.
+
+### 12.5 Estimated before / after — **not measured on TiDB**
+
+Same basis as §2.4: 500 users × 8 sessions = 4,000 sessions/month, ~100 RU per statement from `docs/production-review-500-users.md`, 5 Runs per session.
+
+| | Before | After |
+|---|---|---|
+| Autosaves per session | 20–30 | **~4** (10 s cadence) |
+| Statements per save | 6 | **4** |
+| Statements per Run | 7 | **5** |
+| Statements per page load | 4 | **2** |
+| Duplicate POST per Run | 1 | **0** |
+| POST on a page load with nothing local | 1 | **0** |
+| Statements per session | ~189 | **~43** |
+| **RU/month at 500 fully active** | **~76M** | **~17M** |
+| RU/month at 150 active (realistic) | ~23M | **~5M** |
+| CPU/month saved | — | **~0.9 h** (fewer requests, not cheaper ones) |
+
+Three caveats, because a number this good deserves suspicion:
+
+1. **The 100 RU/statement figure is the repo's own calibration, not a TiDB measurement**, and it does not model JSON write bytes. Real RU is probably worse than the table in absolute terms; the *ratio* is the part to trust.
+2. **"~4 autosaves per session" is an assumption about learner behaviour**, not an observation. The way to replace it is a `log.info` of saves-per-session and `simulate` ms (§8.13) — that is the next measurement, not another estimate.
+3. **The 10 s cadence is not covered by a unit test.** It lives inside a React component with no renderer in this repo, so it was verified by reading and must be confirmed by hand: edit a task, watch the network tab for ~10 s, hit Run, and confirm exactly one POST per Run.
+
+### 12.6 Verification
+
+- `npm run typecheck` — clean
+- `npm test` — **677 pass, 0 fail** (668 + 9 limiter tests)
+- `npm run build` — compiled; 108 `/system-design` routes unchanged
+- `npm run check:system-design` — all passed, same 4 pre-existing chain warnings
+- `prettier --check` — clean
+- **3 mutations observed red, restored byte-identically (sha256):** `count <= limit` → `count < limit` (4 pass / 5 fail); window comparison removed so the window never rolls over (7 / 2); eviction picks the newest key instead of the coldest (8 / 1)
+
+### 12.7 Still open
+
+`sd_task_state` normalisation (§8.5 — the blob rewrite, now the largest remaining item), constant-cost simulation (§8.2, closes §2.3), `graphSeed` re-baseline (§8.11), request correlation and simulation timing (§8.13), `steps` removal (§8.6), and §11.7's unpinned constant.
+
+---
+
 ## Bottom line
 
 After §11, the module is **no longer a CPU risk for 500 users**: autosaves run no simulation, a Run runs one instead of two, and the most expensive schema-valid request fell from 4.6 s / 195 MB to 246 ms / ~10 MB.
 
-It is **still an RU risk** — §2.4's 48M-on-50M estimate did not move, because these fixes changed CPU and not statement count. And the outage is 19× harder, not impossible, until simulation cost stops depending on `arrivalRate`.
+After §12 it is **no longer an RU risk at realistic engagement either**: ~76M → ~17M RU/month at 500 *fully active* learners, ~5M at the 150 that a learning platform actually sees. The 50M ceiling is no longer the binding constraint; `sd_task_state`'s blob rewrite is now the largest remaining inefficiency rather than an emergency.
 
-Order of what remains: the duplicate POST (cheap), then `sd_task_state` normalisation (the RU ceiling), then constant-cost simulation (closes §2.3), then the `graphSeed` re-baseline.
+What is still true: the outage is 19× harder, not impossible, until simulation cost stops depending on `arrivalRate` (§8.2), and every RU figure in this document is an estimate derived from the repo's calibration, not a TiDB measurement.
+
+Order of what remains: `sd_task_state` normalisation (the blob rewrite), then constant-cost simulation (closes §2.3), then the `graphSeed` re-baseline, then the timing instrumentation that would replace §12.5's assumptions with observations.
