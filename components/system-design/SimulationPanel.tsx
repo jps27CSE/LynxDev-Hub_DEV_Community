@@ -11,6 +11,7 @@ import type {
   SdPassCriterion,
 } from "@/config/system-design/types";
 import { ShareButton } from "@/components/system-design/ShareButton";
+import { SD_MAX_ARRIVAL_RATE } from "@/lib/system-design/validation";
 
 interface SimulationPanelProps {
   graph: SdGraph;
@@ -22,8 +23,19 @@ interface SimulationPanelProps {
 }
 
 const MIN_ARRIVAL_RATE = 10;
-const MAX_ARRIVAL_RATE = 200_000;
 const SPARKLINE_POINTS = 60;
+
+/**
+ * The slider's ceiling is the schema's ceiling, imported rather than restated.
+ *
+ * They were previously independent numbers (200,000 here, 1,000,000 in Zod),
+ * and the state was synced from the graph without clamping — so a `?d=` share
+ * link could set a rate the slider could not express, and clicking Run froze
+ * the tab for tens of seconds. One constant, one meaning.
+ */
+function clampArrivalRate(value: number): number {
+  return Math.min(SD_MAX_ARRIVAL_RATE, Math.max(MIN_ARRIVAL_RATE, value));
+}
 
 export function SimulationPanel({
   graph,
@@ -43,9 +55,10 @@ export function SimulationPanel({
   );
   const animationFrameRef = useRef<number | null>(null);
 
-  // Sync arrival rate with graph scenario
+  // Sync arrival rate with graph scenario. Clamped because a decoded share
+  // link or a stored graph is not guaranteed to respect the slider's range.
   useEffect(() => {
-    setArrivalRate(graph.scenario.arrivalRate);
+    setArrivalRate(clampArrivalRate(graph.scenario.arrivalRate));
   }, [graph.scenario.arrivalRate]);
 
   // Update lastResult when simulationResult changes
@@ -94,12 +107,8 @@ export function SimulationPanel({
 
   const handleArrivalRateChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = Math.max(
-        MIN_ARRIVAL_RATE,
-        Math.min(
-          MAX_ARRIVAL_RATE,
-          parseInt(e.target.value) || MIN_ARRIVAL_RATE,
-        ),
+      const value = clampArrivalRate(
+        parseInt(e.target.value) || MIN_ARRIVAL_RATE,
       );
       setArrivalRate(value);
       onArrivalRateChange(value);
@@ -129,7 +138,7 @@ export function SimulationPanel({
           <input
             type="range"
             min={MIN_ARRIVAL_RATE}
-            max={MAX_ARRIVAL_RATE}
+            max={SD_MAX_ARRIVAL_RATE}
             value={arrivalRate}
             onChange={handleArrivalRateChange}
             className="flex-1 h-2 bg-muted rounded-lg appearance-none accent-primary"
@@ -138,7 +147,7 @@ export function SimulationPanel({
           <input
             type="number"
             min={MIN_ARRIVAL_RATE}
-            max={MAX_ARRIVAL_RATE}
+            max={SD_MAX_ARRIVAL_RATE}
             value={arrivalRate}
             onChange={handleArrivalRateChange}
             className="w-24 text-right font-mono text-sm bg-muted border border-border rounded px-2 py-1"

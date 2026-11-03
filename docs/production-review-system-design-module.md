@@ -1,6 +1,6 @@
 # Production Review — System Design Module
 
-> **Date:** 2026-11-03 (reviewed; no fixes applied yet)
+> **Date:** 2026-11-03 (reviewed). **P0 fixes 1, 3, 4 and P2 fix 12 applied the same day — see §11 for the measured before/after and what is still open.**
 > **Scope:** Phase 6 system design path — `/system-design`, the 15 module routes, 79 lesson routes, 14 task routes, `components/system-design/*`, `lib/system-design/*`, `config/system-design/*`, and `app/api/system-design/state/route.ts` + `sd_user_state`.
 > **Target:** 500 users on TiDB Cloud Starter (free, 50M RU/mo) + Vercel Hobby (free, 4 CPU-hrs/mo).
 > **Companion docs:** `docs/production-review-500-users.md` (app-wide), `docs/production-review-blog-module.md` (review format), `.agent/plans/16-system-design-phase-6.md` (original design).
@@ -32,6 +32,14 @@ Three findings follow from that one line:
 
 Nothing here is a correctness emergency — the feature works and its security model is good. It is a **cost and resilience** review.
 
+**Status after the §11 fixes (2026-11-03):**
+
+| Finding | Status | Why |
+|---|---|---|
+| 1 — cost linear in a learner-typed field | 🟢 **Closed at the boundary** | `SdGraphSchema` now clamps `arrivalRate` to `SD_MAX_ARRIVAL_RATE = 20_000`, so the most expensive *schema-valid* request is 246 ms / ~10 MB. The engine is still linear internally; no input that reaches it can be expensive. |
+| 2 — one user can take the whole app down | 🟡 **19× harder, not eliminated** | ~3 h → ~49 h of sustained 20 req/min. An attacker can still force a simulation by claiming criteria the graph fails, so this stays open until P0 fix 2 (constant-cost simulation). |
+| 3 — every autosave pays for a verification | 🟡 **CPU closed, RU open** | Autosaves no longer run `simulate()` (~95% of saves). They still cost the same **6 statements**, so the RU ceiling in §2.4 is untouched. |
+
 ---
 
 ## 1. What was measured
@@ -55,6 +63,8 @@ Two consequences.
 **`MAX_ARRIVALS_PER_STEP = 50_000` is dead code.** It only engages when `arrivalRate > 5,000,000`; `SdScenarioSchema` caps at `1_000_000` (`lib/system-design/validation.ts:130`). The single guard written to prevent exactly this failure is unreachable for every schema-valid input — and the test that claims otherwise (`tests/engine.test.ts:1071`, *"MAX_ARRIVALS_PER_STEP = 50000 prevents DoS"*) asserts only `result.valid`, which is true at 1M.
 
 > This is the same failure class as `acquireTimeout` (tracker I.5): a comment and a test asserting behaviour that is not in effect. **A green test naming a bound that is never applied.**
+>
+> **Fixed 2026-11-03 (§11).** `MAX_ARRIVALS_PER_STEP` is deleted; the bound is now `SD_MAX_ARRIVAL_RATE` in the schema, applied rather than asserted, and the two tests that pinned the DoS were replaced with a test of the schema contract.
 
 **Cost scales with a number the learner types, not with what needs simulating.** Ten million Monte-Carlo samples to produce four percentiles is not a simulation; it is a stress test of the serverless function.
 
@@ -94,6 +104,8 @@ Separately: the route already loaded that module on the server for `generateMeta
 
 **One Run = 2 × 200–500 ms server CPU + 12 DB statements.**
 
+> **Partially fixed 2026-11-03 (§11).** The duplicate POST still happens, but it claims no criteria, so it no longer runs `simulate()` — one Run is now 1 simulation, not 2. It still pays its own 6 statements; removing the duplicate itself is still open (P1).
+
 ### 1.4 `npm test` is now 11 s, and most of it is two worthless assertions
 
 ```
@@ -102,6 +114,8 @@ Separately: the route already loaded that module on the server for `generateMeta
 ```
 
 Dominated by the two `arrivalRate: 1_000_000` tests (`tests/engine.test.ts:965`, `:1071`), ~4 s each, asserting only "does not crash". `ENGINEERING.md` asks for tests that fail in seconds and assert behaviour; these pay the DoS cost on every CI run and pin nothing.
+
+> **Corrected 2026-11-03 — this section's attribution was wrong.** The two tests were real (≈4.2 s each, so `engine.test.ts` was ~10.3 s), but they were never what bounded `npm test`. `system-design-content.test.ts` alone takes **11.7 s**, because it simulates every module's `startGraph` and `solutionGraph`. Replacing the two tests (§11) took `engine.test.ts` to **1.93 s** and moved total wall time from ~11 s to **12.96 s** — **no wall-clock win**, because the content suite is the bound. The `11 s → ~3 s` expectation recorded in §8.12 was wrong, and the counts above (53 tests, 11 suites) predate the content suites; the suite is now 668 tests / 114 suites. The next test-time win is in the content suite, not here.
 
 ### 1.5 Layout changes the physics
 
@@ -149,6 +163,8 @@ Any signed-in user (OAuth signup is free and instant) can POST the same `task-sa
 - 250 MB heap per invocation, on an instance that may serve several concurrently.
 
 After that the whole app 504s, not just this module. This is more severe than the RU ceiling because it is a **whole-product** outage, not a feature-level one.
+
+> **Reduced ~19× on 2026-11-03 (§11).** At the new 20,000 r/s ceiling a request is 246 ms and ~10 MB, so the same 20 POST/min needs **~49 hours** instead of ~3, and each request no longer risks OOMing a shared instance. This is mitigation, not closure: an attacker can still force a simulation by claiming criteria the graph fails to meet, so the endpoint stays expensive until P0 fix 2 makes cost independent of `arrivalRate`.
 
 ### 2.4 RU — estimated from the repo's own calibration 🟡
 
@@ -241,12 +257,14 @@ Problems:
 
 ### P0 — before 500 users
 
-| # | Fix | Why | Effort |
-|---|---|---|---|
-| 1 | **Skip `simulate()` when no new criteria are claimed**, and verify only ids not already in `existingTask.criteriaMet` | removes ~95% of server CPU — all autosaves, and the duplicate POST after each Run — at zero UX cost | 10 lines |
-| 2 | **Bound the engine's work, not its input.** Cap total simulated requests (e.g. 200k) or decouple sample count from `arrivalRate` (utilisation is already analytic; only the Monte-Carlo sample needs a fixed size). Replace `number[]` + `sort()` with a histogram for percentiles | makes 1M-arrival graphs cheap, removes the 250 MB spike, and gives `MAX_ARRIVALS_PER_STEP` a meaning | 1–2 h |
-| 3 | **Clamp `arrivalRate` where it enters the client** (decode + panel sync) to what the UI can produce | closes the shared-link freeze and the accidental 1M autosave | 5 lines |
-| 4 | **`Content-Length` cap (64 KB) on the POST** | one-line memory-DoS fix | 5 min |
+| # | Fix | Why | Effort | Status |
+|---|---|---|---|---|
+| 1 | **Skip `simulate()` when no new criteria are claimed**, and verify only ids not already in `existingTask.criteriaMet` | removes ~95% of server CPU — all autosaves, and the duplicate POST after each Run — at zero UX cost | 10 lines | ✅ applied (§11) |
+| 2 | **Bound the engine's work, not its input.** Cap total simulated requests (e.g. 200k) or decouple sample count from `arrivalRate` (utilisation is already analytic; only the Monte-Carlo sample needs a fixed size). Replace `number[]` + `sort()` with a histogram for percentiles | makes 1M-arrival graphs cheap, removes the 250 MB spike, and gives `MAX_ARRIVALS_PER_STEP` a meaning | 1–2 h | ⬜ open — and the parenthetical is **wrong**, see §11 |
+| 3 | **Clamp `arrivalRate` where it enters the client** (decode + panel sync) to what the UI can produce | closes the shared-link freeze and the accidental 1M autosave | 5 lines | ✅ applied **at the schema**, not the client (§11) |
+| 4 | **`Content-Length` cap (64 KB) on the POST** | one-line memory-DoS fix | 5 min | ✅ applied (§11) |
+
+> **Order changed during implementation.** Fix 3 landed first, not fix 1. Fix 1 alone does not close the outage: an attacker never sends an honest autosave, they send `criteriaMet: [known ids]`, and `route.ts:172` accepted any known id, so `simulate()` ran regardless. The ceiling had to exist before "skip the simulation" meant anything. See §11.
 
 ### P1 — before the RU ceiling
 
@@ -261,14 +279,14 @@ Problems:
 
 ### P2 — hygiene, and the ones that bite quietly
 
-| # | Fix | Why |
-|---|---|---|
-| 11 | **Remove `x/y` from `graphSeed`** | reproducibility: identical topology should produce identical numbers. Re-baseline the affected module p95 figures (deltas ≤0.1 ms, but every lesson quotes a number). |
-| 12 | **Replace the two 1M-arrival tests** with an assertion on cost (`arrivals ≤ cap`) or a smaller bound | takes `npm test` from 11 s back to ~3 s and stops pinning the DoS |
-| 13 | **`requestId` into `emit()`; `log.info` simulation ms/arrivals; slow-sim warning** | incident correlation and the data needed to right-size |
-| 14 | **Split `modules/<slug>.ts` into prose + `.task.ts`** | the task page currently ships 900-word lessons to a browser that needs `assert` functions |
-| 15 | **Percentiles:** `allLatencies[Math.floor(n * 0.95)]` is the 96th percentile at n = 100; and percentiles over completions hide shedding (module 8's lesson) — keep the sibling error-rate criterion everywhere | correctness of the teaching model |
-| 16 | **Persist critical events durably**, or verify a log drain is available on the plan before assuming logs survive an incident | Hobby retention is hours, not days |
+| # | Fix | Why | Status |
+|---|---|---|---|
+| 11 | **Remove `x/y` from `graphSeed`** | reproducibility: identical topology should produce identical numbers. Re-baseline the affected module p95 figures (deltas ≤0.1 ms, but every lesson quotes a number). | ⬜ open |
+| 12 | **Replace the two 1M-arrival tests** with an assertion on cost (`arrivals ≤ cap`) or a smaller bound | takes `npm test` from 11 s back to ~3 s and stops pinning the DoS | ✅ applied (§11) — but the 3 s claim was **wrong** |
+| 13 | **`requestId` into `emit()`; `log.info` simulation ms/arrivals; slow-sim warning** | incident correlation and the data needed to right-size | ⬜ open |
+| 14 | **Split `modules/<slug>.ts` into prose + `.task.ts`** | the task page currently ships 900-word lessons to a browser that needs `assert` functions | ⬜ open |
+| 15 | **Percentiles:** `allLatencies[Math.floor(n * 0.95)]` is the 96th percentile at n = 100; and percentiles over completions hide shedding (module 8's lesson) — keep the sibling error-rate criterion everywhere | correctness of the teaching model | ⬜ open |
+| 16 | **Persist critical events durably**, or verify a log drain is available on the plan before assuming logs survive an incident | Hobby retention is hours, not days | ⬜ open |
 
 ---
 
@@ -287,3 +305,92 @@ Problems:
 2. **§8.3** — clamp `arrivalRate` where it enters the client. Five lines; removes the accidental DoS and the shared-link freeze.
 
 Neither changes anything a learner can see.
+
+> **Both are applied (§11), in the other order and at a different layer.** §8.3 became a schema clamp — the client clamp alone is bypassed by `curl`, which is the only client that matters here. §8.1 became "skip when no *new* criteria are claimed", because the "new" part is what makes a replayed save free.
+
+---
+
+## 11. Fixes applied — 2026-11-03
+
+P0 fixes 1, 3, 4 and P2 fix 12. Uncommitted at time of writing (awaiting manual test); everything below is measured on this machine, with the same caveats as §9.
+
+### 11.1 What changed
+
+| File | Change |
+|---|---|
+| `lib/system-design/validation.ts` | New `SD_MAX_ARRIVAL_RATE = 20_000`. `arrivalRate` **clamps** via `.transform()` instead of accepting up to `1_000_000` |
+| `components/system-design/SimulationPanel.tsx` | Slider and number-input max import that constant; the sync-from-graph effect now clamps |
+| `lib/system-design/criteria.ts` *(new)* | `criteriaNeedingVerification(requested, alreadyMet)` — pure, DB-free |
+| `app/api/system-design/state/route.ts` | 64 KB `Content-Length` cap → 413; `simulate()` runs only for claimed-and-not-earned criteria; user lookup hoisted above the simulation |
+| `lib/api-error.ts` | `payloadTooLarge()` |
+| `lib/system-design/engine.ts` | `MAX_ARRIVALS_PER_STEP` deleted; the sampling loop documents where the real bound lives and why a second one must not be added |
+| `tests/` | 3 clamp tests; 1 engine contract test replacing the 2 DoS tests; 1 content gate over all 15 modules; 7 criteria tests |
+
+The clamp sits in the schema rather than the client because the POST body, `?d=` share links and stored state all pass `SdGraphSchema` — and only the first of those is our client. It **clamps** rather than rejects, so a graph saved under the old 1M ceiling still loads instead of 400-ing forever.
+
+### 11.2 Measured before / after
+
+```
+1. POST body clamp        : 1000000 -> 20000
+2. share-link clamp       : 1000000 -> 20000
+3. engine cost, unclamped : 4195 ms      (engine still trusts its caller)
+4. engine cost, clamped   :  246 ms
+5. ceiling constant       : 20000
+6. legitimate 16000 r/s   : 16000        (content max passes through)
+```
+
+| | Before | After |
+|---|---|---|
+| Schema-legal max `arrivalRate` | 1,000,000 | **20,000** |
+| Requests simulated per save | 10,000,000 | **200,000** |
+| Wall time per save (this machine) | 4,603 ms | **246 ms** |
+| Heap delta per save | 195 MB | **~10 MB** |
+| Sustained 20 POST/min to exhaust 4 CPU-h | **~2.6 h** | **~49 h** |
+| Autosave CPU (Vercel estimate, §2.2) | 200–500 ms | **~0** — engine skipped |
+| Simulations per Run | 2 | **1** (the duplicate POST claims nothing) |
+| Hostile `?d=` link | 15–40 s mobile freeze | clamped, **~0.25 s** |
+| 50 MB body | buffered, then rejected | **413 before reading** |
+| DB statements per autosave | 6 | **6 — unchanged** |
+| DB statements per Run | 12 | **7** (+1 `storedCriteriaMet` read) |
+
+Heap delta measured 195 MB here versus 250.6 MB in §1.1 — same request, different GC state between runs. The ratio (~20×) is the number that matters, not the absolute.
+
+**The RU finding (§2.4) is untouched.** These fixes move CPU, not statements; autosaves still cost 6 statements and the whole 15-task blob is still rewritten. RU needs P1 (§8.5–8.7).
+
+### 11.3 Why fix 3 landed before fix 1
+
+Fix 1 alone does not close the outage. An attacker never sends an honest autosave — they send `criteriaMet: [known ids]`, and `route.ts:172` accepted any known id, so `simulate()` ran regardless. "Skip the simulation when nothing is claimed" protects only clients that tell the truth. The ceiling had to exist first; it also closed the share-link freeze and made the dead guard deletable.
+
+Fix 1 was then implemented as **"skip when no *new* criteria are claimed"**, not "no criteria claimed": the stored set is read first (one point read, Run path only), so a replayed save whose criteria are already earned costs nothing. Only ids returned by `criteriaNeedingVerification` are merged, and the merge still unions the server's own set — so skipping can never grant a pass.
+
+### 11.4 Two corrections to this review
+
+1. **§1.4's attribution was wrong.** The two 1M tests were real but were never what bounded `npm test`; `system-design-content.test.ts` is **11.7 s** on its own. Removing them took `engine.test.ts` from ~10.3 s to **1.93 s** and total wall time from ~11 s to **12.96 s** — no wall-clock win. The `11 s → ~3 s` in §8.12 was wrong.
+2. **§8.2's parenthetical was wrong.** It says utilisation "is already analytic". It is not: `engine.ts:321` computes `actualArrivalRate = toStats.arrivals / SIMULATION_WINDOW_SECONDS`, i.e. from **sampled** arrivals. Decoupling sample count from `arrivalRate` therefore changes utilisation and every p95 the lessons quote. Fix 2 is a content re-measurement slice, not a 1–2 h patch — which is why it was not folded into this one.
+
+### 11.5 Verification
+
+- `npm run typecheck` — clean
+- `npm test` — **668 pass, 0 fail** (658 + 7 criteria + 1 content + net 2 validation)
+- `npm run build` — compiled; 108 `/system-design` routes unchanged
+- `npm run check:system-design` — all passed, same 4 pre-existing chain warnings, **identical p95s** (`caching 9ms → 3ms`, `chaos 10ms → 9ms`), confirming determinism survived deleting the `Math.min`
+- `prettier --check` — clean
+- **Mutations observed red, restored byte-identically (sha256):** ceiling → `1_000_000` fired *"clamps arrivalRate above the ceiling"* + *"never simulates more traffic than the schema ceiling allows"*; inverted pending-predicate fired 6/7 criteria tests
+
+### 11.6 Still open
+
+§8.2 (constant-cost simulation), §8.5–8.10 (RU, ordering, drag perf, timeouts), §8.11, §8.13–8.16. The cheapest next item is the duplicate POST after every Run (`TaskWorkspace.tsx:693`): it no longer costs CPU but still costs 6 statements.
+
+### 11.7 One gap this change did not close
+
+`SD_MAX_ARRIVAL_RATE` is asserted only as *the clamp's target* — every test compares against the constant, not against `20_000`. Raising it to `100_000` would keep all 668 tests green, leaving the comment as the only guard. That is the §1.1 failure class at a smaller scale, and it is closed by pinning the number in one test with its reason, not by prose.
+
+---
+
+## Bottom line
+
+After §11, the module is **no longer a CPU risk for 500 users**: autosaves run no simulation, a Run runs one instead of two, and the most expensive schema-valid request fell from 4.6 s / 195 MB to 246 ms / ~10 MB.
+
+It is **still an RU risk** — §2.4's 48M-on-50M estimate did not move, because these fixes changed CPU and not statement count. And the outage is 19× harder, not impossible, until simulation cost stops depending on `arrivalRate`.
+
+Order of what remains: the duplicate POST (cheap), then `sd_task_state` normalisation (the RU ceiling), then constant-cost simulation (closes §2.3), then the `graphSeed` re-baseline.

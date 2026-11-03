@@ -69,6 +69,7 @@ import type {
 } from "../config/system-design/types";
 import { defaultNode, getNodeTypeSpec } from "../lib/system-design/nodes";
 import { simulate } from "../lib/system-design/engine";
+import { SD_MAX_ARRIVAL_RATE } from "../lib/system-design/validation";
 
 /**
  * Loaded in a `before` hook, not at module scope: test files run as CommonJS
@@ -277,6 +278,32 @@ describe("content model — every module", () => {
           graph.scenario.arrivalRate < routed,
           `${mod.slug} (${name} graph): ${graph.scenario.arrivalRate} r/s offered ` +
             `against ${routed} r/s of balancer capacity — every request is shed at the door`,
+        );
+      }
+    }
+  });
+
+  it("keeps every authored task graph under the arrival-rate ceiling", () => {
+    // `SD_MAX_ARRIVAL_RATE` is applied by `SdGraphSchema` to the POST body and
+    // to share links, but a module's `startGraph`/`solutionGraph` is authored
+    // TypeScript that never passes through Zod. So a content edit could set a
+    // rate the schema would silently clamp — the learner would then see the
+    // canvas disagree with the scenario they saved, and `simulate()` would pay
+    // `arrivalRate × 10` on every Run.
+    //
+    // All modules, not just converted ones: this is a hard bound on engine
+    // cost, not a content-quality bar. Content currently peaks at 16,000
+    // (module 9), so the ceiling keeps every lesson reproducible.
+    for (const mod of modules) {
+      if (!mod.task) continue;
+      for (const [name, graph] of [
+        ["start", mod.task.startGraph],
+        ["solution", mod.task.solutionGraph],
+      ] as const) {
+        assert.ok(
+          graph.scenario.arrivalRate <= SD_MAX_ARRIVAL_RATE,
+          `${mod.slug} (${name} graph): ${graph.scenario.arrivalRate} r/s exceeds ` +
+            `SD_MAX_ARRIVAL_RATE (${SD_MAX_ARRIVAL_RATE}) and would be clamped on save`,
         );
       }
     }

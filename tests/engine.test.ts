@@ -13,7 +13,8 @@
  * Attack surface:
  *   - Module-authored `startGraph`/`solutionGraph` (trusted but validated)
  *   - User-edited share links (untrusted, validated by Zod first)
- *   - Malicious scenario knobs (arrivalRate up to 1M, etc.)
+ *   - Malicious scenario knobs (arrivalRate is clamped to `SD_MAX_ARRIVAL_RATE`
+ *     by the schema before it reaches this engine — see validation.ts)
  *
  * A regression here means:
  *   - Wrong pass/fail for a module (learner blocked or incorrectly passed)
@@ -24,6 +25,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createPrng, simulate } from "../lib/system-design/engine";
+import {
+  SdGraphSchema,
+  SD_MAX_ARRIVAL_RATE,
+} from "../lib/system-design/validation";
 import type {
   SdGraph,
   SdNode,
@@ -962,13 +967,21 @@ describe("simulate — edge cases", () => {
     assert.equal(result.valid, true);
   });
 
-  it("handles high arrivalRate without crashing", () => {
+  it("handles the schema's maximum arrivalRate without crashing", () => {
+    // `SD_MAX_ARRIVAL_RATE` is the only rate that can reach the engine from a
+    // validated graph, and it costs `20,000 × 10 = 200k` simulated requests.
+    // The old version of this test ran at 1,000,000 (10M requests, ~4.6 s and
+    // ~195 MB) and asserted only `valid`, so it paid the DoS cost on every CI
+    // run while pinning nothing.
     const graph = simpleClientServerGraph({
-      scenario: { ...minimalGraph().scenario, arrivalRate: 1_000_000 },
+      scenario: {
+        ...minimalGraph().scenario,
+        arrivalRate: SD_MAX_ARRIVAL_RATE,
+      },
     });
     const result = simulate(graph);
     assert.equal(result.valid, true);
-    assert.ok(result.errorRate > 0); // Mostly shed
+    assert.ok(result.errorRate > 0); // Mostly shed at 20k against one app server
   });
 
   it("handles zero arrivalRate gracefully", () => {
@@ -1068,13 +1081,27 @@ describe("constants — verify values", () => {
     assert.ok(result.valid);
   });
 
-  it("MAX_ARRIVALS_PER_STEP = 50000 prevents DoS", () => {
-    // Even at 1M arrivalRate, per-step capped at 50k
-    const graph = simpleClientServerGraph({
-      scenario: { ...minimalGraph().scenario, arrivalRate: 1_000_000 },
+  it("never simulates more traffic than the schema ceiling allows", () => {
+    // The engine's cost is `arrivalRate × 10` requests and it trusts its
+    // caller. This asserts the caller's contract: a 1,000,000 r/s payload is
+    // clamped by `SdGraphSchema` *before* it can reach `simulate()`, so the
+    // worst case is 200k requests rather than 10M.
+    //
+    // This replaces `MAX_ARRIVALS_PER_STEP = 50000 prevents DoS`, which
+    // asserted only `result.valid` at 1M — true, because the constant it named
+    // never engaged below 5,000,000 r/s. A test naming a bound that is not
+    // applied is worse than no test.
+    const parsed = SdGraphSchema.parse({
+      ...simpleClientServerGraph(),
+      scenario: {
+        ...minimalGraph().scenario,
+        arrivalRate: 1_000_000,
+      },
     });
-    const result = simulate(graph);
-    assert.ok(result.valid); // Should not crash
+    assert.equal(parsed.scenario.arrivalRate, SD_MAX_ARRIVAL_RATE);
+
+    const result = simulate(parsed);
+    assert.equal(result.valid, true);
   });
 });
 

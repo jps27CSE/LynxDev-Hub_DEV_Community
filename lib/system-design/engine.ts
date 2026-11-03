@@ -15,8 +15,6 @@ import { NODE_TYPES, getNodeTypeSpec } from "./nodes";
 const SIMULATION_WINDOW_SECONDS = 10;
 const TIME_STEP_SECONDS = 0.01;
 const TOTAL_STEPS = SIMULATION_WINDOW_SECONDS / TIME_STEP_SECONDS;
-/** Cap arrivals per step to prevent DoS from malicious scenario. */
-const MAX_ARRIVALS_PER_STEP = 50_000;
 /** Probability of stale read when replica lag is configured. */
 const STALE_READ_PROBABILITY = 0.1;
 /** Jitter multiplier for latency jitter (uniform [-1, 1] * jitterMs). */
@@ -532,11 +530,17 @@ function runSimulation(
   );
 
   for (let step = 0; step < TOTAL_STEPS; step++) {
-    const arrivalsThisStep = arrivalRate * TIME_STEP_SECONDS;
-    const nArrivals = Math.min(
-      MAX_ARRIVALS_PER_STEP,
-      Math.floor(arrivalsThisStep + prng()),
-    );
+    // Total work is `arrivalRate × 10` requests. The bound on that number is
+    // `SD_MAX_ARRIVAL_RATE` in `./validation`, applied by `SdGraphSchema` to
+    // the POST body, share links and stored state — not here.
+    //
+    // There used to be a `MAX_ARRIVALS_PER_STEP = 50_000` guard at this line.
+    // It only engaged above 5,000,000 req/s, so it was unreachable for every
+    // schema-valid graph (the ceiling was 1,000,000) while its comment and a
+    // test claimed it prevented exactly the DoS it could not see. Do not add a
+    // second bound here: two bounds where only one applies is how that
+    // happened. `tests/engine.test.ts` pins the schema ceiling instead.
+    const nArrivals = Math.floor(arrivalRate * TIME_STEP_SECONDS + prng());
 
     for (let i = 0; i < nArrivals; i++) {
       totalArrivals++;

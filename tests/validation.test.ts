@@ -18,7 +18,11 @@
  *   - String length bounds (id: 1-64, label: 1-128)
  *   - Numeric bounds (replicas: 1-100, hitRate: 0-1, etc.)
  *   - Array bounds (nodes: 1-40, edges: max 120)
- *   - Scenario bounds (arrivalRate: 0-1M, writeShare: 0-1, etc.)
+ *   - Scenario bounds (arrivalRate: 0–20,000 — see `SD_MAX_ARRIVAL_RATE`,
+ *     writeShare: 0-1, etc.)
+ *
+ * `arrivalRate` is clamped rather than rejected above the ceiling, because the
+ * engine's cost is linear in it — see `SD_MAX_ARRIVAL_RATE` for the numbers.
  *
  * A regression here means either:
  *   - A malicious payload bypasses validation (security)
@@ -33,6 +37,7 @@ import {
   SdEdgeSchema,
   SdScenarioSchema,
   SdGraphSchema,
+  SD_MAX_ARRIVAL_RATE,
 } from "../lib/system-design/validation";
 import type {
   SdGraph,
@@ -540,12 +545,36 @@ describe("SdScenarioSchema", () => {
     assert.equal(result.success, false);
   });
 
-  it("rejects arrivalRate > 1_000_000", () => {
+  it("clamps arrivalRate above the ceiling instead of rejecting it", () => {
+    // The ceiling bounds engine cost (`arrivalRate × 10` requests). Clamping
+    // rather than rejecting means a graph saved under the old 1M ceiling still
+    // loads and saves, instead of 400-ing on every edit forever.
     const result = SdScenarioSchema.safeParse({
       ...validScenario,
       arrivalRate: 1_000_001,
     });
-    assert.equal(result.success, false);
+    assert.ok(result.success, "expected the schema to clamp, not reject");
+    assert.equal(result.data.arrivalRate, SD_MAX_ARRIVAL_RATE);
+  });
+
+  it("keeps arrivalRate at the ceiling unchanged", () => {
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      arrivalRate: SD_MAX_ARRIVAL_RATE,
+    });
+    assert.ok(result.success);
+    assert.equal(result.data.arrivalRate, SD_MAX_ARRIVAL_RATE);
+  });
+
+  it("keeps a normal arrivalRate unchanged", () => {
+    // Guards the clamp against a future `Math.max` typo: 12,000 is the most
+    // common module rate and must not be rewritten.
+    const result = SdScenarioSchema.safeParse({
+      ...validScenario,
+      arrivalRate: 12_000,
+    });
+    assert.ok(result.success);
+    assert.equal(result.data.arrivalRate, 12_000);
   });
 
   it("rejects writeShare < 0", () => {

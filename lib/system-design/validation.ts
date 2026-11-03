@@ -125,9 +125,36 @@ export const SdEdgeSchema = z.object({
   partitioned: z.boolean(),
 }) satisfies z.ZodType<SdEdge>;
 
+/**
+ * Hard ceiling on simulated traffic, in requests per second.
+ *
+ * This number *is* the server's worst-case CPU per save: the engine simulates
+ * `arrivalRate × 10` requests (1000 steps of 10 ms over a 10 s window), each
+ * walking up to 40 hops and pushing into three arrays per hop. Measured on a
+ * dev machine: 20,000 r/s → 200k requests, ~160 ms, ~10 MB; 1,000,000 r/s →
+ * 10M requests, 4.6 s, ~195 MB. At 20 POST/min the old ceiling let one
+ * signed-in user exhaust the whole 4 CPU-hour monthly Vercel budget in ~3 h
+ * and 504 the entire app, not just this feature.
+ *
+ * Enforced here rather than only in the UI because the POST body, the `?d=`
+ * share link and stored state all pass through `SdGraphSchema` — and only the
+ * first of those is our client. The panel slider imports this same constant so
+ * the UI cannot offer a value the schema will silently rewrite.
+ *
+ * Content peaks at 16,000 r/s (module 9), so 20,000 keeps every lesson
+ * reproducible. Raised deliberately? Re-measure `simulate()` first.
+ */
+export const SD_MAX_ARRIVAL_RATE = 20_000;
+
 /** Scenario knobs the learner turns. */
 export const SdScenarioSchema = z.object({
-  arrivalRate: z.number().positive().max(1_000_000),
+  // Clamped, not rejected: a learner who saved a graph under the old 1M
+  // ceiling would otherwise get a permanent 400 on their next edit. Nothing
+  // legitimate ever used the range above the ceiling, so clamping is lossless.
+  arrivalRate: z
+    .number()
+    .positive()
+    .transform((value) => Math.min(value, SD_MAX_ARRIVAL_RATE)),
   writeShare: z.number().min(0).max(1),
   mediaShare: z.number().min(0).max(1),
   bytesPerMediaRequest: z.number().int().positive().max(100_000_000),

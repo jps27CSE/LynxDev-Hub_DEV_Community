@@ -8,12 +8,14 @@ import {
   validationError,
   badJson,
   unauthorized,
+  payloadTooLarge,
   serverError,
 } from "@/lib/api-error";
 import { createLogger } from "@/lib/logger";
 import { enforceDbRateLimit } from "@/lib/db-rate-limit";
 import { withRequestLog } from "@/lib/request-log";
 import { SdGraphSchema, validateGraph } from "@/lib/system-design/validation";
+import { criteriaNeedingVerification } from "@/lib/system-design/criteria";
 import { getModule } from "@/config/system-design/registry";
 import { simulate } from "@/lib/system-design/engine";
 import type {
@@ -23,6 +25,40 @@ import type {
 } from "@/config/system-design/types";
 
 const log = createLogger("system-design-state");
+
+/**
+ * Largest body this route will read. A schema-valid task-save (40 nodes,
+ * 120 edges, 40 steps) tops out near 40 KB, so 64 KB is headroom, not a
+ * tuning knob. `req.json()` buffers the entire body before Zod can reject it
+ * and App Router handlers have no default cap of their own.
+ *
+ * Caveat: a chunked request can omit `Content-Length`, in which case this
+ * check does not fire and the platform's own request-body limit is the bound.
+ */
+const MAX_BODY_BYTES = 64 * 1024;
+
+/**
+ * Criteria this learner has already earned for a task.
+ *
+ * Read before the simulation so a save that claims nothing new never runs the
+ * engine. This is one extra point read on the Run path only — autosaves claim
+ * no criteria and skip it entirely. It reads the whole `tasks` blob because
+ * `sd_user_state` stores all 15 tasks in one JSON column (see the production
+ * review's P1 §8.5 for the normalisation that removes that).
+ */
+async function storedCriteriaMet(
+  userId: number,
+  taskSlug: string,
+): Promise<string[]> {
+  const rows = await db
+    .select({ tasks: sdUserState.tasks })
+    .from(sdUserState)
+    .where(eq(sdUserState.user_id, userId))
+    .limit(1);
+
+  const tasks = (rows[0]?.tasks as Record<string, SdTaskState>) ?? {};
+  return tasks[taskSlug]?.criteriaMet ?? [];
+}
 
 const StateMutationSchema = z.discriminatedUnion("kind", [
   z.object({
@@ -136,6 +172,13 @@ export async function POST(req: NextRequest) {
       return serverError("Failed to check rate limit");
     }
 
+    // Before parsing: `req.json()` buffers the whole body, so a 50 MB payload
+    // is read into memory before Zod can reject it.
+    const declaredLength = Number(req.headers.get("content-length") ?? "");
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
+      return payloadTooLarge(MAX_BODY_BYTES);
+    }
+
     let body: unknown;
     try {
       body = await req.json();
@@ -145,6 +188,19 @@ export async function POST(req: NextRequest) {
 
     const parsed = StateMutationSchema.safeParse(body);
     if (!parsed.success) return validationError(parsed.error);
+
+    // Resolved before the simulation: deciding whether to simulate needs the
+    // learner's stored criteria, and the engine must not run while holding a
+    // transaction or one of the five pool slots.
+    const userResult = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(eq(usersTable.clerk_id, userId))
+      .limit(1);
+
+    if (userResult.length === 0) return unauthorized();
+
+    const user = userResult[0];
 
     let verifiedCriteriaMet: string[] = [];
     if (parsed.data.kind === "task-save") {
@@ -195,26 +251,32 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const result = simulate(graphValidation.data, failures);
-      verifiedCriteriaMet = result.valid
-        ? task.passCriteria
-            .filter(
-              (criterion) =>
-                requestedCriteria.has(criterion.id) && criterion.assert(result),
-            )
-            .map((criterion) => criterion.id)
-        : [];
+      // `simulate()` is the expensive part of this route (~200–500 ms CPU),
+      // and the client saves every 2 s of idle time. Only claimed criteria
+      // that are not already earned need verifying, so autosaves and replayed
+      // saves cost nothing. Criteria are still verified server-side — a
+      // learner cannot forge a pass — and only ids verified here are merged.
+      const pendingCriteria =
+        requestedCriteria.size === 0
+          ? []
+          : criteriaNeedingVerification(
+              requestedCriteria,
+              await storedCriteriaMet(user.id, parsed.data.taskSlug),
+            );
+
+      if (pendingCriteria.length > 0) {
+        const simulation = simulate(graphValidation.data, failures);
+        verifiedCriteriaMet = simulation.valid
+          ? task.passCriteria
+              .filter(
+                (criterion) =>
+                  pendingCriteria.includes(criterion.id) &&
+                  criterion.assert(simulation),
+              )
+              .map((criterion) => criterion.id)
+          : [];
+      }
     }
-
-    const userResult = await db
-      .select({ id: usersTable.id })
-      .from(usersTable)
-      .where(eq(usersTable.clerk_id, userId))
-      .limit(1);
-
-    if (userResult.length === 0) return unauthorized();
-
-    const user = userResult[0];
 
     const now = new Date().toISOString();
 
