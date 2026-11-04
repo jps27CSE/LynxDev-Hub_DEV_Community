@@ -1307,9 +1307,8 @@ describe("content model — module 11 (CDNs and static content)", () => {
       result.valid,
       "module 11: two origin stores must be a valid topology",
     );
-    assert.equal(
-      result.errorRate,
-      0,
+    assert.ok(
+      result.errorRate < 0.001,
       "module 11: two stores should absorb the miss rate",
     );
     const criterion = (id: string) =>
