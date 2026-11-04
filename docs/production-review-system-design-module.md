@@ -444,7 +444,7 @@ Same basis as §2.4: 500 users × 8 sessions = 4,000 sessions/month, ~100 RU per
 Three caveats, because a number this good deserves suspicion:
 
 1. **The 100 RU/statement figure is the repo's own calibration, not a TiDB measurement**, and it does not model JSON write bytes. Real RU is probably worse than the table in absolute terms; the *ratio* is the part to trust.
-2. **"~4 autosaves per session" is an assumption about learner behaviour**, not an observation. ~~The way to replace it is a `log.info` of saves-per-session and `simulate` ms (§8.13) — that is the next measurement, not another estimate.~~ **§8.13 done:** `emit()` now carries the requestId, and the route logs `log.info("simulation", { ms, arrivals, criteriaClaimed, criteriaVerified, valid })` plus a slow-sim warning above 100 ms. Saves-per-session still needs a client-side counter (TaskWorkspace), which is the remaining half of §8.13.
+2. **"~4 autosaves per session" is an assumption about learner behaviour**, not an observation. ~~The way to replace it is a `log.info` of saves-per-session and `simulate` ms (§8.13) — that is the next measurement, not another estimate.~~ **§8.13 done:** `emit()` now carries the requestId, the route logs `log.info("simulation", { ms, arrivals, criteriaClaimed, criteriaVerified, valid })` plus a slow-sim warning above 100 ms, and TaskWorkspace logs a per-session save count on the first unload flush.
 3. **The 10 s cadence is not covered by a unit test.** It lives inside a React component with no renderer in this repo, so it was verified by reading and must be confirmed by hand: edit a task, watch the network tab for ~10 s, hit Run, and confirm exactly one POST per Run.
 
 ### 12.6 Verification
@@ -458,7 +458,7 @@ Three caveats, because a number this good deserves suspicion:
 
 ### 12.7 Still open
 
-~~`sd_task_state` normalisation (§8.5 — the blob rewrite, now the largest remaining item)~~ **Done in §13.** Constant-cost simulation (§8.2, closes §2.3), `graphSeed` re-baseline (§8.11), request correlation and simulation timing (§8.13 — server side done; client-side saves-per-session counter still open). (`steps` removal and the `SD_MAX_ARRIVAL_RATE` pin were done in the §12 companion commit.)
+~~`sd_task_state` normalisation (§8.5 — the blob rewrite, now the largest remaining item)~~ **Done in §13.** Constant-cost simulation (§8.2, closes §2.3), `graphSeed` re-baseline (§8.11). (`steps` removal, the `SD_MAX_ARRIVAL_RATE` pin, and §8.13 were done in the §12/§13 companion commits.)
 
 ---
 
@@ -526,8 +526,8 @@ After §11, the module is **no longer a CPU risk for 500 users**: autosaves run 
 
 After §12 it is **no longer an RU risk at realistic engagement**: ~76M → ~17M RU/month at 500 *fully active* learners, ~5M at the 150 a learning platform actually sees.
 
-After §13 the **last structural inefficiency is gone**: no more O(N) write amplification, no 50 KB blob deserialised on every mount, no per-user write lock on a 15-task JSON column. The 50M RU ceiling is now a non-issue at any realistic engagement; the remaining work is CPU (constant-cost simulation, §8.2) and measurement (§8.13 — server side done; client-side saves-per-session counter still open).
+After §13 the **last structural inefficiency is gone**: no more O(N) write amplification, no 50 KB blob deserialised on every mount, no per-user write lock on a 15-task JSON column. The 50M RU ceiling is now a non-issue at any realistic engagement; the remaining work is CPU (constant-cost simulation, §8.2) and measurement (§8.13 — done).
 
 What is still true: the outage is 19× harder, not impossible, until simulation cost stops depending on `arrivalRate` (§8.2), and every RU figure in this document is an estimate derived from the repo's calibration, not a TiDB measurement.
 
-Order of what remains: constant-cost simulation (closes §2.3), then the `graphSeed` re-baseline, then the client-side saves-per-session counter that completes §8.13.
+Order of what remains: constant-cost simulation (closes §2.3), then the `graphSeed` re-baseline. §8.13 is complete.
