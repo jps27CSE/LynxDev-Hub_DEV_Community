@@ -252,6 +252,8 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const taskStateRef = useRef<SdTaskState | null>(null);
   const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const saveCountRef = useRef(0);
+  const saveLoggedRef = useRef(false);
   const saveTimerRef = useRef<number | null>(null);
   const pendingSaveRef = useRef<{
     snapshot: SdTaskState;
@@ -495,6 +497,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
       // autosave effect below skip a second save for a state a Run just
       // persisted.
       persistedStateRef.current = snapshot;
+      saveCountRef.current += 1;
       const run = options?.run;
       saveQueueRef.current = saveQueueRef.current.then(async () => {
         try {
@@ -598,7 +601,15 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
   ]);
 
   useEffect(() => {
-    const flush = () => flushPendingSave(true);
+    const flush = () => {
+      if (saveCountRef.current > 0 && !saveLoggedRef.current) {
+        saveLoggedRef.current = true;
+        console.info(
+          `[sd-task] session saves=${saveCountRef.current} module=${moduleSlug}`,
+        );
+      }
+      flushPendingSave(true);
+    };
     const flushWhenHidden = () => {
       if (document.visibilityState === "hidden") flush();
     };
