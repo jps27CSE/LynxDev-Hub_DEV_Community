@@ -13,6 +13,7 @@ import {
 } from "@/lib/api-error";
 import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 import type { MemoryRateLimiter } from "@/lib/memory-rate-limit";
+import { createLogger, SLOW_SIM_THRESHOLD_MS } from "@/lib/logger";
 import { getRateLimitConfig } from "@/config/rate-limits";
 import { withRequestLog } from "@/lib/request-log";
 import { SdGraphSchema, validateGraph } from "@/lib/system-design/validation";
@@ -20,6 +21,8 @@ import { criteriaNeedingVerification } from "@/lib/system-design/criteria";
 import { getModule } from "@/config/system-design/registry";
 import { simulate } from "@/lib/system-design/engine";
 import type { SdTaskState } from "@/config/system-design/types";
+
+const log = createLogger("system-design-state");
 
 /**
  * Largest body this route will read. A schema-valid task-save (40 nodes,
@@ -354,7 +357,31 @@ export async function POST(req: NextRequest) {
             );
 
       if (pendingCriteria.length > 0) {
+        const simStart = performance.now();
         const simulation = simulate(graphValidation.data, failures);
+        const simMs = performance.now() - simStart;
+        const arrivals = graphValidation.data.scenario.arrivalRate * 10;
+        log.info("simulation", {
+          taskSlug: parsed.data.taskSlug,
+          ms: Math.round(simMs),
+          arrivals,
+          criteriaClaimed: pendingCriteria.length,
+          criteriaVerified: simulation.valid
+            ? task.passCriteria.filter(
+                (criterion) =>
+                  pendingCriteria.includes(criterion.id) &&
+                  criterion.assert(simulation),
+              ).length
+            : 0,
+          valid: simulation.valid,
+        });
+        if (simMs > SLOW_SIM_THRESHOLD_MS) {
+          log.warn("slow simulation", {
+            taskSlug: parsed.data.taskSlug,
+            ms: Math.round(simMs),
+            arrivals,
+          });
+        }
         verifiedCriteriaMet = simulation.valid
           ? task.passCriteria
               .filter(

@@ -1,3 +1,5 @@
+import { getRequestId } from "./request-log";
+
 export type LogContext = Record<string, unknown>;
 
 export type Logger = {
@@ -23,6 +25,8 @@ function emit(
         ? console.warn
         : console.log;
 
+  const requestId = getRequestId();
+
   if (isProd) {
     const entry: Record<string, unknown> = {
       level,
@@ -30,16 +34,18 @@ function emit(
       msg: message,
       time: new Date().toISOString(),
     };
+    if (requestId) entry.requestId = requestId;
     if (error !== undefined) entry.error = serializeError(error);
     if (context !== undefined) Object.assign(entry, context);
     fn(JSON.stringify(entry));
   } else {
     const prefix = `[${scope}]`;
     const suffix = context ? ` ${JSON.stringify(context)}` : "";
+    const reqSuffix = requestId ? ` req=${requestId.slice(0, 8)}` : "";
     if (error !== undefined) {
-      fn(`${prefix} ${message}`, error, suffix || undefined);
+      fn(`${prefix} ${message}${reqSuffix}`, error, suffix || undefined);
     } else {
-      fn(`${prefix} ${message}${suffix}`);
+      fn(`${prefix} ${message}${reqSuffix}${suffix}`);
     }
   }
 }
@@ -103,7 +109,8 @@ export function serializeError(err: unknown, depth = 0): SerializedError {
   return serialized;
 }
 
-const SLOW_DB_THRESHOLD_MS = 250;
+export const SLOW_DB_THRESHOLD_MS = 250;
+export const SLOW_SIM_THRESHOLD_MS = 100;
 
 export function createLogger(scope: string): Logger {
   return {
