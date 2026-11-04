@@ -1,7 +1,7 @@
 # Production Review — System Design Module
 
-> **Date:** 2026-11-03 (reviewed). **P0 fixes 1, 3, 4 and P2 fix 12 applied the same day — see §11. RU fixes applied the same day — see §12.** Both sections record the measured before/after and what is still open.
-> **Scope:** Phase 6 system design path — `/system-design`, the 15 module routes, 79 lesson routes, 14 task routes, `components/system-design/*`, `lib/system-design/*`, `config/system-design/*`, and `app/api/system-design/state/route.ts` + `sd_user_state`.
+> **Date:** 2026-11-03 (reviewed). **P0 fixes 1, 3, 4 and P2 fix 12 applied the same day — see §11. RU fixes applied the same day — see §12. Schema normalisation applied 2026-11-04 — see §13.** All sections record the measured before/after and what is still open.
+> **Scope:** Phase 6 system design path — `/system-design`, the 15 module routes, 79 lesson routes, 14 task routes, `components/system-design/*`, `lib/system-design/*`, `config/system-design/*`, and `app/api/system-design/state/route.ts` + `sd_user_state` + `sd_task_state`.
 > **Target:** 500 users on TiDB Cloud Starter (free, 50M RU/mo) + Vercel Hobby (free, 4 CPU-hrs/mo).
 > **Companion docs:** `docs/production-review-500-users.md` (app-wide), `docs/production-review-blog-module.md` (review format), `.agent/plans/16-system-design-phase-6.md` (original design).
 >
@@ -273,8 +273,8 @@ Problems:
 | # | Fix | Why |
 |---|---|---|
 | 5 | **Normalise state to `sd_task_state(user_id, task_slug, graph, criteria_met, attempts, revealed, updated_at)`** with a composite PK | kills O(N) write amplification, turns the GET into a point read of one task instead of ~50 KB every mount, and provides a natural concurrency token. Best cost/benefit schema change in the module. | ✅ applied (§13) |
-| 6 | **Drop `steps` from the write path** | never read; less RU, one fewer client-trusted field |
-| 7 | **Fail-open the limiter on this scope**, or replace with an in-memory per-instance token bucket | the endpoint has no external spend; 2 of 6 statements per save are the limiter |
+| 6 | **Drop `steps` from the write path** | never read; less RU, one fewer client-trusted field | ✅ applied (§12 companion) |
+| 7 | **Fail-open the limiter on this scope**, or replace with an in-memory per-instance token bucket | the endpoint has no external spend; 2 of 6 statements per save are the limiter | ✅ applied (§12) |
 | 8 | **Server-owned ordering** (`updatedAt` returned by the server, used by `mergeTaskStates`), plus a 409 path with retry and flush on `online` | removes clock-skew data loss and silent multi-tab overwrite |
 | 9 | **rAF-coalesce `pointermove`; `React.memo` the panels** | the per-pointer-event workspace re-render is the mobile jank source |
 | 10 | **Add `maxDuration` + query timeout** to the route | prevents a hung statement holding a pool slot to the function cap |
@@ -357,7 +357,7 @@ The clamp sits in the schema rather than the client because the POST body, `?d=`
 
 Heap delta measured 195 MB here versus 250.6 MB in §1.1 — same request, different GC state between runs. The ratio (~20×) is the number that matters, not the absolute.
 
-**The RU finding (§2.4) is untouched.** These fixes move CPU, not statements; autosaves still cost 6 statements and the whole 15-task blob is still rewritten. RU needs P1 (§8.5–8.7).
+**The RU finding (§2.4) is untouched by §11.** These fixes move CPU, not statements; autosaves still cost 6 statements and the whole 15-task blob is still rewritten. RU needs P1 (§8.5–8.7). **§8.5 closed in §13.**
 
 ### 11.3 Why fix 3 landed before fix 1
 
@@ -381,7 +381,7 @@ Fix 1 was then implemented as **"skip when no *new* criteria are claimed"**, not
 
 ### 11.6 Still open
 
-§8.2 (constant-cost simulation), §8.5–8.10 (RU, ordering, drag perf, timeouts), §8.11, §8.13–8.16. ~~The cheapest next item is the duplicate POST after every Run (`TaskWorkspace.tsx:693`): it no longer costs CPU but still costs 6 statements.~~ **Done in §12** — a Run now commits and saves one state object, so the debounce effect recognises it as persisted.
+§8.2 (constant-cost simulation), ~~§8.5~~ (done in §13), §8.6–8.10 (RU, ordering, drag perf, timeouts), §8.11, §8.13–8.16. ~~The cheapest next item is the duplicate POST after every Run (`TaskWorkspace.tsx:693`): it no longer costs CPU but still costs 6 statements.~~ **Done in §12** — a Run now commits and saves one state object, so the debounce effect recognises it as persisted.
 
 ### 11.7 One gap this change did not close
 
@@ -458,7 +458,7 @@ Three caveats, because a number this good deserves suspicion:
 
 ### 12.7 Still open
 
-~~`sd_task_state` normalisation (§8.5 — the blob rewrite, now the largest remaining item)~~ **Done in §13.** Constant-cost simulation (§8.2, closes §2.3), `graphSeed` re-baseline (§8.11), request correlation and simulation timing (§8.13), and `steps` removal (§8.6) — ~~done in §12's companion commit~~ **done in the §13 commit**.
+~~`sd_task_state` normalisation (§8.5 — the blob rewrite, now the largest remaining item)~~ **Done in §13.** Constant-cost simulation (§8.2, closes §2.3), `graphSeed` re-baseline (§8.11), request correlation and simulation timing (§8.13). (`steps` removal and the `SD_MAX_ARRIVAL_RATE` pin were done in the §12 companion commit.)
 
 ---
 
