@@ -76,7 +76,8 @@
     "zod": "^4.3.5"
   },
   "overrides": {
-    "dompurify": "^3.4.17"
+    "dompurify": "^3.4.17",
+    "esbuild": "^0.25.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
