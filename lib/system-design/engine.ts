@@ -15,6 +15,14 @@ import { NODE_TYPES, getNodeTypeSpec } from "./nodes";
 const SIMULATION_WINDOW_SECONDS = 10;
 const TIME_STEP_SECONDS = 0.01;
 const TOTAL_STEPS = SIMULATION_WINDOW_SECONDS / TIME_STEP_SECONDS;
+/**
+ * Fixed sample count. The engine used to simulate `arrivalRate x 10` requests,
+ * so cost scaled with a number the learner types (4.6 s at 1M r/s). The
+ * sample count is now constant; utilisation and throughput are scaled back up
+ * to the scenario's arrivalRate in `computeStatistics`.
+ */
+const SAMPLE_COUNT = 20_000;
+const SAMPLES_PER_STEP = Math.floor(SAMPLE_COUNT / TOTAL_STEPS);
 /** Probability of stale read when replica lag is configured. */
 const STALE_READ_PROBABILITY = 0.1;
 /** Jitter multiplier for latency jitter (uniform [-1, 1] * jitterMs). */
@@ -315,8 +323,18 @@ function runRequest(
     const cap = effectiveCapacity(toNode, context.failures, context.writeShare);
     const serviceMs = serviceTime(toNode, state.isWrite);
 
-    // Calculate utilization based on actual arrival rate at this node
-    const actualArrivalRate = toStats.arrivals / SIMULATION_WINDOW_SECONDS;
+    // Sampled utilisation drives the Monte Carlo (queue wait, saturation).
+    // It increases as requests arrive, so saturation triggers only once the
+    // node is actually full. The analytic scaling happens in
+    // computeStatistics, where the reported utilisation is recovered.
+    // Analytic utilisation from the scenario's arrival rate and this node's
+    // sampled traffic share. The share estimate is unstable for the first few
+    // requests, so we gate on a minimum sample size to avoid false saturation.
+    const nodeShare =
+      context.totalArrivals >= 100
+        ? toStats.arrivals / context.totalArrivals
+        : 0;
+    const actualArrivalRate = context.arrivalRate * nodeShare;
     const utilization = cap > 0 ? actualArrivalRate / cap : 0;
     const baseQueueWait =
       utilization >= 1
@@ -351,12 +369,17 @@ function runRequest(
       }
     }
 
-    // Saturation check
+    // Saturation check. With analytic utilisation >= 1 the node is
+    // overloaded; shed this request with probability (1 - 1/util) so the
+    // overall shed fraction matches the analytic model.
     if (utilization >= 1) {
-      requestFailed = true;
-      failedAtNode = toNode;
-      failClass = "shed";
-      break;
+      const shedProb = 1 - 1 / utilization;
+      if (prng() < shedProb) {
+        requestFailed = true;
+        failedAtNode = toNode;
+        failClass = "shed";
+        break;
+      }
     }
 
     // Rate limiting on load balancer for abusive clients
@@ -410,6 +433,7 @@ type SimulationContext = {
   failures: SdFailure[];
   graph: SdGraph;
   arrivalRate: number;
+  totalArrivals: number;
   writeShare: number;
   mediaShare: number;
   bytesPerMedia: number;
@@ -515,6 +539,7 @@ function runSimulation(
     failures,
     graph,
     arrivalRate,
+    totalArrivals: 0,
     writeShare,
     mediaShare,
     bytesPerMedia,
@@ -530,20 +555,15 @@ function runSimulation(
   );
 
   for (let step = 0; step < TOTAL_STEPS; step++) {
-    // Total work is `arrivalRate × 10` requests. The bound on that number is
-    // `SD_MAX_ARRIVAL_RATE` in `./validation`, applied by `SdGraphSchema` to
-    // the POST body, share links and stored state — not here.
-    //
-    // There used to be a `MAX_ARRIVALS_PER_STEP = 50_000` guard at this line.
-    // It only engaged above 5,000,000 req/s, so it was unreachable for every
-    // schema-valid graph (the ceiling was 1,000,000) while its comment and a
-    // test claimed it prevented exactly the DoS it could not see. Do not add a
-    // second bound here: two bounds where only one applies is how that
-    // happened. `tests/engine.test.ts` pins the schema ceiling instead.
-    const nArrivals = Math.floor(arrivalRate * TIME_STEP_SECONDS + prng());
+    // Constant sample count: the cost of this loop no longer depends on
+    // `arrivalRate`. The scenario's arrival rate is recovered in
+    // `computeStatistics`, where utilisation and throughput are scaled from
+    // the sampled traffic share to the configured load (Sec. 8.2).
+    const nArrivals = SAMPLES_PER_STEP;
 
     for (let i = 0; i < nArrivals; i++) {
       totalArrivals++;
+      context.totalArrivals = totalArrivals;
       const isWrite = prng() < writeShare;
       const isMedia = prng() < mediaShare;
       const isAbusive = prng() < abusiveShare;
@@ -634,7 +654,14 @@ function computeStatistics(
     errorClasses,
   } = simResult;
 
-  const throughput = totalCompleted / SIMULATION_WINDOW_SECONDS;
+  const arrivalRate = graph.scenario.arrivalRate;
+
+  // Sampled completion rate scaled to the scenario's arrival rate. With a
+  // fixed sample count the raw `totalCompleted / 10` would be ~2000 req/s
+  // regardless of load; multiplying by the completion ratio recovers the
+  // analytic throughput.
+  const sampledRate = totalArrivals > 0 ? totalCompleted / totalArrivals : 0;
+  const throughput = arrivalRate * sampledRate;
   allLatencies.sort((a, b) => a - b);
   const p50 = allLatencies[Math.floor(allLatencies.length * 0.5)] ?? 0;
   const p95 = allLatencies[Math.floor(allLatencies.length * 0.95)] ?? 0;
@@ -654,7 +681,9 @@ function computeStatistics(
   for (const n of graph.nodes) {
     const stats = nodeStats.get(n.id)!;
     const cap = effectiveCapacity(n, failures, graph.scenario.writeShare);
-    const actualArrivalRate = stats.arrivals / SIMULATION_WINDOW_SECONDS;
+    // Sampled traffic share scaled to the scenario's arrival rate.
+    const nodeShare = totalArrivals > 0 ? stats.arrivals / totalArrivals : 0;
+    const actualArrivalRate = arrivalRate * nodeShare;
     const util = cap > 0 ? actualArrivalRate / cap : 0;
     const avgLatency =
       stats.latencies.length > 0
