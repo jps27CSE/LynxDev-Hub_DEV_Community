@@ -128,7 +128,6 @@ function buildPreviewPath(cs: {
 function createTaskState(graph: SdGraph): SdTaskState {
   return {
     graph: cloneGraph(graph),
-    steps: [],
     criteriaMet: [],
     attempts: 0,
     revealed: [],
@@ -163,8 +162,6 @@ function parseTaskState(value: unknown): SdTaskState | null {
   const graph = validateGraph(candidate.graph);
   if (
     !graph.success ||
-    !Array.isArray(candidate.steps) ||
-    !candidate.steps.every((item) => typeof item === "string") ||
     !Array.isArray(candidate.criteriaMet) ||
     !candidate.criteriaMet.every((item) => typeof item === "string") ||
     !Array.isArray(candidate.revealed) ||
@@ -180,7 +177,6 @@ function parseTaskState(value: unknown): SdTaskState | null {
   }
   return {
     graph: graph.data,
-    steps: candidate.steps,
     criteriaMet: candidate.criteriaMet,
     attempts: candidate.attempts,
     revealed: candidate.revealed,
@@ -190,12 +186,6 @@ function parseTaskState(value: unknown): SdTaskState | null {
 
 function graphStepResults(module: SimModule, graph: SdGraph): StepResult[] {
   return module.task.steps.map((step) => step.check(graph));
-}
-
-function currentStepIds(module: SimModule, graph: SdGraph): string[] {
-  return module.task.steps
-    .filter((step) => step.check(graph).passed)
-    .map((step) => step.id);
 }
 
 function mergeTaskStates(
@@ -226,7 +216,6 @@ function mergeTaskStates(
         ...(serverState?.revealed ?? []),
       ]),
     ],
-    steps: currentStepIds(module, newestState.graph),
   };
 }
 
@@ -432,7 +421,6 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
         hydrated = mergedState;
       } else {
         hydrated = createTaskState(currentModule.task.startGraph);
-        hydrated.steps = currentStepIds(currentModule, hydrated.graph);
       }
 
       nextNodeIdRef.current = maxIdIndex(hydrated.graph);
@@ -521,7 +509,6 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
               kind: "task-save",
               taskSlug,
               graph: snapshot.graph,
-              steps: snapshot.steps,
               attempts: snapshot.attempts,
               revealed: snapshot.revealed,
               ...(run
@@ -639,10 +626,6 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
         (latest) => ({
           ...latest,
           graph,
-          steps:
-            persistLocally && module
-              ? currentStepIds(module, graph)
-              : latest.steps,
         }),
         persistLocally,
       );
@@ -792,7 +775,6 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
       // Run's own save from an edit and POSTed the same thing again.
       const runSnapshot = commitTaskState((latest) => ({
         ...latest,
-        steps: currentStepIds(module, latest.graph),
         criteriaMet: [
           ...new Set([...latest.criteriaMet, ...passedCriterionIds]),
         ],
@@ -896,7 +878,6 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
     commitTaskState((current) => ({
       ...current,
       graph: cloneGraph(module.task.solutionGraph),
-      steps: currentStepIds(module, module.task.solutionGraph),
       revealed: [...new Set([...current.revealed, ...criteriaIds])],
     }));
     setCheckedGraph(module.task.solutionGraph);

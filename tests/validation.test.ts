@@ -826,3 +826,17 @@ describe("Type inference helpers", () => {
     assert.ok(graph);
   });
 });
+
+describe("SD_MAX_ARRIVAL_RATE — pinned ceiling", () => {
+  it("is pinned to 20_000 and not a re-derived or raised number", () => {
+    // This constant is the *only* thing that bounds engine cost: the engine
+    // still simulates `arrivalRate × 10` requests, so raising this number
+    // without re-measuring re-opens the DoS in §2.3 and the 4.6 s / 195 MB
+    // request in §1.1. Every other test in this file compares *against* the
+    // constant (so they stay green if it moves), which is exactly the §1.1
+    // failure class at a smaller scale. This is the one place that pins the
+    // number, so that a change is a deliberate, reviewable decision rather
+    // than a side effect of a refactor.
+    assert.equal(SD_MAX_ARRIVAL_RATE, 20_000);
+  });
+});

@@ -23,7 +23,7 @@ import type { SdUserState, SdTaskState } from "@/config/system-design/types";
 
 /**
  * Largest body this route will read. A schema-valid task-save (40 nodes,
- * 120 edges, 40 steps) tops out near 40 KB, so 64 KB is headroom, not a
+ * 120 edges) tops out near 40 KB, so 64 KB is headroom, not a
  * tuning knob. `req.json()` buffers the entire body before Zod can reject it
  * and App Router handlers have no default cap of their own.
  *
@@ -92,7 +92,6 @@ const StateMutationSchema = z.discriminatedUnion("kind", [
     kind: z.literal("task-save"),
     taskSlug: z.string().min(1).max(120),
     graph: SdGraphSchema,
-    steps: z.array(z.string().min(1).max(120)).max(40),
     criteriaMet: z.array(z.string().min(1).max(120)).max(40).optional(),
     failures: z
       .array(
@@ -310,11 +309,10 @@ export async function POST(req: NextRequest) {
           lessonsCompleted.push(slug);
         }
       } else if (parsed.data.kind === "task-save") {
-        const { taskSlug, graph, steps } = parsed.data;
+        const { taskSlug, graph } = parsed.data;
         const existingTask = tasks[taskSlug];
         tasks[taskSlug] = {
           graph,
-          steps,
           criteriaMet: [
             ...new Set([
               ...(existingTask?.criteriaMet ?? []),

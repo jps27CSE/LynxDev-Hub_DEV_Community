@@ -448,7 +448,6 @@ export type SdModule = {
  */
 export type SdTaskState = {
   graph: SdGraph;
-  steps: string[];
   criteriaMet: string[];
   /** Recorded for the platform's own use, never shown as a score. */
   attempts: number;
