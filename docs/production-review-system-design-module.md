@@ -38,7 +38,7 @@ Nothing here is a correctness emergency — the feature works and its security m
 |---|---|---|
 | 1 — cost linear in a learner-typed field | 🟢 **Closed at the boundary** | `SdGraphSchema` now clamps `arrivalRate` to `SD_MAX_ARRIVAL_RATE = 20_000`, so the most expensive *schema-valid* request is 246 ms / ~10 MB. The engine is still linear internally; no input that reaches it can be expensive. |
 | 2 — one user can take the whole app down | 🟡 **19× harder, not eliminated** | ~3 h → ~49 h of sustained 20 req/min. An attacker can still force a simulation by claiming criteria the graph fails, so this stays open until P0 fix 2 (constant-cost simulation). |
-| 3 — every autosave pays for a verification | 🟡 **CPU closed, RU cut ~4×** | Autosaves no longer run `simulate()` (~95% of saves), and §12 cut the saves themselves plus the two limiter statements: ~76M → ~17M RU/month at 500 fully-active learners. Still open: the whole-blob rewrite (§8.5). |
+| 3 — every autosave pays for a verification | 🟢 **Closed** | Autosaves no longer run `simulate()`; §12 cut saves 3–5× and the limiter off TiDB (~76M → ~17M); §13 normalised `sd_task_state` so each save writes one task row instead of the whole 15-task blob (no O(N) write amplification). |
 
 ---
 
@@ -182,7 +182,7 @@ After that the whole app 504s, not just this module. This is more severe than th
 
 `sd_user_state.tasks` is the multiplier: **the whole 15-task JSON blob is rewritten on every save**, so per-save cost grows with learner progress. A learner on module 15 pays ~15× the write RU of a learner on module 1 for a one-task edit — O(N) write amplification.
 
-> **Reduced ~4× on 2026-11-03 (§12)** — fewer saves (10 s cadence instead of 2 s) and two fewer statements per request (the limiter moved off TiDB). The table above still describes the *shape* of the cost, and the normalisation in §8.5 is still the fix for it: the blob rewrite is untouched, and a learner on module 15 still pays more per keystroke than a learner on module 1.
+> **Eliminated on 2026-11-04 (§13).** `sd_task_state` now holds one row per (user, task); each save writes a single task row (~4 KB) instead of the whole blob. The table above describes the cost shape that no longer exists. `sd_user_state` keeps only `lessons_completed`.
 
 `steps` (up to 40 × 120 chars per task) is stored but **never read** — `mergeTaskStates` recomputes it from the graph (`TaskWorkspace.tsx:212`). That is 10–20 KB of dead weight rewritten on every save: the "field only ever written, never read" class already recorded in Known Debt.
 
@@ -272,7 +272,7 @@ Problems:
 
 | # | Fix | Why |
 |---|---|---|
-| 5 | **Normalise state to `sd_task_state(user_id, task_slug, graph, criteria_met, attempts, revealed, updated_at)`** with a composite PK | kills O(N) write amplification, turns the GET into a point read of one task instead of ~50 KB every mount, and provides a natural concurrency token. Best cost/benefit schema change in the module. |
+| 5 | **Normalise state to `sd_task_state(user_id, task_slug, graph, criteria_met, attempts, revealed, updated_at)`** with a composite PK | kills O(N) write amplification, turns the GET into a point read of one task instead of ~50 KB every mount, and provides a natural concurrency token. Best cost/benefit schema change in the module. | ✅ applied (§13) |
 | 6 | **Drop `steps` from the write path** | never read; less RU, one fewer client-trusted field |
 | 7 | **Fail-open the limiter on this scope**, or replace with an in-memory per-instance token bucket | the endpoint has no external spend; 2 of 6 statements per save are the limiter |
 | 8 | **Server-owned ordering** (`updatedAt` returned by the server, used by `mergeTaskStates`), plus a 409 path with retry and flush on `online` | removes clock-skew data loss and silent multi-tab overwrite |
@@ -458,7 +458,65 @@ Three caveats, because a number this good deserves suspicion:
 
 ### 12.7 Still open
 
-`sd_task_state` normalisation (§8.5 — the blob rewrite, now the largest remaining item), constant-cost simulation (§8.2, closes §2.3), `graphSeed` re-baseline (§8.11), request correlation and simulation timing (§8.13), `steps` removal (§8.6), and §11.7's unpinned constant.
+~~`sd_task_state` normalisation (§8.5 — the blob rewrite, now the largest remaining item)~~ **Done in §13.** Constant-cost simulation (§8.2, closes §2.3), `graphSeed` re-baseline (§8.11), request correlation and simulation timing (§8.13), and `steps` removal (§8.6) — ~~done in §12's companion commit~~ **done in the §13 commit**.
+
+---
+
+## 13. Schema normalisation applied — 2026-11-04
+
+The last structural RU item: `sd_user_state.tasks` was one JSON column holding all
+15 tasks, so every save rewrote the whole blob and a module-15 learner paid ~15×
+the write RU of a module-1 learner for a one-task edit. That is gone.
+
+### 13.1 What changed
+
+| File | Change |
+|---|---|
+| `config/schema.tsx` | New `sd_task_state` table: one row per (user, task), `UNIQUE(user_id, task_slug)`, FK to `users.id` |
+| `drizzle/0012_tiny_sentry.sql` | `CREATE TABLE sd_task_state` + FK; applied to dev DB |
+| `app/api/system-design/state/route.ts` | GET/POST now read and write `sd_task_state`; `sd_user_state` keeps only `lessons_completed` |
+| `config/system-design/types.ts` | `SdUserState.tasks` made optional (backward compat) |
+| `components/system-design/TaskWorkspace.tsx` | Unchanged — the response shape `{ lessonsCompleted, tasks }` is identical |
+
+### 13.2 Lazy migration
+
+Existing rows in `sd_user_state.tasks` are migrated on the **first request** for
+each user: `migrateLegacyTasks(userId)` checks whether `sd_task_state` already
+has rows for that user, and if not, copies each task out of the legacy blob into
+its own row. Per-task rather than all-at-once, so a partial failure leaves the
+user in a recoverable state. After a successful migration the legacy column is
+set to `null` so we stop paying to read and write it.
+
+The client never sees the migration: the response shape is unchanged, so
+`TaskWorkspace`'s hydrate path needs no edits. Old saves that still carry
+`steps` in the blob are accepted (the field is ignored).
+
+### 13.3 What it buys
+
+- **No more O(N) write amplification:** a module-15 edit now writes ~4 KB
+  instead of ~60 KB.
+- **GET is a point read:** `SELECT ... FROM sd_task_state WHERE user_id = ?`
+  returns only that user's tasks, instead of deserialising a ~50 KB blob every
+  mount.
+- **Natural concurrency token:** `updated_at` per task instead of per user.
+- **Statement count per save:** unchanged at 4 (user lookup + read existing +
+  upsert + read back), but each statement is now bounded in size.
+
+### 13.4 Verification
+
+- `npm run typecheck` — clean
+- `npm test` — 678 pass, 0 fail
+- `npm run build` — compiled
+- `npm run check:migrations` — no drift
+- `npm run check:system-design` — all passed, same 4 chain warnings
+- Dev server: `GET /api/system-design/state` 200, `POST` 200; lazy migration ran
+  on first request (17 queries, one-time).
+- `prettier --check` — clean
+
+### 13.5 Still open (unchanged scope)
+
+Constant-cost simulation (§8.2, closes §2.3), `graphSeed` re-baseline (§8.11),
+request correlation and simulation timing (§8.13).
 
 ---
 
@@ -466,8 +524,10 @@ Three caveats, because a number this good deserves suspicion:
 
 After §11, the module is **no longer a CPU risk for 500 users**: autosaves run no simulation, a Run runs one instead of two, and the most expensive schema-valid request fell from 4.6 s / 195 MB to 246 ms / ~10 MB.
 
-After §12 it is **no longer an RU risk at realistic engagement either**: ~76M → ~17M RU/month at 500 *fully active* learners, ~5M at the 150 that a learning platform actually sees. The 50M ceiling is no longer the binding constraint; `sd_task_state`'s blob rewrite is now the largest remaining inefficiency rather than an emergency.
+After §12 it is **no longer an RU risk at realistic engagement**: ~76M → ~17M RU/month at 500 *fully active* learners, ~5M at the 150 a learning platform actually sees.
+
+After §13 the **last structural inefficiency is gone**: no more O(N) write amplification, no 50 KB blob deserialised on every mount, no per-user write lock on a 15-task JSON column. The 50M RU ceiling is now a non-issue at any realistic engagement; the remaining work is CPU (constant-cost simulation, §8.2) and measurement (§8.13).
 
 What is still true: the outage is 19× harder, not impossible, until simulation cost stops depending on `arrivalRate` (§8.2), and every RU figure in this document is an estimate derived from the repo's calibration, not a TiDB measurement.
 
-Order of what remains: `sd_task_state` normalisation (the blob rewrite), then constant-cost simulation (closes §2.3), then the `graphSeed` re-baseline, then the timing instrumentation that would replace §12.5's assumptions with observations.
+Order of what remains: constant-cost simulation (closes §2.3), then the `graphSeed` re-baseline, then the timing instrumentation that would replace §12.5's assumptions with observations.

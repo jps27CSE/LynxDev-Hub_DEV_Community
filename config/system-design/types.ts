@@ -459,5 +459,5 @@ export type SdTaskState = {
 /** camelCase here; mapped to the snake_case `sd_user_state` columns at the DB edge. */
 export type SdUserState = {
   lessonsCompleted: string[];
-  tasks: Record<string, SdTaskState>;
+  tasks?: Record<string, SdTaskState>;
 };

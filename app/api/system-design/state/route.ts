@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
 import { db } from "@/config/db";
-import { sdUserState, usersTable } from "@/config/schema";
+import { sdUserState, sdTaskState, usersTable } from "@/config/schema";
 import { auth } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import {
   validationError,
@@ -19,7 +19,7 @@ import { SdGraphSchema, validateGraph } from "@/lib/system-design/validation";
 import { criteriaNeedingVerification } from "@/lib/system-design/criteria";
 import { getModule } from "@/config/system-design/registry";
 import { simulate } from "@/lib/system-design/engine";
-import type { SdUserState, SdTaskState } from "@/config/system-design/types";
+import type { SdTaskState } from "@/config/system-design/types";
 
 /**
  * Largest body this route will read. A schema-valid task-save (40 nodes,
@@ -61,26 +61,107 @@ function enforceInstanceRateLimit(
 }
 
 /**
+ * One row per (user, task) in `sd_task_state`. Replaces the single JSON blob
+ * `sd_user_state.tasks`, which rewrote all 15 tasks on every save.
+ */
+function buildTasksObject(
+  rows: Array<{
+    task_slug: string;
+    graph: unknown;
+    criteria_met: unknown;
+    attempts: number | null;
+    revealed: unknown;
+    updated_at: Date | null;
+  }>,
+): Record<string, SdTaskState> {
+  const tasks: Record<string, SdTaskState> = {};
+  for (const row of rows) {
+    tasks[row.task_slug] = {
+      graph: row.graph as SdTaskState["graph"],
+      criteriaMet: (row.criteria_met as string[]) ?? [],
+      attempts: row.attempts ?? 0,
+      revealed: (row.revealed as string[]) ?? [],
+      updatedAt: row.updated_at?.toISOString() ?? new Date().toISOString(),
+    };
+  }
+  return tasks;
+}
+
+/**
+ * One-time, idempotent migration from the legacy `sd_user_state.tasks` JSON
+ * blob into per-task rows. Runs on the first request after deploy for each
+ * user; after that `sd_task_state` is the source of truth and this is a no-op.
+ *
+ * Per-task rather than all-at-once so a partial failure (e.g. a duplicate key
+ * from a race) leaves the user in a recoverable state instead of half-migrated.
+ */
+async function migrateLegacyTasks(userId: number): Promise<void> {
+  const legacy = await db
+    .select({ tasks: sdUserState.tasks })
+    .from(sdUserState)
+    .where(eq(sdUserState.user_id, userId))
+    .limit(1);
+  const tasks = (legacy[0]?.tasks as Record<string, SdTaskState>) ?? {};
+  if (Object.keys(tasks).length === 0) return;
+
+  for (const [slug, state] of Object.entries(tasks)) {
+    const existing = await db
+      .select({ id: sdTaskState.id })
+      .from(sdTaskState)
+      .where(
+        and(eq(sdTaskState.user_id, userId), eq(sdTaskState.task_slug, slug)),
+      )
+      .limit(1);
+    if (existing.length > 0) continue;
+    try {
+      await db.insert(sdTaskState).values({
+        user_id: userId,
+        task_slug: slug,
+        graph: state.graph,
+        criteria_met: state.criteriaMet ?? [],
+        attempts: state.attempts ?? 0,
+        revealed: state.revealed ?? [],
+        updated_at: state.updatedAt ? new Date(state.updatedAt) : new Date(),
+      });
+    } catch {
+      // Duplicate-key race or a malformed legacy row: skip, the next request
+      // retries. Never throw out of a migration helper into the request path.
+    }
+  }
+
+  // Clear the legacy blob so we stop paying to read/write it. Safe because
+  // every task that could be migrated has been (or skipped as a duplicate).
+  try {
+    await db
+      .update(sdUserState)
+      .set({ tasks: null, updated_at: new Date() })
+      .where(eq(sdUserState.user_id, userId));
+  } catch {
+    // Non-fatal: the legacy column is deprecated; leaving it populated just
+    // wastes a read on the next migration check.
+  }
+}
+
+/**
  * Criteria this learner has already earned for a task.
  *
  * Read before the simulation so a save that claims nothing new never runs the
- * engine. This is one extra point read on the Run path only — autosaves claim
- * no criteria and skip it entirely. It reads the whole `tasks` blob because
- * `sd_user_state` stores all 15 tasks in one JSON column (see the production
- * review's P1 §8.5 for the normalisation that removes that).
+ * engine. Now a single-row point read on `sd_task_state` instead of reading
+ * the whole 15-task blob.
  */
 async function storedCriteriaMet(
   userId: number,
   taskSlug: string,
 ): Promise<string[]> {
   const rows = await db
-    .select({ tasks: sdUserState.tasks })
-    .from(sdUserState)
-    .where(eq(sdUserState.user_id, userId))
+    .select({ criteria_met: sdTaskState.criteria_met })
+    .from(sdTaskState)
+    .where(
+      and(eq(sdTaskState.user_id, userId), eq(sdTaskState.task_slug, taskSlug)),
+    )
     .limit(1);
 
-  const tasks = (rows[0]?.tasks as Record<string, SdTaskState>) ?? {};
-  return tasks[taskSlug]?.criteriaMet ?? [];
+  return (rows[0]?.criteria_met as string[]) ?? [];
 }
 
 const StateMutationSchema = z.discriminatedUnion("kind", [
@@ -148,22 +229,24 @@ export async function GET(req: NextRequest) {
 
     const user = userResult[0];
 
-    const stateResult = await db
-      .select()
+    // Lazy, idempotent migration from the legacy JSON blob.
+    await migrateLegacyTasks(user.id);
+
+    const lessonsResult = await db
+      .select({ lessons_completed: sdUserState.lessons_completed })
       .from(sdUserState)
       .where(eq(sdUserState.user_id, user.id))
       .limit(1);
 
-    if (stateResult.length === 0) {
-      return NextResponse.json({
-        lessonsCompleted: [],
-        tasks: {},
-      } satisfies SdUserState);
-    }
+    const lessonsCompleted =
+      (lessonsResult[0]?.lessons_completed as string[]) ?? [];
 
-    const record = stateResult[0];
-    const lessonsCompleted = (record.lessons_completed as string[]) ?? [];
-    const tasks = (record.tasks as Record<string, SdTaskState>) ?? {};
+    const taskRows = await db
+      .select()
+      .from(sdTaskState)
+      .where(eq(sdTaskState.user_id, user.id));
+
+    const tasks = buildTasksObject(taskRows);
 
     return NextResponse.json({ lessonsCompleted, tasks });
   });
@@ -209,6 +292,9 @@ export async function POST(req: NextRequest) {
     if (userResult.length === 0) return unauthorized();
 
     const user = userResult[0];
+
+    // Lazy migration so a brand-new deploy never reads stale legacy data.
+    await migrateLegacyTasks(user.id);
 
     let verifiedCriteriaMet: string[] = [];
     if (parsed.data.kind === "task-save") {
@@ -259,11 +345,6 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // `simulate()` is the expensive part of this route (~200–500 ms CPU),
-      // and the client saves every 2 s of idle time. Only claimed criteria
-      // that are not already earned need verifying, so autosaves and replayed
-      // saves cost nothing. Criteria are still verified server-side — a
-      // learner cannot forge a pass — and only ids verified here are merged.
       const pendingCriteria =
         requestedCriteria.size === 0
           ? []
@@ -286,70 +367,109 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const result = await db.transaction(async (tx) => {
-      const existing = await tx
+      if (parsed.data.kind === "lesson-complete") {
+        const { slug } = parsed.data;
+        const existing = await tx
+          .select({ lessons_completed: sdUserState.lessons_completed })
+          .from(sdUserState)
+          .where(eq(sdUserState.user_id, user.id))
+          .limit(1);
+
+        let lessonsCompleted: string[] = [];
+        if (existing.length > 0) {
+          lessonsCompleted = (existing[0].lessons_completed as string[]) ?? [];
+          if (!lessonsCompleted.includes(slug)) lessonsCompleted.push(slug);
+          await tx
+            .update(sdUserState)
+            .set({ lessons_completed: lessonsCompleted, updated_at: now })
+            .where(eq(sdUserState.user_id, user.id));
+        } else {
+          lessonsCompleted = [slug];
+          await tx.insert(sdUserState).values({
+            user_id: user.id,
+            lessons_completed: lessonsCompleted,
+            updated_at: now,
+          });
+        }
+
+        const taskRows = await tx
+          .select()
+          .from(sdTaskState)
+          .where(eq(sdTaskState.user_id, user.id));
+        const tasks = buildTasksObject(taskRows);
+
+        return { lessonsCompleted, tasks };
+      }
+
+      // task-save
+      const { taskSlug, graph } = parsed.data;
+      const existingTaskRows = await tx
         .select()
+        .from(sdTaskState)
+        .where(
+          and(
+            eq(sdTaskState.user_id, user.id),
+            eq(sdTaskState.task_slug, taskSlug),
+          ),
+        )
+        .limit(1);
+      const existingTask = existingTaskRows[0];
+
+      const existingCriteriaMet =
+        (existingTask?.criteria_met as string[]) ?? [];
+      const criteriaMet = [
+        ...new Set([...existingCriteriaMet, ...verifiedCriteriaMet]),
+      ];
+      const attempts = Math.max(
+        existingTask?.attempts ?? 0,
+        parsed.data.attempts ?? 0,
+      );
+      const revealed = [
+        ...new Set([
+          ...((existingTask?.revealed as string[]) ?? []),
+          ...(parsed.data.revealed ?? []),
+        ]),
+      ];
+
+      if (existingTask) {
+        await tx
+          .update(sdTaskState)
+          .set({
+            graph,
+            criteria_met: criteriaMet,
+            attempts,
+            revealed,
+            updated_at: now,
+          })
+          .where(eq(sdTaskState.id, existingTask.id));
+      } else {
+        await tx.insert(sdTaskState).values({
+          user_id: user.id,
+          task_slug: taskSlug,
+          graph,
+          criteria_met: criteriaMet,
+          attempts,
+          revealed,
+          updated_at: now,
+        });
+      }
+
+      const lessonsResult = await tx
+        .select({ lessons_completed: sdUserState.lessons_completed })
         .from(sdUserState)
         .where(eq(sdUserState.user_id, user.id))
         .limit(1);
+      const lessonsCompleted =
+        (lessonsResult[0]?.lessons_completed as string[]) ?? [];
 
-      let lessonsCompleted: string[] = [];
-      let tasks: Record<string, SdTaskState> = {};
-
-      if (existing.length > 0) {
-        lessonsCompleted = (existing[0].lessons_completed as string[]) ?? [];
-        tasks = (existing[0].tasks as Record<string, SdTaskState>) ?? {};
-      }
-
-      if (parsed.data.kind === "lesson-complete") {
-        const { slug } = parsed.data;
-        if (!lessonsCompleted.includes(slug)) {
-          lessonsCompleted.push(slug);
-        }
-      } else if (parsed.data.kind === "task-save") {
-        const { taskSlug, graph } = parsed.data;
-        const existingTask = tasks[taskSlug];
-        tasks[taskSlug] = {
-          graph,
-          criteriaMet: [
-            ...new Set([
-              ...(existingTask?.criteriaMet ?? []),
-              ...verifiedCriteriaMet,
-            ]),
-          ],
-          attempts: Math.max(
-            existingTask?.attempts ?? 0,
-            parsed.data.attempts ?? 0,
-          ),
-          revealed: [
-            ...new Set([
-              ...(existingTask?.revealed ?? []),
-              ...(parsed.data.revealed ?? []),
-            ]),
-          ],
-          updatedAt: now,
-        };
-      }
-
-      if (existing.length > 0) {
-        await tx
-          .update(sdUserState)
-          .set({
-            lessons_completed: lessonsCompleted,
-            tasks,
-            updated_at: new Date(),
-          })
-          .where(eq(sdUserState.user_id, user.id));
-      } else {
-        await tx.insert(sdUserState).values({
-          user_id: user.id,
-          lessons_completed: lessonsCompleted,
-          tasks,
-          updated_at: new Date(),
-        });
-      }
+      const taskRows = await tx
+        .select()
+        .from(sdTaskState)
+        .where(eq(sdTaskState.user_id, user.id));
+      const tasks = buildTasksObject(taskRows);
 
       return { lessonsCompleted, tasks };
     });

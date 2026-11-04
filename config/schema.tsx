@@ -200,3 +200,27 @@ export const sdUserState = mysqlTable("sd_user_state", {
   tasks: json(),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
+
+/**
+ * Per-task state, one row per (user, task). Replaces the single JSON blob
+ * `sd_user_state.tasks`, which rewrote all 15 tasks on every save — O(N) write
+ * amplification that grew with learner progress (production review §8.5).
+ */
+export const sdTaskState = mysqlTable(
+  "sd_task_state",
+  {
+    id: int().primaryKey().autoincrement(),
+    user_id: int("user_id")
+      .references(() => usersTable.id)
+      .notNull(),
+    task_slug: varchar("task_slug", { length: 120 }).notNull(),
+    graph: json(),
+    criteria_met: json(),
+    attempts: int().default(0),
+    revealed: json(),
+    updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+  },
+  (t) => [
+    uniqueIndex("sd_task_state_user_task_idx").on(t.user_id, t.task_slug),
+  ],
+);
