@@ -30,6 +30,8 @@ export const metadata: Metadata = {
     "Master your next technical interview with curated chapters, real-world scenarios, and hands-on practice across every engineering discipline.",
 };
 
+export const dynamic = "force-dynamic";
+
 const categoryThemes: Record<
   string,
   { light: string; border: string; glow: string }
