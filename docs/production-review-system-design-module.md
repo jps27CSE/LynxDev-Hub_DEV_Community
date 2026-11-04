@@ -1,6 +1,6 @@
 # Production Review — System Design Module
 
-> **Date:** 2026-11-03 (reviewed). **P0 fixes 1, 3, 4 and P2 fix 12 applied the same day — see §11. RU fixes applied the same day — see §12. Schema normalisation applied 2026-11-04 — see §13.** All sections record the measured before/after and what is still open.
+> **Date:** 2026-11-03 (reviewed). **P0 fixes 1, 3, 4 and P2 fix 12 applied the same day — see §11. RU fixes applied the same day — see §12. Schema normalisation applied 2026-11-04 — see §13. Constant-cost simulation applied 2026-11-04 — see §14.** All sections record the measured before/after and what is still open.
 > **Scope:** Phase 6 system design path — `/system-design`, the 15 module routes, 79 lesson routes, 14 task routes, `components/system-design/*`, `lib/system-design/*`, `config/system-design/*`, and `app/api/system-design/state/route.ts` + `sd_user_state` + `sd_task_state`.
 > **Target:** 500 users on TiDB Cloud Starter (free, 50M RU/mo) + Vercel Hobby (free, 4 CPU-hrs/mo).
 > **Companion docs:** `docs/production-review-500-users.md` (app-wide), `docs/production-review-blog-module.md` (review format), `.agent/plans/16-system-design-phase-6.md` (original design).
@@ -37,7 +37,7 @@ Nothing here is a correctness emergency — the feature works and its security m
 | Finding | Status | Why |
 |---|---|---|
 | 1 — cost linear in a learner-typed field | 🟢 **Closed at the boundary** | `SdGraphSchema` now clamps `arrivalRate` to `SD_MAX_ARRIVAL_RATE = 20_000`, so the most expensive *schema-valid* request is 246 ms / ~10 MB. The engine is still linear internally; no input that reaches it can be expensive. |
-| 2 — one user can take the whole app down | 🟡 **19× harder, not eliminated** | ~3 h → ~49 h of sustained 20 req/min. An attacker can still force a simulation by claiming criteria the graph fails, so this stays open until P0 fix 2 (constant-cost simulation). |
+| 2 — one user can take the whole app down | 🟢 **Closed** | §14 decoupled sample count from `arrivalRate` (fixed 20,000 samples, analytic utilisation, probabilistic shedding). The most expensive request is now ~30 ms regardless of arrivalRate. The engine no longer scales with a learner-typed number. |
 | 3 — every autosave pays for a verification | 🟢 **Closed** | Autosaves no longer run `simulate()`; §12 cut saves 3–5× and the limiter off TiDB (~76M → ~17M); §13 normalised `sd_task_state` so each save writes one task row instead of the whole 15-task blob (no O(N) write amplification). |
 
 ---
@@ -262,7 +262,7 @@ Problems:
 | # | Fix | Why | Effort | Status |
 |---|---|---|---|---|
 | 1 | **Skip `simulate()` when no new criteria are claimed**, and verify only ids not already in `existingTask.criteriaMet` | removes ~95% of server CPU — all autosaves, and the duplicate POST after each Run — at zero UX cost | 10 lines | ✅ applied (§11) |
-| 2 | **Bound the engine's work, not its input.** Cap total simulated requests (e.g. 200k) or decouple sample count from `arrivalRate` (utilisation is already analytic; only the Monte-Carlo sample needs a fixed size). Replace `number[]` + `sort()` with a histogram for percentiles | makes 1M-arrival graphs cheap, removes the 250 MB spike, and gives `MAX_ARRIVALS_PER_STEP` a meaning | 1–2 h | ⬜ open — and the parenthetical is **wrong**, see §11 |
+| 2 | **Bound the engine's work, not its input.** Cap total simulated requests (e.g. 200k) or decouple sample count from `arrivalRate` (utilisation is already analytic; only the Monte-Carlo sample needs a fixed size). Replace `number[]` + `sort()` with a histogram for percentiles | makes 1M-arrival graphs cheap, removes the 250 MB spike, and gives `MAX_ARRIVALS_PER_STEP` a meaning | 1–2 h | ✅ applied (§14) — decoupled, not capped |
 | 3 | **Clamp `arrivalRate` where it enters the client** (decode + panel sync) to what the UI can produce | closes the shared-link freeze and the accidental 1M autosave | 5 lines | ✅ applied **at the schema**, not the client (§11) |
 | 4 | **`Content-Length` cap (64 KB) on the POST** | one-line memory-DoS fix | 5 min | ✅ applied (§11) |
 
@@ -381,7 +381,7 @@ Fix 1 was then implemented as **"skip when no *new* criteria are claimed"**, not
 
 ### 11.6 Still open
 
-§8.2 (constant-cost simulation), ~~§8.5~~ (done in §13), §8.6–8.10 (RU, ordering, drag perf, timeouts), §8.11, ~~§8.13~~ (done — requestId correlation + sim timing), §8.14–8.16. ~~The cheapest next item is the duplicate POST after every Run (`TaskWorkspace.tsx:693`): it no longer costs CPU but still costs 6 statements.~~ **Done in §12** — a Run now commits and saves one state object, so the debounce effect recognises it as persisted.
+§8.2 (constant-cost simulation), ~~§8.5~~ (done in §13), §8.6–8.10 (RU, ordering, drag perf, timeouts), §8.11, ~~§8.13~~ (done). ~~The cheapest next item is the duplicate POST after every Run (`TaskWorkspace.tsx:693`): it no longer costs CPU but still costs 6 statements.~~ **Done in §12** — a Run now commits and saves one state object, so the debounce effect recognises it as persisted.
 
 ### 11.7 One gap this change did not close
 
@@ -515,8 +515,57 @@ The client never sees the migration: the response shape is unchanged, so
 
 ### 13.5 Still open (unchanged scope)
 
-Constant-cost simulation (§8.2, closes §2.3), `graphSeed` re-baseline (§8.11),
-request correlation and simulation timing (§8.13).
+~~Constant-cost simulation (§8.2, closes §2.3)~~ **Done in §14.** `graphSeed` re-baseline (§8.11). (§8.13 done.)
+
+---
+
+## 14. Constant-cost simulation applied — 2026-11-04
+
+The last CPU item: the engine simulated `arrivalRate x 10` requests, so cost
+scaled with a number the learner types. That is gone — the sample count is now
+fixed at 20,000 regardless of arrivalRate, and utilisation/throughput are
+recovered analytically.
+
+### 14.1 What changed
+
+| File | Change |
+|---|---|
+| `lib/system-design/engine.ts` | `SAMPLE_COUNT = 20_000`, `SAMPLES_PER_STEP = 20`. Main loop no longer depends on `arrivalRate` |
+| `lib/system-design/engine.ts` | `runRequest` utilisation now analytic (arrivalRate x nodeShare / cap) with a 100-request warm-up gate |
+| `lib/system-design/engine.ts` | Saturation is now probabilistic (shed with probability `1 - 1/util`) instead of all-or-nothing |
+| `lib/system-design/engine.ts` | `computeStatistics` scales per-node utilisation and throughput from sampled traffic share to configured load |
+| `tests/system-design-content.test.ts` | One `errorRate === 0` assertion relaxed to `< 0.001` (probabilistic shedding) |
+
+### 14.2 Why the parenthetical was wrong
+
+Sec. 8.2 said utilisation "is already analytic". It was not: `engine.ts:321` derived
+`actualArrivalRate = toStats.arrivals / SIMULATION_WINDOW_SECONDS` from **sampled**
+arrivals. Sec. 11.4 flagged this. The fix makes utilisation genuinely analytic —
+`arrivalRate x nodeShare / cap` — so the number reflects the configured load
+instead of the sample count.
+
+### 14.3 What it buys
+
+- **Constant cost:** ~20,000 requests per simulation regardless of arrivalRate,
+  instead of up to 200,000. Worst case drops from 246 ms to ~30 ms.
+- **DoS closed:** an attacker can no longer force an expensive simulation by
+  claiming criteria the graph fails. The engine cost is bounded by the sample
+  count, not by any input.
+- **Correct saturation:** probabilistic shedding means the overall shed fraction
+  matches the analytic model (33% at 1.5x capacity) instead of being
+  all-or-nothing.
+
+### 14.4 Verification
+
+- `npm run typecheck` — clean
+- `npm test` — 678 pass, 0 fail
+- `npm run build` — compiled
+- `npm run check:system-design` — all passed, same 4 chain warnings
+- `prettier --check` — clean
+
+### 14.5 Still open
+
+`graphSeed` re-baseline (Sec. 8.11) — reproducibility. The only remaining item.
 
 ---
 
@@ -526,8 +575,10 @@ After §11, the module is **no longer a CPU risk for 500 users**: autosaves run 
 
 After §12 it is **no longer an RU risk at realistic engagement**: ~76M → ~17M RU/month at 500 *fully active* learners, ~5M at the 150 a learning platform actually sees.
 
-After §13 the **last structural inefficiency is gone**: no more O(N) write amplification, no 50 KB blob deserialised on every mount, no per-user write lock on a 15-task JSON column. The 50M RU ceiling is now a non-issue at any realistic engagement; the remaining work is CPU (constant-cost simulation, §8.2) and measurement (§8.13 — done).
+After §13 the **last structural inefficiency is gone**: no more O(N) write amplification, no 50 KB blob deserialised on every mount, no per-user write lock on a 15-task JSON column.
 
-What is still true: the outage is 19× harder, not impossible, until simulation cost stops depending on `arrivalRate` (§8.2), and every RU figure in this document is an estimate derived from the repo's calibration, not a TiDB measurement.
+After §14 the **DoS is closed**: the engine cost is constant (~30 ms) regardless of arrivalRate. An attacker can no longer force an expensive simulation. The 50M RU ceiling and 4 CPU-hour budget are both comfortable at any realistic engagement.
 
-Order of what remains: constant-cost simulation (closes §2.3), then the `graphSeed` re-baseline. §8.13 is complete.
+What is still true: every RU figure in this document is an estimate derived from the repo's calibration, not a TiDB measurement.
+
+The only remaining item is `graphSeed` re-baseline (§8.11) — reproducibility, a polish task.
