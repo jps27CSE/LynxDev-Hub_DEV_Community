@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo, memo } from "react";
 import { cn } from "@/lib/utils";
 import { simulate } from "@/lib/system-design/engine";
 import { evaluateCriteria, allRequiredPass } from "@/lib/system-design/rubric";
@@ -37,7 +37,7 @@ function clampArrivalRate(value: number): number {
   return Math.min(SD_MAX_ARRIVAL_RATE, Math.max(MIN_ARRIVAL_RATE, value));
 }
 
-export function SimulationPanel({
+export const SimulationPanel = memo(function SimulationPanel({
   graph,
   failures,
   passCriteria,
@@ -245,7 +245,7 @@ export function SimulationPanel({
       )}
     </div>
   );
-}
+});
 
 // Format helpers (moved outside component to avoid recreation)
 function fmt(n: number) {

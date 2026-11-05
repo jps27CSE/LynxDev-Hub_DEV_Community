@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 import type {
   SdNode,
@@ -30,7 +31,10 @@ interface NodeInspectorProps {
   onUpdate: (updates: NodeUpdates) => void;
 }
 
-export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
+export const NodeInspector = memo(function NodeInspector({
+  node,
+  onUpdate,
+}: NodeInspectorProps) {
   if (!node) return null;
 
   return (
@@ -266,4 +270,4 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
       )}
     </div>
   );
-}
+});

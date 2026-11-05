@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, memo } from "react";
 import { cn } from "@/lib/utils";
 import type { SdGraph, SdNode, SdFailure } from "@/config/system-design/types";
 
@@ -114,7 +114,7 @@ const isNodeDown = (f: SdFailure): f is SdFailure & { kind: "node_down" } =>
 const isPartition = (f: SdFailure): f is SdFailure & { kind: "partition" } =>
   f.kind === "partition";
 
-export function FailurePanel({
+export const FailurePanel = memo(function FailurePanel({
   graph,
   failures,
   onFailuresChange,
@@ -274,7 +274,7 @@ export function FailurePanel({
       )}
     </div>
   );
-}
+});
 
 // --- Sub-components ---
 

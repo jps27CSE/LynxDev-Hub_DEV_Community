@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 import type {
   SimulationResult,
@@ -31,7 +32,10 @@ const utilizationColor = (util: number) => {
   return "text-sd-success";
 };
 
-export function ResultsRail({ result, selectedNodeId }: ResultsRailProps) {
+export const ResultsRail = memo(function ResultsRail({
+  result,
+  selectedNodeId,
+}: ResultsRailProps) {
   if (!result) {
     return (
       <div className="flex min-h-full flex-col items-center justify-center p-4 text-muted-foreground">
@@ -281,7 +285,7 @@ export function ResultsRail({ result, selectedNodeId }: ResultsRailProps) {
       )}
     </div>
   );
-}
+});
 
 // --- Sub-components ---
 

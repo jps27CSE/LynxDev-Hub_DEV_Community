@@ -169,7 +169,10 @@ async function storedCriteriaMet(
       .select({ criteria_met: sdTaskState.criteria_met })
       .from(sdTaskState)
       .where(
-        and(eq(sdTaskState.user_id, userId), eq(sdTaskState.task_slug, taskSlug)),
+        and(
+          eq(sdTaskState.user_id, userId),
+          eq(sdTaskState.task_slug, taskSlug),
+        ),
       )
       .limit(1),
   );
@@ -402,7 +405,10 @@ export async function POST(req: NextRequest) {
           const lessonsCompleted =
             (lessonsResult[0]?.lessons_completed as string[]) ?? [];
           const taskRows = await withQueryTimeout(() =>
-            db.select().from(sdTaskState).where(eq(sdTaskState.user_id, user.id)),
+            db
+              .select()
+              .from(sdTaskState)
+              .where(eq(sdTaskState.user_id, user.id)),
           );
           const tasks = buildTasksObject(taskRows);
           return NextResponse.json(
@@ -462,30 +468,101 @@ export async function POST(req: NextRequest) {
 
     const result = await withQueryTimeout(() =>
       db.transaction(async (tx) => {
-      if (parsed.data.kind === "lesson-complete") {
-        const { slug } = parsed.data;
-        const existing = await tx
+        if (parsed.data.kind === "lesson-complete") {
+          const { slug } = parsed.data;
+          const existing = await tx
+            .select({ lessons_completed: sdUserState.lessons_completed })
+            .from(sdUserState)
+            .where(eq(sdUserState.user_id, user.id))
+            .limit(1);
+
+          let lessonsCompleted: string[] = [];
+          if (existing.length > 0) {
+            lessonsCompleted =
+              (existing[0].lessons_completed as string[]) ?? [];
+            if (!lessonsCompleted.includes(slug)) lessonsCompleted.push(slug);
+            await tx
+              .update(sdUserState)
+              .set({ lessons_completed: lessonsCompleted, updated_at: now })
+              .where(eq(sdUserState.user_id, user.id));
+          } else {
+            lessonsCompleted = [slug];
+            await tx.insert(sdUserState).values({
+              user_id: user.id,
+              lessons_completed: lessonsCompleted,
+              updated_at: now,
+            });
+          }
+
+          const taskRows = await tx
+            .select()
+            .from(sdTaskState)
+            .where(eq(sdTaskState.user_id, user.id));
+          const tasks = buildTasksObject(taskRows);
+
+          return { lessonsCompleted, tasks };
+        }
+
+        // task-save
+        const { taskSlug, graph } = parsed.data;
+        const existingTaskRows = await tx
+          .select()
+          .from(sdTaskState)
+          .where(
+            and(
+              eq(sdTaskState.user_id, user.id),
+              eq(sdTaskState.task_slug, taskSlug),
+            ),
+          )
+          .limit(1);
+        const existingTask = existingTaskRows[0];
+
+        const existingCriteriaMet =
+          (existingTask?.criteria_met as string[]) ?? [];
+        const criteriaMet = [
+          ...new Set([...existingCriteriaMet, ...verifiedCriteriaMet]),
+        ];
+        const attempts = Math.max(
+          existingTask?.attempts ?? 0,
+          parsed.data.attempts ?? 0,
+        );
+        const revealed = [
+          ...new Set([
+            ...((existingTask?.revealed as string[]) ?? []),
+            ...(parsed.data.revealed ?? []),
+          ]),
+        ];
+
+        if (existingTask) {
+          await tx
+            .update(sdTaskState)
+            .set({
+              graph,
+              criteria_met: criteriaMet,
+              attempts,
+              revealed,
+              updated_at: now,
+            })
+            .where(eq(sdTaskState.id, existingTask.id));
+        } else {
+          await tx.insert(sdTaskState).values({
+            user_id: user.id,
+            task_slug: taskSlug,
+            graph,
+            criteria_met: criteriaMet,
+            attempts,
+            revealed,
+            updated_at: now,
+          });
+        }
+
+        const lessonsResult = await tx
           .select({ lessons_completed: sdUserState.lessons_completed })
           .from(sdUserState)
           .where(eq(sdUserState.user_id, user.id))
           .limit(1);
-
-        let lessonsCompleted: string[] = [];
-        if (existing.length > 0) {
-          lessonsCompleted = (existing[0].lessons_completed as string[]) ?? [];
-          if (!lessonsCompleted.includes(slug)) lessonsCompleted.push(slug);
-          await tx
-            .update(sdUserState)
-            .set({ lessons_completed: lessonsCompleted, updated_at: now })
-            .where(eq(sdUserState.user_id, user.id));
-        } else {
-          lessonsCompleted = [slug];
-          await tx.insert(sdUserState).values({
-            user_id: user.id,
-            lessons_completed: lessonsCompleted,
-            updated_at: now,
-          });
-        }
+        const lessonsCompleted =
+          (lessonsResult[0]?.lessons_completed as string[]) ?? [];
 
         const taskRows = await tx
           .select()
@@ -494,77 +571,7 @@ export async function POST(req: NextRequest) {
         const tasks = buildTasksObject(taskRows);
 
         return { lessonsCompleted, tasks };
-      }
-
-      // task-save
-      const { taskSlug, graph } = parsed.data;
-      const existingTaskRows = await tx
-        .select()
-        .from(sdTaskState)
-        .where(
-          and(
-            eq(sdTaskState.user_id, user.id),
-            eq(sdTaskState.task_slug, taskSlug),
-          ),
-        )
-        .limit(1);
-      const existingTask = existingTaskRows[0];
-
-      const existingCriteriaMet =
-        (existingTask?.criteria_met as string[]) ?? [];
-      const criteriaMet = [
-        ...new Set([...existingCriteriaMet, ...verifiedCriteriaMet]),
-      ];
-      const attempts = Math.max(
-        existingTask?.attempts ?? 0,
-        parsed.data.attempts ?? 0,
-      );
-      const revealed = [
-        ...new Set([
-          ...((existingTask?.revealed as string[]) ?? []),
-          ...(parsed.data.revealed ?? []),
-        ]),
-      ];
-
-      if (existingTask) {
-        await tx
-          .update(sdTaskState)
-          .set({
-            graph,
-            criteria_met: criteriaMet,
-            attempts,
-            revealed,
-            updated_at: now,
-          })
-          .where(eq(sdTaskState.id, existingTask.id));
-      } else {
-        await tx.insert(sdTaskState).values({
-          user_id: user.id,
-          task_slug: taskSlug,
-          graph,
-          criteria_met: criteriaMet,
-          attempts,
-          revealed,
-          updated_at: now,
-        });
-      }
-
-      const lessonsResult = await tx
-        .select({ lessons_completed: sdUserState.lessons_completed })
-        .from(sdUserState)
-        .where(eq(sdUserState.user_id, user.id))
-        .limit(1);
-      const lessonsCompleted =
-        (lessonsResult[0]?.lessons_completed as string[]) ?? [];
-
-      const taskRows = await tx
-        .select()
-        .from(sdTaskState)
-        .where(eq(sdTaskState.user_id, user.id));
-      const tasks = buildTasksObject(taskRows);
-
-      return { lessonsCompleted, tasks };
-    }),
+      }),
     );
 
     return NextResponse.json(result);

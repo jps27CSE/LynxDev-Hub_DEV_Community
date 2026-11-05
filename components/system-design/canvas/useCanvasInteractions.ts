@@ -66,6 +66,8 @@ export function useCanvasInteractions({
   const selectedNodeIdRef = useRef<string | null>(null);
   const selectedEdgeIdRef = useRef<string | null>(null);
   const draggingNodeRef = useRef<NodeDragState | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const pendingMoveRef = useRef<PointerEvent | null>(null);
 
   const screenToCanvas = useCallback(
     (clientX: number, clientY: number) => {
@@ -247,9 +249,8 @@ export function useCanvasInteractions({
     ],
   );
 
-  const handlePointerMove = useCallback(
-    (e: Event) => {
-      const me = e as PointerEvent;
+  const processPointerMove = useCallback(
+    (me: PointerEvent) => {
       const drag = draggingNodeRef.current;
       if (drag) {
         const deltaX = (me.clientX - drag.pointerX) / scale;
@@ -262,7 +263,7 @@ export function useCanvasInteractions({
           ),
           false,
         );
-        return null;
+        return;
       }
 
       if (isPanning) {
@@ -290,8 +291,6 @@ export function useCanvasInteractions({
           );
         }
       }
-
-      return null;
     },
     [
       isPanning,
@@ -304,8 +303,28 @@ export function useCanvasInteractions({
     ],
   );
 
+  const handlePointerMove = useCallback(
+    (e: Event) => {
+      const me = e as PointerEvent;
+      pendingMoveRef.current = me;
+      if (rafRef.current === null) {
+        rafRef.current = requestAnimationFrame(() => {
+          rafRef.current = null;
+          const ev = pendingMoveRef.current;
+          if (ev) processPointerMove(ev);
+        });
+      }
+      return null;
+    },
+    [processPointerMove],
+  );
+
   const handlePointerUp = useCallback(
     (e: Event) => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
       const me = e as PointerEvent;
       if (e.type === "pointercancel") {
         const drag = draggingNodeRef.current;
@@ -442,6 +461,10 @@ export function useCanvasInteractions({
     window.addEventListener("pointercancel", handlePointerUp);
     window.addEventListener("keydown", handleKeyDown);
     return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);

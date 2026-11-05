@@ -531,7 +531,11 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
                 : null;
               if (parsedServer) {
                 if (!module) throw new Error("Module not loaded");
-                const merged = mergeTaskStates(module, taskStateRef.current, parsedServer);
+                const merged = mergeTaskStates(
+                  module,
+                  taskStateRef.current,
+                  parsedServer,
+                );
                 if (merged) {
                   taskStateRef.current = merged;
                   setTaskState(merged);
@@ -999,6 +1003,11 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
     [updateGraph],
   );
 
+  const handleFailuresChange = useCallback((next: SdFailure[]) => {
+    setFailures(next);
+    setSimulationResult(null);
+  }, []);
+
   const zoomBy = (factor: number) => {
     setScale((current) =>
       Math.max(MIN_SCALE, Math.min(MAX_SCALE, current * factor)),
@@ -1353,10 +1362,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
             <FailurePanel
               graph={currentGraph}
               failures={failures}
-              onFailuresChange={(next) => {
-                setFailures(next);
-                setSimulationResult(null);
-              }}
+              onFailuresChange={handleFailuresChange}
             />
           </div>
         )}
