@@ -277,7 +277,7 @@ Problems:
 | 7 | **Fail-open the limiter on this scope**, or replace with an in-memory per-instance token bucket | the endpoint has no external spend; 2 of 6 statements per save are the limiter | ✅ applied (§12) |
 | 8 | **Server-owned ordering** (`updatedAt` returned by the server, used by `mergeTaskStates`), plus a 409 path with retry and flush on `online` | removes clock-skew data loss and silent multi-tab overwrite |
 | 9 | **rAF-coalesce `pointermove`; `React.memo` the panels** | the per-pointer-event workspace re-render is the mobile jank source |
-| 10 | **Add `maxDuration` + query timeout** to the route | prevents a hung statement holding a pool slot to the function cap |
+| 10 | **Add `maxDuration` + query timeout** to the route | prevents a hung statement holding a pool slot to the function cap | ✅ applied (1a58ce2) |
 
 ### P2 — hygiene, and the ones that bite quietly
 
