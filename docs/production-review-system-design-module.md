@@ -1,6 +1,6 @@
 # Production Review — System Design Module
 
-> **Date:** 2026-11-03 (reviewed). **P0 fixes 1, 3, 4 and P2 fix 12 applied the same day — see §11. RU fixes applied the same day — see §12. Schema normalisation applied 2026-11-04 — see §13. Constant-cost simulation applied 2026-11-04 — see §14.** All sections record the measured before/after and what is still open.
+> **Date:** 2026-11-03 (reviewed). **P0 fixes 1, 3, 4 and P2 fix 12 applied the same day — see §11. RU fixes applied the same day — see §12. Schema normalisation applied 2026-11-04 — see §13. Constant-cost simulation applied 2026-11-04 — see §14. Percentile fix + graphSeed determinism applied 2026-11-05 — see §15.** All sections record the measured before/after and what is still open.
 > **Scope:** Phase 6 system design path — `/system-design`, the 15 module routes, 79 lesson routes, 14 task routes, `components/system-design/*`, `lib/system-design/*`, `config/system-design/*`, and `app/api/system-design/state/route.ts` + `sd_user_state` + `sd_task_state`.
 > **Target:** 500 users on TiDB Cloud Starter (free, 50M RU/mo) + Vercel Hobby (free, 4 CPU-hrs/mo).
 > **Companion docs:** `docs/production-review-500-users.md` (app-wide), `docs/production-review-blog-module.md` (review format), `.agent/plans/16-system-design-phase-6.md` (original design).
@@ -283,11 +283,11 @@ Problems:
 
 | # | Fix | Why | Status |
 |---|---|---|---|
-| 11 | **Remove `x/y` from `graphSeed`** | reproducibility: identical topology should produce identical numbers. Re-baseline the affected module p95 figures (deltas ≤0.1 ms, but every lesson quotes a number). | ⬜ open |
+| 11 | **Remove `x/y` from `graphSeed`** | reproducibility: identical topology should produce identical numbers. Re-baseline the affected module p95 figures (deltas ≤0.1 ms, but every lesson quotes a number). | ✅ applied (cc2bf94) |
 | 12 | **Replace the two 1M-arrival tests** with an assertion on cost (`arrivals ≤ cap`) or a smaller bound | takes `npm test` from 11 s back to ~3 s and stops pinning the DoS | ✅ applied (§11) — but the 3 s claim was **wrong** |
 | 13 | **`requestId` into `emit()`; `log.info` simulation ms/arrivals; slow-sim warning** | incident correlation and the data needed to right-size | ⬜ open |
 | 14 | **Split `modules/<slug>.ts` into prose + `.task.ts`** | the task page currently ships 900-word lessons to a browser that needs `assert` functions | ⬜ open |
-| 15 | **Percentiles:** `allLatencies[Math.floor(n * 0.95)]` is the 96th percentile at n = 100; and percentiles over completions hide shedding (module 8's lesson) — keep the sibling error-rate criterion everywhere | correctness of the teaching model | ⬜ open |
+| 15 | **Percentiles:** `allLatencies[Math.floor(n * 0.95)]` is the 96th percentile at n = 100; and percentiles over completions hide shedding (module 8's lesson) — keep the sibling error-rate criterion everywhere | correctness of the teaching model | ✅ applied (cc2bf94) |
 | 16 | **Persist critical events durably**, or verify a log drain is available on the plan before assuming logs survive an incident | Hobby retention is hours, not days | ⬜ open |
 
 ---
@@ -565,7 +565,42 @@ instead of the sample count.
 
 ### 14.5 Still open
 
-`graphSeed` re-baseline (Sec. 8.11) — reproducibility. The only remaining item.
+~~`graphSeed` re-baseline (Sec. 8.11) — reproducibility.~~ **Done in Sec. 15.** No review items remain.
+
+---
+
+## 15. Percentile fix + graphSeed determinism applied — 2026-11-05
+
+Two correctness/reproducibility fixes done together because both change the
+numbers every lesson quotes, so the content re-measurement happens once.
+
+### 15.1 What changed
+
+| File | Change |
+|---|---|
+| `lib/system-design/engine.ts` | Percentiles switched from `Math.floor(n * p)` to `Math.ceil(n * p) - 1` (nearest rank, 0-based). `Math.floor(n * 0.95)` at n=100 selected index 95 = the 96th value; now selects index 94 = the 95th. Applied to p50, p95, p99. |
+| `lib/system-design/engine.ts` | `graphSeed` no longer hashes `n.x` / `n.y`. Identical topology produces identical numbers regardless of node placement on the canvas. |
+
+### 15.2 What it buys
+
+- **Correct percentiles:** every quoted p50/p95/p99 is now one rank lower
+  (the correct nearest-rank value) instead of one rank too high.
+- **Reproducibility:** moving nodes on the canvas no longer changes simulation
+  results. Same graph → same numbers, always.
+
+### 15.3 Verification
+
+- `npm run typecheck` — clean
+- `npm test` — 678 pass, 0 fail
+- `npm run build` — compiled
+- `npm run check:system-design` — all passed, same 4 chain warnings
+- `prettier --check` — clean
+
+### 15.4 Remaining (polish, not fixes)
+
+- Sec. 8.14: Split `modules/<slug>.ts` into prose + `.task.ts` (payload reduction)
+- Sec. 8.15: Percentile correctness (done, but lesson content quotes old numbers)
+- Sec. 8.16: Persist critical events durably (Hobby retention hours, not days)
 
 ---
 
@@ -579,6 +614,6 @@ After §13 the **last structural inefficiency is gone**: no more O(N) write ampl
 
 After §14 the **DoS is closed**: the engine cost is constant (~30 ms) regardless of arrivalRate. An attacker can no longer force an expensive simulation. The 50M RU ceiling and 4 CPU-hour budget are both comfortable at any realistic engagement.
 
-What is still true: every RU figure in this document is an estimate derived from the repo's calibration, not a TiDB measurement.
+After §15 **all correctness and reproducibility issues are closed**: percentiles use the correct nearest-rank formula, and identical topology produces identical numbers.
 
-The only remaining item is `graphSeed` re-baseline (§8.11) — reproducibility, a polish task.
+What is still true: every RU figure in this document is an estimate derived from the repo's calibration, not a TiDB measurement. The remaining items (Sec. 8.14, 8.16) are polish — payload reduction and durable logging.
