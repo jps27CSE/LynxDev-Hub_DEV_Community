@@ -61,7 +61,7 @@ function hashString(str: string): number {
 /** Build a deterministic seed from the graph structure. */
 function graphSeed(graph: SdGraph): number {
   const parts = [
-    ...graph.nodes.map((n) => `${n.id}:${n.type}:${n.x}:${n.y}`).sort(),
+    ...graph.nodes.map((n) => `${n.id}:${n.type}`).sort(),
     ...graph.edges.map((e) => `${e.from}->${e.to}:${e.id}`).sort(),
     String(graph.scenario.arrivalRate),
     String(graph.scenario.writeShare),
@@ -663,9 +663,12 @@ function computeStatistics(
   const sampledRate = totalArrivals > 0 ? totalCompleted / totalArrivals : 0;
   const throughput = arrivalRate * sampledRate;
   allLatencies.sort((a, b) => a - b);
-  const p50 = allLatencies[Math.floor(allLatencies.length * 0.5)] ?? 0;
-  const p95 = allLatencies[Math.floor(allLatencies.length * 0.95)] ?? 0;
-  const p99 = allLatencies[Math.floor(allLatencies.length * 0.99)] ?? 0;
+  // Nearest-rank percentiles. `Math.floor(n * p)` is off by one in
+  // 0-based indexing: at n = 100 it selects index 95, i.e. the 96th value.
+  // `Math.ceil(n * p) - 1` selects the correct 0-based index.
+  const p50 = allLatencies[Math.ceil(allLatencies.length * 0.5) - 1] ?? 0;
+  const p95 = allLatencies[Math.ceil(allLatencies.length * 0.95) - 1] ?? 0;
+  const p99 = allLatencies[Math.ceil(allLatencies.length * 0.99) - 1] ?? 0;
   const errorRate = totalArrivals > 0 ? totalErrors / totalArrivals : 0;
   const bandwidthMbps =
     (totalBytesOut * 8) / (SIMULATION_WINDOW_SECONDS * 1_000_000);
