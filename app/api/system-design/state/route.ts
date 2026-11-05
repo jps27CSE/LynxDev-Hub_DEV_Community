@@ -186,6 +186,10 @@ const StateMutationSchema = z.discriminatedUnion("kind", [
     kind: z.literal("task-save"),
     taskSlug: z.string().min(1).max(120),
     graph: SdGraphSchema,
+    // Client's last-known server timestamp for this task. Used for conflict
+    // detection: if the server's copy is newer, return 409 with the server
+    // state so the client can merge instead of overwriting.
+    updatedAt: z.string().datetime().optional(),
     criteriaMet: z.array(z.string().min(1).max(120)).max(40).optional(),
     failures: z
       .array(
@@ -361,6 +365,51 @@ export async function POST(req: NextRequest) {
           { error: "A failure references a missing graph component" },
           { status: 400 },
         );
+      }
+
+      // Conflict detection: if the server's copy is newer than what the client
+      // last saw, return 409 with the server state so the client can merge
+      // instead of overwriting. Only triggers when the client sends an
+      // updatedAt (i.e. after the first successful save).
+      const clientUpdatedAt = parsed.data.updatedAt;
+      if (clientUpdatedAt && parsed.data.kind === "task-save") {
+        const conflictTaskSlug = parsed.data.taskSlug;
+        const conflictRows = await withQueryTimeout(() =>
+          db
+            .select()
+            .from(sdTaskState)
+            .where(
+              and(
+                eq(sdTaskState.user_id, user.id),
+                eq(sdTaskState.task_slug, conflictTaskSlug),
+              ),
+            )
+            .limit(1),
+        );
+        const serverTask = conflictRows[0];
+        if (
+          serverTask?.updated_at &&
+          new Date(serverTask.updated_at).getTime() >
+            new Date(clientUpdatedAt).getTime()
+        ) {
+          const lessonsResult = await withQueryTimeout(() =>
+            db
+              .select({ lessons_completed: sdUserState.lessons_completed })
+              .from(sdUserState)
+              .where(eq(sdUserState.user_id, user.id))
+              .limit(1),
+          );
+          const lessonsCompleted =
+            (lessonsResult[0]?.lessons_completed as string[]) ?? [];
+          const taskRows = await withQueryTimeout(() =>
+            db.select().from(sdTaskState).where(eq(sdTaskState.user_id, user.id)),
+          );
+          const tasks = buildTasksObject(taskRows);
+          return NextResponse.json(
+            { lessonsCompleted, tasks, conflict: true },
+            { status: 409 },
+          );
+        }
       }
 
       const pendingCriteria =

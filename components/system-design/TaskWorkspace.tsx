@@ -66,9 +66,9 @@ const TASK_STATE_SCHEMA = SdGraphSchema;
  * whole free-tier RU allowance at 500 active learners (production review §2.4).
  * At 10 s it is ~4.
  *
- * The waiting window is covered from three sides — `pagehide`,
- * `visibilitychange` and every Run — so a learner who stops editing and leaves
- * still syncs.
+ * The waiting window is covered from four sides — `pagehide`,
+ * `visibilitychange`, `online` (network reconnect) and every Run — so a learner
+ * who stops editing and leaves still syncs.
  */
 const AUTOSAVE_DEBOUNCE_MS = 10_000;
 
@@ -501,26 +501,73 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
       const run = options?.run;
       saveQueueRef.current = saveQueueRef.current.then(async () => {
         try {
-          const response = await fetch("/api/system-design/state", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            // `keepalive` lets the request finish after the page is gone, which
-            // is the whole point of the unload flush. The route caps bodies at
-            // 64 KB, inside the keepalive budget.
-            keepalive: options?.keepalive ?? false,
-            body: JSON.stringify({
-              kind: "task-save",
-              taskSlug,
-              graph: snapshot.graph,
-              attempts: snapshot.attempts,
-              revealed: snapshot.revealed,
-              ...(run
-                ? { criteriaMet: run.criteriaMet, failures: run.failures }
-                : {}),
-            }),
-          });
-          if (!response.ok)
-            throw new Error(`Task save failed (${response.status})`);
+          const sendOnce = async (bodySnapshot: SdTaskState, retries = 1) => {
+            const response = await fetch("/api/system-design/state", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              keepalive: options?.keepalive ?? false,
+              body: JSON.stringify({
+                kind: "task-save",
+                taskSlug,
+                graph: bodySnapshot.graph,
+                attempts: bodySnapshot.attempts,
+                revealed: bodySnapshot.revealed,
+                updatedAt: bodySnapshot.updatedAt,
+                ...(run
+                  ? { criteriaMet: run.criteriaMet, failures: run.failures }
+                  : {}),
+              }),
+            });
+
+            if (response.status === 409) {
+              // Server has a newer copy. Merge into local state and retry once.
+              const serverData = (await response.json()) as {
+                lessonsCompleted?: string[];
+                tasks?: Record<string, unknown>;
+              };
+              const serverTask = serverData.tasks?.[taskSlug];
+              const parsedServer = serverTask
+                ? parseTaskState(serverTask)
+                : null;
+              if (parsedServer) {
+                if (!module) throw new Error("Module not loaded");
+                const merged = mergeTaskStates(module, taskStateRef.current, parsedServer);
+                if (merged) {
+                  taskStateRef.current = merged;
+                  setTaskState(merged);
+                  if (completionStorageKey && !isSharedDesign) {
+                    try {
+                      window.localStorage.setItem(
+                        completionStorageKey,
+                        JSON.stringify(merged),
+                      );
+                    } catch {
+                      /* local backup is best-effort */
+                    }
+                  }
+                  if (retries > 0) return sendOnce(merged, retries - 1);
+                }
+              }
+            }
+
+            if (!response.ok)
+              throw new Error(`Task save failed (${response.status})`);
+
+            // Adopt the server's timestamp so the next save's conflict check
+            // compares against the right baseline.
+            const responseData = (await response.json()) as {
+              tasks?: Record<string, { updatedAt?: string }>;
+            };
+            const serverUpdatedAt = responseData.tasks?.[taskSlug]?.updatedAt;
+            if (serverUpdatedAt && taskStateRef.current) {
+              taskStateRef.current = {
+                ...taskStateRef.current,
+                updatedAt: serverUpdatedAt,
+              };
+            }
+          };
+
+          await sendOnce(snapshot);
         } catch (error) {
           console.error("Failed to sync system-design task state", error);
           toast.error("Task sync failed. Your local backup is safe.", {
@@ -529,7 +576,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
         }
       });
     },
-    [],
+    [completionStorageKey, isSharedDesign, module],
   );
 
   /**
@@ -613,11 +660,14 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
     const flushWhenHidden = () => {
       if (document.visibilityState === "hidden") flush();
     };
+    const flushWhenOnline = () => flush();
     window.addEventListener("pagehide", flush);
     document.addEventListener("visibilitychange", flushWhenHidden);
+    window.addEventListener("online", flushWhenOnline);
     return () => {
       window.removeEventListener("pagehide", flush);
       document.removeEventListener("visibilitychange", flushWhenHidden);
+      window.removeEventListener("online", flushWhenOnline);
       // An in-app navigation fires neither event, so without this the last
       // edit would only reach the server on the learner's next visit.
       flush();
