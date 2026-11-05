@@ -16,6 +16,7 @@ import type { MemoryRateLimiter } from "@/lib/memory-rate-limit";
 import { createLogger, SLOW_SIM_THRESHOLD_MS } from "@/lib/logger";
 import { getRateLimitConfig } from "@/config/rate-limits";
 import { withRequestLog } from "@/lib/request-log";
+import { withQueryTimeout } from "@/lib/db-retry";
 import { SdGraphSchema, validateGraph } from "@/lib/system-design/validation";
 import { criteriaNeedingVerification } from "@/lib/system-design/criteria";
 import { getModule } from "@/config/system-design/registry";
@@ -23,6 +24,13 @@ import { simulate } from "@/lib/system-design/engine";
 import type { SdTaskState } from "@/config/system-design/types";
 
 const log = createLogger("system-design-state");
+
+/**
+ * Cap the function at 10 s so a hung DB statement fails fast instead of
+ * holding a pool slot (connectionLimit: 5) to the Vercel function cap.
+ * Matches the Hobby-tier default; set explicitly so the intent is documented.
+ */
+export const maxDuration = 10;
 
 /**
  * Largest body this route will read. A schema-valid task-save (40 nodes,
@@ -156,13 +164,15 @@ async function storedCriteriaMet(
   userId: number,
   taskSlug: string,
 ): Promise<string[]> {
-  const rows = await db
-    .select({ criteria_met: sdTaskState.criteria_met })
-    .from(sdTaskState)
-    .where(
-      and(eq(sdTaskState.user_id, userId), eq(sdTaskState.task_slug, taskSlug)),
-    )
-    .limit(1);
+  const rows = await withQueryTimeout(() =>
+    db
+      .select({ criteria_met: sdTaskState.criteria_met })
+      .from(sdTaskState)
+      .where(
+        and(eq(sdTaskState.user_id, userId), eq(sdTaskState.task_slug, taskSlug)),
+      )
+      .limit(1),
+  );
 
   return (rows[0]?.criteria_met as string[]) ?? [];
 }
@@ -222,11 +232,13 @@ export async function GET(req: NextRequest) {
     );
     if (rateLimitedResponse) return rateLimitedResponse;
 
-    const userResult = await db
-      .select({ id: usersTable.id })
-      .from(usersTable)
-      .where(eq(usersTable.clerk_id, userId))
-      .limit(1);
+    const userResult = await withQueryTimeout(() =>
+      db
+        .select({ id: usersTable.id })
+        .from(usersTable)
+        .where(eq(usersTable.clerk_id, userId))
+        .limit(1),
+    );
 
     if (userResult.length === 0) return unauthorized();
 
@@ -235,19 +247,20 @@ export async function GET(req: NextRequest) {
     // Lazy, idempotent migration from the legacy JSON blob.
     await migrateLegacyTasks(user.id);
 
-    const lessonsResult = await db
-      .select({ lessons_completed: sdUserState.lessons_completed })
-      .from(sdUserState)
-      .where(eq(sdUserState.user_id, user.id))
-      .limit(1);
+    const lessonsResult = await withQueryTimeout(() =>
+      db
+        .select({ lessons_completed: sdUserState.lessons_completed })
+        .from(sdUserState)
+        .where(eq(sdUserState.user_id, user.id))
+        .limit(1),
+    );
 
     const lessonsCompleted =
       (lessonsResult[0]?.lessons_completed as string[]) ?? [];
 
-    const taskRows = await db
-      .select()
-      .from(sdTaskState)
-      .where(eq(sdTaskState.user_id, user.id));
+    const taskRows = await withQueryTimeout(() =>
+      db.select().from(sdTaskState).where(eq(sdTaskState.user_id, user.id)),
+    );
 
     const tasks = buildTasksObject(taskRows);
 
@@ -286,11 +299,13 @@ export async function POST(req: NextRequest) {
     // Resolved before the simulation: deciding whether to simulate needs the
     // learner's stored criteria, and the engine must not run while holding a
     // transaction or one of the five pool slots.
-    const userResult = await db
-      .select({ id: usersTable.id })
-      .from(usersTable)
-      .where(eq(usersTable.clerk_id, userId))
-      .limit(1);
+    const userResult = await withQueryTimeout(() =>
+      db
+        .select({ id: usersTable.id })
+        .from(usersTable)
+        .where(eq(usersTable.clerk_id, userId))
+        .limit(1),
+    );
 
     if (userResult.length === 0) return unauthorized();
 
@@ -396,7 +411,8 @@ export async function POST(req: NextRequest) {
 
     const now = new Date();
 
-    const result = await db.transaction(async (tx) => {
+    const result = await withQueryTimeout(() =>
+      db.transaction(async (tx) => {
       if (parsed.data.kind === "lesson-complete") {
         const { slug } = parsed.data;
         const existing = await tx
@@ -499,7 +515,8 @@ export async function POST(req: NextRequest) {
       const tasks = buildTasksObject(taskRows);
 
       return { lessonsCompleted, tasks };
-    });
+    }),
+    );
 
     return NextResponse.json(result);
   });
