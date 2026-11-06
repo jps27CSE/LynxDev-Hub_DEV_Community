@@ -7,3 +7,19 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Agent skills
+
+### Issue tracker
+
+Plans and specs live as numbered markdown files in `.agent/plans/`, indexed by
+`.agent/feature-tracker.md`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical roles, using the default strings. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` at the repo root, decisions in `docs/adr/`.
+See `docs/agents/domain.md`.
