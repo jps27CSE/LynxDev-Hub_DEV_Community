@@ -30,14 +30,14 @@ async function ContinueLearning({ email }: { email: string }) {
             {allDone ? (
               <>
                 Outstanding — you finished every{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+                <span className="text-primary">
                   enrolled course
                 </span>
               </>
             ) : (
               <>
                 Ready to start{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+                <span className="text-primary">
                   building?
                 </span>
               </>

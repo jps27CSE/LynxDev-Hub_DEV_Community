@@ -112,7 +112,7 @@ const EnrolledCourses = ({
                       {enrollment.course.difficulty}
                     </span>
                     {!enrollment.completed_at ? (
-                      <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1">
+                      <span className="text-[10px] sm:text-xs text-muted-foreground tabular-nums flex items-center gap-1">
                         <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         {done}/{total}
                       </span>
@@ -136,7 +136,7 @@ const EnrolledCourses = ({
                     <span className="text-[10px] sm:text-[11px] text-muted-foreground font-medium">
                       Progress
                     </span>
-                    <span className="text-[10px] sm:text-[11px] text-muted-foreground font-medium">
+                    <span className="text-[10px] sm:text-[11px] text-muted-foreground font-medium tabular-nums">
                       {pct}%
                     </span>
                   </div>

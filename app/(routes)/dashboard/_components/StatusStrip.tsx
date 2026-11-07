@@ -70,7 +70,7 @@ function StatusStrip({ status }: { status: StatusData }) {
                 <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight leading-none">
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight tabular-nums leading-none">
                   {values[item.key]}
                 </p>
                 <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 sm:mt-1.5 leading-tight">

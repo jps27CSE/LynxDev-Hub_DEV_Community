@@ -43,7 +43,7 @@ function WelcomeBanner({
         {/* Heading */}
         <h1 className="text-lg sm:text-2xl lg:text-3xl font-display font-bold tracking-tight leading-snug sm:leading-tight">
           Welcome back,{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+          <span className="text-primary">
             {name?.trim() || "Developer"}
           </span>
         </h1>

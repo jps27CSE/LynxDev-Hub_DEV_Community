@@ -45,7 +45,7 @@ export default async function InterviewStats() {
           {items.map((item) => (
             <div key={item.label} className="text-center min-w-0 flex-1">
               <p
-                className={`text-xl sm:text-2xl font-bold leading-none ${item.color}`}
+                className={`text-xl sm:text-2xl font-bold tabular-nums leading-none ${item.color}`}
               >
                 {item.value ?? "\u2014"}
               </p>

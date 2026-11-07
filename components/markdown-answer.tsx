@@ -80,7 +80,7 @@ export function AnswerMarkdown({ content }: { content: string }) {
             <strong className="font-bold text-foreground">{children}</strong>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="mb-4 px-4 py-3 rounded-r-lg border-l-2 border-primary/60 bg-muted/40 text-muted-foreground italic [&>p]:mb-0">
+            <blockquote className="mb-4 rounded-lg border border-border bg-muted/40 px-4 py-3 text-muted-foreground italic [&>p]:mb-0">
               {children}
             </blockquote>
           ),

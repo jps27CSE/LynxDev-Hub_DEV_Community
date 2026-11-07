@@ -99,7 +99,7 @@ function ChaptersRail({
           <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider truncate min-w-0">
             Chapters
           </span>
-          <span className="ml-auto text-xs font-mono text-muted-foreground/60 whitespace-nowrap shrink-0">
+          <span className="ml-auto text-xs font-mono tabular-nums text-muted-foreground/60 whitespace-nowrap shrink-0">
             {chaptersWithQuestions.length}
           </span>
           {onCollapse && (
@@ -142,7 +142,7 @@ function ChaptersRail({
               }`}
             >
               <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground font-mono w-5 flex-shrink-0">
+                <span className="text-xs text-muted-foreground font-mono w-5 flex-shrink-0 tabular-nums">
                   {String(chapterNumber).padStart(2, "0")}
                 </span>
                 <div className="flex-1 min-w-0">
@@ -229,7 +229,7 @@ function TocRail({
                   onClick={() => onJumpQuestion(q.id)}
                   title={q.question}
                   aria-label={`Jump to question ${i + 1}`}
-                  className={`h-7 w-7 rounded-md text-[11px] font-mono transition-colors ${
+                  className={`h-7 w-7 rounded-md text-[11px] font-mono tabular-nums transition-colors ${
                     activeQuestionId === q.id
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -691,21 +691,21 @@ function ChapterHubInner({
             {currentChapter && (
               <div>
                 <div className="mb-8">
-                  <span className="text-xs text-muted-foreground font-mono">
+                  <span className="text-xs text-muted-foreground font-mono tabular-nums">
                     Chapter {currentIndex + 1} of {chaptersWithQuestions.length}
                   </span>
                   <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight mt-1">
                     {currentChapter.title}
                   </h1>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3">
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground tabular-nums">
                       {currentChapter.questionCount} question
                       {currentChapter.questionCount !== 1 ? "s" : ""}
                     </span>
                     {Object.entries(diffCounts).map(([d, n]) => (
                       <span
                         key={d}
-                        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
+                        className="inline-flex items-center gap-1.5 text-xs tabular-nums text-muted-foreground"
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${difficultyDotClass(d)}`}

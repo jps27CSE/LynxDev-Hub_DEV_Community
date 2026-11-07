@@ -556,7 +556,7 @@ function LessonSection({
       );
     case "compare":
       return hasReflected ? (
-        <section className="rounded-2xl border-l-4 border-sd-accent bg-sd-accent-soft/30 p-6 sm:p-7">
+        <section className="rounded-2xl border border-sd-accent/30 bg-sd-accent-soft/30 p-6 sm:p-7">
           <p className="font-mono text-xs uppercase tracking-[0.18em] text-sd-accent">
             Compare with a senior engineer
           </p>
