@@ -161,7 +161,7 @@ export function ModuleLayout({ module }: { module: ModuleOverview }) {
                 Part {module.part}: {module.partTitle}
               </span>
               <span aria-hidden="true">·</span>
-              <span>Module {String(module.order).padStart(2, "0")}</span>
+              <span className="tabular-nums">Module {String(module.order).padStart(2, "0")}</span>
               <span aria-hidden="true">·</span>
               <span>{module.kind === "sim" ? "Simulated" : "Reading"}</span>
             </div>
@@ -193,12 +193,9 @@ export function ModuleLayout({ module }: { module: ModuleOverview }) {
           <section aria-labelledby="lessons-heading" className="mb-10">
             <div className="mb-4 flex items-end justify-between gap-4 border-b border-border pb-3">
               <div>
-                <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                  Read · reason · apply
-                </p>
                 <h2
                   id="lessons-heading"
-                  className="mt-2 text-2xl font-semibold tracking-tight"
+                  className="text-2xl font-semibold tracking-tight"
                 >
                   Lessons
                 </h2>
@@ -220,7 +217,7 @@ export function ModuleLayout({ module }: { module: ModuleOverview }) {
                       href={`/system-design/${module.slug}/lesson/${lesson.slug}`}
                       className="group flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-sd-accent/40 hover:shadow-sm"
                     >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sd-accent-soft font-mono text-sm font-semibold text-sd-accent">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sd-accent-soft font-mono text-sm font-semibold tabular-nums text-sd-accent">
                         {String(index + 1).padStart(2, "0")}
                       </span>
                       <span className="min-w-0 flex-1">
@@ -252,10 +249,7 @@ export function ModuleLayout({ module }: { module: ModuleOverview }) {
             aria-labelledby="interview-heading"
             className="mb-10 rounded-2xl border border-border bg-card p-6 sm:p-8"
           >
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-sd-accent">
-              Interview byte
-            </p>
-            <h2 id="interview-heading" className="mt-2 text-xl font-semibold">
+            <h2 id="interview-heading" className="text-xl font-semibold">
               Make the answer count
             </h2>
             <div className="mt-5 grid gap-6 md:grid-cols-3">
@@ -275,7 +269,7 @@ export function ModuleLayout({ module }: { module: ModuleOverview }) {
                   {module.interviewByte.strongAnswer}
                 </p>
               </div>
-              <div className="rounded-xl border-l-4 border-sd-warn bg-sd-warn/5 pl-4">
+              <div className="rounded-xl border border-sd-warn/30 bg-sd-warn/5 p-4">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-sd-warn">
                   The trap
                 </h3>
@@ -292,12 +286,9 @@ export function ModuleLayout({ module }: { module: ModuleOverview }) {
               aria-labelledby="build-heading"
               className="mb-10 rounded-2xl border border-sd-accent/30 bg-gradient-to-br from-sd-accent-soft/60 to-card p-6 sm:p-8"
             >
-              <p className="font-mono text-xs uppercase tracking-[0.18em] text-sd-accent">
-                Build task
-              </p>
               <h2
                 id="build-heading"
-                className="mt-2 text-2xl font-semibold tracking-tight"
+                className="text-2xl font-semibold tracking-tight"
               >
                 Put the design under load.
               </h2>
@@ -327,7 +318,7 @@ export function ModuleLayout({ module }: { module: ModuleOverview }) {
                   key={`${index}-${point}`}
                   className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm leading-6 text-muted-foreground"
                 >
-                  <span aria-hidden="true" className="font-mono text-sd-accent">
+                  <span aria-hidden="true" className="font-mono tabular-nums text-sd-accent">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <span>{point}</span>
@@ -422,7 +413,7 @@ function LessonRail({ module }: { module: ModuleOverview }) {
             href={`/system-design/${module.slug}/lesson/${entry.slug}`}
             className="group flex items-start gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-sd-accent-soft hover:text-sd-accent"
           >
-            <span className="mt-0.5 font-mono text-[10px] text-muted-foreground group-hover:text-sd-accent">
+            <span className="mt-0.5 font-mono tabular-nums text-[10px] text-muted-foreground group-hover:text-sd-accent">
               {String(index + 1).padStart(2, "0")}
             </span>
             <span className="min-w-0 flex-1 leading-snug">{entry.title}</span>
@@ -499,7 +490,7 @@ function ChapterLeafLink({
       href={`/system-design/${moduleSlug}/lesson/${chapter.lessonSlug}`}
       className="group flex items-start gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-sd-accent-soft hover:text-sd-accent"
     >
-      <span className="mt-0.5 font-mono text-[10px] text-muted-foreground group-hover:text-sd-accent">
+      <span className="mt-0.5 font-mono tabular-nums text-[10px] text-muted-foreground group-hover:text-sd-accent">
         {position ? String(position).padStart(2, "0") : "--"}
       </span>
       <span className="min-w-0 flex-1 leading-snug">

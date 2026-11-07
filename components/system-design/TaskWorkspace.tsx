@@ -1238,7 +1238,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
           >
             <Grid2X2 size={15} />
           </button>
-          <span className="px-1 font-mono text-[10px] text-muted-foreground">
+          <span className="px-1 font-mono tabular-nums text-[10px] text-muted-foreground">
             {Math.round(scale * 100)}%
           </span>
         </div>
@@ -1388,9 +1388,6 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
     <main className="sd-scope flex h-[calc(100dvh-1rem)] min-h-[620px] flex-col overflow-hidden bg-background">
       <header className="flex min-h-14 items-center justify-between gap-3 border-b border-border px-3 py-2 sm:px-5">
         <div className="min-w-0">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-sd-accent">
-            System design / build task
-          </p>
           <div className="flex min-w-0 items-center gap-2">
             <h1 className="truncate text-sm font-semibold sm:text-base">
               {module.title}

@@ -23,7 +23,7 @@ export function ModuleCard({ module }: ModuleCardProps) {
           <span className="text-sd-accent/70">·</span>
           {module.partTitle}
         </span>
-        <span className="font-mono text-xs text-muted-foreground">
+        <span className="font-mono text-xs tabular-nums text-muted-foreground">
           {String(module.order).padStart(2, "0")}
         </span>
       </div>

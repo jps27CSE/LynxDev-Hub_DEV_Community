@@ -14,10 +14,7 @@ export default async function SystemDesignIndex() {
   if (modules.length === 0) {
     return (
       <div className="sd-scope mx-auto flex min-h-[55vh] max-w-3xl flex-col justify-center px-6 py-16">
-        <p className="font-mono text-xs uppercase tracking-[0.24em] text-primary">
-          A hands-on learning path
-        </p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
           System design, under pressure.
         </h1>
         <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
@@ -45,10 +42,7 @@ export default async function SystemDesignIndex() {
           aria-hidden="true"
           className="pointer-events-none absolute -left-10 bottom-0 h-40 w-40 rounded-full bg-sd-info/10 blur-2xl"
         />
-        <p className="font-mono text-xs uppercase tracking-[0.24em] text-sd-accent">
-          System design / field notes
-        </p>
-        <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+        <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
           From 100 users to chaos.
         </h1>
         <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
@@ -68,12 +62,9 @@ export default async function SystemDesignIndex() {
       <section aria-labelledby="modules-heading">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
-              Curriculum
-            </p>
             <h2
               id="modules-heading"
-              className="mt-2 text-2xl font-semibold tracking-tight"
+              className="text-2xl font-semibold tracking-tight"
             >
               Choose a module
             </h2>
