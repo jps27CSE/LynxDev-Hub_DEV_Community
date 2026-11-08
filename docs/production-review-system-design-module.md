@@ -285,7 +285,7 @@ Problems:
 |---|---|---|---|
 | 11 | **Remove `x/y` from `graphSeed`** | reproducibility: identical topology should produce identical numbers. Re-baseline the affected module p95 figures (deltas ≤0.1 ms, but every lesson quotes a number). | ✅ applied (cc2bf94) |
 | 12 | **Replace the two 1M-arrival tests** with an assertion on cost (`arrivals ≤ cap`) or a smaller bound | takes `npm test` from 11 s back to ~3 s and stops pinning the DoS | ✅ applied (§11) — but the 3 s claim was **wrong** |
-| 13 | **`requestId` into `emit()`; `log.info` simulation ms/arrivals; slow-sim warning** | incident correlation and the data needed to right-size | ⬜ open |
+| 13 | **`requestId` into `emit()`; `log.info` simulation ms/arrivals; slow-sim warning** | incident correlation and the data needed to right-size | ✅ applied (692b12b, f1222e5) |
 | 14 | **Split `modules/<slug>.ts` into prose + `.task.ts`** | the task page currently ships 900-word lessons to a browser that needs `assert` functions | ⬜ open |
 | 15 | **Percentiles:** `allLatencies[Math.floor(n * 0.95)]` is the 96th percentile at n = 100; and percentiles over completions hide shedding (module 8's lesson) — keep the sibling error-rate criterion everywhere | correctness of the teaching model | ✅ applied (cc2bf94) |
 | 16 | **Persist critical events durably**, or verify a log drain is available on the plan before assuming logs survive an incident | Hobby retention is hours, not days | ✅ applied (f1222e5) |
