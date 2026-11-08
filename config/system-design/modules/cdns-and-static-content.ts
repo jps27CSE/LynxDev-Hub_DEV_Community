@@ -1,5 +1,6 @@
 import type { SdEdge, SdGraph, SdModule } from "../types";
 import { defaultNode } from "@/lib/system-design/nodes";
+import task from "./cdns-and-static-content.task";
 
 /**
  * Module 11 — CDNs and static content, converted to the leaf model (plan 17,
@@ -560,132 +561,7 @@ const module: SdModule = {
       "I would measure what share of those bytes ever needed to leave the origin. A CDN in front of an immutable object store, with a cache key that is just the URL and a long `s-maxage`, turns the origin's arrival rate into the miss rate — at a 95% hit rate that is 12,000 down to 600 requests a second. I would keep personalised responses and writes off the shared cache entirely, on a separate hostname with `private` and `no-store`, because a cache that cannot tell viewers apart is a correctness bug waiting to happen. I would version the URLs with a content hash and serve them `immutable`, so deploys need no purge, and reserve purging for takedowns and the few endpoints that cannot carry a version. Edge functions would handle the request-shaped work — token signature checks, geo, header rewrites — and nothing that needs the database. And I would watch origin egress and hit rate, not total requests, because that is where the money is.",
     trap: "Buying more origin bandwidth instead of reducing origin traffic. Also, putting the whole API behind the CDN and calling the resulting stale responses a caching problem; marking a response `no-cache` and believing it is not stored; and purging every deploy, which makes the cache cold and expensive at the same time.",
   },
-  task: {
-    brief:
-      "12,000 segment requests a second, each 2 MB, and one origin store answers every one of them: it is at 120% and shedding one request in six. Raise the edge hit rate so the origin is reached only by misses — under 10% — while all 12,000 requests complete.",
-    startGraph: graph(0),
-    solutionGraph: graph(0.95),
-    steps: [
-      {
-        id: "keep-the-media-path",
-        title: "Keep the CDN on the media path",
-        brief:
-          "Segments must go from the playback API through the CDN to origin storage, so a miss is the only reason the origin is touched.",
-        hint: "The graph already has a CDN; check it sits between the playback API and origin storage, not beside them.",
-        reveal:
-          "The path is client → edge → playback API → CDN → origin storage. Without the CDN in that path the edge has nothing to answer from, and every segment reaches the origin.",
-        check: (graph) => {
-          const cdn = graph.nodes.find((node) => node.type === "cdn");
-          const appIds = new Set(
-            graph.nodes
-              .filter((node) => node.type === "app_server")
-              .map((node) => node.id),
-          );
-          const storeIds = new Set(
-            graph.nodes
-              .filter((node) => node.type === "object_store")
-              .map((node) => node.id),
-          );
-          const fedByApp =
-            !!cdn &&
-            graph.edges.some(
-              (edge) => edge.to === cdn.id && appIds.has(edge.from),
-            );
-          const feedsOrigin =
-            !!cdn &&
-            graph.edges.some(
-              (edge) => edge.from === cdn.id && storeIds.has(edge.to),
-            );
-          return {
-            passed: !!cdn && fedByApp && feedsOrigin,
-            progress: !cdn
-              ? "No CDN node in the graph"
-              : !fedByApp
-                ? "The CDN is not fed by the playback API"
-                : !feedsOrigin
-                  ? "The CDN does not reach origin storage, so a miss has nowhere to go"
-                  : "✓ Segments flow app → CDN → origin storage",
-          };
-        },
-      },
-      {
-        id: "keep-the-load",
-        title: "Do not shrink the problem",
-        brief:
-          "The traffic is 12,000 requests a second. Lowering the arrival rate changes the question, not the answer.",
-        hint: "Check the scenario's arrival rate in the inspector.",
-        reveal:
-          "A capacity problem is only solved by moving traffic, not by removing it. At 1,000 requests a second the origin would pass every criterion while the production incident continues.",
-        check: (graph) => {
-          const arrivals = graph.scenario.arrivalRate;
-          return {
-            passed: arrivals >= 12_000,
-            progress:
-              arrivals >= 12_000
-                ? `✓ ${arrivals.toLocaleString()} r/s — the load is unchanged`
-                : `${arrivals.toLocaleString()} r/s is below the 12,000 r/s the system is expected to serve`,
-          };
-        },
-      },
-      {
-        id: "raise-the-hit-rate",
-        title: "Raise the edge hit rate",
-        brief:
-          "At least 90% of segment requests should be answered at the edge, so at most 10% reach origin storage.",
-        hint: "Select the CDN node and raise its hit rate in the inspector.",
-        reveal:
-          "Set the CDN hit rate to 0.95. At 95%, 600 of the 12,000 requests per second reach the origin — 6% of its capacity — and the other 11,400 are answered where the viewer is.",
-        check: (graph) => {
-          const cdn = graph.nodes.find((node) => node.type === "cdn");
-          const hitRate =
-            (cdn as { hitRate?: number } | undefined)?.hitRate ?? 0;
-          const passed = !!cdn && hitRate >= 0.9;
-          return {
-            passed,
-            progress: passed
-              ? `✓ Edge answers ${(hitRate * 100).toFixed(0)}% of requests`
-              : cdn
-                ? `${(hitRate * 100).toFixed(0)}% — raise it to 90% or higher`
-                : "Add a CDN node",
-          };
-        },
-      },
-    ],
-    passCriteria: [
-      {
-        id: "origin-headroom",
-        label: "Origin storage under 10% utilisation",
-        required: true,
-        explain:
-          "The origin should be reached only by cache misses. At a 95% hit rate it sees 600 of the 12,000 requests per second, which is 6% of its 10,000 r/s capacity. A second origin store passes the other criteria while leaving the origin at 60% — adding capacity at the origin is not the same as moving bytes to the edge.",
-        assert: (result) => {
-          const origin = result.perNode.find((node) => node.id === "origin-1");
-          return result.valid && !!origin && origin.utilisation < 0.1;
-        },
-      },
-      {
-        id: "zero-errors",
-        label: "No request is shed",
-        required: true,
-        explain:
-          "The origin can serve 10,000 requests a second and is offered 12,000, so without caching it refuses the difference. Serving every request is the evidence that the load was moved rather than reduced.",
-        assert: (result) =>
-          result.valid &&
-          (result.errorClasses.shed ?? 0) === 0 &&
-          (result.errorClasses.unreachable ?? 0) === 0 &&
-          (result.errorClasses.rejected ?? 0) === 0 &&
-          (result.errorClasses.stale ?? 0) === 0,
-      },
-      {
-        id: "capacity-served",
-        label: "Serves all 12,000 requests per second",
-        required: true,
-        explain:
-          "Throughput is the check that the system kept its load: 10,000 r/s completed at the start because the origin refused the rest. It is not sufficient on its own — two origin stores reach 12,000 while leaving the origin busy — which is why the headroom criterion is the one that names the goal.",
-        assert: (result) => result.valid && result.throughput >= 11_500,
-      },
-    ],
-  },
+  task,
   recap: [
     "Bandwidth is requests × payload; 12,000 × 2 MB is 24 GB/s, and that is the number the origin pays for",
     "A CDN shortens the distance to the viewer; it does not reduce the bytes the viewer receives",

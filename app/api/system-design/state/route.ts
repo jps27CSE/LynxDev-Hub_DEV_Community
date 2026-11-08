@@ -19,7 +19,7 @@ import { withRequestLog } from "@/lib/request-log";
 import { withQueryTimeout } from "@/lib/db-retry";
 import { SdGraphSchema, validateGraph } from "@/lib/system-design/validation";
 import { criteriaNeedingVerification } from "@/lib/system-design/criteria";
-import { getModule } from "@/config/system-design/registry";
+import { getTask } from "@/config/system-design/registry";
 import { simulate } from "@/lib/system-design/engine";
 import type { SdTaskState } from "@/config/system-design/types";
 
@@ -323,8 +323,8 @@ export async function POST(req: NextRequest) {
 
     let verifiedCriteriaMet: string[] = [];
     if (parsed.data.kind === "task-save") {
-      const taskModule = await getModule(parsed.data.taskSlug);
-      if (!taskModule || taskModule.kind !== "sim" || !taskModule.task) {
+      const taskModule = await getTask(parsed.data.taskSlug);
+      if (!taskModule || !taskModule.task) {
         return NextResponse.json(
           { error: "Unknown system-design task" },
           { status: 400 },

@@ -1,5 +1,6 @@
 import type { SdEdge, SdGraph, SdModule } from "../types";
 import { defaultNode } from "@/lib/system-design/nodes";
+import task from "./idempotency.task";
 
 /**
  * Module 14 — idempotency, converted in slice B7 (plan 17).
@@ -487,111 +488,7 @@ const module: SdModule = {
       "I would make the write and the enqueue carry a client-generated idempotency key, store the key with the response, and let a repeat return the first result instead of doing the work again. The queue then delivers at least once, which is the only guarantee it can actually give, and the consumer becomes idempotent so a redelivery is absorbed rather than duplicated. I would also cap retries and park what keeps failing in a dead-letter queue with an alert, because a message that fails forever blocks the partition behind it. What I still cannot promise is that the user saw the confirmation: my guarantee is that the state changed once and the response is replayable, not that the network delivered the second reply. Exactly-once only exists inside a boundary I control end to end.",
     trap: "Saying 'we will add retries with deduplication in the client' and calling it exactly-once. The client cannot know whether the server did the work; only the server can decide that a key has been seen, and only the store can remember it.",
   },
-  task: {
-    brief:
-      "4,000 uploads per second arrive at the pipeline, and 75% of them are repeats of work already in flight. One resize worker is at 400% of its capacity and 75% of all traffic is shed. Make the pipeline serve all 4,000: absorb the repeats, park what cannot be processed, and do not lower the arrival rate.",
-    startGraph: taskStartGraph,
-    solutionGraph: taskSolutionGraph,
-    steps: [
-      {
-        id: "absorb-duplicates",
-        title: "Absorb the repeats before the worker sees them",
-        brief:
-          "Three quarters of the arrivals carry a key the store has already answered. Raise the idempotency store's hit rate so those requests return the earlier result instead of being enqueued again.",
-        hint: "Select the Idempotency store and raise its hit rate. At 0, every arrival reaches the worker.",
-        reveal:
-          "A hit rate of 0.75 is the measured duplicate share: 3,000 of 4,000 arrivals are repeats, so 1,000 reach the queue and two workers at 2,000 requests a second each sit at 51%. At 0.7 the design still passes the criteria, but the duplicates the store misses are the ones the worker pays for.",
-        check: (graph) => {
-          const store = graph.nodes.find((node) => node.type === "cache");
-          const hitRate = store?.type === "cache" ? store.hitRate : 0;
-          const passed = hitRate >= 0.7;
-          return {
-            passed,
-            progress: passed
-              ? `✓ ${(hitRate * 100).toFixed(0)}% of arrivals answered from the store`
-              : `${(hitRate * 100).toFixed(0)}% of arrivals answered from the store — 75% are repeats`,
-          };
-        },
-      },
-      {
-        id: "park-what-cannot-be-processed",
-        title: "Park what the worker cannot process",
-        brief:
-          "A message that fails for a deterministic reason will fail every time. Cap the queue's retries and enable a dead-letter queue so the rest of the backlog keeps moving.",
-        hint: "Select the Upload queue and enable the dead-letter queue. Keep the retry limit at 3 or fewer.",
-        reveal:
-          "The canvas stores the queue's `retryLimit`, `maxDepth` and `dlqEnabled` but the engine reads none of them, so this step grades the decision rather than a number — which is exactly why it is a step and not a pass criterion. The decision is still the right one: an uncapped retry turns one unprocessable message into a queue that never drains.",
-        check: (graph) => {
-          const queue = graph.nodes.find((node) => node.type === "queue");
-          if (!queue || queue.type !== "queue") {
-            return { passed: false, progress: "No queue in the design" };
-          }
-          const ok = queue.dlqEnabled && queue.retryLimit <= 3;
-          return {
-            passed: ok,
-            progress: ok
-              ? `✓ Retry limit ${queue.retryLimit}, dead-letter queue on`
-              : queue.dlqEnabled
-                ? `Dead-letter queue on, but the retry limit is ${queue.retryLimit}`
-                : "No dead-letter queue — a failing message is retried forever",
-          };
-        },
-      },
-      {
-        id: "keep-the-load",
-        title: "Do not shrink the problem",
-        brief:
-          "4,000 uploads a second is what the pipeline receives. Lowering the arrival rate hides the duplicate share instead of absorbing it.",
-        hint: "Check the scenario's arrival rate in the inspector.",
-        reveal:
-          "At 400 requests a second one worker is at 40% and every criterion passes while three quarters of production traffic is still being dropped. The load is the requirement; the design is what has to change.",
-        check: (graph) => {
-          const arrivals = graph.scenario.arrivalRate;
-          return {
-            passed: arrivals >= 4_000,
-            progress:
-              arrivals >= 4_000
-                ? `✓ ${arrivals.toLocaleString()} r/s — the load is unchanged`
-                : `${arrivals.toLocaleString()} r/s is below the 4,000 r/s the pipeline receives`,
-          };
-        },
-      },
-    ],
-    passCriteria: [
-      {
-        id: "zero-errors",
-        label: "Zero requests shed",
-        required: true,
-        explain:
-          "One worker against 4,000 arrivals a second is 400% of its capacity, so the start graph sheds 75%. Every failure class has to be zero: a design that absorbs duplicates but still drops traffic has moved the problem, not solved it.",
-        assert: (result) =>
-          result.valid &&
-          (result.errorClasses.shed ?? 0) === 0 &&
-          (result.errorClasses.unreachable ?? 0) === 0 &&
-          (result.errorClasses.stale ?? 0) === 0 &&
-          (result.errorClasses.rejected ?? 0) === 0,
-      },
-      {
-        id: "capacity-served",
-        label: "At least 3,900 requests a second served",
-        required: true,
-        explain:
-          "Throughput has to reach the offered rate. The start graph caps at 1,000 a second, which is one worker's ceiling — the number that shows the queue is the bottleneck and not the API.",
-        assert: (result) => result.valid && result.throughput >= 3_900,
-      },
-      {
-        id: "worker-headroom",
-        label: "Resize worker under 90% utilisation",
-        required: true,
-        explain:
-          "A worker at 100% is a worker with no room for a burst, and one that cannot be degraded. This criterion is what stops 'add workers until it fits' from passing on arithmetic alone: at four workers the queue is still full of duplicates and the tier sits at exactly 100%.",
-        assert: (result) => {
-          const worker = result.perNode.find((node) => node.id === "worker-1");
-          return result.valid && !!worker && worker.utilisation < 0.9;
-        },
-      },
-    ],
-  },
+  task,
   recap: [
     "At-least-once is the only delivery guarantee a network can make you",
     "A duplicate costs capacity before it costs correctness — three quarters of this pipeline's arrivals were repeats",

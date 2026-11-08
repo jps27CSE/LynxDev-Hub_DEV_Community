@@ -1,5 +1,6 @@
 import type { SdEdge, SdGraph, SdModule } from "../types";
 import { defaultNode } from "@/lib/system-design/nodes";
+import task from "./timeouts-retries-circuit-breakers.task";
 
 /**
  * Module 13 — timeouts, retries and circuit breakers, converted in slice B7.
@@ -536,107 +537,7 @@ const module: SdModule = {
       "First a timeout, shorter than the request budget, so workers come back and I can see the real error rate. Then retries with exponential backoff, full jitter and a shared budget, because retries without a budget turn one slow dependency into two overloaded tiers. Then a circuit breaker with a rolling window and a short cool-down so callers stop paying for calls whose answer is known, plus a bulkhead that reserves a fixed pool per dependency so it can only exhaust its own compartment. Then a fallback that the surviving path can actually carry — I would check the arithmetic, because removing a dependency moves 100% of its traffic onto whatever remains, and in this canvas that took the metadata store from 30% to 120%. And I would make any retried write idempotent before enabling retries on it.",
     trap: "Listing the patterns without ordering them, and enabling retries before timeouts. Also, opening a breaker with no fallback — the user sees the same error, just faster — and claiming a fallback exists without checking that the surviving path has the capacity for it.",
   },
-  task: {
-    brief:
-      "The resize service is over capacity and the API calls it on every new asset. Stop calling it, and make sure the metadata path can carry the whole load on its own: 6,000 requests a second with zero shed.",
-    startGraph: taskStartGraph,
-    solutionGraph: taskSolutionGraph,
-    steps: [
-      {
-        id: "stop-calling-the-dead-service",
-        title: "Take the dependency out of the request path",
-        brief:
-          "The resize tier cannot answer. Remove the API's call to it so those requests fail fast and serve the original asset instead of waiting.",
-        hint: "Select the edge from the Image API to the Resize node and delete it. The Resize and Resized store nodes stay — nothing is calling them.",
-        reveal:
-          "An open breaker is a decision not to call. On the canvas that means deleting the `api-1 → resize-1` edge: the resize tier and its store remain deployed and receive no traffic, which is exactly what the open state looks like in production.",
-        check: (graph) => {
-          const called = graph.edges.some(
-            (edge) => edge.from === "api-1" && edge.to === "resize-1",
-          );
-          return {
-            passed: !called,
-            progress: called
-              ? "The API still calls the resize tier on every asset"
-              : "✓ Resize call removed — the tier receives no traffic",
-          };
-        },
-      },
-      {
-        id: "fallback-carries-the-load",
-        title: "Size the surviving path for failover",
-        brief:
-          "With the resize call gone, every request lands on the metadata store. Give it a read replica so it can carry the whole 6,000 r/s.",
-        hint: "Select the Metadata store and raise Read Replicas. One node is 5,000 r/s of capacity against 6,000 of load.",
-        reveal:
-          "One replica doubles the store to 10,000 requests a second, so 6,000 of load is 60%. Without it the store runs at 120% and sheds 16.7% — the fallback becomes the outage.",
-        check: (graph) => {
-          const db = graph.nodes.find((node) => node.type === "database");
-          const replicas = db?.type === "database" ? db.readReplicas : 0;
-          const passed = replicas >= 1;
-          return {
-            passed,
-            progress: passed
-              ? `✓ ${replicas} read replica(s) — ${(5_000 * (1 + replicas)).toLocaleString()} r/s of failover capacity`
-              : "One store node is 5,000 r/s of capacity; failover needs more",
-          };
-        },
-      },
-      {
-        id: "keep-the-load",
-        title: "Do not shrink the problem",
-        brief:
-          "6,000 requests a second is what the system serves. Dropping the arrival rate hides the failover requirement instead of meeting it.",
-        hint: "Check the scenario's arrival rate in the inspector.",
-        reveal:
-          "At 1,000 requests a second the store passes on one node and the fallback looks free. The requirement is 6,000, and that is the number the failover path must carry.",
-        check: (graph) => {
-          const arrivals = graph.scenario.arrivalRate;
-          return {
-            passed: arrivals >= 6_000,
-            progress:
-              arrivals >= 6_000
-                ? `✓ ${arrivals.toLocaleString()} r/s — the load is unchanged`
-                : `${arrivals.toLocaleString()} r/s is below the 6,000 r/s the system is expected to serve`,
-          };
-        },
-      },
-    ],
-    passCriteria: [
-      {
-        id: "zero-errors",
-        label: "Zero requests shed",
-        required: true,
-        explain:
-          "With the resize call in the path, 16.5% of all requests are shed because the resize tier is at 149%. Every failure class has to be zero, so a fallback that simply moves the shedding does not pass.",
-        assert: (result) =>
-          result.valid &&
-          (result.errorClasses.shed ?? 0) === 0 &&
-          (result.errorClasses.unreachable ?? 0) === 0 &&
-          (result.errorClasses.stale ?? 0) === 0 &&
-          (result.errorClasses.rejected ?? 0) === 0,
-      },
-      {
-        id: "capacity-served",
-        label: "At least 5,900 requests a second served",
-        required: true,
-        explain:
-          "Removing the resize call raises throughput only if the surviving path has capacity. Without a second store node the design still caps out at 5,000, which is the store's ceiling.",
-        assert: (result) => result.valid && result.throughput >= 5_900,
-      },
-      {
-        id: "metadata-headroom",
-        label: "Metadata store under 65% utilisation (advisory)",
-        required: false,
-        explain:
-          "Advisory, because it is green in the start graph: while the resize tier absorbs the damage, only half the traffic reaches the store, so 30% looks healthy. It turns red the moment the fallback inherits everything and nobody sized it, which is the failure this task exists to prevent — a criterion cannot require it at the start without also pretending the start graph is healthy.",
-        assert: (result) => {
-          const db = result.perNode.find((node) => node.id === "db-1");
-          return result.valid && !!db && db.utilisation < 0.65;
-        },
-      },
-    ],
-  },
+  task,
   recap: [
     "Bound every call with a timeout shorter than the request's deadline",
     "Retry with exponential backoff, full jitter, and a shared budget",

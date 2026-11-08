@@ -141,7 +141,7 @@ async function main(): Promise<void> {
   const onDisk = fs.existsSync(MODULES_DIR)
     ? fs
         .readdirSync(MODULES_DIR)
-        .filter((f) => f.endsWith(".ts"))
+        .filter((f) => f.endsWith(".ts") && !f.endsWith(".task.ts"))
         .map((f) => f.replace(/\.ts$/, ""))
     : [];
 

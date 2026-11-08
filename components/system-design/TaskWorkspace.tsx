@@ -14,12 +14,11 @@ import {
   Share2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { getModule } from "@/config/system-design/registry";
+import { getTask } from "@/config/system-design/registry";
 import type {
   SdEdge,
   SdFailure,
   SdGraph,
-  SdModule,
   SdTaskDef,
   SdNode,
   SdNodeType,
@@ -77,10 +76,10 @@ const AUTOSAVE_DEBOUNCE_MS = 10_000;
  * never mounted for a `prose` module (the route 404s first), so reaching here
  * without a task is a content bug, not a user state.
  */
-type SimModule = SdModule & { task: SdTaskDef };
+type SimModule = { title: string; task: SdTaskDef };
 
-function hasBuildTask(module: SdModule): module is SimModule {
-  return module.task !== undefined;
+function hasBuildTask(module: SimModule | null): module is SimModule {
+  return module !== null && module.task !== undefined;
 }
 
 type WorkspacePanel =
@@ -313,7 +312,7 @@ export function TaskWorkspace({ moduleSlug }: { moduleSlug: string }) {
     setCheckedGraph(EMPTY_GRAPH);
     setModuleLoadError(false);
 
-    void getModule(moduleSlug)
+    void getTask(moduleSlug)
       .then((loadedModule) => {
         if (!loadedModule) {
           throw new Error(`Unknown system-design module "${moduleSlug}".`);

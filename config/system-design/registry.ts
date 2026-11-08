@@ -1,4 +1,4 @@
-import type { SdModule } from "./types";
+import type { SdModule, SdTaskDef } from "./types";
 
 /**
  * @file
@@ -26,6 +26,7 @@ import type { SdModule } from "./types";
  * KEEP THIS FILE DEPENDENCY-FREE — see the I.9 note at the top of `types.ts`.
  */
 type SdModuleLoader = () => Promise<{ default: SdModule }>;
+type SdTaskLoader = () => Promise<{ default: SdTaskDef; title: string }>;
 
 /**
  * Own keys only. `Object.keys` is already own-keys-only, which is why the two
@@ -51,6 +52,27 @@ const LOADERS: Record<string, SdModuleLoader> = {
     import("./modules/timeouts-retries-circuit-breakers"),
   idempotency: () => import("./modules/idempotency"),
   "chaos-capstone": () => import("./modules/chaos-capstone"),
+};
+
+const TASK_LOADERS: Record<string, SdTaskLoader> = {
+  "what-is-system-design": () => import("./modules/what-is-system-design.task"),
+  requirements: () => import("./modules/requirements.task"),
+  "constraints-and-design-process": () =>
+    import("./modules/constraints-and-design-process.task"),
+  "back-of-the-envelope": () => import("./modules/back-of-the-envelope.task"),
+  "load-balancers-and-stateless-services": () =>
+    import("./modules/load-balancers-and-stateless-services.task"),
+  caching: () => import("./modules/caching.task"),
+  "read-replicas": () => import("./modules/read-replicas.task"),
+  "partitioning-and-sharding": () =>
+    import("./modules/partitioning-and-sharding.task"),
+  "rate-limiting": () => import("./modules/rate-limiting.task"),
+  "cdns-and-static-content": () => import("./modules/cdns-and-static-content.task"),
+  "how-systems-fail": () => import("./modules/how-systems-fail.task"),
+  "timeouts-retries-circuit-breakers": () =>
+    import("./modules/timeouts-retries-circuit-breakers.task"),
+  idempotency: () => import("./modules/idempotency.task"),
+  "chaos-capstone": () => import("./modules/chaos-capstone.task"),
 };
 
 /**
@@ -90,6 +112,15 @@ export async function getModule(slug: string): Promise<SdModule | null> {
  * `Promise.allSettled` would silently publish a path missing a module, and the
  * only symptom would be a card that never appears.
  */
+export type SdTaskModule = { title: string; task: SdTaskDef };
+
+export async function getTask(slug: string): Promise<SdTaskModule | null> {
+  if (!Object.hasOwn(TASK_LOADERS, slug)) return null;
+  const mod = await TASK_LOADERS[slug]();
+  if (!mod.default) return null;
+  return { title: mod.title, task: mod.default };
+}
+
 export async function loadAllModules(): Promise<SdModule[]> {
   const modules = await Promise.all(
     Object.values(LOADERS).map((load) => load()),

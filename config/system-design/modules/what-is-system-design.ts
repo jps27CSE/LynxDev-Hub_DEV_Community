@@ -1,5 +1,6 @@
 import type { SdModule } from "../types";
 import { defaultNode } from "@/lib/system-design/nodes";
+import task from "./what-is-system-design.task";
 
 /**
  * Module 1 — the mindset module, and the first converted to the leaf model
@@ -461,140 +462,7 @@ const module: SdModule = {
       "Performance is latency at a fixed load — 'p95 playback start is 400 ms at 50,000 concurrent streams' is a performance claim. Scalability is what happens to that number as load grows, and whether adding resources moves the curve. Netflix in 2008 had a single vertically scaled database; the failure mode was total, and the fix was not a faster database but removing the single point of failure — which took seven years and a rebuild into hundreds of micro-services. When I add instances, I always name the shared resource the instances still contend for, because if the bottleneck does not move, the instances bought nothing.",
     trap: "Saying 'scalable means fast'. A system can be slow and scale perfectly, and a system can be fast at 1,000 users and fall over at 50,000. The second mistake is 'we'll add servers' when the bottleneck is a shared dependency that more servers do not multiply.",
   },
-  task: {
-    brief:
-      "Netflix, 2008, before the cloud. One application, one database, DVD orders to take and a promise that one machine dying does not stop the company. Build the smallest design the numbers actually justify — and be honest about what breaks first.",
-    startGraph: {
-      nodes: [
-        { ...defaultNode("client", "client-1", 60, 180), label: "Members" },
-        {
-          ...defaultNode("app_server", "app-1", 300, 180),
-          label: "Ordering app",
-        },
-      ],
-      edges: [
-        {
-          id: "e1",
-          from: "client-1",
-          to: "app-1",
-          label: null,
-          retry: { attempts: 0, backoffMs: 0, jitter: false },
-          partitioned: false,
-        },
-      ],
-      scenario: {
-        arrivalRate: 100,
-        writeShare: 0.1,
-        mediaShare: 0,
-        bytesPerMediaRequest: 2_000_000,
-        abusiveShare: 0,
-        latencyJitterMs: 0,
-        cacheColdStart: false,
-        replicaLagMs: 0,
-      },
-    },
-    solutionGraph: {
-      nodes: [
-        { ...defaultNode("client", "client-1", 60, 180), label: "Members" },
-        {
-          ...defaultNode("app_server", "app-1", 280, 180),
-          label: "Ordering app",
-        },
-        { ...defaultNode("database", "db-1", 500, 180), label: "Order store" },
-      ],
-      edges: [
-        {
-          id: "e1",
-          from: "client-1",
-          to: "app-1",
-          label: null,
-          retry: { attempts: 0, backoffMs: 0, jitter: false },
-          partitioned: false,
-        },
-        {
-          id: "e2",
-          from: "app-1",
-          to: "db-1",
-          label: null,
-          retry: { attempts: 0, backoffMs: 0, jitter: false },
-          partitioned: false,
-        },
-      ],
-      scenario: {
-        arrivalRate: 100,
-        writeShare: 0.1,
-        mediaShare: 0,
-        bytesPerMediaRequest: 2_000_000,
-        abusiveShare: 0,
-        latencyJitterMs: 0,
-        cacheColdStart: false,
-        replicaLagMs: 0,
-      },
-    },
-    steps: [
-      {
-        id: "add-db",
-        title: "Give the orders a place to live",
-        brief:
-          "Orders, member records and shipping status all have to survive a restart. Add storage.",
-        hint: "Look at the Data section in the palette.",
-        reveal:
-          "Nothing is durable without storage: who ordered what, what shipped, what is owed. Add a Database node.",
-        check: (g) => {
-          const hasDb = g.nodes.some((n) => n.type === "database");
-          return {
-            passed: hasDb,
-            progress: hasDb ? "✓ Database added" : "Add a database node",
-          };
-        },
-      },
-      {
-        id: "wire-app-db",
-        title: "Connect the app to the database",
-        brief:
-          "The ordering application needs to read and write. Draw the connection.",
-        hint: "Drag an edge from the App Server to the Database.",
-        reveal:
-          "The flow every request takes: client → app → database. Add an edge from the app server to the database.",
-        check: (g) => {
-          const appNodes = g.nodes.filter((n) => n.type === "app_server");
-          if (appNodes.length === 0)
-            return { passed: false, progress: "Add an app server first" };
-          const connected = appNodes.some((a) =>
-            g.edges.some(
-              (e) =>
-                e.from === a.id &&
-                g.nodes.find((n) => n.id === e.to)?.type === "database",
-            ),
-          );
-          return {
-            passed: connected,
-            progress: connected
-              ? "✓ App connected to database"
-              : "Connect app server to database",
-          };
-        },
-      },
-    ],
-    passCriteria: [
-      {
-        id: "latency-ok",
-        label: "p95 < 50ms at 100 concurrent members",
-        required: true,
-        explain:
-          "At this size ordering should feel instant. A higher number means something is wrong that more load will make much worse — which is exactly how 2008 started.",
-        assert: (r) => r.valid && r.latency.p95 < 50,
-      },
-      {
-        id: "no-errors",
-        label: "Error rate = 0%",
-        required: true,
-        explain:
-          "A minimal, correct design at 100 concurrent members should serve every request. Errors here are capacity, not traffic.",
-        assert: (r) => r.valid && r.errorRate === 0,
-      },
-    ],
-  },
+  task,
   recap: [
     "A design is a set of checkable constraints before it is a diagram",
     "Netflix's 2008 outage was a design decision, not a bad disk",

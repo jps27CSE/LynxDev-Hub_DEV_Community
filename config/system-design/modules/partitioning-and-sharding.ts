@@ -1,5 +1,6 @@
 import type { SdEdge, SdGraph, SdModule } from "../types";
 import { defaultNode } from "@/lib/system-design/nodes";
+import task from "./partitioning-and-sharding.task";
 
 /**
  * Module 9 — partitioning and sharding, converted to the leaf model (plan 17,
@@ -683,87 +684,7 @@ const module: SdModule = {
       "First the reason: this is a storage problem, not a request-rate problem, so read replicas are irrelevant — three copies of 28 TB is more disk, not less table. At 60 GB a day there are sixty-six days of headroom, so the plan is three shards of 32 TB with room for replication, chosen for two years rather than for the asymptote. Then the key. I list the queries that must be answered by one shard — a member's list and playback position, so member id — and accept that anything without a member id becomes a fan-out. Hashing spreads evenly and destroys range locality; ranges keep locality and put every new row on the last shard, so I would hash with a pre-split or ring-based placement and keep the hot key in mind. That is the part most designs get wrong: with 80% of reads on one key, sixteen partitions bought 1.29×, and 1,000 partitions still stop at 81% — the hot key is the ceiling, and cooling it is a design change, not a machine. The bill is a routing rule, a rebalance I rehearse (copy, catch up, verify, cut over reads then writes, decommission, with rollback ending at cut-over), and cross-shard queries whose p95 is a single shard's p99.7. And I would check the cheaper rungs first: an index, a cache, a replica, a bigger machine.",
     trap: "Saying “shard it” without naming what is full — storage, writes, or one key — or choosing a key by uniqueness instead of by query pattern. The second trap is believing partition count fixes a hot key, and the third is forgetting that a fan-out query's latency is set by the slowest shard, so the cross-shard report becomes the new p95.",
   },
-  task: {
-    brief:
-      "The member store is 28 TB against a 32 TB ceiling and 107% of its request ceiling, shedding one request in sixteen. It already has two read replicas, so more copies will not help. Split the data into pieces, and make the split worth having: a new season drops tonight and 80% of reads touch one key. Both moves are needed — partitioning alone gets you to 83%.",
-    startGraph: memberGraph(1, 0.8),
-    solutionGraph: memberGraph(16, 0.2),
-    steps: [
-      {
-        id: "partition-the-store",
-        title: "Split the member store",
-        brief:
-          "Give the store at least sixteen partitions. One piece cannot hold the table, and sixteen is where the pieces are small enough to move later.",
-        hint: "Select the member store in the canvas and raise its partitions in the inspector.",
-        reveal:
-          "Sixteen partitions take the store from 107% to 83% — real capacity, zero shed requests, and still no headroom. Partitioning divides the non-hot traffic evenly and leaves the hot share exactly where it was.",
-        check: (g) => {
-          const store = g.nodes.find((n) => n.id === "db-member");
-          if (!store || store.type !== "database") {
-            return { passed: false, progress: "The member store is missing" };
-          }
-          const passed = store.partitions >= 16;
-          return {
-            passed,
-            progress: passed
-              ? `✓ ${store.partitions} partitions`
-              : `${store.partitions} of 16 partitions — the piece is still too big to move and the ceiling has not moved`,
-          };
-        },
-      },
-      {
-        id: "cool-the-hot-key",
-        title: "Split the hot key",
-        brief:
-          "80% of reads land on one key. Pool it into buckets, or fan the work out on write, until no single key carries more than a fifth of the reads.",
-        hint: "The hot key share is a slider in the inspector. Lowering it means the design changed — bucketed key, fan-out on write, or dedicated capacity.",
-        reveal:
-          "At a hot share of 0.2 the busiest partition takes 24% of traffic instead of 78%, so sixteen partitions land at 26%. The slider is a stand-in for the design change; the graph cannot tell you which one you made.",
-        check: (g) => {
-          const store = g.nodes.find((n) => n.id === "db-member");
-          if (!store || store.type !== "database") {
-            return { passed: false, progress: "The member store is missing" };
-          }
-          const passed = store.partitions >= 16 && store.hotKeyShare <= 0.2;
-          return {
-            passed,
-            progress: passed
-              ? "✓ Hot key split, sixteen partitions"
-              : `Hot key share is ${(store.hotKeyShare * 100).toFixed(0)}%; get it to 20% or below`,
-          };
-        },
-      },
-    ],
-    passCriteria: [
-      {
-        id: "zero-errors",
-        label: "Error rate = 0% at 16,000 requests per second",
-        required: true,
-        explain:
-          "The store sheds 6.3% of this load before the split. Note how the old version of this task graded: its p95 criterion was green on the broken start, because p95 is computed over the requests that finished — 15,000 of 16,000.",
-        assert: (r) => r.valid && r.errorRate === 0,
-      },
-      {
-        id: "member-headroom",
-        label: "Member store utilisation < 40%",
-        required: true,
-        explain:
-          "Sixteen partitions with the hot key untouched land at 83% and sixteen with it split at 26%. The threshold is what forces the second move: capacity alone stops at the hot key's floor.",
-        assert: (r) => {
-          const store = r.perNode.find((n) => n.id === "db-member");
-          return !!store && store.utilisation < 0.4;
-        },
-      },
-      {
-        id: "fast-queries",
-        label: "p95 < 15 ms",
-        required: false,
-        explain:
-          "Advisory, and deliberately so: this passes on the broken start (9.1 ms) because the 6.3% that were shed never got a latency. It is here to catch a fix that trades shedding for queueing, not to grade the start — which is the failure mode this module's previous version shipped with.",
-        assert: (r) => r.valid && r.latency.p95 < 15,
-      },
-    ],
-  },
+  task,
   recap: [
     "A replica buys requests; only a partition makes the table smaller",
     "Hash sharding spreads and loses locality; range sharding keeps locality and follows the data",

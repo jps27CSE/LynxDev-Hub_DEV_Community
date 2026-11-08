@@ -1,5 +1,6 @@
 import type { SdEdge, SdGraph, SdModule } from "../types";
 import { defaultNode } from "@/lib/system-design/nodes";
+import task from "./read-replicas.task";
 
 /**
  * Module 8 — read replicas, converted to the leaf model (plan 17, slice B5,
@@ -611,87 +612,7 @@ const module: SdModule = {
       "First the split: 12,000 requests per second, 95% reads, and two stores at 5,000 each. The title store is behind a cache with a 0.9 hit rate and sits at 12%. The member store holds one row per member, so almost nothing is shared and no cache helps; it takes 6,000 and is at 120%, shedding about one request in twelve. Reads can be answered by a copy because a read is a question, so I add read replicas — two of them, because a set has to survive losing a member: 15,000 of capacity for 6,000 is 40%, and losing one still leaves 60%. Then the honest bills. Lag: replication replays an ordered log, so a replica is current up to a position, and the reads that decide something — a member's own write, an entitlement check — need read-your-writes routing, either a short window at the primary or a position token. Failover: detect, fence, promote the most advanced replica, repoint, re-replicate, and the data you lose is the lag at the instant of failure. And the limit: copies hold everything, so they cannot fix writes, a hot key, a scan, or a dataset bigger than one machine. When the store is at 107% with every replica in place, the next move is dividing ownership, not another copy.",
     trap: "Saying “replicas scale the database” without separating the read path from the write path, and forgetting that a replica copies the schema as well as the rows — so a slow join is a slow join on all three copies. The second trap is treating a replica as a backup: promotion loses exactly the lag that existed at the moment of failure, and a failover nobody has drilled is a plan, not a capability.",
   },
-  task: {
-    brief:
-      "One tier is failing and it is not the one with a cache in front of it: 12,000 requests per second, 95% reads, and the member store — the rows a shared cache cannot hold — is at 120%, turning away one request in twelve. Give that store the read capacity it needs, and size it so that losing one replica still leaves it inside its target. The title store at 12% is the control: it does not need anything.",
-    startGraph: memberGraph(0),
-    solutionGraph: memberGraph(2),
-    steps: [
-      {
-        id: "add-replicas",
-        title: "Give the member store read replicas",
-        brief:
-          "The title store is at 12% behind its cache. The member store is the one shedding traffic — it is the node that needs copies.",
-        hint: "Select the member store in the canvas and raise its read replicas in the inspector.",
-        reveal:
-          "One replica takes 6,000 of load from 5,000 of capacity to 10,000 — 60%, and zero errors. The title store's replicas would move nothing: the failing traffic never reaches it.",
-        check: (g) => {
-          const member = g.nodes.find((n) => n.id === "db-member");
-          if (!member || member.type !== "database") {
-            return { passed: false, progress: "The member store is missing" };
-          }
-          const passed = member.readReplicas >= 1;
-          return {
-            passed,
-            progress: passed
-              ? `✓ ${member.readReplicas} replica(s) on the member store`
-              : "Set read replicas to 1 or more on the member store",
-          };
-        },
-      },
-      {
-        id: "survive-a-replica",
-        title: "Size for losing one",
-        brief:
-          "A replica set has to survive a replica. At one copy, losing it puts the store straight back where it started.",
-        hint: "One replica is 60%; two give 40% and still leave 60% if one of the three units dies.",
-        reveal:
-          "Two replicas: 15,000 of capacity for 6,000 of load is 40%. With one replica removed, 10,000 for 6,000 is 60% — still inside the target, which is the whole point of the second copy.",
-        check: (g) => {
-          const member = g.nodes.find((n) => n.id === "db-member");
-          if (!member || member.type !== "database") {
-            return { passed: false, progress: "The member store is missing" };
-          }
-          const passed = member.readReplicas >= 2;
-          return {
-            passed,
-            progress: passed
-              ? "✓ Two replicas — the set survives losing one"
-              : `${member.readReplicas} replica(s): one loss puts the store back over 100%`,
-          };
-        },
-      },
-    ],
-    passCriteria: [
-      {
-        id: "zero-errors",
-        label: "Error rate = 0% at 12,000 requests per second",
-        required: true,
-        explain:
-          "The member store sheds 8.5% of this load before any replicas exist. The previous version of this task asked for 50,000 r/s behind a 20,000 r/s balancer and graded only p95 over the 4% that completed — it passed while 96% of traffic was refused.",
-        assert: (r) => r.valid && r.errorRate === 0,
-      },
-      {
-        id: "member-headroom",
-        label: "Member store utilisation < 50%",
-        required: true,
-        explain:
-          "One replica lands at 60% and two at 40%. The threshold is what forces the second copy, which is the difference between a replica set and a single point of failure wearing a replica's label.",
-        assert: (r) => {
-          const store = r.perNode.find((n) => n.id === "db-member");
-          return !!store && store.utilisation < 0.5;
-        },
-      },
-      {
-        id: "fast-reads",
-        label: "p95 < 5 ms",
-        required: true,
-        explain:
-          "A fix that trades errors for queueing is not a fix. The broken design spends 6.6 ms at p95 over the 91% of requests it managed to complete — a fast average over the survivors is how a shed is mistaken for a fix. A healthy finish is 3.4 ms.",
-        assert: (r) => r.valid && r.latency.p95 < 5,
-      },
-    ],
-  },
+  task,
   recap: [
     "A replica is a copy: reads may be answered anywhere, writes happen once",
     "6,000 against 5,000 is 120%; one replica is 60%, two are 40%",

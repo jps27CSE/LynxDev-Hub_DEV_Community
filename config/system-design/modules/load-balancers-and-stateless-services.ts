@@ -1,5 +1,6 @@
 import type { SdEdge, SdGraph, SdModule } from "../types";
 import { defaultNode } from "@/lib/system-design/nodes";
+import task from "./load-balancers-and-stateless-services.task";
 
 /**
  * Module 6 — load balancers and stateless services, converted to the leaf model
@@ -537,111 +538,7 @@ const module: SdModule = {
       "First the numbers: 4,000 requests per second against 2,000 of capacity per instance is 200%, so half the traffic is being shed — that is a capacity problem, not a latency one. Vertical scaling buys one doubling and costs downtime to apply, so at some point I scale out. Out means three things, in order. One address: a load balancer in front, round robin or least outstanding requests, with health checks, and I have to size the balancer too because it is one box with its own ceiling. One number: the replica count comes from a control loop — desired equals ceil of current times current metric over target — with a target below 100% because the gap is the time budget for a new instance to warm, and with a stabilisation window so it does not flap. And one promise: no instance may remember a member, because at four instances a session in local memory survives to the next request one time in four and a ten-request page load lands on one instance about four times in a million. So sessions go to a shared store or a signed token, with a revocation list for log-out-everywhere. That last property is what makes a service registry and an autoscaler possible at all — if the instance is holding a member, you cannot replace it.",
     trap: "Saying “add a load balancer” without saying what breaks when one instance dies, and forgetting that the balancer itself has a capacity limit — in this model 20,000 r/s, which is only ten app instances. The second trap is choosing sticky sessions to avoid moving session state: it makes a deploy log everyone out and stops the autoscaler from ever removing an instance.",
   },
-  task: {
-    brief:
-      "The monolith is at 200% and shedding half of everything: 4,000 requests per second at peak, and one app process that serves 2,000. Put one address in front of a fleet and give the app tier enough headroom to survive a busy minute. The store will end up near its own ceiling — that is the next module, not this task.",
-    startGraph: monolithGraph,
-    solutionGraph: scaledGraph,
-    steps: [
-      {
-        id: "add-lb",
-        title: "Put one address in front",
-        brief:
-          "Members must reach the app tier through a single address, not by connecting to the process directly.",
-        hint: "Look in the Traffic category of the palette.",
-        reveal:
-          "Add a Load balancer between the client and the app tier, and remove the direct client → app edge.",
-        check: (g) => {
-          const lbs = g.nodes.filter((n) => n.type === "load_balancer");
-          if (lbs.length === 0) {
-            return { passed: false, progress: "Add a load balancer" };
-          }
-          const lbIds = new Set(lbs.map((n) => n.id));
-          const direct = g.edges.some(
-            (e) =>
-              g.nodes.some((n) => n.id === e.from && n.type === "client") &&
-              g.nodes.some((n) => n.id === e.to && n.type === "app_server"),
-          );
-          if (direct) {
-            return {
-              passed: false,
-              progress:
-                "Clients still reach an app server directly — remove that edge",
-            };
-          }
-          const routes = g.edges.some(
-            (e) =>
-              lbIds.has(e.from) &&
-              g.nodes.some((n) => n.id === e.to && n.type === "app_server"),
-          );
-          return {
-            passed: routes,
-            progress: routes
-              ? "✓ One address, routed to the app tier"
-              : "Connect the balancer to the app tier",
-          };
-        },
-      },
-      {
-        id: "scale-out",
-        title: "Scale the app tier out",
-        brief:
-          "One process is not enough. Add instances — the canvas models them as `replicas` on the app node.",
-        hint: "Select the app server and raise its replica count. Two is not enough.",
-        reveal:
-          "Three replicas give 6,000 of capacity for 4,000 of load — 67%. Four give 50%, which is where the reference design sits.",
-        check: (g) => {
-          const apps = g.nodes.filter((n) => n.type === "app_server");
-          if (apps.length === 0) {
-            return { passed: false, progress: "Add an app server" };
-          }
-          const capacity = apps.reduce(
-            (sum, node) => sum + node.replicas * 2_000,
-            0,
-          );
-          const enough = capacity > 4_000;
-          return {
-            passed: enough,
-            progress: enough
-              ? `✓ ${capacity.toLocaleString()} r/s of app capacity for 4,000 offered`
-              : `${capacity.toLocaleString()} r/s of app capacity is not more than the 4,000 offered`,
-          };
-        },
-      },
-    ],
-    passCriteria: [
-      {
-        id: "zero-errors",
-        label: "Error rate = 0% at 4,000 requests per second",
-        required: true,
-        explain:
-          "The monolith sheds 50% of this load. The previous version of this task asked for 20,000 r/s behind a single 20,000 r/s balancer and checked nothing but structural validity — it passed while 90% of traffic was turned away.",
-        assert: (r) => r.valid && r.errorRate === 0,
-      },
-      {
-        id: "app-headroom",
-        label: "App tier utilisation < 70%",
-        required: true,
-        explain:
-          "Two replicas give exactly 4,000 of capacity for 4,000 of load — 100%, no headroom, and the next request fails. The threshold forces a third instance, which is the difference between sizing for the average and sizing for the peak.",
-        assert: (r) => {
-          const app = r.perNode.find((n) => n.id === "app-1");
-          return !!app && app.utilisation < 0.7;
-        },
-      },
-      {
-        id: "edge-headroom",
-        label: "Balancer utilisation < 50%",
-        required: true,
-        explain:
-          "The balancer is a box with a ceiling of its own — 20,000 r/s here, which is only ten app instances. At 4,000 it should sit at 20%. If it reads higher, the load is not what the graph says it is.",
-        assert: (r) => {
-          const lb = r.perNode.find((n) => n.id === "lb-1");
-          return !!lb && lb.utilisation < 0.5;
-        },
-      },
-    ],
-  },
+  task,
   recap: [
     "Vertical adds capacity to a box that has a ceiling; horizontal adds boxes and a coordination problem",
     "4,000 against 2,000 is 200% and 50% shed; 70% utilisation needs three instances",
