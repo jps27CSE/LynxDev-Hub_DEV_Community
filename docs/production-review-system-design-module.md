@@ -1,6 +1,6 @@
 # Production Review — System Design Module
 
-> **Date:** 2026-11-03 (reviewed). **P0 fixes 1, 3, 4 and P2 fix 12 applied the same day — see §11. RU fixes applied the same day — see §12. Schema normalisation applied 2026-11-04 — see §13. Constant-cost simulation applied 2026-11-04 — see §14. Percentile fix + graphSeed determinism applied 2026-11-05 — see §15. Durable logging applied 2026-11-08 — see §16.** All sections record the measured before/after and what is still open.
+> **Date:** 2026-11-03 (reviewed). **P0 fixes 1, 3, 4 and P2 fix 12 applied the same day — see §11. RU fixes applied the same day — see §12. Schema normalisation applied 2026-11-04 — see §13. Constant-cost simulation applied 2026-11-04 — see §14. Percentile fix + graphSeed determinism applied 2026-11-05 — see §15. Durable logging applied 2026-11-08 — see §16. Module split applied 2026-11-08 — see §17.** All sections record the measured before/after and what is still open.
 > **Scope:** Phase 6 system design path — `/system-design`, the 15 module routes, 79 lesson routes, 14 task routes, `components/system-design/*`, `lib/system-design/*`, `config/system-design/*`, and `app/api/system-design/state/route.ts` + `sd_user_state` + `sd_task_state`.
 > **Target:** 500 users on TiDB Cloud Starter (free, 50M RU/mo) + Vercel Hobby (free, 4 CPU-hrs/mo).
 > **Companion docs:** `docs/production-review-500-users.md` (app-wide), `docs/production-review-blog-module.md` (review format), `.agent/plans/16-system-design-phase-6.md` (original design).
@@ -286,7 +286,7 @@ Problems:
 | 11 | **Remove `x/y` from `graphSeed`** | reproducibility: identical topology should produce identical numbers. Re-baseline the affected module p95 figures (deltas ≤0.1 ms, but every lesson quotes a number). | ✅ applied (cc2bf94) |
 | 12 | **Replace the two 1M-arrival tests** with an assertion on cost (`arrivals ≤ cap`) or a smaller bound | takes `npm test` from 11 s back to ~3 s and stops pinning the DoS | ✅ applied (§11) — but the 3 s claim was **wrong** |
 | 13 | **`requestId` into `emit()`; `log.info` simulation ms/arrivals; slow-sim warning** | incident correlation and the data needed to right-size | ✅ applied (692b12b, f1222e5) |
-| 14 | **Split `modules/<slug>.ts` into prose + `.task.ts`** | the task page currently ships 900-word lessons to a browser that needs `assert` functions | ⬜ open |
+| 14 | **Split `modules/<slug>.ts` into prose + `.task.ts`** | the task page currently ships 900-word lessons to a browser that needs `assert` functions | ✅ applied |
 | 15 | **Percentiles:** `allLatencies[Math.floor(n * 0.95)]` is the 96th percentile at n = 100; and percentiles over completions hide shedding (module 8's lesson) — keep the sibling error-rate criterion everywhere | correctness of the teaching model | ✅ applied (cc2bf94) |
 | 16 | **Persist critical events durably**, or verify a log drain is available on the plan before assuming logs survive an incident | Hobby retention is hours, not days | ✅ applied (f1222e5) |
 
@@ -598,7 +598,7 @@ numbers every lesson quotes, so the content re-measurement happens once.
 
 ### 15.4 Remaining (polish, not fixes)
 
-- Sec. 8.14: Split `modules/<slug>.ts` into prose + `.task.ts` (payload reduction) — open
+- Sec. 8.14: Split `modules/<slug>.ts` into prose + `.task.ts` (payload reduction) — done
 - Sec. 8.16: Persist critical events durably (done — LOG_DRAIN_URL env var)
 
 ---
@@ -625,6 +625,35 @@ env var.
 
 ---
 
+## 17. Module split applied — 2026-11-08
+
+Each module's task block (startGraph, solutionGraph, steps, passCriteria, brief)
+is now in a separate `.task.ts` file. The task page and TaskWorkspace load only
+the task chunk — prose (lessons, sources, recap) is no longer shipped to the
+browser on the task page.
+
+### 17.1 What changed
+
+| File | Change |
+|---|---|
+| `config/system-design/modules/*.task.ts` (14 files) | New: each exports `default: SdTaskDef` + `title` |
+| `config/system-design/modules/*.ts` (14 files) | `task` property now imports from `.task.ts` |
+| `config/system-design/registry.ts` | Added `getTask(slug)` loader + `TASK_LOADERS` map |
+| `app/(routes)/system-design/[module]/task/page.tsx` | Uses `getTask` instead of `getModule` |
+| `components/system-design/TaskWorkspace.tsx` | Uses `getTask` instead of `getModule` |
+| `app/api/system-design/state/route.ts` | Uses `getTask` for task validation |
+| `scripts/check-system-design.ts` | Ignores `.task.ts` files in the module scan |
+
+### 17.2 Verification
+
+- `npm run typecheck` — clean
+- `npm test` — 678 pass, 0 fail
+- `npm run build` — compiled
+- `npm run check:system-design` — all passed, same 4 chain warnings
+- `prettier --check` — clean
+
+---
+
 ## Bottom line
 
 After §11, the module is **no longer a CPU risk for 500 users**: autosaves run no simulation, a Run runs one instead of two, and the most expensive schema-valid request fell from 4.6 s / 195 MB to 246 ms / ~10 MB.
@@ -637,4 +666,7 @@ After §14 the **DoS is closed**: the engine cost is constant (~30 ms) regardles
 
 After §15 **all correctness and reproducibility issues are closed**: percentiles use the correct nearest-rank formula, and identical topology produces identical numbers.
 
-What is still true: every RU figure in this document is an estimate derived from the repo's calibration, not a TiDB measurement. The remaining item (Sec. 8.14) is polish — payload reduction.
+What is still true: every RU figure in this document is an estimate derived from the repo's calibration, not a TiDB measurement.
+
+All review items (P0, P1, P2) are now complete. The system design module is
+production-ready on free tier.
