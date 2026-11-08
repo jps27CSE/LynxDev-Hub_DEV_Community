@@ -9,7 +9,34 @@ export type Logger = {
   timed<T>(label: string, fn: () => Promise<T>): Promise<T>;
 };
 
+const LOG_DRAIN_URL = process.env.LOG_DRAIN_URL;
+
 const isProd = process.env.NODE_ENV === "production";
+
+/**
+ * Fire-and-forget POST to a durable log drain (e.g. Axiom, Datadog, or a
+ * self-hosted endpoint). Only `error` and `warn` levels are drained to keep
+ * volume low on the free tier. Never awaited — a slow drain must not block
+ * the request that produced the log.
+ *
+ * If `LOG_DRAIN_URL` is unset (local dev, or no drain configured) this is a
+ * no-op. The URL is read once at module load; changing it requires a restart.
+ */
+function drainLog(entry: Record<string, unknown>) {
+  if (!LOG_DRAIN_URL) return;
+  try {
+    void fetch(LOG_DRAIN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(entry),
+      keepalive: true,
+    }).catch(() => {
+      // Drain failures are silent — the console log above is the fallback.
+    });
+  } catch {
+    // Synchronous failure (e.g. invalid URL) — ignore.
+  }
+}
 
 function emit(
   level: "error" | "warn" | "info",
@@ -38,6 +65,8 @@ function emit(
     if (error !== undefined) entry.error = serializeError(error);
     if (context !== undefined) Object.assign(entry, context);
     fn(JSON.stringify(entry));
+    // Durable copy for critical events. Fire-and-forget; never blocks.
+    if (level === "error" || level === "warn") drainLog(entry);
   } else {
     const prefix = `[${scope}]`;
     const suffix = context ? ` ${JSON.stringify(context)}` : "";
