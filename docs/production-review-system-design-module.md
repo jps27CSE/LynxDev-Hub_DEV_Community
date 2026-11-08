@@ -1,6 +1,6 @@
 # Production Review — System Design Module
 
-> **Date:** 2026-11-03 (reviewed). **P0 fixes 1, 3, 4 and P2 fix 12 applied the same day — see §11. RU fixes applied the same day — see §12. Schema normalisation applied 2026-11-04 — see §13. Constant-cost simulation applied 2026-11-04 — see §14. Percentile fix + graphSeed determinism applied 2026-11-05 — see §15.** All sections record the measured before/after and what is still open.
+> **Date:** 2026-11-03 (reviewed). **P0 fixes 1, 3, 4 and P2 fix 12 applied the same day — see §11. RU fixes applied the same day — see §12. Schema normalisation applied 2026-11-04 — see §13. Constant-cost simulation applied 2026-11-04 — see §14. Percentile fix + graphSeed determinism applied 2026-11-05 — see §15. Durable logging applied 2026-11-08 — see §16.** All sections record the measured before/after and what is still open.
 > **Scope:** Phase 6 system design path — `/system-design`, the 15 module routes, 79 lesson routes, 14 task routes, `components/system-design/*`, `lib/system-design/*`, `config/system-design/*`, and `app/api/system-design/state/route.ts` + `sd_user_state` + `sd_task_state`.
 > **Target:** 500 users on TiDB Cloud Starter (free, 50M RU/mo) + Vercel Hobby (free, 4 CPU-hrs/mo).
 > **Companion docs:** `docs/production-review-500-users.md` (app-wide), `docs/production-review-blog-module.md` (review format), `.agent/plans/16-system-design-phase-6.md` (original design).
@@ -288,7 +288,7 @@ Problems:
 | 13 | **`requestId` into `emit()`; `log.info` simulation ms/arrivals; slow-sim warning** | incident correlation and the data needed to right-size | ⬜ open |
 | 14 | **Split `modules/<slug>.ts` into prose + `.task.ts`** | the task page currently ships 900-word lessons to a browser that needs `assert` functions | ⬜ open |
 | 15 | **Percentiles:** `allLatencies[Math.floor(n * 0.95)]` is the 96th percentile at n = 100; and percentiles over completions hide shedding (module 8's lesson) — keep the sibling error-rate criterion everywhere | correctness of the teaching model | ✅ applied (cc2bf94) |
-| 16 | **Persist critical events durably**, or verify a log drain is available on the plan before assuming logs survive an incident | Hobby retention is hours, not days | ⬜ open |
+| 16 | **Persist critical events durably**, or verify a log drain is available on the plan before assuming logs survive an incident | Hobby retention is hours, not days | ✅ applied (f1222e5) |
 
 ---
 
@@ -598,9 +598,30 @@ numbers every lesson quotes, so the content re-measurement happens once.
 
 ### 15.4 Remaining (polish, not fixes)
 
-- Sec. 8.14: Split `modules/<slug>.ts` into prose + `.task.ts` (payload reduction)
-- Sec. 8.15: Percentile correctness (done, but lesson content quotes old numbers)
-- Sec. 8.16: Persist critical events durably (Hobby retention hours, not days)
+- Sec. 8.14: Split `modules/<slug>.ts` into prose + `.task.ts` (payload reduction) — open
+- Sec. 8.16: Persist critical events durably (done — LOG_DRAIN_URL env var)
+
+---
+
+## 16. Durable logging applied — 2026-11-08
+
+Vercel Hobby retains logs for hours, not days. An incident discovered after that
+window was unrecoverable. Error and warn events are now POSTed fire-and-forget
+to `LOG_DRAIN_URL` when set, so critical events survive the retention gap.
+
+### 16.1 What changed
+
+| File | Change |
+|---|---|
+| `lib/logger.ts` | `drainLog()` POSTs the structured entry to `LOG_DRAIN_URL`. Only error and warn levels are drained (info stays console-only). Never awaited. No-op when unset. |
+| `.env.example` | Documented `LOG_DRAIN_URL` |
+
+### 16.2 Setup
+
+Set `LOG_DRAIN_URL` in Vercel environment variables (or `.env` locally). Any
+HTTP endpoint that accepts JSON POSTs works — Axiom free tier (500 MB/month,
+30-day retention) is the recommended option. No code change needed beyond the
+env var.
 
 ---
 
@@ -616,4 +637,4 @@ After §14 the **DoS is closed**: the engine cost is constant (~30 ms) regardles
 
 After §15 **all correctness and reproducibility issues are closed**: percentiles use the correct nearest-rank formula, and identical topology produces identical numbers.
 
-What is still true: every RU figure in this document is an estimate derived from the repo's calibration, not a TiDB measurement. The remaining items (Sec. 8.14, 8.16) are polish — payload reduction and durable logging.
+What is still true: every RU figure in this document is an estimate derived from the repo's calibration, not a TiDB measurement. The remaining item (Sec. 8.14) is polish — payload reduction.
