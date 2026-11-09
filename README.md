@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>A free developer community & learning platform</strong><br>
-  Courses • Interview Prep • DSA Problems • AI Mentor • Engineering Blog
+  Courses • Interview Prep • DSA Problems • System Design • Engineering Blog
 </p>
 
 <p align="center">
@@ -20,7 +20,7 @@
   <br>
   <a href="https://github.com/vercel/next.js/actions"><img src="https://github.com/jps27CSE/LynxDev-Hub_DEV_Community/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License"></a>
-  <a href="https://github.com/jps27CSE/LynxDev-Hub_DEV_Community"><img src="https://img.shields.io/badge/Version-1.1.0-blue" alt="Version 1.1.0"></a>
+  <a href="https://github.com/jps27CSE/LynxDev-Hub_DEV_Community"><img src="https://img.shields.io/badge/Version-2.0.0-blue" alt="Version 2.0.0"></a>
 </p>
 
 ---
@@ -45,16 +45,16 @@ We believe high-quality developer education shouldn't cost a fortune. Every feat
 
 ## Features Overview
 
-| Feature                 | Route                               | Description                                              |
-| ----------------------- | ----------------------------------- | -------------------------------------------------------- |
-| 🔐 **Authentication**   | `/sign-in`                          | Clerk (Email, Google, GitHub) with middleware protection |
-| 📊 **Dashboard**        | `/dashboard`                        | Stats, enrolled courses, progress, daily tips            |
-| 📚 **Courses**          | `/courses`, `/learn/[id]/[chapter]` | Structured curriculum with Monaco code editor            |
-| 🎯 **Interview Prep**   | `/interview/*`                      | 6 categories, 1000+ questions, custom practice           |
-| 🧩 **DSA Problems**     | `/problems/*`                       | 220+ problems, Monaco editor, run-only execution         |
-| 🤖 **AI Mentor**        | `/mentor`                           | Mistral AI streaming chat with user context              |
-| 📝 **Engineering Blog** | `/blog/*`                           | 5 deep technical posts, SEO, OG images, TOC              |
-| ⚙️ **Admin Panel**      | `/admin/*`                          | Users, feedback, site notices, site-wide banners         |
+| Feature                 | Route                               | Description                                                        |
+| ----------------------- | ----------------------------------- | ------------------------------------------------------------------ |
+| 🔐 **Authentication**   | `/sign-in`                          | Clerk (Email, Google, GitHub) with middleware protection           |
+| 📊 **Dashboard**        | `/dashboard`                        | Stats, enrolled courses, progress, daily tips                      |
+| 📚 **Courses**          | `/courses`, `/learn/[id]/[chapter]` | Structured curriculum with Monaco code editor                      |
+| 🎯 **Interview Prep**   | `/interview/*`                      | 6 categories, 1000+ questions, custom practice                     |
+| 🧩 **DSA Problems**     | `/problems/*`                       | 220+ problems, Monaco editor, run-only execution                   |
+| 🏗️ **System Design**    | `/system-design/*`                  | 15 modules, interactive canvas, traffic simulation, 14 build tasks |
+| 📝 **Engineering Blog** | `/blog/*`                           | 5 deep technical posts, SEO, OG images, TOC                        |
+| ⚙️ **Admin Panel**      | `/admin/*`                          | Users, feedback, site notices, site-wide banners                   |
 
 ---
 
@@ -79,26 +79,24 @@ We believe high-quality developer education shouldn't cost a fortune. Every feat
 ```mermaid
 graph TD
     A[User Browser] --> B[Next.js 16 App Router]
-    B --> C[Clerk Middleware\nproxy.ts]
+    B --> C[Clerk Middleware]
     C --> D{isPublicRoute?}
-    D -->|Yes| E[Public Routes\n/, /blog, /whats-new]
-    D -->|No| F[auth.protect()\nClerk Session]
-    F --> G[Server Components\n(routes)]
-    G --> H[Turbopack + Turbopack Cache]
-    G --> I[Drizzle ORM\nTiDB Cloud]
-    G --> J[Mistral AI\nStreaming Chat]
-    G --> K[Monaco Editor\nSandboxed iframe]
-    G --> L[Vercel Analytics\nSpeed Insights]
+    D -->|Yes| E[Public Routes]
+    D -->|No| F[auth.protect]
+    F --> G[Server Components]
+    G --> H[Turbopack Cache]
+    G --> I[Drizzle ORM + TiDB]
+    G --> K[Monaco Editor]
+    G --> L[Vercel Analytics]
 
-    M[Cron Job] --> N[/api/cron/cleanup\nRate-limit cleanup]
+    M[Cron Job] --> N[Cleanup API]
     N --> I
 
-    O[Admin] --> P[Site Notices\nUsers\nFeedback]
+    O[Admin] --> P[Site Notices]
     P --> I
 
     style C fill:#f9f,stroke:#333
     style I fill:#bbf,stroke:#333
-    style J fill:#bfb,stroke:#333
     style K fill:#fbb,stroke:#333
 ```
 
@@ -209,6 +207,7 @@ pnpm exec drizzle-kit studio
 │   │   ├── dashboard/            # User dashboard
 │   │   ├── editor/               # Code editor
 │   │   ├── interview/            # Interview prep
+│   │   ├── system-design/        # System design learning path
 │   │   ├── learn/                # Course chapters
 │   │   ├── mentor/               # AI mentor chat
 │   │   ├── problems/             # DSA problems
@@ -280,12 +279,13 @@ pnpm exec drizzle-kit studio
 - **Run only** — no submit, no hidden tests
 - Categories: Arrays, Strings, DP, Trees, Graphs, etc.
 
-### 🤖 AI Mentor (`/mentor`)
+### 🏗️ System Design (`/system-design/*`)
 
-- **Mistral AI** streaming chat
-- **User context aware** — knows enrolled courses, solved problems, skills
-- **Skill-aware** responses — adapts to your level
-- Streaming responses with `ReadableStream`
+- **15 modules** — capacity planning, caching, sharding, rate limiting, CDNs, failures, retries, idempotency
+- **Interactive canvas** — drag-and-drop components, connect, run real traffic
+- **Traffic simulator** — utilisation, p95 latency, error rates, bottleneck detection
+- **14 build tasks** with pass criteria and server-verified results
+- **100% free tier sustainable** — measured and optimized for 500 users
 
 ### 📝 Engineering Blog (`/blog/*`)
 
@@ -334,7 +334,7 @@ graph LR
     D --> E[Migration drift check]
     E --> F[Typecheck]
     F --> G[Format check]
-    G --> H[Test (45)]
+    G --> H[Test]
     H --> I[Build]
     I --> J[Blog TOC check]
 ```
