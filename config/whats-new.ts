@@ -22,41 +22,54 @@ export type WhatsNewData = {
 
 export const WHATS_NEW: WhatsNewData = {
   version: APP_VERSION,
-  highlight: "1.1",
-  headline: "LynxDEV 1.1 is here",
+  highlight: "2.0",
+  headline: "LynxDEV 2.0 is here",
   summary:
-    "The interview prep rebuild — 1,000+ questions across 38 chapters, including two new chapters on production incidents and distributed systems. Everything stays free.",
+    "The system design learning path — 15 modules, 79 lessons, 14 hands-on build tasks with a real traffic simulator. Plus a production-grade cost and reliability pass that makes the whole platform sustainable on free tier. Everything stays free.",
   features: [
     {
-      title: "Interactive Courses",
+      title: "System Design Learning Path",
       description:
-        "Three courses, 42 chapters, real exercises and an embedded editor per chapter — structured learning, not just videos.",
-      icon: "BookOpen",
+        "15 modules from mindset to chaos engineering — capacity planning, caching, sharding, rate limiting, CDNs, failures, retries, idempotency. Each module has a build task on an interactive canvas with a real traffic simulator.",
+      icon: "Network",
     },
     {
-      title: "Code Editor",
+      title: "Interactive Canvas",
       description:
-        "A dedicated browser workspace — write and run JavaScript instantly, save your code as a file, and import it back.",
-      icon: "Code2",
+        "Drag-and-drop components (clients, load balancers, app servers, caches, databases, queues, workers, CDNs), connect them, and run real traffic through your design. See utilisation, p95 latency, error rates and bottleneck detection.",
+      icon: "Workflow",
     },
     {
-      title: "DSA Problems",
+      title: "Build Tasks & Criteria",
       description:
-        "Practice 220+ DSA problems — beginner drills to LeetCode classics — statement and editor side by side, mark solved as you go.",
-      icon: "BrainCircuit",
-    },
-    {
-      title: "Interview Prep",
-      description:
-        "1,000+ questions across 38 chapters — now including Production Engineering and Distributed Systems in Production, built around real incidents.",
+        "14 hands-on build tasks with pass criteria — size the API for a lost third, fix a cache stampede, shard a hot key, rate-limit a bot. Earn criteria by proving your design works.",
       icon: "Target",
+    },
+    {
+      title: "Production Review",
+      description:
+        "The system design module went through a full production review: CPU cost cut 15×, RU cost cut 4×, DoS closed, schema normalised. Every number measured, not estimated.",
+      icon: "ShieldCheck",
     },
   ],
   fixesSummary: [
-    "New chapter: Production Engineering & Incident Patterns — 28 real production failures, from SELECT * to connection-pool exhaustion to a nightly memory leak",
-    "New chapter: Distributed Systems in Production — 26 questions on idempotency, sagas, cache stampedes, Kafka partitions and replication lag",
-    "New TypeScript chapter — 40 junior-level questions, shared by Software Engineer and Frontend Engineer with a single source of truth",
-    "Interview bank rebuilt to 1,000+ questions; Software Engineer now has 11 chapters",
-    "Ten new question tags — http-methods, two-pointers, sliding-window, hash-map, in-place, bit-manipulation, linked-list, interval-merging, cherry-pick, force-push — so tag-based practice can actually reach algorithm questions",
+    "New: System Design learning path — 15 modules, 79 lessons, 14 build tasks (Phase 6)",
+    "New: Interactive canvas with traffic simulation — drag, connect, run, measure",
+    "New: Build tasks with pass criteria and server-verified results",
+    "Cost: simulation cost 4.6s → 30ms (constant, input-independent)",
+    "Cost: RU per save ~76M → ~17M/month at 500 active learners",
+    "Cost: autosave cadence 2s → 10s with pagehide/visibilitychange/unmount flush",
+    "Cost: rate limiter moved off TiDB to per-instance (−2 statements/save)",
+    "Cost: sd_task_state normalised — per-task rows, no more whole-blob rewrite",
+    "Security: SD_MAX_ARRIVAL_RATE pinned at 20,000 (was 1,000,000)",
+    "Security: Content-Length cap (64 KB) on state POST",
+    "Perf: rAF-coalesced pointermove + React.memo on all panels",
+    "Perf: module task data split into separate chunks (prose not shipped to task page)",
+    "Reliability: server-owned ordering with 409 conflict + retry + online flush",
+    "Reliability: maxDuration + query timeout on state route",
+    "Logging: durable drain via LOG_DRAIN_URL (Axiom free tier)",
+    "Logging: requestId correlation + simulation timing in all log lines",
+    "Fix: percentile indexing (was 96th, now correct 95th)",
+    "Fix: graphSeed determinism (node placement no longer affects results)",
   ],
 };

@@ -7,9 +7,11 @@ import {
   BrainCircuit,
   Code2,
   LucideIcon,
+  Network,
   ShieldCheck,
   Sparkles,
   Target,
+  Workflow,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WHATS_NEW } from "@/config/whats-new";
@@ -24,6 +26,9 @@ const iconMap: Record<string, LucideIcon> = {
   Code2,
   BrainCircuit,
   Target,
+  Network,
+  Workflow,
+  ShieldCheck,
 };
 
 const accentMap: Record<string, { accent: string; glow: string }> = {
@@ -42,6 +47,18 @@ const accentMap: Record<string, { accent: string; glow: string }> = {
   Target: {
     accent: "text-lime-400",
     glow: "bg-lime-400/10 shadow-[0_0_20px_rgba(163,230,53,0.2)]",
+  },
+  Network: {
+    accent: "text-violet-400",
+    glow: "bg-violet-400/10 shadow-[0_0_20px_rgba(139,92,246,0.2)]",
+  },
+  Workflow: {
+    accent: "text-fuchsia-400",
+    glow: "bg-fuchsia-400/10 shadow-[0_0_20px_rgba(232,121,249,0.2)]",
+  },
+  ShieldCheck: {
+    accent: "text-emerald-400",
+    glow: "bg-emerald-400/10 shadow-[0_0_20px_rgba(52,211,153,0.2)]",
   },
 };
 
