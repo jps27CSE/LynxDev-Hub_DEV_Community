@@ -86,7 +86,7 @@ function Features() {
     <section className="py-20 sm:py-28 border-b border-border/40 bg-[#07090e]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionKicker />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
           {features.map((feature) => {
             const Icon = feature.icon;
             return (
