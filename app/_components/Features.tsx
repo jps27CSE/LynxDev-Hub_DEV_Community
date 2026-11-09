@@ -2,6 +2,7 @@ import {
   BookOpen,
   BrainCircuit,
   Code2,
+  Network,
   Target,
   type LucideIcon,
 } from "lucide-react";
@@ -51,6 +52,15 @@ const features: Feature[] = [
     accent: "text-lime-400",
     glow: "bg-lime-400/10 shadow-[0_0_20px_rgba(163,230,53,0.2)]",
     chip: "text-lime-400/80",
+  },
+  {
+    title: "System Design",
+    description:
+      "Learn to design scalable systems — load balancing, caching, sharding, rate limiting — through interactive canvas exercises with real traffic simulation.",
+    icon: Network,
+    accent: "text-violet-400",
+    glow: "bg-violet-400/10 shadow-[0_0_20px_rgba(139,92,246,0.2)]",
+    chip: "text-violet-400/80",
   },
 ];
 
