@@ -83,3 +83,9 @@ jobs:
       # anchor rendered as a link that navigated nowhere and nothing caught it.
       - name: Blog TOC check
         run: npm run check:blog-toc
+
+      # MUST run after Build: reads .next/prerender-manifest.json to verify every
+      # /system-design route is statically prerendered and consistent with the
+      # registry. Same post-build dependency as the blog TOC check above.
+      - name: System design check
+        run: npm run check:system-design
