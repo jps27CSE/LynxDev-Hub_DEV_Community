@@ -47,8 +47,10 @@ async function seedInterviewChapters() {
           tips: ch.content.tips,
         };
         if (ch.content.overview) content.overview = ch.content.overview;
-        if (ch.content.realLifeScenario) content.realLifeScenario = ch.content.realLifeScenario;
-        if (ch.content.explanation) content.explanation = ch.content.explanation;
+        if (ch.content.realLifeScenario)
+          content.realLifeScenario = ch.content.realLifeScenario;
+        if (ch.content.explanation)
+          content.explanation = ch.content.explanation;
 
         await db.insert(interviewChapters).values({
           title: ch.title,

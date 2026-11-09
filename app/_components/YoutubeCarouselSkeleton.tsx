@@ -7,7 +7,8 @@ export default function YoutubeCarouselSkeleton() {
             <span className="text-fuchsia-400">//</span> watch &amp; learn
           </div>
           <h2 className="text-3xl sm:text-4xl font-display font-bold tracking-tight text-balance">
-            Video tutorials, <span className="neon-text-gradient">zero fluff</span>
+            Video tutorials,{" "}
+            <span className="neon-text-gradient">zero fluff</span>
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
             Curated tutorials from Code Insights by Jack

@@ -135,18 +135,41 @@ context/      — React context providers
 
 ## Testing
 
-No test framework is set up yet (tracked in Phase 4/5 roadmap).
+`npm test` runs `node:test` through `tsx`. No framework, no config file, no
+new dependency — `tests/*.test.ts`, wired into CI before `Build`.
 
-Until then:
-- Manually verify all new features in `npm run dev`
-- Test with both signed-in and signed-out states
-- Test on mobile viewport and dark mode
-- Document manual test steps for complex features
+```bash
+npm test
+```
 
-When tests are introduced, every new feature will require:
-- Unit tests for logic in `lib/`
-- Integration tests for API routes
-- Component tests for interactive UI
+What to test, in priority order:
+- **Pure logic with a security role** — `lib/parse-id.ts` gates every dynamic
+  route param; `lib/editor.ts` builds the sandboxed preview document
+- **Manifest-style registries** — a hand-maintained list drifts silently and
+  neither `tsc` nor the build catches it
+- Boundaries that are *unasserted*: if the real guarantee lives somewhere a
+  unit test cannot reach (e.g. the `sandbox` attribute on a `.tsx` `<iframe>`),
+  say so **in the test file** rather than letting a green tick imply coverage
+
+Rules:
+- **Pin accidents deliberately.** If a function accepts input nobody chose
+  (`Number()` taking `"0x10"`), assert it under a name like *"never chosen"*
+  so tightening the parser fails in review instead of arriving as a refactor
+  side effect.
+- **A suite that has never been observed failing is an untested gate.** Break
+  the target on purpose, confirm red, restore. Green only proves the
+  assertions agree with the code.
+- **Keep tests database-free** so they can run before `Build` and fail in
+  seconds. `tests/` reaching `config/db` drags mysql2 in and costs a CI minute.
+- Do not chase a coverage percentage. Assert behaviour, not lines.
+
+Not yet covered, and honestly so: API-route integration tests (3.4) and the
+iframe sandbox attribute. Both need a layer above `node:test`, and per the
+gap report neither is worth building yet.
+
+Manual verification is still required before commit — `npm test` does not
+replace checking signed-in and signed-out states, mobile viewport, and dark
+mode.
 
 ---
 
@@ -156,6 +179,8 @@ When tests are introduced, every new feature will require:
 - [ ] No unused imports or variables
 - [ ] No hardcoded values that should be config
 - [ ] API routes are authenticated and validated
+- [ ] `npm test` passes, and any new `lib/` security boundary has a test
+- [ ] A new security boundary's test was mutation-checked once (break it, confirm red, restore)
 - [ ] Error states handled for every data-dependent component
 - [ ] Dark mode looks good
 - [ ] Responsive layout works

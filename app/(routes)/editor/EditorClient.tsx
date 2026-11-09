@@ -102,7 +102,9 @@ export default function EditorClient({ problem }: EditorClientProps) {
           </div>
           <FileCode2 className="w-4 h-4 text-cyan-400 shrink-0" />
           <span className="text-xs font-mono text-muted-foreground truncate">
-            <span className="hidden sm:inline">{problem ? problem.title : "Code Playground"} — </span>
+            <span className="hidden sm:inline">
+              {problem ? problem.title : "Code Playground"} —{" "}
+            </span>
             {fileName}
           </span>
           {problem && (

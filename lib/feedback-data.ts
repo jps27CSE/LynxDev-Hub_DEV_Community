@@ -8,7 +8,15 @@ import {
   chapters,
   problems,
 } from "@/config/schema";
-import { eq, and, desc, count, like, sql, type InferSelectModel } from "drizzle-orm";
+import {
+  eq,
+  and,
+  desc,
+  count,
+  like,
+  sql,
+  type InferSelectModel,
+} from "drizzle-orm";
 import { createLogger } from "@/lib/logger";
 import { withConnectRetry } from "@/lib/db-retry";
 
@@ -40,10 +48,7 @@ export function clampPage(page: number): number {
 }
 
 function escapeLike(input: string): string {
-  return input
-    .replace(/\\/g, "\\\\")
-    .replace(/%/g, "\\%")
-    .replace(/_/g, "\\_");
+  return input.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
 }
 
 function truncateSearch(input: string): string {
@@ -68,9 +73,7 @@ export async function createFeedback(
           category: data.category ?? "other",
         });
 
-        const rows = await tx.execute(
-          sql`SELECT LAST_INSERT_ID() AS id`,
-        );
+        const rows = await tx.execute(sql`SELECT LAST_INSERT_ID() AS id`);
         const result = rows as unknown as Array<Array<{ id: number }>>;
         const insertedId = result[0]?.[0]?.id;
         if (!insertedId) return null;
@@ -82,7 +85,11 @@ export async function createFeedback(
           .limit(1);
 
         if (created) {
-          log.info("created", { id: created.id, userId, category: created.category });
+          log.info("created", {
+            id: created.id,
+            userId,
+            category: created.category,
+          });
         }
         return created ?? null;
       });
@@ -108,13 +115,13 @@ export const getMyFeedback = cache(
         const p = clampPage(page);
         const offset = (p - 1) * PAGE_SIZE;
 
-        const where = and(eq(feedbackTickets.user_id, userId), eq(feedbackTickets.is_deleted, false));
+        const where = and(
+          eq(feedbackTickets.user_id, userId),
+          eq(feedbackTickets.is_deleted, false),
+        );
 
         const [countResult, rows] = await Promise.all([
-          db
-            .select({ value: count() })
-            .from(feedbackTickets)
-            .where(where),
+          db.select({ value: count() }).from(feedbackTickets).where(where),
           db
             .select()
             .from(feedbackTickets)
@@ -170,10 +177,7 @@ export const getAllFeedback = cache(
         const where = and(...conditions);
 
         const [countResult, rows] = await Promise.all([
-          db
-            .select({ value: count() })
-            .from(feedbackTickets)
-            .where(where),
+          db.select({ value: count() }).from(feedbackTickets).where(where),
           db
             .select({
               ticket: feedbackTickets,
@@ -181,10 +185,7 @@ export const getAllFeedback = cache(
               authorEmail: usersTable.email,
             })
             .from(feedbackTickets)
-            .innerJoin(
-              usersTable,
-              eq(feedbackTickets.user_id, usersTable.id),
-            )
+            .innerJoin(usersTable, eq(feedbackTickets.user_id, usersTable.id))
             .where(where)
             .orderBy(desc(feedbackTickets.created_at))
             .limit(PAGE_SIZE)
@@ -220,12 +221,14 @@ export const getFeedbackById = cache(
             authorEmail: usersTable.email,
           })
           .from(feedbackTickets)
-          .innerJoin(
-            usersTable,
-            eq(feedbackTickets.user_id, usersTable.id),
+          .innerJoin(usersTable, eq(feedbackTickets.user_id, usersTable.id))
+          .where(
+            and(
+              eq(feedbackTickets.id, id),
+              eq(feedbackTickets.is_deleted, false),
+            ),
           )
-            .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)))
-            .limit(1);
+          .limit(1);
 
         if (rows.length === 0) return null;
         const r = rows[0];
@@ -258,13 +261,17 @@ export async function updateFeedbackStatus(
         const [current] = await tx
           .select({ status: feedbackTickets.status })
           .from(feedbackTickets)
-          .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)))
+          .where(
+            and(
+              eq(feedbackTickets.id, id),
+              eq(feedbackTickets.is_deleted, false),
+            ),
+          )
           .limit(1);
 
         if (!current) return null;
 
-        const isResolving =
-          status === "resolved" || status === "closed";
+        const isResolving = status === "resolved" || status === "closed";
         const wasNotResolved =
           current?.status !== "resolved" && current?.status !== "closed";
         const setResolvedAt = isResolving && wasNotResolved;
@@ -277,16 +284,31 @@ export async function updateFeedbackStatus(
             ...(adminNotes !== undefined && { admin_notes: adminNotes }),
             ...(setResolvedAt && { resolved_at: new Date() }),
           })
-          .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)));
+          .where(
+            and(
+              eq(feedbackTickets.id, id),
+              eq(feedbackTickets.is_deleted, false),
+            ),
+          );
 
         const [updated] = await tx
           .select()
           .from(feedbackTickets)
-          .where(and(eq(feedbackTickets.id, id), eq(feedbackTickets.is_deleted, false)))
+          .where(
+            and(
+              eq(feedbackTickets.id, id),
+              eq(feedbackTickets.is_deleted, false),
+            ),
+          )
           .limit(1);
 
         if (updated) {
-          log.info("status_changed", { id, from: current.status, to: status, adminId });
+          log.info("status_changed", {
+            id,
+            from: current.status,
+            to: status,
+            adminId,
+          });
         }
         return updated ?? null;
       });
@@ -302,7 +324,10 @@ export async function updateFeedbackStatus(
  * Only tickets with status "resolved" or "closed" can be hard-deleted.
  * Unsolved tickets must not be removed from the database.
  */
-export async function deleteFeedback(id: number, adminId?: string): Promise<boolean> {
+export async function deleteFeedback(
+  id: number,
+  adminId?: string,
+): Promise<boolean> {
   try {
     return await withConnectRetry(async () => {
       const [current] = await db
@@ -312,11 +337,10 @@ export async function deleteFeedback(id: number, adminId?: string): Promise<bool
         .limit(1);
 
       if (!current) return false;
-      if (current.status !== "resolved" && current.status !== "closed") return false;
+      if (current.status !== "resolved" && current.status !== "closed")
+        return false;
 
-      await db
-        .delete(feedbackTickets)
-        .where(eq(feedbackTickets.id, id));
+      await db.delete(feedbackTickets).where(eq(feedbackTickets.id, id));
       log.warn("deleted", { id, status: current.status, adminId });
       return true;
     });
@@ -330,41 +354,44 @@ export async function deleteFeedback(id: number, adminId?: string): Promise<bool
  * Admin: overview stats — 6 batched count queries.
  * Uses Promise.all for parallel execution (pool queue handles concurrency).
  */
-export const getAdminOverview = cache(
-  async (): Promise<AdminOverview> => {
-    try {
-      return await withConnectRetry(async () => {
-        const results = await Promise.all([
-          db.select({ value: count() }).from(usersTable),
-          db.select({ value: count() }).from(enrollments),
-          db.select({ value: count() }).from(courses),
-          db.select({ value: count() }).from(chapters),
-          db.select({ value: count() }).from(problems),
-          db
-            .select({ value: count() })
-            .from(feedbackTickets)
-            .where(and(eq(feedbackTickets.status, "open"), eq(feedbackTickets.is_deleted, false))),
-        ]);
+export const getAdminOverview = cache(async (): Promise<AdminOverview> => {
+  try {
+    return await withConnectRetry(async () => {
+      const results = await Promise.all([
+        db.select({ value: count() }).from(usersTable),
+        db.select({ value: count() }).from(enrollments),
+        db.select({ value: count() }).from(courses),
+        db.select({ value: count() }).from(chapters),
+        db.select({ value: count() }).from(problems),
+        db
+          .select({ value: count() })
+          .from(feedbackTickets)
+          .where(
+            and(
+              eq(feedbackTickets.status, "open"),
+              eq(feedbackTickets.is_deleted, false),
+            ),
+          ),
+      ]);
 
-        return {
-          users: Number(results[0][0]?.value ?? 0),
-          enrollments: Number(results[1][0]?.value ?? 0),
-          courses: Number(results[2][0]?.value ?? 0),
-          chapters: Number(results[3][0]?.value ?? 0),
-          problems: Number(results[4][0]?.value ?? 0),
-          openTickets: Number(results[5][0]?.value ?? 0),
-        };
-      });
-    } catch (error) {
-      log.error("getAdminOverview failed", error);
       return {
-        users: 0,
-        enrollments: 0,
-        courses: 0,
-        chapters: 0,
-        problems: 0,
-        openTickets: 0,
+        users: Number(results[0][0]?.value ?? 0),
+        enrollments: Number(results[1][0]?.value ?? 0),
+        courses: Number(results[2][0]?.value ?? 0),
+        chapters: Number(results[3][0]?.value ?? 0),
+        problems: Number(results[4][0]?.value ?? 0),
+        openTickets: Number(results[5][0]?.value ?? 0),
       };
-    }
-  },
-);
+    });
+  } catch (error) {
+    log.error("getAdminOverview failed", error);
+    return {
+      users: 0,
+      enrollments: 0,
+      courses: 0,
+      chapters: 0,
+      problems: 0,
+      openTickets: 0,
+    };
+  }
+});

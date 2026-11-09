@@ -8,7 +8,10 @@ const footerLinks = [
 ];
 
 const socialLinks = [
-  { label: "YouTube", href: "https://www.youtube.com/playlist?list=PLiGGopVZ-5D3M-sZgSgpAmaJdNKctKnlt" },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/playlist?list=PLiGGopVZ-5D3M-sZgSgpAmaJdNKctKnlt",
+  },
   { label: "GitHub", href: "https://github.com/jps27cse" },
   { label: "LinkedIn", href: "https://www.linkedin.com/in/jps27cse" },
 ];

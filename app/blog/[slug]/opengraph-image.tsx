@@ -57,116 +57,114 @@ export default async function OpengraphImage({
   }
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        background: "#05060a",
+        padding: "72px 80px",
+        position: "relative",
+      }}
+    >
       <div
         style={{
-          width: "100%",
-          height: "100%",
+          position: "absolute",
+          top: -180,
+          left: -140,
+          width: 620,
+          height: 620,
+          borderRadius: 9999,
+          background: "rgba(34,211,238,0.16)",
+          filter: "blur(90px)",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: "#05060a",
-          padding: "72px 80px",
-          position: "relative",
         }}
-      >
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: -120,
+          right: -160,
+          width: 620,
+          height: 620,
+          borderRadius: 9999,
+          background: "rgba(232,121,249,0.14)",
+          filter: "blur(90px)",
+          display: "flex",
+        }}
+      />
+
+      <div style={{ display: "flex", alignItems: "center" }}>
         <div
           style={{
-            position: "absolute",
-            top: -180,
-            left: -140,
-            width: 620,
-            height: 620,
+            display: "flex",
+            padding: "10px 22px",
             borderRadius: 9999,
-            background: "rgba(34,211,238,0.16)",
-            filter: "blur(90px)",
-            display: "flex",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: -120,
-            right: -160,
-            width: 620,
-            height: 620,
-            borderRadius: 9999,
-            background: "rgba(232,121,249,0.14)",
-            filter: "blur(90px)",
-            display: "flex",
-          }}
-        />
-
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <div
-            style={{
-              display: "flex",
-              padding: "10px 22px",
-              borderRadius: 9999,
-              border: "1px solid rgba(255,255,255,0.18)",
-              color: "#a5f3fc",
-              fontSize: 24,
-              letterSpacing: "0.04em",
-            }}
-          >
-            lynxdev.io/blog
-          </div>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div
-            style={{
-              display: "flex",
-              fontSize: post.title.length > 62 ? 54 : 64,
-              fontWeight: 700,
-              lineHeight: 1.12,
-              letterSpacing: "-0.02em",
-              color: "#fafafa",
-              maxHeight: 210,
-              overflow: "hidden",
-            }}
-          >
-            {post.title}
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              marginTop: 28,
-              fontSize: 25,
-              color: "#a1a1aa",
-              maxHeight: 70,
-              overflow: "hidden",
-              lineHeight: 1.4,
-            }}
-          >
-            {post.description}
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            borderTop: "1px solid rgba(255,255,255,0.14)",
-            paddingTop: 26,
+            border: "1px solid rgba(255,255,255,0.18)",
+            color: "#a5f3fc",
+            fontSize: 24,
+            letterSpacing: "0.04em",
           }}
         >
-          <div style={{ display: "flex", fontSize: 23, color: "#71717a" }}>
-            {post.author}
-          </div>
-          <div style={{ display: "flex", fontSize: 23, color: "#71717a" }}>
-            {new Date(post.date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              timeZone: "UTC",
-            })}
-          </div>
+          lynxdev.io/blog
         </div>
       </div>
-    ),
+
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            display: "flex",
+            fontSize: post.title.length > 62 ? 54 : 64,
+            fontWeight: 700,
+            lineHeight: 1.12,
+            letterSpacing: "-0.02em",
+            color: "#fafafa",
+            maxHeight: 210,
+            overflow: "hidden",
+          }}
+        >
+          {post.title}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            marginTop: 28,
+            fontSize: 25,
+            color: "#a1a1aa",
+            maxHeight: 70,
+            overflow: "hidden",
+            lineHeight: 1.4,
+          }}
+        >
+          {post.description}
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          borderTop: "1px solid rgba(255,255,255,0.14)",
+          paddingTop: 26,
+        }}
+      >
+        <div style={{ display: "flex", fontSize: 23, color: "#71717a" }}>
+          {post.author}
+        </div>
+        <div style={{ display: "flex", fontSize: 23, color: "#71717a" }}>
+          {new Date(post.date).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            timeZone: "UTC",
+          })}
+        </div>
+      </div>
+    </div>,
     size,
   );
 }

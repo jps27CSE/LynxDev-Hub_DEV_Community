@@ -16,6 +16,13 @@ export function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
+export function payloadTooLarge(maxBytes: number) {
+  return NextResponse.json(
+    { error: `Request body exceeds ${maxBytes} bytes` },
+    { status: 413 },
+  );
+}
+
 export function forbidden() {
   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 }

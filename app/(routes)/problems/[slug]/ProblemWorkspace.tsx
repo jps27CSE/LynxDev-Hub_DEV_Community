@@ -126,7 +126,10 @@ export default function ProblemWorkspace({
       <div className="lg:hidden p-3 space-y-2 border-b border-border/40 bg-[#07090e]">
         <div className="flex items-center gap-2">
           <Select value={problem.key} onValueChange={navigate}>
-            <SelectTrigger className="flex-1 min-w-0 h-9 text-[13px]" aria-label="Select problem">
+            <SelectTrigger
+              className="flex-1 min-w-0 h-9 text-[13px]"
+              aria-label="Select problem"
+            >
               <SelectValue placeholder="Select problem" />
             </SelectTrigger>
             <SelectContent>

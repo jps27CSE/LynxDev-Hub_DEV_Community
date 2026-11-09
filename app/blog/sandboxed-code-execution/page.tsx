@@ -48,16 +48,16 @@ export default function SandboxedExecution() {
           full origin privileges.
         </Fact>
         <Fact label="Server sandbox">
-          Real isolation, but you now operate an untrusted-code execution service
-          and have to survive it being slow or exploited.
+          Real isolation, but you now operate an untrusted-code execution
+          service and have to survive it being slow or exploited.
         </Fact>
         <Fact label="Browser worker">
           Separate thread and separate global scope, zero server cost. Isolation
           is good but not absolute.
         </Fact>
         <Fact label="Opaque-origin iframe">
-          Full document rendering with a genuinely foreign origin. The right tool
-          for HTML.
+          Full document rendering with a genuinely foreign origin. The right
+          tool for HTML.
         </Fact>
       </div>
 
@@ -116,8 +116,8 @@ const timer = setTimeout(
 
       <P>
         So inside the worker we shadow the globals that matter. The learner code
-        is invoked through a <C>new Function</C> whose parameters{" "}
-        <em>are</em> those globals:
+        is invoked through a <C>new Function</C> whose parameters <em>are</em>{" "}
+        those globals:
       </P>
 
       <Code language="typescript">{`const BLOCKED_GLOBALS = [
@@ -138,11 +138,10 @@ new Function("console", ...BLOCKED_GLOBALS, e.data.code)(
 
       <P>
         The comment in our source explains the non-obvious part: each name is
-        both a parameter of the wrapper function{" "}
-        <em>and</em> an argument to it. That is deliberate. It means the
-        parameter list and the shadowing list cannot drift apart when someone
-        adds a tenth entry — a class of bug that would otherwise be silent and
-        security-relevant.
+        both a parameter of the wrapper function <em>and</em> an argument to it.
+        That is deliberate. It means the parameter list and the shadowing list
+        cannot drift apart when someone adds a tenth entry — a class of bug that
+        would otherwise be silent and security-relevant.
       </P>
 
       <Callout tone="warning">
@@ -179,8 +178,8 @@ body + (dropped ? "\\n… " + dropped.toLocaleString() + " more lines truncated"
 
       <P>
         The original implementation wrote lesson HTML into an iframe via{" "}
-        <C>document.write()</C> with no <C>sandbox</C> attribute. That iframe was
-        same-origin: it could read the parent&apos;s cookies, read
+        <C>document.write()</C> with no <C>sandbox</C> attribute. That iframe
+        was same-origin: it could read the parent&apos;s cookies, read
         same-origin <C>localStorage</C>, and call our authenticated APIs with
         the user&apos;s credentials.
       </P>
@@ -213,14 +212,14 @@ body + (dropped ? "\\n… " + dropped.toLocaleString() + " more lines truncated"
         <strong>opaque origin</strong>. It can still run its own JavaScript and
         style itself, but it has no access to the parent document, no cookies,
         no credentialed fetches, and no shared storage. There is no{" "}
-        <C>allow-same-origin</C>, which is the whole point — adding it back would
-        restore everything we just removed.
+        <C>allow-same-origin</C>, which is the whole point — adding it back
+        would restore everything we just removed.
       </P>
 
       <P>
         It also changes how we inject preview styling. Since{" "}
-        <C>contentDocument</C> is now unreachable from the parent, the CSS has to
-        be baked into the document itself:
+        <C>contentDocument</C> is now unreachable from the parent, the CSS has
+        to be baked into the document itself:
       </P>
 
       <Code language="typescript">{`export function buildSandboxedSrcDoc(html: string, css = ""): string {
@@ -261,9 +260,9 @@ body + (dropped ? "\\n… " + dropped.toLocaleString() + " more lines truncated"
       </P>
 
       <P>
-        It is worth stating plainly: this is self-XSS, so the realistic threat is
-        a user running code they themselves wrote, which is the entire point of
-        the feature. We treat it as a robustness and defence-in-depth problem
+        It is worth stating plainly: this is self-XSS, so the realistic threat
+        is a user running code they themselves wrote, which is the entire point
+        of the feature. We treat it as a robustness and defence-in-depth problem
         rather than a critical vulnerability — but &ldquo;self-inflicted&rdquo;{" "}
         should come from having bounded the blast radius, not from assuming good
         intentions.
@@ -273,12 +272,11 @@ body + (dropped ? "\\n… " + dropped.toLocaleString() + " more lines truncated"
 
       <P>
         <C>localStorage</C> throws in private mode and when a quota is exceeded.
-        Both our read and write helpers catch and return{" "}
-        <C>null</C>/<C>false</C> rather than propagating, because a storage
-        failure must not take down the lesson. The write returns a boolean so
-        the caller can tell &ldquo;saved&rdquo; from &ldquo;silently not
-        saved&rdquo; — the alternative is code that appears to persist and
-        vanishes on reload.
+        Both our read and write helpers catch and return <C>null</C>/
+        <C>false</C> rather than propagating, because a storage failure must not
+        take down the lesson. The write returns a boolean so the caller can tell
+        &ldquo;saved&rdquo; from &ldquo;silently not saved&rdquo; — the
+        alternative is code that appears to persist and vanishes on reload.
       </P>
 
       <H2 id="layered">The layers, collected</H2>
@@ -297,8 +295,8 @@ body + (dropped ? "\\n… " + dropped.toLocaleString() + " more lines truncated"
           removed from the executed scope.
         </LI>
         <LI>
-          <strong>Output caps</strong> — bounded memory so the failure mode stays
-          a readable message.
+          <strong>Output caps</strong> — bounded memory so the failure mode
+          stays a readable message.
         </LI>
         <LI>
           <strong>Opaque origin</strong> — <C>sandbox="allow-scripts"</C> for
@@ -333,8 +331,8 @@ body + (dropped ? "\\n… " + dropped.toLocaleString() + " more lines truncated"
           so the next reader does not over-trust it.
         </LI>
         <LI>
-          <C>sandbox="allow-scripts"</C> without{" "}
-          <C>allow-same-origin</C> is what makes an iframe safe.
+          <C>sandbox="allow-scripts"</C> without <C>allow-same-origin</C> is
+          what makes an iframe safe.
         </LI>
         <LI>
           Audit every execution surface. &ldquo;We fixed the sandbox&rdquo;

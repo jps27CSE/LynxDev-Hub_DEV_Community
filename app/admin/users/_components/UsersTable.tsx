@@ -22,7 +22,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { AdminUserRow, AdminUsersSort } from "@/lib/admin-users";
-import { ADMIN_USERS_PAGE_SIZE, ADMIN_USERS_SORTS } from "@/lib/admin-users-constants";
+import {
+  ADMIN_USERS_PAGE_SIZE,
+  ADMIN_USERS_SORTS,
+} from "@/lib/admin-users-constants";
 import UserDetailDialog from "./UserDetailDialog";
 
 type UsersTableProps = {
@@ -58,12 +61,21 @@ export default function UsersTable({
   }, [currentQ]);
 
   const buildUsersHref = useCallback(
-    (overrides: Partial<{ q: string; sort: AdminUsersSort; page: number; subscription: string }>) => {
+    (
+      overrides: Partial<{
+        q: string;
+        sort: AdminUsersSort;
+        page: number;
+        subscription: string;
+      }>,
+    ) => {
       const q = overrides.q !== undefined ? overrides.q : currentQ;
       const sort = overrides.sort !== undefined ? overrides.sort : currentSort;
       const page = overrides.page !== undefined ? overrides.page : currentPage;
       const subscription =
-        overrides.subscription !== undefined ? overrides.subscription : currentSubscription;
+        overrides.subscription !== undefined
+          ? overrides.subscription
+          : currentSubscription;
       const sp = new URLSearchParams();
       if (q) sp.set("q", q);
       if (sort !== "newest") sp.set("sort", sort);
@@ -116,7 +128,9 @@ export default function UsersTable({
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <span className="text-xs text-muted-foreground hidden sm:inline">Sort:</span>
+          <span className="text-xs text-muted-foreground hidden sm:inline">
+            Sort:
+          </span>
           <Select value={currentSort} onValueChange={onSortChange}>
             <SelectTrigger className="w-full sm:w-[140px] h-9">
               <SelectValue />
@@ -124,7 +138,11 @@ export default function UsersTable({
             <SelectContent>
               {ADMIN_USERS_SORTS.map((s) => (
                 <SelectItem key={s} value={s}>
-                  {s === "newest" ? "Newest" : s === "points" ? "Points" : "Name A-Z"}
+                  {s === "newest"
+                    ? "Newest"
+                    : s === "points"
+                      ? "Points"
+                      : "Name A-Z"}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -133,7 +151,9 @@ export default function UsersTable({
       </div>
 
       {/* Table — reuses server-fetched data, refetches on URL change */}
-      <div className={`rounded-lg border bg-card overflow-hidden ${isPending ? "opacity-60 pointer-events-none" : ""}`}>
+      <div
+        className={`rounded-lg border bg-card overflow-hidden ${isPending ? "opacity-60 pointer-events-none" : ""}`}
+      >
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -149,8 +169,13 @@ export default function UsersTable({
             <TableBody>
               {data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
-                    {currentQ ? `No users matching "${currentQ}".` : "No users found."}
+                  <TableCell
+                    colSpan={6}
+                    className="text-center text-muted-foreground py-10"
+                  >
+                    {currentQ
+                      ? `No users matching "${currentQ}".`
+                      : "No users found."}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -173,11 +198,15 @@ export default function UsersTable({
                       }
                     }}
                   >
-                    <TableCell className="font-medium max-w-[180px] truncate">{u.name}</TableCell>
+                    <TableCell className="font-medium max-w-[180px] truncate">
+                      {u.name}
+                    </TableCell>
                     <TableCell className="text-muted-foreground max-w-[220px] truncate text-xs sm:text-sm">
                       {u.email}
                     </TableCell>
-                    <TableCell className="text-right font-mono text-sm">{u.points ?? 0}</TableCell>
+                    <TableCell className="text-right font-mono text-sm">
+                      {u.points ?? 0}
+                    </TableCell>
                     <TableCell className="text-center">
                       <Badge variant="secondary" className="font-mono">
                         {u.enrollmentsCount}
@@ -217,7 +246,9 @@ export default function UsersTable({
             variant="outline"
             size="sm"
             disabled={currentPage <= 1 || isPending}
-            onClick={() => pushUsersHref(buildUsersHref({ page: currentPage - 1 }))}
+            onClick={() =>
+              pushUsersHref(buildUsersHref({ page: currentPage - 1 }))
+            }
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
@@ -228,7 +259,9 @@ export default function UsersTable({
             variant="outline"
             size="sm"
             disabled={!hasMore || isPending}
-            onClick={() => pushUsersHref(buildUsersHref({ page: currentPage + 1 }))}
+            onClick={() =>
+              pushUsersHref(buildUsersHref({ page: currentPage + 1 }))
+            }
           >
             <ChevronRight className="w-4 h-4" />
           </Button>

@@ -169,7 +169,11 @@ export const feedbackTickets = mysqlTable(
     is_deleted: boolean("is_deleted").default(false),
   },
   (table) => [
-    index("feedback_user_idx").on(table.user_id, table.is_deleted, table.created_at),
+    index("feedback_user_idx").on(
+      table.user_id,
+      table.is_deleted,
+      table.created_at,
+    ),
     index("feedback_admin_list_idx").on(table.status, table.created_at),
   ],
 );
@@ -187,3 +191,36 @@ export const siteNotices = mysqlTable("site_notices", {
   updated_at: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
   updated_by: varchar("updated_by", { length: 255 }),
 });
+
+export const sdUserState = mysqlTable("sd_user_state", {
+  user_id: int("user_id")
+    .references(() => usersTable.id)
+    .primaryKey(),
+  lessons_completed: json(),
+  tasks: json(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+});
+
+/**
+ * Per-task state, one row per (user, task). Replaces the single JSON blob
+ * `sd_user_state.tasks`, which rewrote all 15 tasks on every save — O(N) write
+ * amplification that grew with learner progress (production review §8.5).
+ */
+export const sdTaskState = mysqlTable(
+  "sd_task_state",
+  {
+    id: int().primaryKey().autoincrement(),
+    user_id: int("user_id")
+      .references(() => usersTable.id)
+      .notNull(),
+    task_slug: varchar("task_slug", { length: 120 }).notNull(),
+    graph: json(),
+    criteria_met: json(),
+    attempts: int().default(0),
+    revealed: json(),
+    updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+  },
+  (t) => [
+    uniqueIndex("sd_task_state_user_task_idx").on(t.user_id, t.task_slug),
+  ],
+);

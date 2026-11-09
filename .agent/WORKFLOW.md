@@ -107,6 +107,7 @@ Review your own code before signaling completion. Check:
 - Test the happy path, error states, and edge cases
 - Check responsive layout and dark mode (default)
 - Verify API routes with different auth states (signed in, signed out)
+- Generate the feature diagram via the **feature-diagram** skill — create `diagrams/NN-<feature-slug>.md` named after this feature (two-digit serial prefix)
 - After my manual test, **I** commit; a reviewer (if any) reviews my commit,
   never uncommitted agent output
 

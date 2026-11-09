@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Gift,
   Newspaper,
+  Network,
 } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
 import { VersionBadge } from "@/components/VersionBadge";
@@ -23,6 +24,7 @@ const links = [
   { label: "Courses", href: "/courses", icon: BookOpen },
   { label: "Interview", href: "/interview", icon: Sparkles },
   { label: "Problems", href: "/problems", icon: Terminal },
+  { label: "System Design", href: "/system-design", icon: Network },
   { label: "Editor", href: "/editor", icon: FileCode2 },
   { label: "Blog", href: "/blog", icon: Newspaper },
 ];

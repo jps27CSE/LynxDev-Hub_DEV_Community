@@ -1,19 +1,22 @@
 {
   "name": "lynxdev-hub_dev_community",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
     "check:blog-toc": "tsx scripts/check-blog-toc.ts",
+    "check:system-design": "tsx scripts/check-system-design.ts",
+    "check:migrations": "tsx scripts/check-migration-drift.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "dependencies": {
     "@clerk/elements": "^0.24.4",
-    "@clerk/nextjs": "^6.36.8",
+    "@clerk/nextjs": "^6.39.7",
     "@hookform/resolvers": "^5.2.2",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-accordion": "^1.2.12",
@@ -55,7 +58,7 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^0.562.0",
     "mysql2": "^3.23.1",
-    "next": "16.1.1",
+    "next": "16.4.2",
     "next-themes": "^0.4.6",
     "prettier": "^3.8.0",
     "react": "19.2.3",
@@ -71,6 +74,10 @@
     "tailwind-merge": "^3.4.0",
     "vaul": "^1.1.2",
     "zod": "^4.3.5"
+  },
+  "overrides": {
+    "dompurify": "^3.4.17",
+    "esbuild": "^0.25.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

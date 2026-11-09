@@ -65,4 +65,11 @@ Invoke **production** (free-tier sustainability at 500 users, pre-commit checkli
 
 Invoke **reflection**: reinforcement questions + learning summary + engineering journal entry.
 
+## Phase 9 — Generate Feature Diagram
+
+Invoke the **feature-diagram** skill:
+- Create a polished, detailed sequence/flowchart file named after the feature with a two-digit serial prefix: `diagrams/NN-<feature-slug>.md` (dark theme, numbered steps, key files, step-by-step actions, data flow, assumptions). Determine NN from existing files in `diagrams/`.
+- Follow `.opencode/skills/feature-diagram/SKILL.md`.
+- Do not overwrite existing files; append if the file already exists.
+
 Always explain the **why** at every step, reference existing patterns in `app/(routes)/`, `lib/`, `config/`, and keep the free-tier constraints (`.agent/AGENT.md`) in mind.

@@ -6,6 +6,7 @@ import {
   BookOpen,
   BrainCircuit,
   Code2,
+  Network,
   Target,
   type LucideIcon,
 } from "lucide-react";
@@ -40,6 +41,11 @@ const platformPoints: {
     text: "1,000+ interview questions, tag-based prep",
     accent: "text-lime-400",
   },
+  {
+    icon: Network,
+    text: "15 system design modules with interactive canvas + traffic simulation",
+    accent: "text-violet-400",
+  },
 ];
 
 export default function SignInPage() {
@@ -68,8 +74,9 @@ export default function SignInPage() {
           </h1>
 
           <p className="mt-6 text-lg text-slate-400 max-w-md leading-relaxed">
-            Interactive courses, 220+ DSA problems, and interview prep —
-            handcrafted, zero-cost, and built for engineers who want to ship.
+            Interactive courses, 220+ DSA problems, interview prep, and hands-on
+            system design — handcrafted, zero-cost, and built for engineers who
+            want to ship.
           </p>
 
           <ul className="mt-10 space-y-4">

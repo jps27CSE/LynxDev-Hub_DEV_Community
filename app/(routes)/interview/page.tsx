@@ -149,7 +149,7 @@ export default async function InterviewPage() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs text-muted-foreground mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs tabular-nums text-muted-foreground mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
               {categories.length} tracks &middot;{" "}
               {reachableStats?.questionCount ?? 0} questions &middot; {chTotal}{" "}
@@ -157,9 +157,7 @@ export default async function InterviewPage() {
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight leading-[1.1]">
               Interview{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
-                Preparation
-              </span>
+              <span className="text-primary">Preparation</span>
             </h1>
             <p className="mt-4 text-lg text-muted-foreground max-w-xl leading-relaxed">
               Master your next technical interview with curated chapters,
@@ -273,14 +271,14 @@ export default async function InterviewPage() {
                 <div className="flex items-center justify-between mt-5 pt-4 border-t border-border/30 relative">
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-foreground">
+                      <span className="font-semibold tabular-nums text-foreground">
                         {cat.questionCount}
                       </span>
                       questions
                     </div>
                     <span className="text-muted-foreground/30">&middot;</span>
                     <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-foreground">
+                      <span className="font-semibold tabular-nums text-foreground">
                         {chapterCountByCategory.get(cat.id) || 0}
                       </span>
                       chapters
@@ -295,7 +293,7 @@ export default async function InterviewPage() {
                       {(["easy", "medium", "hard"] as const).map((d) => (
                         <span
                           key={d}
-                          className={`inline-flex items-center gap-1 text-[11px] ${difficultyTextClass(d)}`}
+                          className={`inline-flex items-center gap-1 tabular-nums text-[11px] ${difficultyTextClass(d)}`}
                         >
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${difficultyDotClass(d)}`}

@@ -2,7 +2,13 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Inbox, Clock, MessageSquare } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Inbox,
+  Clock,
+  MessageSquare,
+} from "lucide-react";
 import type { FeedbackTicket } from "@/lib/feedback-data";
 
 const STATUS_CONFIG: Record<
@@ -93,7 +99,8 @@ export default function MyTicketsList({
 
       <div className="space-y-2">
         {data.map((ticket) => {
-          const status = STATUS_CONFIG[ticket.status ?? "open"] ?? STATUS_CONFIG.open;
+          const status =
+            STATUS_CONFIG[ticket.status ?? "open"] ?? STATUS_CONFIG.open;
           return (
             <div
               key={ticket.id}
@@ -109,7 +116,9 @@ export default function MyTicketsList({
                       className={`${status.class} border shrink-0 text-[10px] px-1.5 py-0`}
                       variant="outline"
                     >
-                      <span className={`w-1.5 h-1.5 rounded-full ${status.dot} mr-1`} />
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${status.dot} mr-1`}
+                      />
                       {status.label}
                     </Badge>
                   </div>
@@ -117,7 +126,10 @@ export default function MyTicketsList({
                     {ticket.message}
                   </p>
                   <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    <Badge
+                      variant="secondary"
+                      className="text-[10px] px-1.5 py-0"
+                    >
                       {CATEGORY_LABELS[ticket.category ?? "other"] ?? "Other"}
                     </Badge>
                     <span className="flex items-center gap-1">
@@ -133,9 +145,7 @@ export default function MyTicketsList({
       </div>
 
       <div className="flex items-center justify-between pt-2">
-        <p className="text-xs text-muted-foreground">
-          Page {currentPage}
-        </p>
+        <p className="text-xs text-muted-foreground">Page {currentPage}</p>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"

@@ -75,8 +75,12 @@ export default function AdminSidebar({
                 <ShieldCheck className="w-4.5 h-4.5 text-white" />
               </div>
               <div className="overflow-hidden">
-                <span className="font-bold text-sm block leading-none">Admin Panel</span>
-                <span className="text-[10px] text-muted-foreground">LynxDEV</span>
+                <span className="font-bold text-sm block leading-none">
+                  Admin Panel
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  LynxDEV
+                </span>
               </div>
             </Link>
           )}

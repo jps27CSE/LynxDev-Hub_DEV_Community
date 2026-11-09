@@ -27,9 +27,7 @@ export default async function AdminFeedbackPage({
   const q = params.q ?? "";
   const rawPage = params.page;
   const page =
-    rawPage !== undefined && /^\d+$/.test(rawPage)
-      ? parseInt(rawPage, 10)
-      : 1;
+    rawPage !== undefined && /^\d+$/.test(rawPage) ? parseInt(rawPage, 10) : 1;
 
   const adminName = await getAdminName();
 

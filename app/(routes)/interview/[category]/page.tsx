@@ -17,7 +17,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!cat) return { title: "Category Not Found" };
   return {
     title: cat.name,
-    description: cat.description || `${cat.name} interview questions and chapters on LynxDEV.`,
+    description:
+      cat.description ||
+      `${cat.name} interview questions and chapters on LynxDEV.`,
   };
 }
 

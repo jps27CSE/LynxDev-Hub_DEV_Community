@@ -80,50 +80,50 @@ export default function OverviewStats({ stats }: { stats: Stats }) {
   return (
     <div className="px-3 sm:px-4 lg:px-8">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-      {items.map((item) => {
-        const Icon = item.icon;
-        const content = (
-          <div
-            className={`group relative overflow-hidden rounded-xl sm:rounded-2xl border border-border/50 bg-card p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-lg ${
-              item.href ? "cursor-pointer" : ""
-            }`}
-          >
+        {items.map((item) => {
+          const Icon = item.icon;
+          const content = (
             <div
-              className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
-            />
+              className={`group relative overflow-hidden rounded-xl sm:rounded-2xl border border-border/50 bg-card p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-lg ${
+                item.href ? "cursor-pointer" : ""
+              }`}
+            >
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+              />
 
-            <div className="relative">
-              <div className="flex items-center justify-between mb-3">
-                <div
-                  className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${item.bg} ring-1 ${item.ring} flex items-center justify-center`}
-                >
-                  <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${item.color}`} />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-3">
+                  <div
+                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${item.bg} ring-1 ${item.ring} flex items-center justify-center`}
+                  >
+                    <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${item.color}`} />
+                  </div>
+                  {item.href && (
+                    <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
                 </div>
-                {item.href && (
-                  <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                )}
+
+                <p className="text-2xl sm:text-3xl font-bold tracking-tight">
+                  {stats[item.key]}
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                  {item.label}
+                </p>
               </div>
-
-              <p className="text-2xl sm:text-3xl font-bold tracking-tight">
-                {stats[item.key]}
-              </p>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                {item.label}
-              </p>
             </div>
-          </div>
-        );
-
-        if (item.href) {
-          return (
-            <Link key={item.key} href={item.href}>
-              {content}
-            </Link>
           );
-        }
-        return <div key={item.key}>{content}</div>;
-      })}
-    </div>
+
+          if (item.href) {
+            return (
+              <Link key={item.key} href={item.href}>
+                {content}
+              </Link>
+            );
+          }
+          return <div key={item.key}>{content}</div>;
+        })}
+      </div>
     </div>
   );
 }

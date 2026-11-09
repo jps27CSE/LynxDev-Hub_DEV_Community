@@ -61,13 +61,13 @@ export default async function CoursesPage() {
           </div>
           <div className="py-16 sm:py-24">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs text-muted-foreground mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-card/50 text-xs tabular-nums text-muted-foreground mb-6">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 {publishedCourses.length} courses available
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight leading-[1.1]">
                 Learn to{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-emerald-500/60">
+                <span className="text-emerald-500">
                   Build
                 </span>
               </h1>

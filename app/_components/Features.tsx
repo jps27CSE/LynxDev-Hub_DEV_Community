@@ -2,6 +2,7 @@ import {
   BookOpen,
   BrainCircuit,
   Code2,
+  Network,
   Target,
   type LucideIcon,
 } from "lucide-react";
@@ -52,6 +53,15 @@ const features: Feature[] = [
     glow: "bg-lime-400/10 shadow-[0_0_20px_rgba(163,230,53,0.2)]",
     chip: "text-lime-400/80",
   },
+  {
+    title: "System Design",
+    description:
+      "Learn to design scalable systems — load balancing, caching, sharding, rate limiting — through interactive canvas exercises with real traffic simulation.",
+    icon: Network,
+    accent: "text-violet-400",
+    glow: "bg-violet-400/10 shadow-[0_0_20px_rgba(139,92,246,0.2)]",
+    chip: "text-violet-400/80",
+  },
 ];
 
 function SectionKicker() {
@@ -76,7 +86,7 @@ function Features() {
     <section className="py-20 sm:py-28 border-b border-border/40 bg-[#07090e]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionKicker />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
           {features.map((feature) => {
             const Icon = feature.icon;
             return (

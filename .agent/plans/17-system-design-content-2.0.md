@@ -1,0 +1,1318 @@
+# System Design 2.0 — Depth, Breadth and Differentiation
+
+> **Date:** 2026-10-27
+> **Status:** Phase B complete and committed. Slices B1–B7 shipped between 2026-10-27 and 2026-11-02, each ending in a manual review and a commit by me; the agent does not commit. **B7 — modules 12–15, the last four outlines — committed 2026-11-02.** **15 of 15 modules converted**, 79 lessons, every leaf bound, `SdChapter.lessonSlug` required. Phase C (§3.1) is sketched and not committed.
+> **Scope:** the system-design learning path only — `config/system-design/**`, `app/(routes)/system-design/**`, `components/system-design/**`, `scripts/check-system-design.ts`, `tests/`. No DB schema change, no new dependency, no server cost.
+> **Supersedes:** the content sections of `.agent/plans/16-system-design-phase-6.md` §10.0–§10.1 (roadmap and module table). §10.5 visualizers, §11 free-tier check and §12 task list there remain valid.
+> **Companion:** `.agent/plans/17-system-design-resource-map.md` — the 31-video Bangla playlist mapped to modules, plus a verified free read for every lesson. Every link there was HTTP-checked on 2026-10-27.
+> **Trigger:** the system-design path was reviewed against a full external curriculum (`systemdesignschool.io`, 121 lessons across 10 topic groups). Measured result: 41 lessons at 259 words average, 4 of 10 topic groups at 0% coverage, and 75 authored chapter entries that no page renders.
+
+---
+
+## 0. Decisions locked
+
+| # | Decision | Why |
+|---|---|---|
+| **D1** | The running case study is **Netflix** — not this app, and not a photo-sharing app | *(Revised 2026-10-27 after the first draft shipped on LynxDEV.)* Three tests, in order: **checkable**, **on-topic**, **not the reference site's example**. Netflix passes all three. `about.netflix.com` is the company's own account of the August 2008 database corruption, the phrase *"vertically scaled single points of failure"*, the forklift-vs-rebuild choice, the seven-year timeline and the January 2016 completion — one URL the learner can read in four minutes, and every number here traces to it or to `openconnect.netflix.com` and `github.com/Netflix/chaosmonkey`. It is **on-topic for our playlist**, which is video-platform-heavy: CDN (Open Connect), deliberate failure injection (Chaos Monkey), circuit breakers (Hystrix) and adaptive limits are all Netflix artefacts, i.e. the exact subjects of Parts 1 and 3. **LynxDEV failed the first test**: no learner can verify our write volume or our p95, so every "our rate limiter does X" sentence is an assertion of trust, and a reviewer cannot diff it against anything published. **Instagram was rejected** because it is the reference site's own practice problem, and the depth of primary-source numbers is thin outside engineering blogs. |
+| **D2** | **1 leaf chapter = 1 lesson.** `chapters` is the navigation tree; every leaf binds to a lesson by `lessonSlug`; the set of leaves must equal the set of lessons | Today `chapters` and `lessons` are two competing tables of contents that never reference each other. Module 1 promises a `Scalability Patterns` lesson that does not exist. Enforced in both directions, like `check:blog-toc`. |
+| **D3** | Depth bar per lesson: **700–900 words**, 1 scenario, 3–5 concept sections, 1 worked numeric example or table, 1 diagram where the topic is scaling-related, `your_turn` + `compare` + `recap` | Today: 41 lessons, 10,630 words, **259 words/lesson**. The bar is ~3×. The bar is checkable, not aspirational. |
+| **D4** | Breadth order: **API → storage → async → replication internals → distributed → patterns.** Big Data deep dive and domain knowledge (geospatial / media / probabilistic) are out of scope | Junior-first audience. The reference site's Big Data block is 19 lessons of senior/staff material — lowest value per authored hour for a learner at this level. |
+| **D5** | `SdModule.task` becomes optional **only when the first prose-only module lands** (Slice B3) | YAGNI. Every current module is simulator-teachable. Change the type at the point of need, with its four consumers in one slice. |
+| **D6** | Differentiation is **structural**, not cosmetic. The reference site is a *topic checklist only* — no prose, no titles, no diagrams, no codelabs, no problem statements | Topic lists are public knowledge; expression is not. Our differentiators are: one growing app, the canvas simulator, Bangla video, everything free. |
+
+---
+
+## 1. Diagnosis (measured, not estimated)
+
+| Measurement | Value |
+|---|---|
+| Modules | 14 |
+| Lessons | 41 |
+| Prose words | 10,630 |
+| Average per lesson | **259 words** |
+| Chapter entries authored | **75** (across 10 modules) |
+| Modules with **no** chapter outline | 4 — `requirements`, `constraints-and-design-process`, `back-of-the-envelope`, `load-balancers-and-stateless-services` |
+| Diagrams / Bangla videos | 17 / 10 |
+| Static system-design pages | 69 (14 module + 41 lesson + 14 task) |
+
+**Baseline above was measured 2026-10-27, before B1. Current, after B7** (re-measured from the build output and the content gates, not estimated):
+
+| Measurement | Value |
+|---|---|
+| Modules | **15** (`api-and-contracts` added in B3) |
+| Lessons | **79** — every one of them at the 700–900 word bar; the phase target, reached exactly |
+| Modules on the leaf model, all leaves bound | **15 / 15** |
+| Static system-design pages | **108** (15 module + 79 lesson + 14 task) + the `/system-design` index = 109 files |
+| `check:system-design` warnings | **4**, all chain (each answered in its module header). Zero unconverted outlines |
+| Tests | **658** passing, 0 failing, 113 suites (634 after B6) |
+
+The 4 modules listed above as having **no** chapter outline all now have one; the defect was fixed in B1–B3, not by editing the row.
+
+### 1.1 Four defects, in order of severity
+
+1. **`chapters` is never rendered.** It is passed through `app/(routes)/system-design/[module]/page.tsx:47` and then dropped. `components/system-design/Sidebar.tsx` was written to render it, is imported by nothing, and its hrefs are wrong — `${chapter.slug}` is used as the *module* segment, so every link would 404 if it were mounted.
+2. **The outline promises content that does not exist.** Caching: 10 entries / 4 lessons. Rate limiting: 10 / 3. How systems fail: 9 / 3. Module 1: a `Scalability Patterns` leaf with no lesson behind it.
+3. **Depth.** Rate limiting 613 words, idempotency 366, chaos capstone 390, requirements 570. A concept-per-page resource cannot be built out of 250-word pages.
+4. **`SdModule.task` is required** (`config/system-design/types.ts:385`), so the ~55 prose topics already designed in plan 16 §10.0 (Parts 2, 4, 5, 6, 7, 8, 9) are structurally unshippable without faking a Build Task — which plan 16 itself forbids ("a fake Raft teaches worse than prose").
+
+### 1.2 Coverage against the 10 topic groups (121 lessons)
+
+| Group | Theirs | Ours today | Coverage |
+|---|---|---|---|
+| Basics | 5 | modules 1–4 | ~70% |
+| **API Design** | 6 | none | **0%** |
+| Non-functional requirements | 7 | 1 lesson + scattered | ~25% |
+| Resource estimation | 3 | module 4 | ~90% |
+| **Microservices** | 1 | none | **0%** |
+| Sync + async communication | 17 | 4 topics; no queues, no Kafka | ~30% |
+| Scaling services | 29 | modules 6–11 | ~60% |
+| **Data storage** | 22 | none | ~0% |
+| **Big Data** | 19 | none | **0%** |
+| **Patterns & templates** | 12 | none | **0%** |
+
+The honest summary: the gap is not 121 vs 41 topics — it is **granularity**. Their "lesson" is one concept; ours is a chapter wearing a lesson's name. Splitting is the fix, and the authored outline already says where the cuts go.
+
+---
+
+## 2. Target map
+
+**Phase B is the committed scope. C and D are sequenced, not promised.**
+
+| Phase | Parts | Modules | Lessons | State |
+|---|---|---|---|---|
+| **B (this plan)** | 0 Mindset, 1 Scaling, 3 Reliability | 15 | 79 | **15 converted, 79 lessons, all at the depth bar — complete and committed 2026-11-02**. The original plan said "11 rewritten, 4 story-renamed then deepened" — the conversion turned out to be a full rewrite in every case, so that split no longer describes the work |
+| C (later) | 2 Async, 4 Storage, 5 Internals, 6 Distributed, 7 Patterns | 10 | ~57 | new |
+| D (later) | 8 Global, 9 Practice problems | 1 + 7 problems | ~11 | new |
+
+**Total if all phases ship: ~26 modules, ~146 lessons** — deliberately not a target. C is re-scoped after B is read end to end. If B feels complete on its own, C shrinks to storage + async + internals + patterns (~36 lessons).
+
+**Numbering:** Phase B renumbers `order` contiguously 1–15, because the API module is inserted at position 5. Phase C will renumber once more. So that this cannot drift silently, `check:system-design` gains an assertion that `order` is exactly `1..N` with no gaps and no duplicates.
+
+---
+
+## 3. Phase B — module specification
+
+Every module: story rewritten onto the **Netflix** case study (D1), lessons split to match the chapter outline, D3 depth bar applied. `S` = simulator module (keeps its Build Task). `P` = prose module.
+
+**All 15 rows are now the *shipped* outlines, not the plan** — slugs re-read from `config/system-design/modules/*.ts` and matched one-for-one against the bound leaves by `npm test`. Two rows changed from the original spec: module 6 swaps `load-balancing` and `autoscaling` (the balancer has to exist before taking more than one of it means anything), and module 8 puts `read-your-own-writes` before `promoting-a-replica`. Module 11 also ships `purging-and-versioning` before `edge-compute`/`image-and-video-delivery`, because a purge is the consequence of the cache key and reads badly after the media lessons introduce segmentation (§7.6). Rows 12–15 shipped in B7 (§7.7), and module 12's grouping puts `the-cascade` in a group of its own — one lesson under a heading, deliberately.
+
+**The anchor column is the part that stops this being a generic textbook.** Each module must be built around one Netflix artefact or one sentence from a Netflix primary source — not around "a video platform" in the abstract. If a lesson cannot be tied back to its anchor, the lesson is filler and should be cut. Every URL in this column was `curl`-verified **200** on 2026-10-27; the one class excluded is `netflixtechblog.com`, which answers **403** to non-browser clients (Medium bot wall, same class as Cloudflare/Nginx — see resource map §5), so its posts are referenced here by title, never linked as a `sources` entry.
+
+### Part 0 — Mindset (5 modules, 22 lessons)
+
+| # | Module | Lessons (one leaf chapter each) | Kind | Netflix anchor |
+|---|---|---|---|---|
+| 1 | `what-is-system-design` | choices-not-boxes · performance-vs-scalability · latency-vs-throughput-vs-bandwidth · **scalability-patterns** *(new — promised today, absent)* | S | 2008 corruption, forklift-vs-rebuild — `about.netflix.com/news/completing-the-netflix-cloud-migration` |
+| 2 | `requirements` | functional-vs-nonfunctional · eliciting-requirements · **turning-fast-into-a-number** · **what-youre-not-building** | S | Same post: streaming launched broadly while billing stayed in the data centre on purpose — two requirement sets, one company |
+| 3 | `constraints-and-design-process` | the-45-min-structure · tradeoffs · anti-patterns · **saying-it-out-loud** | S | Same post: seven years, phased, and *"we simply could not have racked the servers fast enough"* |
+| 4 | `back-of-the-envelope` | powers-of-two-and-latency-numbers · qps-storage-bandwidth · littles-law · **estimation-under-uncertainty** | S | Same post: 130+ countries in one day (Jan 2016) and *"hundreds of micro-services"* — estimate before you promise |
+| 5 | **`api-and-contracts`** (new) | the-contract-before-the-code · pagination-that-doesnt-lie · who-are-you-vs-what-may-you-do · idempotent-writes · errors-and-status-codes · the-gateway-as-one-door | **P** | Zuul as the single edge — `github.com/Netflix/zuul`; Eureka for who-exists — `github.com/Netflix/eureka` |
+
+### Part 1 — Scaling up (6 modules, 40 lessons)
+
+| # | Module | Lessons | Kind | Netflix anchor |
+|---|---|---|---|---|
+| 6 | `load-balancers-and-stateless-services` | vertical-vs-horizontal · load-balancing · autoscaling · sessions-without-sticky · stateless-services | S | Eureka (discovery) + Zuul (edge routing) — `github.com/Netflix/eureka`, `github.com/Netflix/zuul` |
+| 7 | `caching` | **why-cache** · where-to-cache · **cache-aside** · **write-through-and-behind** · **refresh-ahead** · **cache-keys-and-cardinality** · ttl-and-eviction · invalidation · cache-stampede · **cold-start-and-failure-modes** | S | EVCache, their memcached layer — `github.com/Netflix/EVCache` |
+| 8 | `read-replicas` | scaling-reads-vs-writes · replication-lag · **read-your-own-writes** · promoting-a-replica · **cqrs-and-read-models** · **when-replicas-dont-help** | S | Same post: the data model was denormalised and moved to NoSQL rather than replicated as-is. *(Shipped order puts `read-your-own-writes` before `promoting-a-replica`: you have to know what a stale read costs you before deciding when to promote — §7.5)* |
+| 9 | `partitioning-and-sharding` | why-partition-data · hash-and-range-sharding · hot-keys-and-skew · rebalancing-shards · **consistent-hashing** · **cross-shard-queries** · **when-not-to-shard** | S | Same post: one relational database became many partitioned services; member data had to be split before it could scale |
+| 10 | `rate-limiting` | the-bot-in-your-traffic · algorithms · **distributed-rate-limiting** · **quotas-and-tiers** · **load-shedding** · **429-and-retry-after** | S | Adaptive concurrency limits instead of a fixed number — `github.com/Netflix/concurrency-limits` |
+| 11 | `cdns-and-static-content` | latency-numbers · cache-keys-and-ttl · what-a-cdn-cannot-cache · **purging-and-versioning** · **edge-compute** · **image-and-video-delivery** | S | Open Connect, the CDN they built and put inside ISPs — `openconnect.netflix.com` |
+
+### Part 3 — Reliability (4 modules, 17 lessons)
+
+| # | Module | Lessons | Kind | Netflix anchor |
+|---|---|---|---|---|
+| 12 | `how-systems-fail` | trace-your-own-design · retry-storms · cascades · **blast-radius-and-bulkheads** · **logging-monitoring-and-traces** *(new — the observability gap)* | S | Simian Army, the tool that finds failure on purpose — `github.com/Netflix/SimianArmy` |
+| 13 | `timeouts-retries-circuit-breakers` | no-timeout-is-worse · retries-and-jitter · breakers-and-bulkheads · **timeout-budgets** · **fallbacks-and-degradation** | S | Hystrix, the breaker they open-sourced — `github.com/Netflix/Hystrix` |
+| 14 | `idempotency` | at-least-once-delivery · idempotency-keys · **exactly-once-is-a-lie** · dead-letter-queues | S | Same post: billing was the **last** system to leave the data centre, because money movement cannot be retried carelessly |
+| 15 | `chaos-capstone` | chaos-as-practice · surviving-everything · **postmortems-without-blame** | S | Chaos Monkey terminating production instances — `github.com/Netflix/chaosmonkey` |
+
+### 3.1 Phase C sketch (not committed)
+
+| Part | Modules (lessons) | Notes |
+|---|---|---|
+| 2 Async | `queues-and-background-jobs` (6) · `events-and-streaming` (6) | Kafka / outbox / DLQ as prose; the queue and worker nodes already exist in the engine |
+| 4 Storage | `choosing-a-datastore` (7) · `how-databases-store-data` (6) | SQL vs NoSQL, KV / document / search / blob, OLTP vs OLAP, B-tree vs LSM, WAL, MVCC |
+| 5 Internals | `replication-internals` (5) | algorithms, quorum, failover, lag, CDC |
+| 6 Distributed | `consistency-and-consensus` (6) · `observability-and-slo` (5) | CAP/PACELC without the math, consistency spectrum, consensus as prose, SLO/error budget |
+| 7 Services | `monolith-to-services` (5) · `patterns-that-pay-rent` (6) | boundaries, service discovery, saga, outbox, fan-out/fan-in, unique IDs |
+| 8 Global | `multi-region-and-geo` (4) | |
+
+**Explicitly excluded:** Big Data (MapReduce, Spark, Flink, windowing, watermarks, lambda/kappa), geospatial search, media systems, probabilistic data structures (HLL, Count-Min). Senior/staff topics; several need dedicated visualizers we do not have; plan 16 §10.5 already says a fake version teaches worse than prose.
+
+---
+
+## 4. Change list — file by file
+
+### 4.1 Content (data only)
+
+| File | Change | Risk |
+|---|---|---|
+| `config/system-design/types.ts` | Add `SdModule.kind: "sim" \| "prose"`; make `task?: SdTaskDef` (B3); add `SdSourceRef { label, url }` and `SdLesson.sources?: SdSourceRef[]`; **delete `storyIllustration`** (unused, typed `any[]`, violates the no-`any` rule); make `SdChapter.lessonSlug` required on leaves — **done in B7 as a union** (`{ lessonSlug: string } | { children: SdChapter[] }`): deferred from B1 because requiring it would have failed `tsc` on 13 modules at once, and shipped with **no module edits** once the last outline was bound (§7.7) | Medium — touches every module file, but mechanical |
+| `config/system-design/modules/*.ts` (15) | Story → the **Netflix** case study (D1) and its §3 anchor; lessons split to the outline; depth bar; `sources`; chapter leaves bound. **9 of 15 converted as of 2026-10-30** | The bulk of the work |
+| `config/system-design/modules/api-and-contracts.ts` | **New module** (6 lessons) | First prose module |
+| `config/system-design/registry.ts` | Register the new module; update the header comment (it still says "empty until Task 13" and "14 modules") | Low |
+
+### 4.2 UI
+
+| File | Change | Why |
+|---|---|---|
+| `components/system-design/ModuleLayout.tsx` | Render the three-level chapter tree in the left rail (collapsible groups, active leaf, mobile drawer); Part · Module header; Build Task section conditional on `task`; "sources" block | The outline must be visible — the single highest-impact fix in this plan |
+| `components/system-design/LessonFlow.tsx` | Prev/next derived from chapter leaves; sources block; reading time already computed at 200 wpm — keep it honest with the new bar | Navigation must agree with the tree |
+| `components/system-design/Sidebar.tsx` | **Delete** | Dead code, wrong hrefs |
+| `components/system-design/ModuleCard.tsx` | Show lesson count + `kind` affordance (Simulated / Reading) | Honest expectations on the index |
+| `app/(routes)/system-design/page.tsx` | Group modules by Part instead of one flat four-column grid | With 15 modules the flat grid reads as a list |
+| `app/(routes)/system-design/[module]/page.tsx` | Pass `kind`; omit `task` when absent; remove the `as any[]` cast used for stripping `steps` | Correctness |
+| `app/(routes)/system-design/[module]/task/page.tsx` | `notFound()` when `!module.task`; `generateStaticParams` filters to `kind === "sim"` | A prose module must not expose a dead route |
+| `app/sitemap.ts` | Emit `/task` only for modules that have one | It currently emits it unconditionally (`app/sitemap.ts:122`) — a guaranteed 404 in the sitemap |
+
+### 4.3 Engine / API
+
+| File | Change | Risk |
+|---|---|---|
+| `app/api/system-design/state/route.ts` | `lesson-complete` unchanged; `task-save` must reject modules with no task (it reads `taskModule.task.passCriteria` today) | Low |
+| `lib/system-design/*` | **No change.** The engine is content-agnostic. If a slice needs an engine change, that is a signal the slice is wrong | — |
+
+**One exception, recorded in §7.2 (B2):** `lib/system-design/nodes.ts` gained **type overloads** for
+`defaultNode`. A preset written as `{ ...defaultNode("app_server", …), replicas: 2 }` is a union
+spread, so `tsc` rejected a literal that was always valid. The overloads are annotation only — the
+body, the defaults and the capacity model are untouched, and the engine does not read a type.
+The rule survives: needing a *behavioural* engine change in a content slice is still a signal the
+slice is wrong.
+
+### 4.4 Gates — where this plan is won or lost
+
+| File | Change |
+|---|---|
+| `scripts/check-system-design.ts` | Four new assertions: (1) chapter-leaf set === lesson set, both directions; (2) `order` is contiguous `1..N`; (3) `kind` matches task presence; (4) every `sources[].url` is https and non-empty. The existing graph / rubric / chain checks stay |
+| `tests/system-design-content.test.ts` (new) | The same pure invariants as `node:test` — they need no build, so they run **before** `Build` in CI. The prerender assertions stay in the post-build script |
+| `package.json` | No new scripts. `test` and `check:system-design` already exist |
+
+**Gate discipline (project rule):** each new assertion is mutation-tested once — break the target, confirm red, restore. A gate that has never been observed failing is not a gate.
+
+### 4.5 Docs (after the code, not with it)
+
+- `.agent/feature-tracker.md` 6.1 and `.agent/plans/16-system-design-phase-6.md` §10.0/§10.1 — record D1 (app switch), D2 (leaf = lesson) and the new numbering; point at this file as the source of truth.
+
+---
+
+## 5. Sources — what each topic draws from
+
+**Rule: link out, never paste.** Every module's `attribution` names its sources; each lesson may carry one to three `sources` links. `systemdesignschool.io` is **never** a content source — it was the checklist that exposed the gaps.
+
+**The per-lesson assignment lives in `.agent/plans/17-system-design-resource-map.md`:** which of the 31 Bangla videos belongs to which lesson, and one verified free read per lesson (66 URLs HTTP-checked, four replaced because they failed the check). This table is the *policy*; that document is the *assignment*.
+
+| Topic | Primary source (free unless noted) | Usage |
+|---|---|---|
+| Latency numbers, powers of two, availability math, LB/CDN/sharding basics | `github.com/donnemartin/system-design-primer` | Synthesise + attribute (read the licence before quoting) |
+| Requirements, trade-off framing, interview structure | `hellointerview.com/learn/system-design/in-a-hurry` | Framing only |
+| 30-concept scaffold, top trade-offs, roadmap | `algomaster.io` system-design path | Coverage cross-check |
+| HTTP semantics, idempotent methods, status codes | RFC 9110 (+ RFC 9457 problem details) | Normative reference |
+| Pagination, idempotency keys, error design | Stripe API docs; Google API design guide (AIP) | Real-world practice |
+| HTTP / CDN caching semantics | MDN HTTP caching; Cloudflare Learning Center | Reference |
+| Cache eviction, patterns, cache failure modes | Redis docs (eviction, client-side caching) | Reference |
+| Stampede / thundering herd | Cloudflare and Meta engineering posts | Case study |
+| Autoscaling, timeouts, retries, backoff + jitter, load shedding | **AWS Builders' Library** | Best free source in the set |
+| Cascading failure, error budgets, SLO | Google SRE Book + Workbook (free HTML) | Reference |
+| Circuit breaker, bulkhead, fallback | Netflix Hystrix wiki (archived); Azure Architecture Center | Reference |
+| Postgres replication, WAL, MVCC | PostgreSQL docs | Reference |
+| Sharding, hot keys, chunk migration | MongoDB sharding docs | Reference |
+| Consistent hashing | Karger et al. paper + primer explainer | Concept |
+| B-tree vs LSM, storage engines | *Designing Data-Intensive Applications* (book, **not** free) + Postgres/ClickHouse docs | Cite the book; never reproduce it |
+| Indexing | `use-the-index-luke.com` | Reference |
+| OLTP vs OLAP, analytics, materialised views | ClickHouse docs; Postgres materialised views | Reference |
+| Queues, visibility timeout, DLQ | AWS SQS docs | Reference |
+| Kafka log model, delivery semantics | Kafka docs (design section) | Reference |
+| Saga, outbox, CQRS, API composition | `microservices.io` (Chris Richardson) + Azure patterns | Canonical free |
+| Observability, USE/RED, tracing | Brendan Gregg's USE method; OpenTelemetry docs | Reference |
+| Multi-region, anycast, geo-DNS | Cloudflare / AWS global infrastructure docs | Reference |
+| Bangla video | `CodeInsightsByJack` channel + the 10 existing embeds | Optional per module |
+
+**Licence pre-flight:** before Slice B1 ships, confirm the licence of `system-design-primer` and record it in `attribution`. Anything with unclear terms (Hello Interview, AlgoMaster, systemdesignschool) is consulted for *coverage only* — no sentences, no ordering, no titles.
+
+---
+
+## 6. Pre-implementation checklist (blocking)
+
+Answer all of these **before** Slice B1 touches `types.ts`. Ordered by the cost of getting them wrong.
+
+| # | Item | How to resolve | Why it blocks |
+|---|---|---|---|
+| **P1** | **Existing progress.** `lessons_completed` stores `"<module>/<lesson>"` keys (`LessonFlow.tsx:41`). Splitting a lesson orphans a completed key | Run `SELECT COUNT(*) FROM sd_user_state;`. If 0 → nothing to migrate. If > 0 → keep each old slug as the **anchor** lesson of its split and record the mapping | Silent progress loss for real users, and it cannot be undone after content ships |
+| **P2** | **Build baseline.** Build time, prerendered route count, per-module client JS | Run `npm run build` and record: total time, `/system-design/*` route count (today 69), First Load JS for `/system-design/caching` | 41 → 78 lessons nearly doubles prerender work; the Vercel Hobby build-minute budget must be measured, not assumed |
+| **P3** | **Client payload.** `ModuleLayout` and `LessonFlow` receive **all** lessons (prose included) as props, so a 10-lesson module ships ~10× the prose of a 4-lesson one | Use P2's First Load JS. If a module page exceeds ~150 kB, trim the nav props to `{ slug, title }[]` and keep only the current lesson's sections | A real, measurable regression risk of the split — decide before authoring, not after |
+| **P4** | **Outlines for the four modules that have none** | Write the leaf titles first as a content spec (the table in §3 is the draft); review before prose | Without it, "one leaf = one lesson" is unimplementable for those modules |
+| **P5** | **Chapter-tree UX.** Three levels on desktop, drawer on mobile | One wireframe: collapsible group → leaves, active state, progress ticks. Keep the existing 256 px rail | Reworking after 15 modules are authored is expensive |
+| **P6** | **Prose-module UX.** What replaces the Build Task block | Decide: Interview Byte + "try it yourself" prompt + sources + next module. No fake task | Needed before D5 |
+| **P7** | **Slug freeze.** Slugs are permanent because they are progress keys; a rename silently resets a learner | Rule in `types.ts` + an optional committed `slug-manifest.json` that the checker compares against | The only content bug that damages users retroactively |
+| **P8** | **Video plan.** Which modules get a Bangla video | The 10 existing videos cover ~8 modules; new modules ship without a video rather than with a mismatched one | Prevents "every module needs a video" scope creep |
+| **P9** | **Attribution text** | Standard footer: "Synthesised from …; sources linked per lesson. No source text reproduced." | Ships with B1, not later |
+| **P10** | **`TaskWorkspace` module loading** | Confirm whether it imports the module client-side by slug or receives it as a prop | Decides whether `task?` needs a null guard in one place or four |
+
+---
+
+## 7. Slices and acceptance criteria
+
+One slice = one review cycle. I read every lesson before the next slice starts. No commits by the agent.
+
+| Slice | Deliverable | Acceptance |
+|---|---|---|
+| **B1** ✅ shipped 2026-10-27 (committed) | `types.ts` model change + `ModuleLayout` tree + `Sidebar.tsx` deletion + new gates/tests + **module 1 rebuilt** (4 lessons, Netflix case study, 898/898/897/893 words, `sources` on each) | Verified: `npm test` 588/588, `tsc` clean, build 120/120, `check:system-design` all checks passed (19 warnings, all pre-existing class), module-1 page 58,299 bytes, 4 lesson pages render `Go deeper` + `4 min read`. Committed after manual review. |
+| **B2** ✅ shipped 2026-10-28 (committed) | Modules 2, 3, 4 — outlines written, lessons at the depth bar, each built on its §3 Netflix anchor | Verified: `npm test` 594/594, `tsc` clean, build 124/124, `check:system-design` all checks passed (14 warnings), 4/14 modules bound, 75 `/system-design` routes, module pages 58,368 / 57,786 / 58,147 bytes. Committed after manual review. |
+| **B3** ✅ shipped 2026-10-28 (committed) | Module 5 `api-and-contracts` (new, prose, 6 lessons) + `task?` optional + prose-module UX + sitemap/task-route/API guards + tests | Verified: `npm test` 598/598, `tsc` clean, build 131/131, `check:system-design` all checks passed (15 modules, 14 warnings). 5/15 modules bound. 82 routes under `/system-design`. Module page bytes TBD. Committed after manual review. |
+| **B4** ✅ shipped 2026-10-29 (committed) | Module 7 `caching` 4 → 10 lessons, on Netflix's **EVCache** tier; task re-measured after the old one was found to pass while shedding 96% of traffic | Verified: `npm test` 602/602, `tsc` clean, build 137/137, `check:system-design` all checks passed (6/15 converted, 13 warnings), caching page 72,989 bytes, 10 lesson pages 62–74 KB. Committed after manual review. |
+| **B5** ✅ shipped 2026-10-29 / 10-30 (committed), in two parts | **Part 1** — module 6 `load-balancers-and-stateless-services` 3 → 5 lessons, anchored on Zuul + Eureka; its task re-measured at 4,000 r/s after the old one was found to be *impossible* (20,000 r/s offered to a 20,000 r/s balancer, graded only on topological validity — measured 90% errors, green). **Part 2** — module 8 `read-replicas` 3 → 6 lessons and module 9 `partitioning-and-sharding` 4 → 7 lessons; both tasks rebuilt after measuring that the old ones passed while shedding 96% of their traffic | Verified: `npm test` **618/618** (606 after part 1), `tsc` clean, build **145** static pages, `check:system-design` all checks passed (**9/15 converted, 10 warnings**), 95 `/system-design` routes, module pages 64,470 (m6) / 66,185 (m8) / 70,768 (m9) bytes, all 13 new lessons inside 700–900 words, **12 new assertions mutation-tested red and restored**. Committed after manual review. |
+| **B6** ✅ shipped 2026-11-01 (committed) | Modules 10 `rate-limiting` (3 → 6 lessons, Netflix `concurrency-limits`) and 11 `cdns-and-static-content` (3 → 6, Netflix Open Connect); both tasks re-measured after the old ones were found to grade a typed number and an idle origin rather than a decision | Verified: `npm test` **634/634**, `tsc` clean, build **151** static pages, `check:system-design` all checks passed (**11/15 converted, 8 warnings**), **101** prerendered `/system-design` pages (15 + 72 + 14) + the index, module pages 63,531 / 65,072 bytes, all 12 new lessons inside 700–900 words, **16 new assertions mutation-tested red and restored**. Committed 2026-11-01. |
+| **B7** ✅ shipped 2026-11-02 (committed) | Modules 12–15 (10 → 17 lessons, Netflix Simian Army / Hystrix / billing-last / Chaos Kong); all four tasks rebuilt after finding that three of them graded **fields `simulate()` never reads**; `SdChapter.lessonSlug` made required as a union | Verified: `npm test` **658/658** (113 suites), `tsc` clean, build **158** static pages, `check:system-design` all checks passed (**15/15 converted, 4 warnings**, all chain and all answered), **108** prerendered `/system-design` files (15 + 79 + 14) + index, module pages 61,111 / 60,884 / 59,050 / 56,429 bytes, all 17 lessons inside 700–900 words, **27 mutations red and restored**, 91 distinct source URLs and 3 video ids verified. Committed 2026-11-02. |
+
+**Why this order:** B1 proves the model on the smallest module. B2 fixes the first-run experience, because every learner passes through modules 1–4. B3 proves the prose module without touching the simulator. B4 is the flagship stress test. B5–B7 are repetition at increasing volume.
+
+### 7.1 B1 — shipped 2026-10-27, measured
+
+Recorded here because `tests/system-design-content.test.ts` cites this section as the place the
+mutation tests are written down. A citation to a section that does not exist reads exactly like
+a section that does.
+
+| What was asserted | How it was mutated | What went red |
+|---|---|---|
+| Leaf ↔ lesson set equality | deleted one `lessonSlug` from a bound tree | `outline-half-converted`, 2 failures |
+| No duplicate binding | pointed two leaves at `choices-not-boxes` | `outline-duplicate-binding` + `lesson-not-in-outline` |
+| Depth bar 700–900 | replaced all four lesson bodies with one sentence | `lesson-depth: 231 words, outside 700–900` |
+
+All three restored, suite back to 588 passing / 0 failing.
+
+**Measured, not estimated:**
+
+- **Word counts** — 898 / 898 / 897 / 893 for the four lessons (target 700–900). Gate-enforced,
+  so these numbers cannot drift without CI failing. (First draft was 852/894/871/883 on the LynxDEV case study; the Netflix rewrite landed 898/898/897/893.)
+- **Routes** — 119 static pages, 71 under `/system-design` (14 modules + 42 lessons + 14 tasks +
+  index). Baseline before B1 was 70 routes / 41 lessons.
+- **Build** — exit 0, `Finished TypeScript in 6.2s`, 5.1s static generation.
+- **Payload** — module 1 page **65,625 → 58,299 bytes** despite carrying 4× the prose of the
+  module it replaced (57,791 was the intermediate LynxDEV draft). Achieved by passing `ModuleOverview` (titles and counts only) instead of
+  `SdModule`; the old shape shipped every lesson body *and* both task graphs to a component that
+  reads neither. Caching and rate-limiting pages unchanged at 55,570 / 54,602, which is the
+  control that says the trim did not come from somewhere else.
+- **Gate output** — `OK 1/14 module(s) converted to the leaf model (what-is-system-design)` plus
+  19 warnings naming the other 13. Warnings are deliberate: a gate that is red for planned work
+  stops being information.
+
+**Two deviations from §4.1, both intentional:**
+
+1. `SdChapter.lessonSlug` stayed **optional**. Making it required fails `tsc` for the 13
+   unconverted modules at once, which would mean deleting their authored outlines to satisfy a
+   type. The gate enforces the same rule instead, and `types.ts` carries a TODO to close it at B7.
+2. Both module-1 sources changed for better ones — *CAP twelve years later* and *Erlang (unit)*
+   were replaced because neither goes deeper than the lesson that cited it. Details in the
+   resource map, §2.
+
+### 7.2 B2 — shipped 2026-10-28, measured
+
+Modules 2–4 converted: 12 lessons, four per module, each bound to a leaf chapter and each anchored
+to a Netflix primary source except where the map records a deliberate swap (§2, M2–M4).
+
+**Measured, not estimated:**
+
+- **Word counts** — M2 867 / 856 / 847 / 839 · M3 893 / 900 / 900 / 822 · M4 874 / 893 / 872 / 899.
+  Two lessons sit *on* the 900 ceiling. That is allowed, and it is also the useful state: the next
+  edit to either one fails the gate instead of quietly growing.
+- **Binding** — the three modules move `no-outline` → `bound`. Gate summary: `4/14 module(s)
+  converted to the leaf model`.
+- **Tests** — 594 passing / 0 failing (588 after B1, plus two assertions × three modules).
+- **Routes** — 124 static pages, **75 under `/system-design`** (71 after B1). The three modules went
+  2→4, 3→4, 3→4 lessons: +4 routes, nothing removed.
+- **Payload** — module pages **58,368 / 57,786 / 58,147 bytes**, i.e. flat against module 1's
+  58,299 despite comparable prose. The `ModuleOverview` boundary from B1 is what keeps it flat;
+  this slice added 12 lessons without moving it.
+- **Build** — exit 0, 4.7s static generation, `tsc` clean.
+- **Gate output** — `All checks passed for 14 module(s), 14 warning(s)`. B1 left 19 warnings;
+  three modules leaving the `unbound` class accounts for the drop.
+
+**Mutation-tested (the new assertions only):**
+
+| Assertion | Mutation | What went red |
+|---|---|---|
+| rail order = lesson order | swapped two entries of the `requirements` `nav` table | `requirements: outline order and lesson order disagree` |
+| no private-system pronoun | renamed a heading to "Our app requirements" | the `\bour app\b` regex — while the substring checks stayed green, which is why the pronoun is matched separately |
+
+Both restored; suite back to 594 passing.
+
+**Four deviations, each found by running something rather than by reading:**
+
+1. **`defaultNode` gained type overloads** (`lib/system-design/nodes.ts`). A preset written as
+   `{ ...defaultNode("app_server", …), replicas: 2 }` is a union spread, so `tsc` rejected it:
+   `replicas` is not a field of `SdClientNode`, one arm of that union. The literal was always a
+   valid `SdAppServerNode`; only the annotation said otherwise. Nine literal overloads plus the
+   general `SdNodeType → SdNode` case — the general one has to be a real overload, because the
+   implementation signature is invisible to callers and `tests/nodes.test.ts` iterates
+   `NODE_TYPE_ORDER`. No runtime change.
+2. **Module 4's start graph is module 3's solution, unchanged.** The first draft started from
+   client → app → db, and the chain check flagged it as dropping the load balancer module 3 had
+   just taught. Deleting that node unteaches the previous lesson, so the start now inherits it:
+   6,000 r/s against two app replicas (utilisation 1.50) and one store. Re-measured: 33.3% errors,
+   max 1.50 → solution 0% / 0.75.
+3. **Module 2's start graph drops the database on purpose**, and the chain check warns about it on
+   every run. That is the exercise — the canvas is the *membership* service, the second system from
+   "Two systems, one company", so there is no store to inherit — and the brief says so in its first
+   sentence. Written into the module header so the warning has an answer next to it.
+4. **Video titles were fetched, not paraphrased.** YouTube's oEmbed endpoint returned all four on
+   2026-10-28; three draft titles had drifted from the real ones and `5WVl9F_7f7k` was missing from
+   its lesson altogether. Fixed rather than recorded, because a learner searching the title has to
+   find the same string.
+
+### 7.3 B4 — shipped 2026-10-29, measured
+
+Module 7 `caching`: 4 → 10 lessons, 3 → 4 chapter groups, every leaf bound, story moved onto
+**EVCache** (Netflix's memcached tier) and its README, which defines the acronym the module is
+built on: *Ephemeral* (TTL), *Volatile* (evictable), *Cache*.
+
+**Measured, not estimated:**
+
+- **Word counts** — 885 / 861 / 857 / 885 / 721 / 830 / 898 / 856 / 826 / 863 (bar 700–900).
+  `ttl-and-eviction` sits two words under the ceiling; the next edit to it fails the gate.
+- **Binding** — `6/15 module(s) converted`. Gate: `All checks passed for 15 module(s), 13 warning(s)`
+  (B3 left 14; caching leaving the `unbound` class accounts for the drop).
+- **Tests** — 602 passing / 0 failing (598 after B3, plus three assertions for module 7 and one
+  new general invariant).
+- **Routes** — 137 static pages, **87 under `/system-design`** (82 after B3; +6 lessons −1 retired…).
+- **Payload** — module page **55,570 → 72,989 bytes** for 4 → 10 lessons, i.e. ~2.3 KB per added
+  lesson, which is titles and chapter descriptions rather than prose (each lesson body is ~5 KB).
+  The `ModuleOverview` boundary from B1 still holds; nothing here approaches the 150 kB line in P3.
+  For scale: `api-and-contracts` (prose, 6 lessons) is 61,643 bytes, `read-replicas` (3 lessons,
+  unconverted) 51,835.
+- **Build** — exit 0, 137/137 static pages in 3.8 s, `tsc` clean.
+
+**Mutation-tested (every new assertion):**
+
+| Assertion | Mutation | What went red |
+|---|---|---|
+| offered load fits the balancer | caching startGraph `12,000` → `25,000` | `caching (start graph): 25000 r/s offered against 20000 r/s of balancer capacity` |
+| the task measures shedding | `zero-errors` `required: true` → `false` | `caching: no required error-rate criterion` |
+| leaf ↔ lesson equality | deleted the `refresh-ahead` `lessonSlug` | `outline-half-converted`, 2 failures |
+| depth bar | truncated one concept body | `caching/refresh-ahead: 610 words, outside 700–900` |
+
+All restored; suite back to 602 passing.
+
+**The old task was broken, and passing.** The module ran at 50,000 r/s against three app instances
+behind one load balancer whose capacity in `NODE_TYPES` is 20,000. Measured: **start graph 96%
+errors, "solution" 96% errors**, and every pass criterion green — `p95` is computed over the
+requests that *completed*, and only 4% did. A learner could finish the module without ever fixing
+the tier. Re-measured at 12,000 r/s with eight app instances (75% utilisation, so the tier is not
+the lesson): **no cache → store 240%, 58.3% errors, p95 9.4 ms; cache at 0.9 → store 24%, 0%
+errors, p95 3.4 ms**. The task now carries a required `zero-errors` criterion, and a new general
+test asserts that **no converted module may offer more traffic than its own balancer can route**.
+
+**Three defects found outside this slice's content, recorded rather than fixed:**
+
+1. **Modules 6 and 8 have the same broken shape.** Measured: `load-balancers-and-stateless-services`
+   solution **90% errors** at 20,000 r/s, `read-replicas` solution **96%** at 50,000. Both are at or
+   above a single balancer's 20,000 ceiling. The new invariant is deliberately scoped to converted
+   modules, so it does not go red for planned work — but **B5 cannot convert module 6 or 8 without
+   fixing their numbers**, which is the intended forcing function.
+2. **`ttlMs` and `stampedeGuard` are inert.** The engine never reads either (`lib/system-design/engine.ts`
+   models only `hitRate` and `cacheColdStart`), yet the Inspector exposes both and the old lesson
+   claimed toggling `stampedeGuard` would drop DB utilisation. The claim was removed from the lesson
+   rather than kept, and no prose in B4 attributes a simulator result to either knob.
+3. **`cacheColdStart` never warms.** `runRequest` tests `toStats.processed === 0`, and `processed`
+   counts **hits** — which cannot happen while `hitRate` is forced to 0. Measured: cold start =
+   permanently cold (58.3% errors at `hitRate: 0.9`). Not used by this module's task; the
+   cold-start lesson describes real behaviour and points at deleting the cache node instead.
+
+All three want a **small engine slice** (`hitRate` and cold start are the module's core interaction)
+before B5 turns two more modules into content that references them. That is a behavioural engine
+change and is therefore explicitly *not* done here.
+
+**Other deviations, each measured:**
+
+1. **`the-five-strategies` and `ttl-eviction-invalidation` were retired as slugs** rather than kept
+   as anchors (P1 says keep old slugs as split anchors). P1 was answered on 2026-10-29:
+   `SELECT COUNT(*) FROM sd_user_state` → **1 row, one completed key**,
+   `what-is-system-design/choices-not-boxes` — not in this module. This was the last moment the
+   rename was free, so the target slugs from §3 were used exactly.
+2. **`OKs2670F3V0` was not attached to `refresh-ahead`.** The resource map assigns it there, but
+   YouTube's oEmbed endpoint returns the title *“How YouTube's Timeline Preview Actually Works |
+   Backend System Design (Bangla)”*, which does not evidence refresh-ahead. P8 says a module ships
+   without a video rather than with a mismatched one, so the lesson has none. **The resource map
+   needs correcting**, not the lesson.
+3. **P1 is closed** (see above) and **open decision §10.5 (indexing)** is still unanswered; it
+   changes module 8 or 9, which is B5.
+
+### 7.4 B5, part 1 — module 6, shipped 2026-10-29 (committed)
+
+Module 6 `load-balancers-and-stateless-services`: **3 → 5 lessons**, 3 chapter groups, every leaf
+bound, anchored on the two halves of Netflix's answer to "how does a request find a server":
+
+- **Zuul**, in the path — its README calls it *"an L7 application gateway that provides capabilities
+  for dynamic routing, monitoring, resiliency, security"*;
+- **Eureka**, out of it — *"a RESTful service … for the purpose of discovery, load balancing and
+  failover of middle-tier servers"*.
+
+| Group | Lesson | Words |
+|---|---|---|
+| The wall | `vertical-vs-horizontal` | 860 |
+| Getting traffic to instances | `load-balancing` | 876 |
+| | `autoscaling` *(new)* | 856 |
+| Replaceable instances | `sessions-without-sticky` *(new)* | 884 |
+| | `stateless-services` | 893 |
+
+Two https sources per lesson; three embedded videos (`WxNLwivRCR0` reverse proxy ≠ LB,
+`UQ67LJJkhg8` cloud computing, `tOm35rmGrfg` "log out of all devices").
+
+**Measured, not estimated:**
+
+- **Binding** — `7/15 module(s) converted`. Gate: `All checks passed for 15 module(s), 12 warning(s)`
+  (B4 left 13; module 6 leaving the `unbound` class accounts for the drop).
+- **Tests** — **606 passing / 0 failing** (602 after B4, plus four assertions for module 6). One of
+  them is the first assertion in this file that **runs the engine** rather than reading config:
+  the start graph must fail every criterion and the solution must pass all of them.
+- **Routes** — 139 static pages, **89 under `/system-design`** (87 after B4; +2 lessons).
+- **Payload** — module page **64,470 bytes** for 5 lessons. For scale: `caching` (10 lessons)
+  72,989, `read-replicas` (3, unconverted) 51,835, `partitioning-and-sharding` 52,826. The
+  `ModuleOverview` boundary from B1 still holds; ~2 KB per added lesson is titles, not prose.
+- **Build** — exit 0, 139/139 static pages in 14.2 s, `tsc` clean, `check:migrations` clean.
+- **Chain** — `caching` starts from module 6's finished design, which is what makes the store's 80%
+  in module 6 a hand-off rather than an unfinished answer.
+
+**Mutation-tested (every new assertion, observed red then restored):**
+
+| Assertion | Mutation | What went red |
+|---|---|---|
+| start fails / solution passes, on the engine | `arrivalRate` `4_000` → `15_000` | `module 6: solution fails "zero-errors"` — at 15,000 r/s the store (5,000 r/s) is the bottleneck, so no finish exists |
+| | `replicas` 4 → 2 | same criterion: 4,000 of capacity for 4,000 of load is 100% utilisation, and the engine sheds at `≥ 1` (0.0025% of requests, which is non-zero) |
+| grades shedding, not validity | deleted the `zero-errors` criterion | `module 6: too few criteria to grade a task` |
+| leaf ↔ lesson equality | deleted the `autoscaling` `lessonSlug` | `outline-half-converted`, 2 failures |
+| rail order = lesson order | swapped two chapters of one group | `outline order and lesson order disagree` |
+| case-study anchor | renamed Zuul/Eureka | `module 6: no Zuul reference` |
+| depth bar | emptied one lesson's six bodies | `load-balancers-and-stateless-services/load-balancing: 125 words, outside 700–900` |
+
+**The old task was impossible, and passing.** It offered **20,000 r/s to a single load balancer whose
+capacity in `NODE_TYPES` is exactly 20,000**, so every request that mattered was shed at the door
+before reaching the tier the module is about — and its only criterion was
+`assert: (r) => r.valid`, which is *topological* validity (a client node and a terminal datastore
+exist). Measured on the old "solution": **90% errors, 2,000 of 20,000 served, criterion green.**
+
+Re-measured at **4,000 r/s, 5% writes**:
+
+| | errors | app | store | LB | p95 |
+|---|---|---|---|---|---|
+| start (monolith) | **50.0%** | 200% | 40% | — | 13.2 ms |
+| solution (LB + 4 replicas) | **0%** | 50% | 80% | 20% | 4.0 ms |
+| 3 replicas | 0% | 67% | 80% | 20% | 4.2 ms |
+| 2 replicas | 0.0025% | 100% | 80% | 20% | 10.1 ms |
+
+So the gate is reached by three instances and the reference design uses four; the reveal says
+exactly that rather than pretending three fails. Store at 80% is deliberate — see below.
+
+**Two model defects this slice had to work around, recorded not fixed:**
+
+1. **The engine cannot spread load across parallel app nodes.** Path selection is per *terminal
+   datastore* (`pathsToTerminals`), so `app-1..app-3` sharing one database gives **app-1 200%,
+   app-2 and app-3 0%** (measured on the old three-node solution). The only way to model N instances
+   is `replicas` on one node, which is also the honest abstraction — behind a balancer, eight
+   identical processes *are* one service. Both the module header and lesson 1 state it, because a
+   learner who drags four app nodes onto the canvas would otherwise conclude the simulator is broken.
+2. **`algorithm` (`rr` / `least_conn`) is inert** — present in `validation.ts`'s zod enum, never read
+   by the engine. Same class as `ttlMs` / `stampedeGuard` (§7.3). The prose teaches the algorithms
+   from AWS's documentation and never attributes a canvas result to the setting.
+
+The second is why this slice contains **no engine change**: `hitRate`, `cacheColdStart`, `ttlMs`,
+`stampedeGuard` and `algorithm` are one behavioural slice, and it blocks module 6's and 7's core
+interactions equally. It is queued, not forgotten.
+
+**One deviation from the resource map:** `nFbOxUJJeFo` (vertical vs horizontal) is **not** repeated in
+module 6. Module 1 already embeds it in `scalability-patterns`, and the same video appearing twice in
+one path is a worse outcome than a lesson with none. The map's M6 row needs that correction.
+
+**Decisions taken while writing it (answering §10):**
+
+- **§10.5 indexing → Phase C, not B5.** Module 8 (6 lessons) and 9 (7 lessons) are already at their
+  planned length, and "why an index is not free" does not teach without B-tree/LSM page layout, which
+  is Phase C's `how-databases-store-data`. Grafting it onto a replica module would produce a lesson
+  that asserts rather than explains.
+- **Module 6 goes first in B5, at 4,000 r/s.** Module 7 inherited this module's shape in B4 (12,000
+  r/s, store at 240%, then 24% with a cache), so module 6's numbers decide module 7's premise; and a
+  finished module 6 that leaves the store at 80% is what makes module 7's opening problem real
+  instead of staged.
+
+**Still open in B5:** modules 8 (`read-replicas`) and 9 (`partitioning-and-sharding`). Module 8 still
+carries the 50,000 r/s task measured at 96% errors in §7.3, and the general balancer invariant skips
+it only because it is not converted yet — converting it is the forcing function.
+
+---
+
+### 7.5 B5, part 2 — modules 8 and 9, shipped 2026-10-30 (committed)
+
+Two modules, both `kind: "sim"`, both anchored on the same published post as modules 1 and 8's
+predecessors — but on **different sentences** of it, because the two modules answer different
+questions and one quote for both would have flattened the distinction:
+
+| | Module 8 `read-replicas` | Module 9 `partitioning-and-sharding` |
+|---|---|---|
+| Lessons | 3 → **6** | 4 → **7** |
+| Chapter groups | 3 | 5 |
+| Anchor sentence | *"denormalized … our data model, using NoSQL databases"* | *"move away from vertically scaled single points of failure"* / *"could not have racked the servers fast enough"* |
+| Question | can a copy fix this? | can a bigger machine hold this? |
+
+**Module 8 — lessons and depth**
+
+| Group | Lesson | Words |
+|---|---|---|
+| The asymmetry | `scaling-reads-vs-writes` | 900 |
+| What lag does | `replication-lag` | 822 |
+| | `read-your-own-writes` | 891 |
+| Failover, and the bill | `promoting-a-replica` | 897 |
+| | `cqrs-and-read-models` | 890 |
+| | `when-replicas-dont-help` | 857 |
+
+**Lesson order deviates from plan §3.** §3 lists `promoting-a-replica` before `read-your-own-writes`.
+The swap is deliberate: lag (§lag) → the three session guarantees → promotion. Promotion's data-loss
+number *is* the lag at the instant of failure, so putting failover between the two makes the reader
+hold a number for a page before it is used. Recorded here rather than silently reordered.
+
+**Module 8's old task was broken and passing.** It offered **50,000 r/s** to a 20,000 r/s balancer and
+a **single** 2,000 r/s app replica. Measured on both shipped graphs: **96% of traffic shed, balancer at
+250%, app tier at 1,000%** — and every criterion green, because the only two were `p95 < 200 ms` and a
+store bound, and **p95 is computed over the requests that completed**. Eight thousand requests a second
+died at the door and the gate reported success.
+
+Rebuilt so the cache cannot be the cheat: **two stores**, the title store behind EVCache (0.9 hit
+rate, at 12%) and a member store the cache cannot help. Re-measured at **12,000 r/s, 95% reads, 8 app
+instances (75%)**:
+
+| | errors | member store | title store | p95 |
+|---|---|---|---|---|
+| start (0 replicas) | **8.5%** | **120%** | 12% | 6.6 ms |
+| 1 replica | 0% | 60% | 12% | 3.5 ms |
+| **solution (2 replicas)** | **0%** | **40%** | 12% | 3.4 ms |
+| 2 replicas on the *title* store | **8.5%** | 120% | 4% | 6.6 ms |
+
+The last row is the control and it is measured, not asserted: a replica on the tier the failing
+traffic never reaches changes nothing. `fast-reads` was tightened from **p95 < 10 ms to < 5 ms** for a
+reason worth recording — at 10 ms it *passed on the broken start* (6.6 ms over the 91% that finished),
+which would have let the module ship the exact defect it documents. Criteria now: `zero-errors`,
+`member-headroom` (< 50%), `fast-reads` (p95 < 5 ms); all three fail at the start.
+
+**Module 9 — lessons and depth**
+
+| Group | Lesson | Words |
+|---|---|---|
+| Why split at all | `why-partition-data` | 899 |
+| Choosing the key | `hash-and-range-sharding` | 703 |
+| What skew does | `hot-keys-and-skew` | 759 |
+| Moving data | `rebalancing-shards` | 796 |
+| | `consistent-hashing` | 889 |
+| The bill | `cross-shard-queries` | 766 |
+| | `when-not-to-shard` | 812 |
+
+**Module 9's numbers are the slice's finding.** Measured at 16,000 r/s (10 app instances, 80%;
+balancer 80%; member store at 2 replicas, inherited from module 8's solution):
+
+| partitions | hot key | member store | errors |
+|---|---|---|---|
+| 1 | 0.8 | **107%** | 6.3% (start) |
+| 16 | 0.8 | **83%** | 0% |
+| 16 | 0.2 | **26%** (solution) | 0% |
+| 1,000 | 0.8 | 81.1% | 0% |
+| 1,000 | 0.2 | 20.4% | 0% |
+| 8 / 4 / 2 | 0.2 | 31% / 42% / 63% | 0% |
+
+So partitioning alone bought **1.29×**, not 16×, and four orders of magnitude of partitions bought
+1.32×. The busiest partition's share is `readShare × (h + (1−h)/P) + writeShare/P`, whose `h` term
+never shrinks — the hot key is a **floor**, and the lesson states that floor as the module's central
+number instead of implying that partition count is the lever.
+
+**A limitation of the model, disclosed rather than hidden.** Ten read replicas and **no** partitions
+reach **29%** and satisfy every required criterion. `assert` receives a `SimulationResult` and never the
+graph, so no capacity threshold can distinguish a shard from a copy — the engine has no dimension for
+bytes, write amplification or per-shard cost, which is precisely what sharding is for. Three responses,
+all shipped:
+
+1. The task's **steps** grade the decision (`partitions >= 16`, `hotKeyShare <= 0.2`); the criteria
+   grade only capacity.
+2. Lesson 7 (`when-not-to-shard`) states the shortcut in the module's own voice — the learner is told
+   the number the gate cannot see.
+3. `tests/system-design-content.test.ts` **asserts that the shortcut still works** — a tripwire, so
+   that adding a storage dimension to the engine fails that test and forces the lesson and the test to
+   be rewritten together.
+
+The third criterion is therefore **advisory** (`fast-queries`, p95 < 15 ms) — it passes on the broken
+start because it measures the 93.7% that completed, and its `explain` says so. This is the first
+advisory criterion in Phase B; module 6's suite asserts *every* criterion is required, so module 9's
+suite asserts the single exception and its reason instead.
+
+**Chain warning, answered in the module header.** Module 9's start graph drops the `cache` node that
+module 8's solution had, because the canvas is the member store — the tier no shared cache can help —
+and drawing EVCache would point the learner at the wrong box. `check:system-design` warns by design; the
+module header carries the answer, and a test asserts the cache stays dropped.
+
+**File paths and the two compressed-slice decisions.** No new dependencies, no engine change:
+
+- `config/system-design/modules/read-replicas.ts` — rewritten (6 lessons, 3 groups, new task + criteria)
+- `config/system-design/modules/partitioning-and-sharding.ts` — rewritten (7 lessons, 5 groups, new task)
+- `tests/system-design-content.test.ts` — fixture `read-replicas` → `rate-limiting` for the
+  `unbound` case (B4's lesson, applied again), plus **12 assertions** for modules 8 and 9
+
+**Measured, not estimated:**
+
+- **Binding** — `9/15 module(s) converted`. Gate: `All checks passed for 15 module(s), 10 warning(s)`.
+  Composition: **6 unconverted outlines** (was 8) + **4 chain**; module 8 no longer warns because its
+  start graph keeps the cache, module 9 now does and answers it in its header. Net 12 → 10 — the two
+  modules leaving the `unbound` class and one chain warning arriving from the *other* direction cancel
+  out to a smaller number than the conversion alone would suggest, which is why the count alone is not
+  a progress metric.
+- **Tests** — **618 passing / 0 failing** (606 after B5 part 1). All **12** new assertions were
+  mutation-tested and observed red, one at a time, then restored byte-identically (`diff -q` against a
+  backup):
+
+| Mutation | Observed red |
+|---|---|
+| m8 solution `memberGraph(2)` → `memberGraph(1)` | `module 8: solution fails "member-headroom"` |
+| m8 cache `hitRate 0.9` → `0.0` (title store becomes the bottleneck) | `fails the store a cache cannot help…` + the all-fail assertion |
+| m8 `member-headroom` criterion renamed | `grades shedding and headroom…` |
+| m8 "follower" inserted into a lesson body | `is anchored on Netflix's denormalisation…` |
+| m8 every "Netflix" in lessons/story replaced | same assertion (the anchor check fires) |
+| m8 two chapter bindings swapped | `outline order and lesson order disagree` |
+| m9 two chapter bindings swapped | same, module 9 |
+| m9 `startGraph` → `memberGraph(16, 0.2)` | `fails every required criterion at the start…` |
+| m9 start hot key 0.8 → 0.5 | `makes the hot key, not the partition count, the reason…` |
+| m9 headroom `< 0.4` → `< 0.25` | `pins the limitation: replicas pass the gate…` (the tripwire works) |
+| m9 `fast-queries` `required: false` → `true` | `keeps exactly one advisory criterion…` |
+| m9 cache node added back to `memberGraph` | `drops the cache node deliberately…` |
+| m9 "photo" inserted into a lesson body | `is anchored on Netflix's vertical ceiling…` |
+
+- **Routes** — **95** prerendered pages under `/system-design` (89 after B5 part 1; +6, because the two
+  modules went 3 → 6 and 4 → 7 lessons). Measured from `.next/server/app/system-design`: **15 module
+  pages + 66 lesson pages + 14 task pages**.
+- **Payload** — module pages **66,185 bytes** (`read-replicas`, 6 lessons) and **70,768 bytes**
+  (`partitioning-and-sharding`, 7 lessons); for scale, `caching` with 10 lessons was 72,989. Representative
+  lesson pages: 70,513 (`scaling-reads-vs-writes`), 64,859 (`hot-keys-and-skew`).
+- **Build** — `Compiled successfully`, 145 static pages generated, `tsc --noEmit` clean.
+- **Sources** — every URL `curl`-verified 200 before use. **`toptal.com/big-data/consistent-hashing`
+  returns 403 to non-browser clients** and was dropped from the map's `consistent-hashing` row; the
+  lesson cites Wikipedia's consistent-hashing article and the primer instead.
+
+**Two deviations from the resource map:** the dropped Toptal link above, and `Q4BUDplOWRE` being
+embedded in **both** module 8's first lesson and module 9's first lesson. The map planned that
+duplication (it is the playlist's only sharding-adjacent video), but two consecutive modules opening
+with the same 20-minute overview is a worse outcome than one lesson with none — the module 9 caption
+says it is the same video and names what to watch for this time. The map row needs that note.
+
+**Proofreading pass, after all twelve mutations were restored.** Five sentences were re-read against the
+engine's actual arithmetic rather than against how they sounded, and three were wrong enough to change
+the meaning:
+
+- `read-replicas` lesson 1 claimed *"the other half goes to the title store"*. Only **600** of the
+  remaining 6,000 requests reach it — EVCache answers nine in ten. Reworded to say so; a reader who
+  trusted the old sentence would have expected the title store to be at 120% too, and the lesson's whole
+  point (the cache is a tier, the member store is not cacheable) depended on the wrong number. Lesson
+  sat at 895 words against the 900 cap, so the replacement had to be word-neutral enough: it lands at
+  **900**, exactly on the bar, which is worth knowing before anything else is added to it.
+- Two `partitioning-and-sharding` fixes: `Nine nodes Each owning a ninth` → `, each owning` (just a
+  typo), and the `your_turn` on lesson 5 asked *"what fraction of the ring's keys a single node failure
+  takes offline"* — **with three replicas per key, the answer is zero**, so the question taught the
+  wrong instinct about what replication buys. Now asks how many keys need re-reading from a second
+  position, which is the quantity that actually changes.
+- Words re-measured after the edits: 900 / 822 / 891 / 897 / 890 / 857 (m8) and
+  899 / 703 / 759 / 796 / 889 / 766 / 812 (m9) — all inside 700–900, `npm test` **618 passing**, build
+  145 pages, `check:system-design` unchanged at 10 warnings.
+
+**Next:** B5 is complete. B6 is modules 10 (`rate-limiting`) and 11 (`cdns-and-static-content`), and
+module 11's chain warning ("drops `database`") already exists and will need the same header treatment
+module 9 just got.
+
+---
+
+### 7.6 B6 — modules 10 and 11, shipped 2026-11-01 (committed)
+
+Both are `kind: "sim"`, both went 3 → 6 lessons, and both are anchored on a Netflix artefact that is
+not a blog post — which is the point: modules 1–9 quote writing *about* a system, and these two quote
+the system itself.
+
+| | Module 10 `rate-limiting` | Module 11 `cdns-and-static-content` |
+|---|---|---|
+| Lessons | 3 → **6** | 3 → **6** |
+| Chapter groups | 3 | 3 |
+| Anchor | `github.com/Netflix/concurrency-limits` — *"we maintain a limit on the number of concurrent in-flight requests and adjust it based on latency"* | `openconnect.netflix.com` — appliances *"offload a substantial amount of Netflix content traffic from peering or transport circuits"* |
+| Question | who is allowed to use the capacity? | where do the bytes wait? |
+
+**Module 10 — lessons and depth**
+
+| Group | Lesson | Words |
+|---|---|---|
+| Why rate limit | `the-bot-in-your-traffic` | 759 |
+| | `algorithms` | 728 |
+| Limits in a real system | `distributed-rate-limiting` | 782 |
+| | `quotas-and-tiers` | 707 |
+| Backpressure and shedding | `load-shedding` | 710 |
+| | `429-and-retry-after` | 715 |
+
+The first two chapter groups were **re-bounded, and one renamed**, to match the order the lessons need:
+`algorithms` moved in beside the bot (a token bucket is a *shape of allowance*, which is the question
+"why rate limit" is asking), `distributed-rate-limiting` moved in beside `quotas-and-tiers` (both are
+what a limit becomes once there is a real system around it), and `algorithms-and-placement` became
+`limits-in-a-real-system`. The third group is untouched. Old → new, measured against
+`config/system-design/modules/rate-limiting.ts`:
+
+| Old | New |
+|---|---|
+| `why-rate-limit` {bot, distributed} | `why-rate-limit` {bot, algorithms} |
+| `algorithms-and-placement` {algorithms, quotas} | `limits-in-a-real-system` {distributed, quotas} |
+| `backpressure-and-shedding` {load-shedding, 429} | unchanged |
+
+Recorded because the binding gate cannot see a *bad* grouping, only an unbound one — and this module's
+first sight of that gate was already the new grouping, since the old outline carried no `lessonSlug`
+fields at all (`rate-limiting` *was* the suite's `unbound` fixture until this slice). A regrouping of a
+bound module would be invisible to every gate in the repo: the leaves stay bound, the order stays
+consistent, and the only symptom is two lesson titles sitting under a heading that describes neither.
+
+**Module 10's old task was graded on a field, not on a decision.** It offered **1,000 r/s** to four app
+instances (8,000 r/s) and a database with two read replicas, so the app tier sat at **12.5%** and the
+store at **6.7%** — nothing was over capacity, in the start graph or in the "solution". The two
+criteria were `bot-gets-429s` (rejected > 0) and `real-users-safe` (shed/unreachable/stale all zero),
+and the second one **ignored `rejected`**, so it passed before a limit existed. Measured across the
+whole range: every limit from **1 to 23,999 req/min** produces the *identical* simulation (4,017
+rejected, app 7.5%), and **24,000 and above** rejects nothing and fails. The learner's task was
+therefore a single bit — "type a number below the bot's own 400 r/s" — and a limit of *one request per
+minute*, which would reject every real user in production, passed both criteria.
+
+That is not a bug in the module, it is a bug in what the criteria asked. The engine's limiter is a
+threshold on the **aggregate** abusive arrival rate (`arrivalRate × abusiveShare > limitPerSec`), so it
+has exactly two outcomes; no criterion built on `errorClasses` can grade a per-client bucket. Rebuilt at
+**6,000 r/s with the same 40% abusive share** so the app tier is the tier that breaks:
+
+| | rejected | shed | app tier | db | throughput | p95 |
+|---|---|---|---|---|---|---|
+| start (no limit) | 0 | **20,001** | **150%** | 80% | 4,000 | 14.2 ms |
+| solution (`rateLimitPerMin: 3600`) | **24,064** | **0** | **90%** | 72% | 3,594 | 10.9 ms |
+
+Criteria: `bot-gets-429s` (rejected > 0), `real-users-complete` (every non-rejected failure class at
+zero, so shedding the bot *and* the users no longer reads as a fix), `app-headroom` (< 95%). Three
+steps: `set-rate-limit` (an allowance exists, is positive, and is below the bot's 24,000 req/min),
+`keep-the-load` (`arrivalRate >= 6_000`), and `leave-room-for-real-clients` (the allowance is at least
+600 req/min and below 24,000).
+
+**That third step exists because the criteria provably cannot see the defect it grades, and this was
+found by writing the record rather than by running the gate.** The first draft of the rebuilt task had
+two steps, and the second one (`verify-real-users`) evaluated the *identical* condition as the first —
+a decorative step that renders as progress. It also had no load gate at all, so lowering
+`arrivalRate` to 1,000 r/s passed all three criteria: app at 25%, nothing shed, bot still rejected. Two
+measured pins now hold that down, both mutation-tested:
+
+- **A 1 req/min allowance passes every criterion.** The engine flags only the *abusive* client as
+  `rejected`, so it cannot model what that allowance does to a real uploader, and
+  `real-users-complete` only counts the failure classes the bot is not in. This is the old task's exact
+  defect, reproduced inside the new one — the criteria are blind to it, and `leave-room-for-real-clients`
+  is the only gate that sees it. The test asserts the blindness so that an engine that gains
+  per-client modelling fails loudly instead of leaving the step as folklore.
+- **At 1,000 r/s every criterion still passes.** Also asserted, with `keep-the-load` the only thing
+  that fires — the same shortcut module 11's old task allowed.
+
+The limit band at 6,000 r/s is **anything below 144,000 req/min**, because the engine compares
+`arrivalRate × abusiveShare` against the limit rather than tracking a client: the limiter has exactly
+two outcomes. The solution's 3,600 is chosen because 3,600/60 = 60 r/s is a defensible per-client
+allowance for an upload API, which is the number the lesson argues for rather than the number the
+engine needs.
+
+**Module 11 — lessons and depth**
+
+| Group | Lesson | Words |
+|---|---|---|
+| Distance and bytes | `latency-numbers` | 737 |
+| | `cache-keys-and-ttl` | 731 |
+| What the edge cannot do | `what-a-cdn-cannot-cache` | 745 |
+| | `purging-and-versioning` | 715 |
+| The edge as a platform | `edge-compute` | 768 |
+| | `image-and-video-delivery` | 791 |
+
+**Module 11's old task had one criterion, and a second origin store satisfied it.** The start graph was
+a `client → lb → app → cdn → object_store` chain with a CDN whose hit rate was node-definable, and the
+task's single required criterion was `origin < 10%`. Wiring a **second** `object_store` in parallel
+splits the misses, drops each store to 60%, and passes — capacity, not caching — while the lesson is
+about moving bytes. Rebuilt at **12,000 r/s, every request a 2 MB segment, 8 app instances**:
+
+| | origin | errors | throughput | p95 |
+|---|---|---|---|---|
+| start (hit rate 0) | **120%**, 20,001 shed | **16.7%** | 10,000 | 5.24 ms |
+| hit rate 0.5 | 60.1% | 0% | 12,000 | 3.51 ms |
+| hit rate 0.9 | 12.1% | 0% | 12,000 | 3.27 ms |
+| **solution (0.95)** | **6.1%** | **0%** | **12,000** | **3.20 ms** |
+
+Criteria: `origin-headroom` (< 10%, and its `explain` names the second-store shortcut), `zero-errors`,
+`capacity-served` (≥ 11,500 r/s). Three steps, including `keep-the-load` (`arrivalRate >= 12_000`) —
+without it, "fixing" the incident by lowering traffic to 1,000 r/s passes every criterion, which is the
+same defect module 10 shipped for two slices. The measured control is in the suite: two origin stores
+reach `errorRate 0` and 12,000 r/s and still fail `origin-headroom`.
+
+**A model limitation, disclosed in the lesson and asserted in the test.** The engine has no dimension
+for **bytes**: `effectiveCapacity` is requests per second, so 12,000 requests for 2 MB segments cost the
+origin exactly as much as 12,000 tiny JSON responses, and the 24 GB/s arithmetic that motivates the
+whole module is done on paper rather than measured. Worse for the story, `SimulationResult.bandwidthMbps`
+counts bytes delivered **to viewers per completed request**, so it reads **192,000 Mbit/s at a 0.5 hit
+rate and 192,000 at 0.95** — identical, because a CDN changes where the bytes came from, not what
+arrives. Lesson 5 says both out loud under a heading that names itself a limitation, and
+`tests/system-design-content.test.ts` asserts the bandwidth figure is unchanged, so an engine that
+gains a storage dimension fails the suite instead of quietly falsifying the lesson. This is the same
+device module 9 used for replicas-pass-as-sharding: a limitation stated in prose rots, a limitation
+asserted by a test forces the rewrite.
+
+**Chain warning, answered in the module header.** Module 11's `startGraph` drops the `database` node
+that module 10's solution had. `check:system-design` warns by design. The answer: this canvas is the
+media path, and terminals are picked at random per request, so a second terminal halves every arrival
+before the hit rate is computed — the one number the module grades would stop describing the graph. The
+database is off this canvas for the same reason module 9 dropped the cache, and module 12 brings its
+own failure subject.
+
+**Files and cost.** No new dependency, no engine change:
+
+- `config/system-design/modules/rate-limiting.ts` — rewritten (6 lessons, 3 renamed groups, task +
+  criteria rebuilt, 3 steps)
+- `config/system-design/modules/cdns-and-static-content.ts` — rewritten (6 lessons, 3 groups, task +
+  criteria rebuilt, 3 steps)
+- `tests/system-design-content.test.ts` — fixture `rate-limiting` → `how-systems-fail` for the
+  `unbound` case (fourth time this fixture has moved, and the comment now says why), plus **14
+  assertions** for modules 10 and 11
+
+**Measured, not estimated:**
+
+- **Binding** — `11/15 module(s) converted`. Gate: `All checks passed for 15 module(s), 8 warning(s)`.
+  Composition: **4 unconverted outlines** (all B7) + **4 chain**, each chain warning answered in its
+  module header. `10 → 8`, and both modules left the `unbound` class simultaneously, which is why the
+  warning count fell by two while the lesson count rose by six.
+- **Tests** — **634 passing / 0 failing** (618 after B5). All **16** new assertions were mutated one at
+  a time and observed red, then restored byte-identically (`diff -q` against a backup):
+
+| Mutation | Observed red |
+|---|---|
+| m10 two chapter bindings swapped | `outline order and lesson order disagree` |
+| m10 `startGraph` → `taskGraph(3600)` | `the start graph already satisfies` |
+| m10 app `replicas: 2` → `4` | `the bot must put it over capacity` |
+| m10 solution limit → `200000` | `the bot must receive 429s at the solution` |
+| m10 engine compares `arrivalRate` not `× abusiveShare` | `a 200,000 req/min allowance rejected traffic` |
+| m10 `bot-gets-429s` renamed | `without a rejection criterion` |
+| m10 `concurrency-limits` anchor removed | `no reference to Netflix's adaptive limit` |
+| m10 `leave-room-for-real-clients` lower bound `>= 600` removed | `a 1 req/min allowance passes the step` |
+| m10 `keep-the-load` step deleted | ``module 10: the `keep-the-load` step is missing`` |
+| m11 two chapter bindings swapped | `outline order and lesson order disagree` |
+| m11 `startGraph` → `graph(0.95)` | `the start graph already satisfies` |
+| m11 app `replicas: 8` → `2` | `the origin starts at 40%` |
+| m11 `origin-headroom` bound `< 0.1` → `< 0.7` | `stopped distinguishing capacity from caching` |
+| m11 `bandwidthMbps` made a function of the hit rate | `bandwidth is now a function of the hit rate` |
+| m11 `origin-headroom` renamed | `without a headroom bound` |
+| m11 `Open Connect` anchor removed | `no Open Connect reference` |
+
+  The last engine mutation is the interesting one: it is the only case in the suite that mutates
+  `lib/system-design/engine.ts` to prove a *content* disclosure still holds.
+- **Routes** — **101** prerendered pages under `/system-design` (95 after B5 part 2; +6, because two
+  modules went 3 → 6 lessons). Measured from `.next/server/app/system-design`: **15 module pages + 72
+  lesson pages + 14 task pages** — 14, not 15, because module 5 `api-and-contracts` is a prose module
+  with no task, and that is worth writing down: the arithmetic `modules + lessons + tasks` is wrong by
+  one whenever a prose module exists, and it was wrong in this plan's §1 row until now. Add the
+  `/system-design` index and the route count is 102.
+- **Payload** — module pages **63,531 bytes** (`rate-limiting`) and **65,072** (`cdns-and-static-content`),
+  both 6 lessons, against `caching` at 72,989 for 10 — the overview-type boundary from B2 is holding as
+  lessons are added.
+- **Build** — `Compiled successfully`, **151** static pages generated, `tsc --noEmit` clean.
+- **Sources** — **76 distinct URLs across 62 lessons**, every one `curl`-verified **200** on 2026-11-01.
+  Nothing to replace this time. `openconnect.netflix.com/en/` is the only URL in the set whose *content*
+  was read rather than merely status-checked, because module 11 quotes it in its header and in three
+  lessons.
+
+**Three deviations from the resource map**, all recorded there too:
+
+1. Module 11 ships `purging-and-versioning` **before** `edge-compute` and `image-and-video-delivery`. A
+   purge is the consequence of the cache key, so it closes the caching argument; after segmentation it
+   reads as an appendix to a topic the learner has not met yet.
+2. `edge-compute` carries a **third source**, `openconnect.netflix.com`. The module's anchor is a *cache*
+   programme that deliberately is not a compute platform, and that claim is only checkable against
+   Netflix's own page — a comment above the module is not a source a learner can open.
+3. Module 10's "photo" became **"asset"** throughout (11 occurrences). The D1 ban list rejects the word
+   `photo` because the pre-B4 draft was a photo-sharing app; after B6 every converted module must pass
+   the same substring check, and renaming the noun was cheaper and more honest than exempting a module
+   from a gate the other ten obey.
+
+**What three slices in a row found.** B4, B5 and B6 each began with the same discovery, and it is worth
+naming once rather than three times: **a criterion that measures a consequence can always be satisfied
+by a workaround that does not address the decision.** B4's task shed 96% of traffic and passed a p95
+bound computed over survivors; B5's offered 20,000 r/s to a 20,000 r/s balancer and graded only
+topological validity; B6's graded "a number exists" (m10) and "the origin is idle", satisfiable by a
+second origin (m11). The response has converged and is now the pattern: **steps grade the decision,
+criteria grade the consequence, a control graph proves the workaround is still detectable, and the
+lesson states any limitation the engine cannot measure.** A test asserts the control, so a change that
+makes the workaround pass fails loudly instead of shipping as a lesson that teaches the workaround.
+
+**The pattern applied to B6 caught B6.** The first draft of module 10's rebuilt task repeated the
+defect it was fixing: a second step that evaluated the same expression as the first, and no load gate,
+so the incident could be "solved" by lowering traffic. Neither the build nor the existing suite could
+see it — a step that checks the right thing and a step that checks the same right thing render
+identically. What found it was writing down the step list for this section. That is one more data point
+for the rule that a slice record is a review artefact, not paperwork: the prose forced a claim
+("three steps, each grading something different") that the code could not support.
+
+**Next at the time:** B7 — modules 12–15 (`how-systems-fail`, `timeouts-retries-circuit-breakers`,
+`idempotency`, `chaos-capstone`), 10 lessons, 4 outlines. Story rename first, then the depth pass;
+renumber contiguously; make `SdChapter.lessonSlug` **required** (deferred from B1, safe once no outline
+is unbound); update the tracker and plan 16. **Shipped — §7.7.**
+
+### 7.7 B7 — modules 12–15, shipped 2026-11-02 (committed)
+
+The last four outlines, and the slice where the leaf model becomes a type instead of a gate. All four
+are `kind: "sim"`; together they went from 10 lessons to **17**, and each is anchored on a Netflix
+*mechanism* rather than a Netflix post — the failure injectors, the breaker, the migration's ordering,
+and the ladder of blast radius.
+
+| | Module 12 `how-systems-fail` | Module 13 `timeouts-retries-circuit-breakers` | Module 14 `idempotency` | Module 15 `chaos-capstone` |
+|---|---|---|---|---|
+| Lessons | 3 → **5** | 3 → **5** | 2 → **4** | 2 → **3** |
+| Chapter groups | 3 | 3 | 3 | 3 |
+| Anchor | Simian Army / Chaos Monkey — failure found on purpose | Hystrix — *"stop cascading failures"* by opening a circuit | The cloud-migration post's ordering: **billing left the data centre last** | Chaos Monkey → Chaos Gorilla → Chaos Kong: instance, zone, region |
+| Question | what does failure look like? | what do you do while a dependency is dying? | what happens when the same request arrives twice? | can the whole design survive a lost third? |
+
+**Lessons and depth**
+
+| Group | Lesson | Words |
+|---|---|---|
+| M12 · Seeing failure | `trace-your-own-design` | 723 |
+| | `retry-storms` | 794 |
+| | `cascades` | 738 |
+| M12 · Containing it | `blast-radius-and-bulkheads` | 768 |
+| M12 · Knowing it happened | `logging-monitoring-and-traces` | 754 |
+| M13 · The shape of a timeout | `no-timeout-is-worse` | 720 |
+| | `retries-and-jitter` | 833 |
+| M13 · Bounding the damage | `breakers-and-bulkheads` | 756 |
+| M13 · The budget | `timeout-budgets` | 847 |
+| M13 · Degrading well | `fallbacks-and-degradation` | 806 |
+| M14 · Delivery semantics | `at-least-once-delivery` | 760 |
+| M14 · Making repeats harmless | `idempotency-keys` | 880 |
+| | `exactly-once-is-a-lie` | 831 |
+| M14 · What cannot be processed | `dead-letter-queues` | 899 |
+| M15 · Failure as a practice | `chaos-as-practice` | 850 |
+| M15 · The whole design | `surviving-everything` | 899 |
+| M15 · Learning from it | `postmortems-without-blame` | 869 |
+
+**Every one of the four old tasks was replaced, and three of them shared one defect.** The defect is
+new to this plan and worth naming because it is not the B4–B6 one. Those graded a *consequence* that a
+workaround could satisfy. These graded **fields the engine never reads**:
+
+| Field | Stored | Rendered in inspector | Read by `simulate()` |
+|---|---|---|---|
+| `app_server.breakerEnabled` | ✓ | ✓ | **no** |
+| `app_server.maxConcurrency` | ✓ | ✓ | **no** |
+| `edge.retry.{attempts,backoffMs,jitter}` | ✓ | ✓ | **no** |
+| `queue.{maxDepth,retryLimit,dlqEnabled}` | ✓ | ✓ | **no** |
+| `cache.{ttlMs,stampedeGuard}` | ✓ | ✓ | **no** |
+| `scenario.{cacheColdStart,replicaLagMs}` | ✓ | ✓ | **no** |
+
+So module 13's old task differed from its "solution" only in `retryLimit`/`dlqEnabled` and in one
+`replicas` value, and module 14's old task — at **200 requests a second** — had every tier idle in both
+graphs. A criterion cannot fail on a field nothing computes, which makes the criterion decoration. The
+response is the same shape in all four modules and it is now the standing pattern:
+
+1. **Criteria grade a consequence the engine does model** — throughput, shed, headroom.
+2. **Steps grade the decision the engine cannot see** — the breaker is out of the path, the DLQ exists,
+   the duplicate share is absorbed.
+3. **The lesson states the limitation in the module's own voice**, at the place a learner would look
+   for the missing behaviour.
+4. **A test asserts the limitation still holds**, so an engine slice that implements the field fails
+   the suite instead of quietly falsifying the page.
+
+**Module 12 — 12,000 r/s, and one criterion was already over capacity.** Start: 4 app instances
+(8,000 r/s) and one store against 12,000 arrivals — **58.3% shed**, API **150%**, store **160%**,
+throughput **5,000**, p95 9.9 ms. Solution: 10 instances, 4 read replicas — **0% shed**, API 60%,
+store 48%, p95 9.2 ms. Criteria: `zero-errors`, `capacity-served` (≥ 11,900), `api-headroom` (< 65%),
+`store-headroom` (< 65%). Steps: `size-the-api` (≥ 10), `size-the-store` (≥ 3), `keep-the-load`
+(≥ 12,000).
+
+The failure behaviour is measured and then disclosed, because it is the slice's most misleading corner:
+
+| Failure on the solution | Measured |
+|---|---|
+| `degraded` 2/3 on `app-1` **and** `db-1` | 0% shed, API 90%, store 72% — the task's own claim |
+| `node_down` `app-1` | **100% unreachable**, throughput 0 |
+| `node_down` `db-1` | **invalid topology** — "No terminal datastore in graph structure" |
+| 9 app instances (the step's near miss) | API **66.7%**, fails `api-headroom` |
+
+`replicas` is a **capacity multiplier, not redundancy**: one `node_down` removes the node and all ten
+replicas with it. That is why the acceptance test is degradation rather than instance death — and why
+the suite asserts *both* the degradation and the blindness, so the lesson cannot outlive the model.
+
+**Module 13 — 6,000 r/s, and the fallback is the second half of the task.** Start: a resize call in the
+path to a dependency that is failing — **16.5% shed**, resize tier **149%**. Solution: the resize edge
+removed and the store given one read replica — **0% shed**, store 60%. Criteria: `zero-errors`,
+`capacity-served` (≥ 5,900), plus `metadata-headroom` (< 65%) as the **first advisory criterion** in
+Phase B, because it is green at the start: the failing tier absorbs the damage and only half the
+traffic reaches the store. A criterion that passes on the broken design can only be documentation, so
+`required: false` and a test that fixes the count at exactly one advisory criterion and asserts it is
+green on the start. Steps: `stop-calling-the-dead-service`, `fallback-carries-the-load` (≥ 1 replica),
+`keep-the-load` (≥ 6,000).
+
+The control is measured, not asserted: delete the resize tier and leave the store at one node and the
+fallback inherits **100%** of the traffic — store **120%**, **16.7% shed**. Same lesson as module 11's
+second origin store, one layer in: a reroute moves the load, it does not remove it.
+
+**Module 14 — 4,000 r/s, 75% duplicates, and adding workers is the cheat.** Start: nothing absorbs
+repeats, one worker — worker **400%**, **75% shed**, throughput **1,000**, p95 75.1 ms. Solution: the
+store absorbs 75%, two workers — **0% shed**, worker **51%**, p95 59.6 ms. Criteria: `zero-errors`,
+`capacity-served` (≥ 3,900), `worker-headroom` (< 90%).
+
+The arithmetic that makes the module teach what it claims and not its opposite:
+
+| Design | worker | errors | criteria |
+|---|---|---|---|
+| hit 0%, 1 worker (start) | 400% | 75% | fails |
+| hit 0%, 4 workers | **exactly 100%** | 0% | fails `worker-headroom` |
+| hit 0%, 5 workers | 80% | 0% | **passes every criterion** |
+| hit 75%, 2 workers (solution) | **51%** | 0% | passes |
+
+Five workers with no idempotency store absorb nothing and pass all three criteria, because the criteria
+count what the engine can see and the engine cannot see a duplicate. That is why `absorb-duplicates`
+(hit rate ≥ 0.7) is a **step**, and the suite asserts the cheat still passes the criteria *and* still
+fails the step. The same device grades the DLQ.
+
+**Module 15 — the capstone, 12,000 r/s, five criteria, and the honest limits.** Start: 5 instances, no
+replicas, an edge that misses everything — **16.7% shed**, API **120%**, store **100.1%**, origin
+**49.9%**, throughput **9,994**. Solution: 10 instances, 2 replicas, 95% edge hit rate — **0% shed**,
+API 60%, store 40%, origin **3%**. Degraded to two thirds on both compute tiers: **90% / 60% / 3%**,
+still zero shed, still 12,000 r/s. The start graph degraded is **44.4% shed**, which is what makes the
+survival claim a measurement rather than a boast.
+
+Each step is pinned by a measurement that shows it is not ceremony:
+
+| Change from the solution | Measured | Which step sees it |
+|---|---|---|
+| 9 instances | API **66.7%** | `size-the-api` (≥ 10), and `api-headroom` too |
+| 1 read replica | passes at base load, **120% / 16.7% shed** when the CDN is taken away | `size-the-store` (≥ 2) |
+| 50% edge hit rate | origin **29.9%** — passes all five criteria | `cache-at-the-edge` (≥ 0.9) |
+
+Those three lines are the argument for keeping steps and criteria separate, in one table: the criteria
+grade the load the design must survive, and the steps grade the decisions that make the *next* failure
+survivable — which is the whole subject of the capstone.
+
+Two model limits are disclosed in lesson 2 and asserted in the suite. **Replicas are capacity, not
+redundancy** (as in module 12), so the acceptance test is degradation. And **a second terminal
+reroutes rather than fails**: taking `cdn-1`, `origin-1` or `db-1` down produces **0% errors**, while
+`app-1` — no alternative path — takes **100%** of requests with it. So this canvas cannot grade
+"surviving a lost cache" as a failure at all, and says so instead of implying otherwise.
+
+**The gate found the one defect the 23 new tests did not.** After all four modules passed `npm test`,
+`tsc` and Prettier, `check:system-design` returned:
+
+```
+FAIL idempotency: step "park-what-cannot-be-processed" fails on the module's own solutionGraph
+("No dead-letter queue — a failing message is retried forever") — no learner can ever pass this step
+```
+
+Module 14's solution passed all three pass criteria and could not be finished, because the step graded
+`dlqEnabled` and the solution graph left it `false` (the engine default). The tests had asserted *the
+criteria* on the solution — the invariant this suite has checked since B1 — and had never asserted *the
+steps*. Fixed by giving `uploadGraph` a `dlqEnabled` parameter and setting it on the solution, with a
+comment saying the flag changes no number and is set anyway because a solution that fails its own step
+is a task nobody can complete. Then the invariant itself was added, once, across every module:
+
+```ts
+// "content model — every task has a reachable finish"
+for (const mod of modules.filter((m) => m.task)) {
+  const failed = mod.task.steps.filter((s) => !s.check(mod.task.solutionGraph).passed);
+  assert.deepEqual(failed, [], `${mod.slug}: no learner can finish this task`);
+}
+```
+
+One-directional on purpose: a step that passes on the **start** graph is legitimate (several modules
+open with a `keep-the-load` guard whose job is to be green and stay green). A step that fails on the
+**solution** never is. That is 15 modules for the price of one loop, and it is the assertion that
+should have existed in B3 when the second task with steps shipped — the gate had it the whole time,
+after the build, which is one gate too late to be cheap.
+
+**`SdChapter` is now a union, which is what B1 deferred.** With every leaf bound, the type can require
+`lessonSlug` on a leaf and allow its absence only on a group:
+
+```ts
+export type SdChapter = { slug; title; description?; children? } & (
+  | { lessonSlug: string }
+  | { lessonSlug?: undefined; children: SdChapter[] }
+);
+```
+
+`tsc` went clean with **no module edits** — the outlines had been correct since B4, and the type was
+catching up to the content rather than the content to the type. `ChapterLeafLink` keeps its
+`!chapter.lessonSlug` guard deliberately: a chapter tree that arrives as data (a future CMS) is not
+type-checked, and removing the guard would delete the fallback rather than the possibility.
+
+The `unbound`/`partial` fixtures moved off real modules to local ones. They had been chasing the last
+unconverted module for four slices (`caching` → `read-replicas` → `rate-limiting` →
+`cdns-and-static-content` → `how-systems-fail`) and were asserting whichever module happened to be
+behind rather than the rule. The fixtures now cast `undefined as unknown as string` with a comment
+saying why the runtime rule still needs coverage: the type guarantees nothing about data.
+
+**Chain warnings, all four answered in the module headers.** `check:system-design` reports:
+
+| Module | Drops | Answer |
+|---|---|---|
+| `requirements` (B2) | `database` | the canvas is the membership service, not the playback API |
+| `partitioning-and-sharding` (B5) | `cache` | sharding is the subject; a cache would hide the hot partition |
+| `cdns-and-static-content` (B6) | `database` | terminal selection halves arrivals, making the hit rate meaningless |
+| `chaos-capstone` (B7) | `cache`, `queue`, `worker` | the capstone is the *playback* path; the upload path's nodes would carry no traffic |
+
+Zero unconverted-outline warnings remain, which is the state this plan was written to reach: `8 → 4`,
+and the four left are decisions rather than debt.
+
+**Files and cost.** No new dependency, no engine change:
+
+- `config/system-design/modules/how-systems-fail.ts` — rewritten (5 lessons, 4 groups, task + criteria
+  rebuilt, 3 steps)
+- `config/system-design/modules/timeouts-retries-circuit-breakers.ts` — rewritten (5 lessons, 4 groups,
+  task + criteria rebuilt, 3 steps, 1 advisory criterion)
+- `config/system-design/modules/idempotency.ts` — rewritten (4 lessons, 3 groups, task + criteria
+  rebuilt, 3 steps)
+- `config/system-design/modules/chaos-capstone.ts` — rewritten (3 lessons, 3 groups, task + criteria
+  rebuilt, 4 steps)
+- `config/system-design/types.ts` — `SdChapter` union; the B1 note that deferred it is rewritten rather
+  than deleted, because the reason it could not be done then is the reason it can be done now
+- `tests/system-design-content.test.ts` — 4 module suites (23 assertions), the cross-module
+  "reachable finish" invariant, and the `unbound`/`partial` fixtures moved local
+- `diagrams/27-system-design-reliability-modules.md` — the learner path plus the three rebuilt tasks
+  (M12 degradation vs `node_down`, M14 duplicate absorption vs the worker cheat, M15 sizing and reroute)
+- 3 files reformatted by Prettier with no content change (`partitioning-and-sharding.ts`,
+  `diagrams/02-course-catalog-chapters.md`, `diagrams/24-db-rate-limiting.md`) — pre-existing drift, fixed
+  so the gate is green rather than exempted
+
+**Measured, not estimated:**
+
+- **Binding** — `15/15 module(s) converted`. Gate: `All checks passed for 15 module(s), 4 warning(s)`,
+  and the four are chain warnings, each answered above.
+- **Tests** — **658 passing / 0 failing** across **113 suites** (634 after B6). **27** mutations were
+  applied one at a time, observed red, and restored byte-identically (sha256 verified before and after
+  each):
+
+| Mutation | Observed red |
+|---|---|
+| m12 two chapter bindings swapped | `outline order and lesson order disagree` |
+| m12 `startGraph` → the solution | `the start graph already satisfies` |
+| m12 `solutionGraph` → the start | `the solution sheds` / `has no reachable finish` |
+| m12 engine: `node_down` never fires | `replicas are capacity` blindness assertion |
+| m12 `api-headroom` 0.65 → 0.70 | `nine instances now pass` |
+| m12 Simian Army / Chaos Monkey removed | `no Simian Army or Chaos Monkey reference` |
+| m12 banned word inserted (`LynxDEV`) | `remains from the pre-B7 draft` |
+| m13 two chapter bindings swapped | `outline order and lesson order disagree` |
+| m13 start graph → solved | `the start graph already satisfies` |
+| m13 arrival rate → 2,000 | `the fallback's capacity` |
+| m13 advisory criterion made required | `exactly one criterion may be advisory` |
+| m13 engine: breaker + retry fields made live | `the breaker and bulkhead fields change no number` |
+| m13 Hystrix removed | `no Hystrix reference` |
+| m14 two chapter bindings swapped | `outline order and lesson order disagree` |
+| m14 start graph → solved | `the start graph already satisfies` |
+| m14 `worker-headroom` 0.9 → 1.01 | `the cheat this test documents` |
+| m14 solution graph loses `dlqEnabled` | `no learner can finish this task` |
+| m14 billing anchor removed | `no billing reference` |
+| m15 two chapter bindings swapped | `outline order and lesson order disagree` |
+| m15 start graph → solved | `the start graph already satisfies` |
+| m15 solution → 4 instances / 0 replicas | `the degraded capstone sheds` |
+| m15 engine: `node_down` never fires | `the reroute note is stale` |
+| m15 `api-headroom` 0.66 → 0.70 | `nine instances now pass` |
+| m15 Chaos Kong removed | `the blast-radius ladder` |
+| content rules: `boundCount === 0` branch broken | `unbound, not as complete` |
+| content rules: `partial` branch broken | `unbound, not as complete` |
+| m14 solution `dlqEnabled` reverted (post-gate, new test) | `no learner can finish this task` |
+
+  Six of those mutate `lib/system-design/engine.ts` (three distinct edits) to prove a **content
+  disclosure** still holds — the device module 11 introduced, now applied to three fields at once. The
+  last row is the one found by the post-build gate and then pinned; the mutation was re-run after the fix,
+  because a test written in response to a defect is exactly the test most likely to pass for the wrong
+  reason.
+- **Routes** — **108** prerendered files under `/system-design` (101 after B6): **15 module + 79 lesson
+  + 14 task**, plus the index = **109**. 79 is the plan's target lesson count, reached exactly. 14 tasks,
+  not 15, because `api-and-contracts` is prose — the off-by-one §7.6 wrote down.
+- **Build** — `Compiled successfully`, **158** static pages generated (151 after B6), `tsc --noEmit`
+  clean.
+- **Payload** — module pages **61,111** (`how-systems-fail`), **60,884**
+  (`timeouts-retries-circuit-breakers`), **59,050** (`idempotency`), **56,429** (`chaos-capstone`)
+  bytes. All four are smaller than B1's 58,299-byte module page at 4 lessons, and all four are 5/5/4/3
+  lessons: the overview boundary holds as prose grows, and the capstone — the module with five criteria
+  and four steps — is the smallest page in the path.
+- **Sources** — **91 distinct URLs across the whole path**, every one `curl`-verified **200** on
+  2026-11-02 — the sweep covered all fifteen modules, not only the four new ones, because "the old ones
+  passed last week" is the assumption that let Toptal rot. The four B7 modules contribute 20 of the 91;
+  five of those 20 were already cited elsewhere (SRE ×3, AWS idempotent APIs, Stripe), which is why
+  `76 + 20 − 5 = 91`. The three video ids in B7 were verified through YouTube's oEmbed endpoint
+  (titles matched, not just statuses). `netflixtechblog.com` remains excluded by the §5 policy: the billing-migration post is
+  cited by title and quoted in module 14's header, never linked.
+
+**Three deviations, all recorded in the resource map too:**
+
+1. Module 15 does **not** introduce a distinct video. `Pfr_6h3Rqew` — the fault-tolerance walkthrough
+   that opens module 12 — is reused as the capstone's summary, and the caption says so rather than
+   presenting a repeat as new material. The playlist has no chaos-specific video and a paraphrase
+   mislabelled as a new one is worse than an honest repeat.
+2. Module 14's billing anchor is the **migration post**, not the billing post. The companion piece
+   (*Netflix Billing Migration to AWS*) states the module's thesis best — *"for a company, its billing
+   solution is its financial lifeline"* — but `netflixtechblog.com` answers 403 to non-browser clients,
+   so it is quoted in the header and cited by title, and `about.netflix.com` provides the checkable
+   claim: billing was the last thing to leave, seven years in.
+3. Module 12 gives `the-cascade` a group with **one** lesson in it, and closes `containing-the-damage`
+   with `logging-monitoring-and-traces` rather than giving observability a group of its own. Both are
+   deliberate: a cascade is a retry storm seen from the other side, so it earns a heading rather than
+   being buried; and a trace is how you find out whether the containment worked, not a separate topic
+   that follows it.
+
+**What this slice found that the previous three did not.** B4, B5 and B6 each found a criterion that a
+workaround could satisfy. B7 found the level below that: a criterion over a field **nothing computes**.
+`retryLimit`, `dlqEnabled`, `breakerEnabled` and `maxConcurrency` are serialised into the graph, drawn in
+the inspector, saved to the database — and read by no line of `simulate()`. A task built on them can be
+"passed" by toggling a checkbox, which is not a task. Three of the four old tasks were exactly that, and
+the reason it survived three reviews is that the fields *look* implemented: they have a type, a control,
+and a persistence path. The check that catches it is not a code read, it is a measurement — change the
+field, re-run the simulation, and confirm nothing moved. That is now a test in three modules.
+
+The second finding is about the gates, and it cost one build cycle rather than one review: `npm test`
+verifies the *criteria* on every solution graph and had never verified the *steps*, so a task no learner
+could finish passed 657 tests. `check:system-design` caught it because the orphan check is written from
+the learner's side — "can this be completed?" — while the suite was written from the criteria's side.
+Both now assert it, and the cheap one now runs first.
+
+**Next:** Phase B is complete — 15 modules, 79 lessons, every leaf bound, `SdChapter.lessonSlug`
+required. Phase C (Part 2 async, Part 4 storage, Part 5 internals, Part 6 distributed) is sketched in
+§3.1 and is not committed. Two engine slices are now blocking nothing but are owed: the
+**deferred engine slice** (`ttlMs`, `stampedeGuard`, `breakerEnabled`, `maxConcurrency`, queue retry
+fields, `algorithm`) and a **redundancy slice** (`node_down` removing one replica rather than the tier),
+both of which would let four modules' limitation notes become lessons about behaviour instead of
+disclosures about the model.
+
+---
+
+## 8. Verification per slice
+
+1. `npm test` — pure content invariants (fast, DB-free, runs before Build).
+2. `npm run build` — route table shows every module and lesson as `●`; new prose routes must not become `ƒ`.
+3. `npm run check:system-design` — post-build, both directions.
+4. **Mutation test** every new gate once (break → red → restore).
+5. Manual: 375 px, dark mode, tree collapse/expand, prev/next across a lesson boundary, `/task` absent on a prose module.
+6. Measure and record: words per lesson (gate), First Load JS per module page, total build time. D3 is only a decision if it is checkable.
+7. I read the prose. No AI filler. No script replaces this gate.
+
+---
+
+## 9. Not doing, and why
+
+| Not doing | Reason |
+|---|---|
+| Copying the reference 121-lesson outline verbatim | Their expression is not ours to take; and their Big Data block is the wrong audience |
+| Their practice-problem set (YouTube, News Feed, Uber, Instagram, Typeahead, Rate Limiter) | D6. Our set, later: cricket-ticket booking (flash sale, hot key, double-booking), live-class platform (thundering herd), Bangla typeahead, campus marketplace, URL shortener, AI chat at scale |
+| Docker codelabs | The canvas simulator is the better vehicle and costs no server. It is the one thing we cannot match and do not need |
+| Big Data, geospatial, media systems, probabilistic data structures | Senior/staff scope; several need visualizers we do not have |
+| A lesson count as a target | Vanity metric. The gate is "did it teach", not "how many" |
+| Engine changes | If a slice needs one, the slice is wrong |
+| New dependencies | None needed — static content only |
+
+---
+
+## 10. Open decisions
+
+1. ~~**P1** — run `SELECT COUNT(*) FROM sd_user_state;`.~~ **Answered 2026-10-29:** 1 row, with a
+   single completed key, `what-is-system-design/choices-not-boxes` — not in module 7. The two
+   retired caching slugs were therefore free to rename (§7.3), and this was the last moment that
+   was true. The rule still stands for every future split: a lesson with live progress keys may not
+   be renamed, only split around an anchor.
+2. **P2/P3** — run `npm run build` once now to record the baseline (no file changes).
+3. **P5/P6** — the chapter-tree and prose-module sketches: ASCII in this plan, or build B1's UI first so the shape is visible?
+4. ~~**Naming in prose** — "LynxDEV" directly, or a neutral in-world name?~~ **Resolved 2026-10-27:** neither. The case study is a named public system (D1), so the question of what to call *ourselves* in a lesson no longer arises — the prose addresses the learner as "you" and the system as "Netflix".
+5. **Indexing (resource map G1)** — the playlist has a database-index video and the free reading list has `use-the-index-luke`, but Phase B has no indexing lesson; "add an index" is the most common real fix at junior level. Pull `indexes-are-not-free` forward into module 8 or 9 (Phase B → 80 lessons), or leave indexing to Phase C? **Answered 2026-10-29: Phase C.** Module 8 (6 lessons) and 9 (7 lessons) are already at their planned length, and "an index is not free" does not teach without B-tree/LSM page layout — which is exactly Phase C's `how-databases-store-data` (6 lessons). A lesson grafted onto a replica module would assert instead of explain, which is the failure mode §1 diagnoses. The video stays available in the playlist meanwhile.

@@ -64,7 +64,8 @@ export function ProblemPane({
   useEffect(() => {
     measureEditor();
     const observer = new ResizeObserver(measureEditor);
-    if (editorContainerRef.current) observer.observe(editorContainerRef.current);
+    if (editorContainerRef.current)
+      observer.observe(editorContainerRef.current);
     return () => observer.disconnect();
   }, [measureEditor]);
 
@@ -196,7 +197,10 @@ export function ProblemPane({
               onImport={editor.importFile}
               importInputRef={editor.importInputRef}
             />
-            <div ref={editorContainerRef} className="flex-1 min-h-[200px] bg-[#1e1e1e]">
+            <div
+              ref={editorContainerRef}
+              className="flex-1 min-h-[200px] bg-[#1e1e1e]"
+            >
               {editorHeight > 0 && (
                 <MonacoEditor
                   value={editor.code}

@@ -155,9 +155,7 @@ export default function FeedbackDetailDialog({
             Delete
           </Button>
           <Button size="sm" onClick={handleSave} disabled={saving}>
-            {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-1" />
-            ) : null}
+            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
             Save Changes
           </Button>
         </DialogFooter>

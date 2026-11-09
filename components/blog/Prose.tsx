@@ -99,7 +99,13 @@ export function InlineCode({ children }: { children: ReactNode }) {
  * Definition row — label + value. The label column widens on larger screens so
  * the value gets the remaining space instead of wrapping under a narrow key.
  */
-export function Fact({ label, children }: { label: string; children: ReactNode }) {
+export function Fact({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
   return (
     <div className="flex flex-col sm:flex-row gap-1 sm:gap-5 py-3 border-b border-border/25 last:border-b-0">
       <div className="sm:w-44 shrink-0 text-sm font-mono text-muted-foreground">

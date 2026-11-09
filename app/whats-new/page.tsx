@@ -7,9 +7,11 @@ import {
   BrainCircuit,
   Code2,
   LucideIcon,
+  Network,
   ShieldCheck,
   Sparkles,
   Target,
+  Workflow,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WHATS_NEW } from "@/config/whats-new";
@@ -24,6 +26,9 @@ const iconMap: Record<string, LucideIcon> = {
   Code2,
   BrainCircuit,
   Target,
+  Network,
+  Workflow,
+  ShieldCheck,
 };
 
 const accentMap: Record<string, { accent: string; glow: string }> = {
@@ -42,6 +47,18 @@ const accentMap: Record<string, { accent: string; glow: string }> = {
   Target: {
     accent: "text-lime-400",
     glow: "bg-lime-400/10 shadow-[0_0_20px_rgba(163,230,53,0.2)]",
+  },
+  Network: {
+    accent: "text-violet-400",
+    glow: "bg-violet-400/10 shadow-[0_0_20px_rgba(139,92,246,0.2)]",
+  },
+  Workflow: {
+    accent: "text-fuchsia-400",
+    glow: "bg-fuchsia-400/10 shadow-[0_0_20px_rgba(232,121,249,0.2)]",
+  },
+  ShieldCheck: {
+    accent: "text-emerald-400",
+    glow: "bg-emerald-400/10 shadow-[0_0_20px_rgba(52,211,153,0.2)]",
   },
 };
 
@@ -104,7 +121,7 @@ export default function WhatsNewPage() {
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
           {features.map((feature) => {
             const Icon = iconMap[feature.icon] ?? Sparkles;
             const colors = accentMap[feature.icon] ?? {
@@ -114,7 +131,7 @@ export default function WhatsNewPage() {
             return (
               <div
                 key={feature.title}
-                className="group relative rounded-2xl border border-border/50 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg overflow-hidden"
+                className="group relative rounded-2xl border border-border/50 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-lg overflow-hidden flex flex-col h-full"
               >
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-emerald-500/[0.04] to-transparent" />
                 <div
@@ -125,7 +142,7 @@ export default function WhatsNewPage() {
                 <h3 className="font-bold text-lg mt-4 group-hover:text-emerald-500 transition-colors relative">
                   {feature.title}
                 </h3>
-                <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed relative">
+                <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed relative flex-1">
                   {feature.description}
                 </p>
                 <div

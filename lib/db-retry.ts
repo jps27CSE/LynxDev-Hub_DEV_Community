@@ -30,6 +30,31 @@ function extractCode(error: unknown): string | undefined {
   return undefined;
 }
 
+/**
+ * Wraps a DB call with a timeout so a hung statement releases its pool slot
+ * before the Vercel function cap (see `maxDuration` on the route). Returns the
+ * call's result or throws `Error("DB query timed out")` after `timeoutMs`.
+ *
+ * Pattern borrowed from `app/api/health/route.ts`, generalised. The timer is
+ * always cleared in `finally` to avoid leaking handles.
+ */
+export function withQueryTimeout<T>(
+  fn: () => Promise<T>,
+  timeoutMs = 5_000,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  return Promise.race([
+    fn(),
+    new Promise<T>((_, reject) => {
+      timer = setTimeout(
+        () => reject(new Error("DB query timed out")),
+        timeoutMs,
+      );
+    }),
+  ]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
 export function isTransientConnectError(error: unknown): boolean {
   const code = extractCode(error);
   return code !== undefined && TRANSIENT_CONNECT_CODES.has(code);

@@ -32,7 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!course) return { title: "Course Not Found" };
   return {
     title: course.title,
-    description: course.description || `${course.title} — free course on LynxDEV.`,
+    description:
+      course.description || `${course.title} — free course on LynxDEV.`,
   };
 }
 
@@ -135,17 +136,17 @@ export default async function CourseDetailPage({
           </div>
 
           <div className="flex items-center gap-5 sm:gap-7 mt-5 pt-5 border-t border-border/40 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 text-xs tabular-nums text-muted-foreground">
               <Layers className="w-3.5 h-3.5" />
               {chapterList.length}{" "}
               {chapterList.length === 1 ? "chapter" : "chapters"}
             </span>
-            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 text-xs tabular-nums text-muted-foreground">
               <Coins className="w-3.5 h-3.5" />
               {points} pts to earn
             </span>
             {course.category && (
-              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5 text-xs tabular-nums text-muted-foreground">
                 <Trophy className="w-3.5 h-3.5" />
                 {course.category}
               </span>
@@ -173,10 +174,10 @@ export default async function CourseDetailPage({
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="text-right">
-                    <p className="text-xl font-bold tracking-tight leading-none">
+                    <p className="text-xl font-bold tracking-tight tabular-nums leading-none">
                       {pct}%
                     </p>
-                    <p className="text-[11px] text-muted-foreground mt-1">
+                    <p className="text-[11px] text-muted-foreground tabular-nums mt-1">
                       {completedCount}/{chapterList.length} chapters
                     </p>
                   </div>

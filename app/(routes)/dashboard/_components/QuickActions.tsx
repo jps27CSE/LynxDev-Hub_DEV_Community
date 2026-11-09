@@ -31,7 +31,9 @@ const actions = [
 function QuickActions() {
   return (
     <div className="overflow-hidden">
-      <h2 className="text-lg sm:text-xl font-bold tracking-tight mb-4 sm:mb-6">Explore</h2>
+      <h2 className="text-lg sm:text-xl font-bold tracking-tight mb-4 sm:mb-6">
+        Explore
+      </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {actions.map((action) => {
           const Icon = action.icon;

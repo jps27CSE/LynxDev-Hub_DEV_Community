@@ -31,6 +31,9 @@ function TerminalLines() {
       <p className="text-slate-300">
         <span className="text-cyan-400">✔</span> 220+ DSA problems indexed
       </p>
+      <p className="text-slate-300">
+        <span className="text-cyan-400">✔</span> 15 system design modules
+      </p>
       <p className="mt-3 text-slate-400">
         <span className="text-cyan-400">$</span> welcome, developer.
         <span className="neon-caret" />
@@ -69,8 +72,9 @@ function Hero() {
             </h1>
 
             <p className="mt-6 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Interactive courses, 220+ DSA problems, and interview prep —
-              handcrafted, zero-cost, and built for engineers who want to ship.
+              Interactive courses, 220+ DSA problems, interview prep, and
+              hands-on system design — handcrafted, zero-cost, and built for
+              engineers who want to ship.
             </p>
 
             <div className="mt-9 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">

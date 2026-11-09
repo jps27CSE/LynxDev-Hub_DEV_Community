@@ -63,7 +63,12 @@ export async function GET(req: NextRequest) {
     const { q, sort, subscription, page } = parsed.data;
 
     try {
-      const { data, total, hasMore } = await getUsersPaginated(q, sort, subscription, page);
+      const { data, total, hasMore } = await getUsersPaginated(
+        q,
+        sort,
+        subscription,
+        page,
+      );
       return NextResponse.json({ data, total, page, hasMore });
     } catch {
       return serverError("Failed to fetch users");

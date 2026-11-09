@@ -22,41 +22,51 @@ export type WhatsNewData = {
 
 export const WHATS_NEW: WhatsNewData = {
   version: APP_VERSION,
-  highlight: "1.1",
-  headline: "LynxDEV 1.1 is here",
+  highlight: "2.0",
+  headline: "LynxDEV 2.0 is here",
   summary:
-    "The interview prep rebuild — 1,000+ questions across 38 chapters, including two new chapters on production incidents and distributed systems. Everything stays free.",
+    "The system design learning path — 15 modules, 79 lessons, 14 hands-on build tasks with a real traffic simulator. Plus a smoother, more reliable platform across the board. Everything stays free.",
   features: [
     {
-      title: "Interactive Courses",
+      title: "System Design Learning Path",
       description:
-        "Three courses, 42 chapters, real exercises and an embedded editor per chapter — structured learning, not just videos.",
-      icon: "BookOpen",
+        "15 modules from mindset to chaos engineering — capacity planning, caching, sharding, rate limiting, CDNs, failures, retries, idempotency. Each module has a build task on an interactive canvas with a real traffic simulator.",
+      icon: "Network",
     },
     {
-      title: "Code Editor",
+      title: "Interactive Canvas",
       description:
-        "A dedicated browser workspace — write and run JavaScript instantly, save your code as a file, and import it back.",
-      icon: "Code2",
+        "Drag-and-drop components (clients, load balancers, app servers, caches, databases, queues, workers, CDNs), connect them, and run real traffic through your design. See utilisation, p95 latency, error rates and bottleneck detection.",
+      icon: "Workflow",
     },
     {
-      title: "DSA Problems",
+      title: "Build Tasks & Criteria",
       description:
-        "Practice 220+ DSA problems — beginner drills to LeetCode classics — statement and editor side by side, mark solved as you go.",
-      icon: "BrainCircuit",
-    },
-    {
-      title: "Interview Prep",
-      description:
-        "1,000+ questions across 38 chapters — now including Production Engineering and Distributed Systems in Production, built around real incidents.",
+        "14 hands-on build tasks with pass criteria — size the API for a lost third, fix a cache stampede, shard a hot key, rate-limit a bot. Earn criteria by proving your design works.",
       icon: "Target",
+    },
+    {
+      title: "Production Review",
+      description:
+        "The system design module went through a full production review: faster simulations, lower resource usage, and a more reliable save system. Every number measured, not estimated.",
+      icon: "ShieldCheck",
     },
   ],
   fixesSummary: [
-    "New chapter: Production Engineering & Incident Patterns — 28 real production failures, from SELECT * to connection-pool exhaustion to a nightly memory leak",
-    "New chapter: Distributed Systems in Production — 26 questions on idempotency, sagas, cache stampedes, Kafka partitions and replication lag",
-    "New TypeScript chapter — 40 junior-level questions, shared by Software Engineer and Frontend Engineer with a single source of truth",
-    "Interview bank rebuilt to 1,000+ questions; Software Engineer now has 11 chapters",
-    "Ten new question tags — http-methods, two-pointers, sliding-window, hash-map, in-place, bit-manipulation, linked-list, interval-merging, cherry-pick, force-push — so tag-based practice can actually reach algorithm questions",
+    "New: System Design learning path — 15 modules, 79 lessons, 14 build tasks",
+    "New: Interactive canvas with real traffic simulation",
+    "New: Build tasks with pass criteria and server-verified results",
+    "New: System Design feature card on homepage and login page",
+    "New: 15 system design modules covering capacity, caching, sharding, rate limiting, CDNs, failures, retries, idempotency",
+    "Improved: Canvas drag is smoother on mobile (batched frame updates)",
+    "Improved: Panel re-renders reduced (memoized components)",
+    "Improved: Saves are more reliable (conflict detection, merge, retry)",
+    "Improved: Saves flush automatically when you close the tab or go offline",
+    "Improved: Network reconnect triggers pending save flush",
+    "Improved: Task pages load faster (lighter payload, no prose shipped)",
+    "Improved: Build is more reliable (no database needed at build time)",
+    "Fix: Percentile calculations were off by one rank — now correct",
+    "Fix: Simulation results are now fully deterministic",
+    "Fix: Node placement on canvas no longer affects simulation output",
   ],
 };
