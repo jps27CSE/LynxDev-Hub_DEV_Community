@@ -25,7 +25,7 @@ export const WHATS_NEW: WhatsNewData = {
   highlight: "2.0",
   headline: "LynxDEV 2.0 is here",
   summary:
-    "The system design learning path — 15 modules, 79 lessons, 14 hands-on build tasks with a real traffic simulator. Plus a production-grade cost and reliability pass that makes the whole platform sustainable on free tier. Everything stays free.",
+    "The system design learning path — 15 modules, 79 lessons, 14 hands-on build tasks with a real traffic simulator. Plus a smoother, more reliable platform across the board. Everything stays free.",
   features: [
     {
       title: "System Design Learning Path",
@@ -48,28 +48,20 @@ export const WHATS_NEW: WhatsNewData = {
     {
       title: "Production Review",
       description:
-        "The system design module went through a full production review: CPU cost cut 15×, RU cost cut 4×, DoS closed, schema normalised. Every number measured, not estimated.",
+        "The system design module went through a full production review: faster simulations, lower resource usage, and a more reliable save system. Every number measured, not estimated.",
       icon: "ShieldCheck",
     },
   ],
   fixesSummary: [
-    "New: System Design learning path — 15 modules, 79 lessons, 14 build tasks (Phase 6)",
-    "New: Interactive canvas with traffic simulation — drag, connect, run, measure",
+    "New: System Design learning path — 15 modules, 79 lessons, 14 build tasks",
+    "New: Interactive canvas with real traffic simulation",
     "New: Build tasks with pass criteria and server-verified results",
-    "Cost: simulation cost 4.6s → 30ms (constant, input-independent)",
-    "Cost: RU per save ~76M → ~17M/month at 500 active learners",
-    "Cost: autosave cadence 2s → 10s with pagehide/visibilitychange/unmount flush",
-    "Cost: rate limiter moved off TiDB to per-instance (−2 statements/save)",
-    "Cost: sd_task_state normalised — per-task rows, no more whole-blob rewrite",
-    "Security: SD_MAX_ARRIVAL_RATE pinned at 20,000 (was 1,000,000)",
-    "Security: Content-Length cap (64 KB) on state POST",
-    "Perf: rAF-coalesced pointermove + React.memo on all panels",
-    "Perf: module task data split into separate chunks (prose not shipped to task page)",
-    "Reliability: server-owned ordering with 409 conflict + retry + online flush",
-    "Reliability: maxDuration + query timeout on state route",
-    "Logging: durable drain via LOG_DRAIN_URL (Axiom free tier)",
-    "Logging: requestId correlation + simulation timing in all log lines",
-    "Fix: percentile indexing (was 96th, now correct 95th)",
-    "Fix: graphSeed determinism (node placement no longer affects results)",
+    "New: System Design added to homepage and login page",
+    "Improved: Faster canvas drag on mobile (smoother interactions)",
+    "Improved: More reliable saves (conflict detection, retry, online flush)",
+    "Improved: Faster task page loads (lighter payload)",
+    "Improved: Build reliability (no database needed at build time)",
+    "Fix: Percentile calculations corrected",
+    "Fix: Deterministic simulation results",
   ],
 };
