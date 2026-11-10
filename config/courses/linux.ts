@@ -656,6 +656,380 @@ total 8
       },
       points_reward: 10,
     },
+    {
+      title: "9. Text Processing",
+      content: {
+        type: "browser",
+        instructions: `
+<h2>Shaping text with pipelines</h2>
+<p>Unix text tools are small and composable: each reads lines, transforms them, and writes lines. Chained with pipes they replace a spreadsheet or a script for most log/data tasks.</p>
+
+<h3>Sort and deduplicate</h3>
+${codeBlock(`sort names.txt              # alphabetical (locale-aware)
+sort -n numbers.txt          # numeric sort
+sort -r names.txt            # reverse
+sort -u names.txt            # sort + drop duplicates
+uniq                         # collapse adjacent duplicates (use after sort)
+uniq -c                      # count occurrences
+uniq -d                      # show only duplicated lines`)}
+
+<h3>Cut columns: <code>cut</code></h3>
+${codeBlock(`cut -d: -f1 /etc/passwd     # field 1, delimiter :
+cut -d, -f2,4 data.csv       # fields 2 and 4
+cut -c1-10 file.txt          # characters 1 to 10`)}
+
+<h3>Transform: <code>tr</code></h3>
+${codeBlock(`tr 'a-z' 'A-Z' < file.txt   # lowercase to uppercase
+tr -d '\\r' < win.txt > unix.txt  # strip Windows line endings (CRLF -> LF)
+tr -s ' ' < file.txt         # squeeze repeated spaces`)}
+
+<h3>Substitute: <code>sed</code></h3>
+${codeBlock(`sed 's/foo/bar/' file.txt     # replace first "foo" per line
+sed 's/foo/bar/g' file.txt    # replace all
+sed -i 's/foo/bar/g' file.txt # in-place edit (GNU sed)
+sed -n '10,20p' file.txt      # print lines 10-20
+sed '/^#/d' file.txt          # delete comment lines`)}
+
+<h3>Field processing: <code>awk</code></h3>
+${codeBlock(`awk '{print $1}' file.txt      # first field (whitespace-delimited)
+awk -F: '{print $1, $3}' /etc/passwd  # custom delimiter
+awk '$3 > 100 {print $1}' data.txt   # condition + action
+awk '{sum += $1} END {print sum}' nums.txt  # sum a column`)}
+
+<h3>Combine lines: <code>paste</code></h3>
+${codeBlock(`paste a.txt b.txt              # side-by-side columns
+paste -d, a.txt b.txt          # comma-separated columns`)}
+
+<h3>Learn more</h3>
+<p>${externalLink("Linuxize — sed", "https://linuxize.com/post/sed-command-in-linux/")} · ${externalLink("Linuxize — awk", "https://linuxize.com/post/awk-command-in-linux/")} · ${externalLink("Linux Journey — text processing", "https://linuxjourney.com/lesson/sorting-data")}</p>
+
+<h3>Your task</h3>
+<p>Process a sample CSV of users:</p>
+${codeBlock(`cd /tmp/practice
+cat > users.csv <<'EOF'
+alice,30,admin
+bob,25,user
+carol,30,user
+dave,22,guest
+EOF
+# 1. Sort by age (numeric, field 2)
+sort -t, -k2 -n users.csv
+
+# 2. Unique roles
+cut -d, -f3 users.csv | sort -u
+
+# 3. Count users per role
+cut -d, -f3 users.csv | sort | uniq -c
+
+# 4. Replace "user" with "member"
+sed 's/,user$/,member/' users.csv
+
+# 5. Sum of ages with awk
+awk -F, '{s+=$2} END {print "total age:", s}' users.csv`)}
+
+<p><strong>Verify:</strong> step 1 orders dave, bob, alice, carol. Step 3 shows <code>1 admin</code>, <code>2 user</code>, <code>1 guest</code>. Step 5 prints <code>total age: 107</code>.</p>
+`,
+        initialCode: `# Text processing scratchpad
+# sort file.txt
+# cut -d: -f1 /etc/passwd
+# sed 's/foo/bar/g' file.txt
+# awk -F, '{print $1}' file.csv
+`,
+        solution: `$ sort -t, -k2 -n users.csv
+dave,22,guest
+bob,25,user
+alice,30,admin
+carol,30,user
+$ cut -d, -f3 users.csv | sort -u
+admin
+guest
+user
+$ cut -d, -f3 users.csv | sort | uniq -c
+      1 admin
+      1 guest
+      2 user
+$ sed 's/,user$/,member/' users.csv
+alice,30,admin
+bob,25,member
+carol,30,member
+dave,22,guest
+$ awk -F, '{s+=$2} END {print "total age:", s}' users.csv
+total age: 107`,
+      },
+      points_reward: 10,
+    },
+    {
+      title: "10. Inspect the System",
+      content: {
+        type: "browser",
+        instructions: `
+<h2>What is running, and how much is left</h2>
+<p>When something is slow or broken, you inspect processes, CPU, memory, and disk. These commands are the first responders of Linux troubleshooting.</p>
+
+<h3>Processes: <code>ps</code>, <code>top</code>, <code>htop</code></h3>
+${codeBlock(`ps                      # your shell's processes
+ps aux                  # ALL processes, BSD style (user, pid, %cpu, %mem, command)
+ps -ef                  # all processes, standard style
+ps aux | grep nginx     # is nginx running?
+top                     # live, interactive process viewer (q to quit)
+htop                    # prettier top (install: sudo apt install htop)`)}
+
+<h3>Kill a process: <code>kill</code>, <code>killall</code>, <code>pkill</code></h3>
+${codeBlock(`kill 1234               # send SIGTERM (graceful) to pid 1234
+kill -9 1234            # SIGKILL (forced, last resort)
+killall nginx           # kill all processes named nginx
+pkill -f "python app"   # kill by command-line match`)}
+
+<p>Always try <code>kill</code> (SIGTERM) first — it lets the process clean up. <code>kill -9</code> gives no chance to save state.</p>
+
+<h3>Disk: <code>df</code> and <code>du</code></h3>
+${codeBlock(`df -h                   # disk free, human-readable (per filesystem)
+df -h /                 # just the root filesystem
+du -sh /var/log         # size of a directory (summary)
+du -sh * | sort -hr     # biggest items in current dir`)}
+
+<h3>Memory: <code>free</code></h3>
+${codeBlock(`free -h                 # total/used/free memory + swap
+free -m                 # in megabytes`)}
+
+<h3>Uptime and load</h3>
+${codeBlock(`uptime                  # how long up + load averages (1/5/15 min)
+nproc                   # number of CPU cores
+lscpu                   # CPU details`)}
+
+<h3>Learn more</h3>
+<p>${externalLink("Red Hat — essential commands", "https://www.redhat.com/en/blog/20-essential-linux-commands-every-user")} · ${externalLink("Linuxize — ps", "https://linuxize.com/post/ps-command-in-linux/")} · ${externalLink("Ubuntu — command line for beginners", "https://ubuntu.com/tutorials/command-line-for-beginners")}</p>
+
+<h3>Your task</h3>
+<p>Run a system health check and interpret it:</p>
+${codeBlock(`uptime                  # load avg should be < number of cores
+nproc                   # your core count
+free -h                 # is swap in use? (bad if yes under load)
+df -h                   # is any filesystem > 80% full?
+ps aux --sort=-%mem | head -6   # top 5 memory consumers
+du -sh /var/log 2>/dev/null     # log dir size`)}
+
+<p><strong>Verify:</strong> <code>df -h</code> shows <code>/</code> with a <code>Use%</code> column. <code>free -h</code> shows <code>Mem:</code> and <code>Swap:</code> rows. If load average exceeds core count, the CPU is saturated.</p>
+`,
+        initialCode: `# System inspection scratchpad
+# ps aux | grep nginx
+# df -h
+# free -h
+# top
+`,
+        solution: `$ uptime
+ 10:00:00 up 3 days, 2:15, 1 user, load average: 0.42, 0.38, 0.35
+$ nproc
+8
+$ free -h
+              total   used   free   shared  buff/cache   available
+Mem:           15Gi  6.2Gi  4.1Gi   0.5Gi       5.1Gi       8.8Gi
+Swap:         2.0Gi     0B  2.0Gi
+$ df -h /
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        50G   22G   28G  44% /
+$ ps aux --sort=-%mem | head -6
+USER  PID  %CPU %MEM  ...  COMMAND
+jack  1234  2.1  4.5 ...  /usr/bin/node ...
+...`,
+      },
+      points_reward: 10,
+    },
+    {
+      title: "11. Networking Basics",
+      content: {
+        type: "browser",
+        instructions: `
+<h2>Talking to other machines</h2>
+<p>Developers debug networking daily: "is the API reachable?", "does DNS resolve?", "what is listening on port 3000?". These commands answer those questions in seconds.</p>
+
+<h3>Reachability: <code>ping</code></h3>
+${codeBlock(`ping google.com               # ICMP echo (Ctrl+C to stop)
+ping -c 4 google.com          # send exactly 4 packets
+ping -c 1 192.168.1.1         # check gateway`)}
+
+<h3>HTTP: <code>curl</code> and <code>wget</code></h3>
+${codeBlock(`curl https://api.github.com     # print response body
+curl -i https://example.com    # include headers
+curl -s -o /dev/null -w "%{http_code}" https://example.com  # status code only
+curl -X POST -d '{"a":1}' -H 'Content-Type: application/json' URL
+wget https://example.com/file.zip   # download to file
+wget -O out.zip https://example.com/file.zip`)}
+
+<h3>Interfaces and addresses: <code>ip</code></h3>
+${codeBlock(`ip addr                      # all interfaces + IPs
+ip addr show eth0            # one interface
+ip route                     # routing table
+ip -s link                   # interface stats (bytes/packets)`)}
+
+<h3>Listening ports: <code>ss</code> / <code>netstat</code></h3>
+${codeBlock(`ss -tlnp                    # TCP listening sockets + process
+ss -tlnp | grep :3000       # what is on port 3000?
+netstat -tlnp               # older alternative`)}
+
+<h3>DNS: <code>dig</code>, <code>nslookup</code>, <code>host</code></h3>
+${codeBlock(`dig example.com              # full DNS resolution
+dig +short example.com       # just the IP
+nslookup example.com         # simpler resolver query
+host example.com             # quick A/AAAA/MX lookup`)}
+
+<h3>Learn more</h3>
+<p>${externalLink("Red Hat — essential commands", "https://www.redhat.com/en/blog/20-essential-linux-commands-every-user")} · ${externalLink("Linuxize — curl", "https://linuxize.com/post/curl-command-in-linux/")} · ${externalLink("Boot.dev — Linux", "https://www.boot.dev/courses/learn-linux")}</p>
+
+<h3>Your task</h3>
+<p>Debug a "is my service reachable?" scenario:</p>
+${codeBlock(`# 1. Does DNS resolve?
+dig +short github.com
+
+# 2. Is the host reachable?
+ping -c 3 github.com
+
+# 3. Fetch headers from an API
+curl -sI https://api.github.com | head -5
+
+# 4. What is listening locally?
+ss -tlnp
+
+# 5. What process owns port 22 (SSH)?
+sudo ss -tlnp | grep :22`)}
+
+<p><strong>Verify:</strong> <code>dig +short</code> returns an IP. <code>curl -sI</code> returns <code>HTTP/2 200</code> (or 301/403 — still proves reachability). <code>ss -tlnp</code> lists listening sockets with PIDs when run with sufficient privileges.</p>
+`,
+        initialCode: `# Networking scratchpad
+# ping -c 4 google.com
+# curl -sI https://example.com
+# ss -tlnp
+# dig +short example.com
+`,
+        solution: `$ dig +short github.com
+140.82.121.4
+$ ping -c 3 github.com
+PING github.com (140.82.121.4) 56(84) bytes of data.
+64 bytes from ...: icmp_seq=1 ttl=... time=12.3 ms
+...
+$ curl -sI https://api.github.com | head -5
+HTTP/2 200
+server: GitHub.com
+content-type: application/json; charset=utf-8
+...
+$ ss -tlnp | grep :22
+LISTEN 0 128 0.0.0.0:22 0.0.0.0:* users:(("sshd",pid=821,fd=3))`,
+      },
+      points_reward: 10,
+    },
+    {
+      title: "12. Project — Mini Sysadmin Task",
+      content: {
+        type: "browser",
+        instructions: `
+<h2>Put it all together</h2>
+<p>This is a realistic mini-task combining navigation, files, search, permissions, pipes, text processing, archives, and environment variables. Work through the 8 steps in your own terminal. Each step's expected output is shown so you can verify.</p>
+
+<h3>Scenario</h3>
+<p>You are onboarding a new teammate. You need to: create a project directory, generate a log, inspect and filter it, archive it, set up an environment variable, and verify everything.</p>
+
+<h3>Step-by-step</h3>
+${codeBlock(`# 1. Create the project tree
+mkdir -p /tmp/onboard/{logs,backup,scripts}
+cd /tmp/onboard
+pwd
+
+# 2. Generate a sample log (100 lines, some errors)
+for i in $(seq 1 100); do
+  if [ $((i % 7)) -eq 0 ]; then echo "ERROR request $i failed"; else echo "INFO request $i ok"; fi
+done > logs/app.log
+wc -l logs/app.log
+
+# 3. Inspect: errors only, counted
+grep -c "ERROR" logs/app.log
+grep "ERROR" logs/app.log | head -3
+
+# 4. Top memory-ish: biggest files in the tree
+du -sh * | sort -hr
+
+# 5. Archive the logs for handoff
+tar -czf backup/logs-$(date +%F).tar.gz logs/
+ls -lh backup/
+
+# 6. Verify the archive contents
+tar -tzf backup/logs-*.tar.gz | head
+
+# 7. Environment: add a project bin to PATH for this session
+export PROJECT_HOME=/tmp/onboard
+echo "Project home: $PROJECT_HOME"
+echo 'export PROJECT_HOME=/tmp/onboard' >> ~/.bashrc   # persist for future shells
+which bash
+
+# 8. Permissions: make a helper script executable
+cat > scripts/health.sh <<'EOF'
+#!/bin/bash
+echo "errors: $(grep -c ERROR $PROJECT_HOME/logs/app.log)"
+echo "lines:  $(wc -l < $PROJECT_HOME/logs/app.log)"
+EOF
+chmod u+x scripts/health.sh
+./scripts/health.sh`)}
+
+<h3>Verification checklist</h3>
+<ul>
+  <li>Step 1: <code>pwd</code> prints <code>/tmp/onboard</code>.</li>
+  <li>Step 2: <code>wc -l</code> reports <code>100</code>.</li>
+  <li>Step 3: error count is <code>14</code> (100/7 ≈ 14).</li>
+  <li>Step 4: <code>du -sh *</code> shows <code>logs/</code> as the largest.</li>
+  <li>Step 5: archive file exists in <code>backup/</code> with today's date.</li>
+  <li>Step 6: <code>tar -tzf</code> lists <code>logs/app.log</code>.</li>
+  <li>Step 7: <code>$PROJECT_HOME</code> expands to <code>/tmp/onboard</code>.</li>
+  <li>Step 8: <code>health.sh</code> prints <code>errors: 14</code> and <code>lines: 100</code>.</li>
+</ul>
+
+<h3>Learn more</h3>
+<p>${externalLink("Ubuntu — command-line for beginners", "https://ubuntu.com/tutorials/command-line-for-beginners")} · ${externalLink("Linux Journey — the whole path", "https://linuxjourney.com/")} · ${externalLink("Boot.dev — Learn Linux", "https://www.boot.dev/courses/learn-linux")} · ${externalLink("LabEx — practice", "https://labex.io")}</p>
+
+<h3>Congratulations</h3>
+<p>You have completed the Linux Commands course. You can now navigate, manipulate files, search, read and process text, inspect systems, and chain commands with pipes and redirection — the daily toolkit of every developer. Next steps: shell scripting (loops, conditionals, functions) and a deeper dive into users, services, and package management.</p>
+`,
+        initialCode: `# Mini sysadmin project scratchpad
+# mkdir -p /tmp/onboard/{logs,backup,scripts}
+# grep -c "ERROR" logs/app.log
+# tar -czf backup/logs.tar.gz logs/
+# export PROJECT_HOME=/tmp/onboard
+`,
+        solution: `$ mkdir -p /tmp/onboard/{logs,backup,scripts}
+$ cd /tmp/onboard && pwd
+/tmp/onboard
+$ for i in $(seq 1 100); do if [ $((i % 7)) -eq 0 ]; then echo "ERROR request $i failed"; else echo "INFO request $i ok"; fi; done > logs/app.log
+$ wc -l logs/app.log
+100 logs/app.log
+$ grep -c "ERROR" logs/app.log
+14
+$ grep "ERROR" logs/app.log | head -3
+ERROR request 7 failed
+ERROR request 14 failed
+ERROR request 21 failed
+$ du -sh * | sort -hr
+4.0K    logs
+4.0K    scripts
+4.0K    backup
+$ tar -czf backup/logs-$(date +%F).tar.gz logs/
+$ ls -lh backup/
+-rw-r--r-- 1 jack jack 1.2K ... logs-2026-...tar.gz
+$ tar -tzf backup/logs-*.tar.gz | head
+logs/
+logs/app.log
+$ export PROJECT_HOME=/tmp/onboard
+$ echo "Project home: $PROJECT_HOME"
+Project home: /tmp/onboard
+$ cat > scripts/health.sh <<'EOF'
+#!/bin/bash
+echo "errors: $(grep -c ERROR $PROJECT_HOME/logs/app.log)"
+echo "lines:  $(wc -l < $PROJECT_HOME/logs/app.log)"
+EOF
+$ chmod u+x scripts/health.sh
+$ ./scripts/health.sh
+errors: 14
+lines:  100`,
+      },
+      points_reward: 25,
+    },
   ],
 };
 
