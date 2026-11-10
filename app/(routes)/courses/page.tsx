@@ -66,10 +66,7 @@ export default async function CoursesPage() {
                 {publishedCourses.length} courses available
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight leading-[1.1]">
-                Learn to{" "}
-                <span className="text-emerald-500">
-                  Build
-                </span>
+                Learn to <span className="text-emerald-500">Build</span>
               </h1>
               <p className="mt-4 text-lg text-muted-foreground max-w-xl leading-relaxed">
                 Hands-on courses with coding exercises, real projects, and a

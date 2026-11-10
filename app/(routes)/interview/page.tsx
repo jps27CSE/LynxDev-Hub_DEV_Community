@@ -156,8 +156,7 @@ export default async function InterviewPage() {
               chapters
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight leading-[1.1]">
-              Interview{" "}
-              <span className="text-primary">Preparation</span>
+              Interview <span className="text-primary">Preparation</span>
             </h1>
             <p className="mt-4 text-lg text-muted-foreground max-w-xl leading-relaxed">
               Master your next technical interview with curated chapters,
