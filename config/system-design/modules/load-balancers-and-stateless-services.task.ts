@@ -97,111 +97,111 @@ const scaledGraph: SdGraph = {
   scenario: { ...scenario },
 };
 
-const task: SdTaskDef =   {
-    brief:
-      "The monolith is at 200% and shedding half of everything: 4,000 requests per second at peak, and one app process that serves 2,000. Put one address in front of a fleet and give the app tier enough headroom to survive a busy minute. The store will end up near its own ceiling — that is the next module, not this task.",
-    startGraph: monolithGraph,
-    solutionGraph: scaledGraph,
-    steps: [
-      {
-        id: "add-lb",
-        title: "Put one address in front",
-        brief:
-          "Members must reach the app tier through a single address, not by connecting to the process directly.",
-        hint: "Look in the Traffic category of the palette.",
-        reveal:
-          "Add a Load balancer between the client and the app tier, and remove the direct client → app edge.",
-        check: (g) => {
-          const lbs = g.nodes.filter((n) => n.type === "load_balancer");
-          if (lbs.length === 0) {
-            return { passed: false, progress: "Add a load balancer" };
-          }
-          const lbIds = new Set(lbs.map((n) => n.id));
-          const direct = g.edges.some(
-            (e) =>
-              g.nodes.some((n) => n.id === e.from && n.type === "client") &&
-              g.nodes.some((n) => n.id === e.to && n.type === "app_server"),
-          );
-          if (direct) {
-            return {
-              passed: false,
-              progress:
-                "Clients still reach an app server directly — remove that edge",
-            };
-          }
-          const routes = g.edges.some(
-            (e) =>
-              lbIds.has(e.from) &&
-              g.nodes.some((n) => n.id === e.to && n.type === "app_server"),
-          );
+const task: SdTaskDef = {
+  brief:
+    "The monolith is at 200% and shedding half of everything: 4,000 requests per second at peak, and one app process that serves 2,000. Put one address in front of a fleet and give the app tier enough headroom to survive a busy minute. The store will end up near its own ceiling — that is the next module, not this task.",
+  startGraph: monolithGraph,
+  solutionGraph: scaledGraph,
+  steps: [
+    {
+      id: "add-lb",
+      title: "Put one address in front",
+      brief:
+        "Members must reach the app tier through a single address, not by connecting to the process directly.",
+      hint: "Look in the Traffic category of the palette.",
+      reveal:
+        "Add a Load balancer between the client and the app tier, and remove the direct client → app edge.",
+      check: (g) => {
+        const lbs = g.nodes.filter((n) => n.type === "load_balancer");
+        if (lbs.length === 0) {
+          return { passed: false, progress: "Add a load balancer" };
+        }
+        const lbIds = new Set(lbs.map((n) => n.id));
+        const direct = g.edges.some(
+          (e) =>
+            g.nodes.some((n) => n.id === e.from && n.type === "client") &&
+            g.nodes.some((n) => n.id === e.to && n.type === "app_server"),
+        );
+        if (direct) {
           return {
-            passed: routes,
-            progress: routes
-              ? "✓ One address, routed to the app tier"
-              : "Connect the balancer to the app tier",
+            passed: false,
+            progress:
+              "Clients still reach an app server directly — remove that edge",
           };
-        },
+        }
+        const routes = g.edges.some(
+          (e) =>
+            lbIds.has(e.from) &&
+            g.nodes.some((n) => n.id === e.to && n.type === "app_server"),
+        );
+        return {
+          passed: routes,
+          progress: routes
+            ? "✓ One address, routed to the app tier"
+            : "Connect the balancer to the app tier",
+        };
       },
-      {
-        id: "scale-out",
-        title: "Scale the app tier out",
-        brief:
-          "One process is not enough. Add instances — the canvas models them as `replicas` on the app node.",
-        hint: "Select the app server and raise its replica count. Two is not enough.",
-        reveal:
-          "Three replicas give 6,000 of capacity for 4,000 of load — 67%. Four give 50%, which is where the reference design sits.",
-        check: (g) => {
-          const apps = g.nodes.filter((n) => n.type === "app_server");
-          if (apps.length === 0) {
-            return { passed: false, progress: "Add an app server" };
-          }
-          const capacity = apps.reduce(
-            (sum, node) => sum + node.replicas * 2_000,
-            0,
-          );
-          const enough = capacity > 4_000;
-          return {
-            passed: enough,
-            progress: enough
-              ? `✓ ${capacity.toLocaleString()} r/s of app capacity for 4,000 offered`
-              : `${capacity.toLocaleString()} r/s of app capacity is not more than the 4,000 offered`,
-          };
-        },
+    },
+    {
+      id: "scale-out",
+      title: "Scale the app tier out",
+      brief:
+        "One process is not enough. Add instances — the canvas models them as `replicas` on the app node.",
+      hint: "Select the app server and raise its replica count. Two is not enough.",
+      reveal:
+        "Three replicas give 6,000 of capacity for 4,000 of load — 67%. Four give 50%, which is where the reference design sits.",
+      check: (g) => {
+        const apps = g.nodes.filter((n) => n.type === "app_server");
+        if (apps.length === 0) {
+          return { passed: false, progress: "Add an app server" };
+        }
+        const capacity = apps.reduce(
+          (sum, node) => sum + node.replicas * 2_000,
+          0,
+        );
+        const enough = capacity > 4_000;
+        return {
+          passed: enough,
+          progress: enough
+            ? `✓ ${capacity.toLocaleString()} r/s of app capacity for 4,000 offered`
+            : `${capacity.toLocaleString()} r/s of app capacity is not more than the 4,000 offered`,
+        };
       },
-    ],
-    passCriteria: [
-      {
-        id: "zero-errors",
-        label: "Error rate = 0% at 4,000 requests per second",
-        required: true,
-        explain:
-          "The monolith sheds 50% of this load. The previous version of this task asked for 20,000 r/s behind a single 20,000 r/s balancer and checked nothing but structural validity — it passed while 90% of traffic was turned away.",
-        assert: (r) => r.valid && r.errorRate === 0,
+    },
+  ],
+  passCriteria: [
+    {
+      id: "zero-errors",
+      label: "Error rate = 0% at 4,000 requests per second",
+      required: true,
+      explain:
+        "The monolith sheds 50% of this load. The previous version of this task asked for 20,000 r/s behind a single 20,000 r/s balancer and checked nothing but structural validity — it passed while 90% of traffic was turned away.",
+      assert: (r) => r.valid && r.errorRate === 0,
+    },
+    {
+      id: "app-headroom",
+      label: "App tier utilisation < 70%",
+      required: true,
+      explain:
+        "Two replicas give exactly 4,000 of capacity for 4,000 of load — 100%, no headroom, and the next request fails. The threshold forces a third instance, which is the difference between sizing for the average and sizing for the peak.",
+      assert: (r) => {
+        const app = r.perNode.find((n) => n.id === "app-1");
+        return !!app && app.utilisation < 0.7;
       },
-      {
-        id: "app-headroom",
-        label: "App tier utilisation < 70%",
-        required: true,
-        explain:
-          "Two replicas give exactly 4,000 of capacity for 4,000 of load — 100%, no headroom, and the next request fails. The threshold forces a third instance, which is the difference between sizing for the average and sizing for the peak.",
-        assert: (r) => {
-          const app = r.perNode.find((n) => n.id === "app-1");
-          return !!app && app.utilisation < 0.7;
-        },
+    },
+    {
+      id: "edge-headroom",
+      label: "Balancer utilisation < 50%",
+      required: true,
+      explain:
+        "The balancer is a box with a ceiling of its own — 20,000 r/s here, which is only ten app instances. At 4,000 it should sit at 20%. If it reads higher, the load is not what the graph says it is.",
+      assert: (r) => {
+        const lb = r.perNode.find((n) => n.id === "lb-1");
+        return !!lb && lb.utilisation < 0.5;
       },
-      {
-        id: "edge-headroom",
-        label: "Balancer utilisation < 50%",
-        required: true,
-        explain:
-          "The balancer is a box with a ceiling of its own — 20,000 r/s here, which is only ten app instances. At 4,000 it should sit at 20%. If it reads higher, the load is not what the graph says it is.",
-        assert: (r) => {
-          const lb = r.perNode.find((n) => n.id === "lb-1");
-          return !!lb && lb.utilisation < 0.5;
-        },
-      },
-    ]
-  }
+    },
+  ],
+};
 
 export default task;
 

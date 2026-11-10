@@ -108,118 +108,118 @@ function taskGraph(rateLimitPerMin: number | null): SdGraph {
   };
 }
 
-const task: SdTaskDef =   {
-    brief:
-      "A bot is doing 400 uploads per second inside 6,000 requests per second of traffic, and the load balancer has no per-client limit. Set a per-client allowance below the bot's rate so the bot receives 429s and real users complete with zero errors.",
-    startGraph: taskGraph(null),
-    solutionGraph: taskGraph(3600),
-    steps: [
-      {
-        id: "set-rate-limit",
-        title: "Rate-limit the abusive client",
-        brief:
-          "Give the load balancer a per-minute allowance below the bot's 24,000 req/min so its requests are rejected as 429s.",
-        hint: "Select the load balancer node and set its Rate Limit (per min) in the inspector.",
-        reveal:
-          "Set `rateLimitPerMin` to 3,600 (60 req/s). The bot's 400 req/s exceeds it and is rejected; real users are never rate-limited because the limiter only applies to the abusive client.",
-        check: (graph) => {
-          const lb = graph.nodes.find((node) => node.type === "load_balancer");
-          const limit = (lb as any)?.rateLimitPerMin ?? null;
-          const passed = limit !== null && limit < 24_000 && limit > 0;
-          return {
-            passed,
-            progress: passed
-              ? `✓ Rate limit set to ${limit} req/min, below the bot's 24,000 req/min`
-              : limit === null
-                ? "No rate limit configured yet"
-                : limit <= 0
-                  ? "Rate limit must be greater than zero"
-                  : `${limit} req/min — set it below 24,000`,
-          };
-        },
+const task: SdTaskDef = {
+  brief:
+    "A bot is doing 400 uploads per second inside 6,000 requests per second of traffic, and the load balancer has no per-client limit. Set a per-client allowance below the bot's rate so the bot receives 429s and real users complete with zero errors.",
+  startGraph: taskGraph(null),
+  solutionGraph: taskGraph(3600),
+  steps: [
+    {
+      id: "set-rate-limit",
+      title: "Rate-limit the abusive client",
+      brief:
+        "Give the load balancer a per-minute allowance below the bot's 24,000 req/min so its requests are rejected as 429s.",
+      hint: "Select the load balancer node and set its Rate Limit (per min) in the inspector.",
+      reveal:
+        "Set `rateLimitPerMin` to 3,600 (60 req/s). The bot's 400 req/s exceeds it and is rejected; real users are never rate-limited because the limiter only applies to the abusive client.",
+      check: (graph) => {
+        const lb = graph.nodes.find((node) => node.type === "load_balancer");
+        const limit = (lb as any)?.rateLimitPerMin ?? null;
+        const passed = limit !== null && limit < 24_000 && limit > 0;
+        return {
+          passed,
+          progress: passed
+            ? `✓ Rate limit set to ${limit} req/min, below the bot's 24,000 req/min`
+            : limit === null
+              ? "No rate limit configured yet"
+              : limit <= 0
+                ? "Rate limit must be greater than zero"
+                : `${limit} req/min — set it below 24,000`,
+        };
       },
-      {
-        id: "keep-the-load",
-        title: "Do not shrink the problem",
-        brief:
-          "The traffic is 6,000 requests a second, 40% of it abusive. Lowering the arrival rate changes the question, not the answer.",
-        hint: "Check the scenario's arrival rate in the inspector.",
-        reveal:
-          "A capacity problem is only solved by refusing the wrong traffic, not by removing it. At 1,000 requests a second the app tier would sit at 25% and every criterion would pass while the production incident continues.",
-        check: (graph) => {
-          const arrivals = graph.scenario.arrivalRate;
-          return {
-            passed: arrivals >= 6_000,
-            progress:
-              arrivals >= 6_000
-                ? `✓ ${arrivals.toLocaleString()} r/s — the load is unchanged`
-                : `${arrivals.toLocaleString()} r/s is below the 6,000 r/s the system is expected to serve`,
-          };
-        },
+    },
+    {
+      id: "keep-the-load",
+      title: "Do not shrink the problem",
+      brief:
+        "The traffic is 6,000 requests a second, 40% of it abusive. Lowering the arrival rate changes the question, not the answer.",
+      hint: "Check the scenario's arrival rate in the inspector.",
+      reveal:
+        "A capacity problem is only solved by refusing the wrong traffic, not by removing it. At 1,000 requests a second the app tier would sit at 25% and every criterion would pass while the production incident continues.",
+      check: (graph) => {
+        const arrivals = graph.scenario.arrivalRate;
+        return {
+          passed: arrivals >= 6_000,
+          progress:
+            arrivals >= 6_000
+              ? `✓ ${arrivals.toLocaleString()} r/s — the load is unchanged`
+              : `${arrivals.toLocaleString()} r/s is below the 6,000 r/s the system is expected to serve`,
+        };
       },
-      {
-        id: "leave-room-for-real-clients",
-        title: "Leave room for real clients",
-        brief:
-          "The allowance must sit above what a real client needs and below what the bot sends: at least 600 req/min, and under 24,000.",
-        hint: "A limit of one request per minute rejects the bot and every real uploader with it. The engine cannot tell you that; this step can.",
-        reveal:
-          "The bot sends 400 req/s, which is 24,000 req/min. A real uploader needs a handful per minute. 3,600 req/min — 60 per second — is comfortably above a real client's peak and far below the bot's, and it is the number the lesson argues for.",
-        check: (graph) => {
-          const lb = graph.nodes.find((node) => node.type === "load_balancer");
-          const limit = (lb as { rateLimitPerMin?: number | null } | undefined)
-            ?.rateLimitPerMin;
-          const passed =
-            typeof limit === "number" && limit >= 600 && limit < 24_000;
-          return {
-            passed,
-            progress:
-              limit === null || limit === undefined
-                ? "No rate limit configured yet"
-                : passed
-                  ? `✓ ${limit.toLocaleString()} req/min — above a real client's peak, below the bot's 24,000`
-                  : limit < 600
-                    ? `${limit} req/min would reject real uploaders along with the bot`
-                    : `${limit} req/min is at or above the bot's 24,000 req/min, so it rejects nothing`,
-          };
-        },
+    },
+    {
+      id: "leave-room-for-real-clients",
+      title: "Leave room for real clients",
+      brief:
+        "The allowance must sit above what a real client needs and below what the bot sends: at least 600 req/min, and under 24,000.",
+      hint: "A limit of one request per minute rejects the bot and every real uploader with it. The engine cannot tell you that; this step can.",
+      reveal:
+        "The bot sends 400 req/s, which is 24,000 req/min. A real uploader needs a handful per minute. 3,600 req/min — 60 per second — is comfortably above a real client's peak and far below the bot's, and it is the number the lesson argues for.",
+      check: (graph) => {
+        const lb = graph.nodes.find((node) => node.type === "load_balancer");
+        const limit = (lb as { rateLimitPerMin?: number | null } | undefined)
+          ?.rateLimitPerMin;
+        const passed =
+          typeof limit === "number" && limit >= 600 && limit < 24_000;
+        return {
+          passed,
+          progress:
+            limit === null || limit === undefined
+              ? "No rate limit configured yet"
+              : passed
+                ? `✓ ${limit.toLocaleString()} req/min — above a real client's peak, below the bot's 24,000`
+                : limit < 600
+                  ? `${limit} req/min would reject real uploaders along with the bot`
+                  : `${limit} req/min is at or above the bot's 24,000 req/min, so it rejects nothing`,
+        };
       },
-    ],
-    passCriteria: [
-      {
-        id: "bot-gets-429s",
-        label: "Bot receives 429s (rejected > 0)",
-        required: true,
-        explain:
-          "The bot's 400 req/s must exceed the load balancer's per-client allowance so its uploads are rejected as 429s.",
-        assert: (result) =>
-          result.valid && (result.errorClasses.rejected ?? 0) > 0,
+    },
+  ],
+  passCriteria: [
+    {
+      id: "bot-gets-429s",
+      label: "Bot receives 429s (rejected > 0)",
+      required: true,
+      explain:
+        "The bot's 400 req/s must exceed the load balancer's per-client allowance so its uploads are rejected as 429s.",
+      assert: (result) =>
+        result.valid && (result.errorClasses.rejected ?? 0) > 0,
+    },
+    {
+      id: "real-users-complete",
+      label: "Real users complete with zero errors",
+      required: true,
+      explain:
+        "Rate limiting only touches the abusive client. Once the bot is rejected at the door, the app tier has capacity for real users and shed, unreachable, and stale errors must all stay at zero.",
+      assert: (result) =>
+        result.valid &&
+        (result.errorClasses.shed ?? 0) === 0 &&
+        (result.errorClasses.unreachable ?? 0) === 0 &&
+        (result.errorClasses.stale ?? 0) === 0,
+    },
+    {
+      id: "app-headroom",
+      label: "App tier utilisation under 95%",
+      required: true,
+      explain:
+        "Without the limit the bot's traffic fills the app tier past capacity and real uploads are shed. Rejecting the bot at the door must leave the app tier with headroom.",
+      assert: (result) => {
+        const app = result.perNode.find((n) => n.id === "app-1");
+        return !!app && app.utilisation < 0.95;
       },
-      {
-        id: "real-users-complete",
-        label: "Real users complete with zero errors",
-        required: true,
-        explain:
-          "Rate limiting only touches the abusive client. Once the bot is rejected at the door, the app tier has capacity for real users and shed, unreachable, and stale errors must all stay at zero.",
-        assert: (result) =>
-          result.valid &&
-          (result.errorClasses.shed ?? 0) === 0 &&
-          (result.errorClasses.unreachable ?? 0) === 0 &&
-          (result.errorClasses.stale ?? 0) === 0,
-      },
-      {
-        id: "app-headroom",
-        label: "App tier utilisation under 95%",
-        required: true,
-        explain:
-          "Without the limit the bot's traffic fills the app tier past capacity and real uploads are shed. Rejecting the bot at the door must leave the app tier with headroom.",
-        assert: (result) => {
-          const app = result.perNode.find((n) => n.id === "app-1");
-          return !!app && app.utilisation < 0.95;
-        },
-      },
-    ]
-  }
+    },
+  ],
+};
 
 export default task;
 
