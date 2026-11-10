@@ -9,6 +9,7 @@ import ContinueLearning from "./_components/ContinueLearning";
 import DailyTip from "./_components/DailyTip";
 import ProblemStats from "./_components/ProblemStats";
 import InterviewStats from "./_components/InterviewStats";
+import SystemDesignStats from "./_components/SystemDesignStats";
 import QuickActions from "./_components/QuickActions";
 import {
   ContinueLearningSkeleton,
@@ -110,6 +111,9 @@ const Dashboard = async () => {
           </Suspense>
           <Suspense fallback={<StatCardSkeleton />}>
             <ProblemStats />
+          </Suspense>
+          <Suspense fallback={<StatCardSkeleton />}>
+            <SystemDesignStats />
           </Suspense>
         </div>
       </div>
