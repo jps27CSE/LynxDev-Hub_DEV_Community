@@ -1,7 +1,7 @@
 # 18 — Linux Commands Course (12 chapters, practice model C)
 
-> Created: 2026-11-10 · Status: approved design, implementation starting · Branch: `feature/linux-basic-command-course`
-> Companion: `config/courses/linux.ts` (to be created), registered via `config/courses/index.ts`.
+> Created: 2026-11-10 · Status: **implemented (Tasks 1-5 done; Task 6 manual verification pending)** · Branch: `feature/linux-basic-command-course`
+> Companion: `config/courses/linux.ts` (created), registered via `config/courses/index.ts`.
 > Practice model: **C — read-only lessons, learner runs commands in their own terminal.**
 
 ## Business problem
@@ -105,7 +105,20 @@ npx tsx config/seed-courses.ts
 
 **Manual review gate (per maintainer decision):** seed is NOT run by the agent. Maintainer reviews `config/courses/linux.ts` content, then runs seed manually. `COURSE_CACHE_VERSION` bump (task) ensures cached course list refreshes after seed.
 
-## Implementation tasks (independent & sequential)
+## Implementation status (updated 2026-11-10)
+
+| Task | Status | Commit |
+|------|--------|--------|
+| 1. Create `config/courses/linux.ts` (ch 1-4) | ✅ Done | `8f5ea81` |
+| 2. Append chapters 5-8 | ✅ Done | `9cd1427` |
+| 3. Append chapters 9-12 | ✅ Done | `c7bfa80` |
+| 4. Register + language + cache bump | ✅ Done | `a6c9dbb` |
+| 5. Build/test/format verification | ✅ Done | `d1a32f4` (format) |
+| 6. Manual UI verification + seed | ⏳ Pending (maintainer) | — |
+
+Verification results (Task 5): `npm test` 678/678 pass; `npm run build` success; format:check pass on touched files.
+
+## Implementation tasks (independent & sequential) — reference
 
 1. **Create `config/courses/linux.ts`** — 12 chapters following `css.ts` conventions (`codeBlock`, `externalLink`, `BOX_STYLE`). Bulk of the work.
 2. **Register in `config/courses/index.ts`** — import + add to `allCourses`.
