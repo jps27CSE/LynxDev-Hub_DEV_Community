@@ -118,6 +118,23 @@ npx tsx config/seed-courses.ts
 
 Verification results (Task 5): `npm test` 678/678 pass; `npm run build` success; format:check pass on touched files.
 
+## Remaining steps (post-merge workflow)
+
+Maintainer's planned flow: merge this branch → development-branch → (more features) → final merge development-branch → main. **Do NOT seed production DB from this feature branch.** Seed only after the final merge to main, so DB + code stay in sync.
+
+1. **Merge this branch → development-branch** (PR review). No DB change yet.
+2. **(Future features)** implement on new branches off development-branch, merge back to development-branch.
+3. **Final merge development-branch → main** (single deploy).
+4. **After main deploy — seed production DB** (maintainer, once, from main):
+   ```
+   npx tsx config/seed-courses.ts
+   ```
+   - Confirm course row "Linux Commands — The Terminal from Scratch" + 12 chapters present.
+   - Do NOT run `reset-courses.ts` (that wipes existing courses).
+   - Do NOT seed twice (insert, not upsert → duplicates). If re-seed needed, run reset first.
+5. **Smoke test on production**: `/courses` shows Linux card; open one lesson; "Mark as Complete" works signed-in; dark mode + mobile OK.
+6. **Cache note**: `COURSE_CACHE_VERSION` bumped 1→2 in this branch, so once main deploys, the version-2 cache key is used and the new course appears without stale-cache issues.
+
 ## Implementation tasks (independent & sequential) — reference
 
 1. **Create `config/courses/linux.ts`** — 12 chapters following `css.ts` conventions (`codeBlock`, `externalLink`, `BOX_STYLE`). Bulk of the work.
