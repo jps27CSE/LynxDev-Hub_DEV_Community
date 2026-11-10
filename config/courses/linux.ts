@@ -332,5 +332,330 @@ $ less big.log
       },
       points_reward: 10,
     },
+    {
+      title: "5. Search Files & Content",
+      content: {
+        type: "browser",
+        instructions: `
+<h2>Finding things fast</h2>
+<p>You will search constantly: a config value, an error message, a file whose name you half-remember. Two tools cover 95% of cases: <code>grep</code> for content inside files, <code>find</code> for files by name/attributes.</p>
+
+<h3>Search inside files: <code>grep</code></h3>
+${codeBlock(`grep "error" app.log              # lines containing "error"
+grep -i "error" app.log           # case-insensitive
+grep -n "error" app.log           # show line numbers
+grep -r "TODO" src/               # recursive search in a directory
+grep -rn "TODO" src/              # recursive + line numbers
+grep -v "debug" app.log           # invert: lines NOT matching
+grep -E "err|warn" app.log        # extended regex (alternation)
+grep -l "import React" src/       # list only filenames that match`)}
+
+<p><code>grep -rn</code> is the single most-used command in a codebase. Memorize it.</p>
+
+<h3>Find files by name: <code>find</code></h3>
+${codeBlock(`find . -name "*.log"             # files ending in .log, from here down
+find /etc -name "hosts"           # exact name
+find . -iname "*.PNG"             # case-insensitive
+find . -type d -name node_modules # directories only
+find . -type f -size +10M         # files larger than 10 MB
+find . -mtime -1                  # modified in last 24h
+find . -name "*.tmp" -delete      # find and delete (careful!)`)}
+
+<h3>Quick name lookup: <code>locate</code></h3>
+${codeBlock(`locate nginx.conf                  # instant, searches a prebuilt DB
+sudo updatedb                    # rebuild the DB (run after creating files)`)}
+
+<p><code>locate</code> is instant but the DB may be stale; <code>find</code> is always current but slower.</p>
+
+<h3>Where is a command: <code>which</code> / <code>whereis</code></h3>
+${codeBlock(`which node                      # path of the executable that runs
+which -a python                # all matches in PATH
+whereis bash                   # binary, source, and man page locations`)}
+
+<h3>Learn more</h3>
+<p>${externalLink("Linux Journey — searching", "https://linuxjourney.com/lesson/searching-for-files")} · ${externalLink("LabEx — grep/find practice", "https://labex.io")} · ${externalLink("Red Hat — essential commands", "https://www.redhat.com/en/blog/20-essential-linux-commands-every-user")}</p>
+
+<h3>Your task</h3>
+<p>In a project directory (any repo), answer these with one command each:</p>
+${codeBlock(`# 1. Find all .ts files under src/
+find . -path ./node_modules -prune -o -name "*.ts" -print
+
+# 2. Find lines containing "TODO" across the repo
+grep -rn "TODO" . --exclude-dir=node_modules
+
+# 3. Find files larger than 1 MB
+find . -type f -size +1M
+
+# 4. Which binary runs when you type "node"?
+which node`)}
+<p><strong>Verify:</strong> command 1 lists <code>.ts</code> files and excludes <code>node_modules</code>. Command 2 prints file:line:text. If <code>grep -r</code> is too slow on a huge repo, narrow the directory first.</p>
+`,
+        initialCode: `# Search scratchpad
+# grep -rn "TODO" .
+# find . -name "*.log"
+# which node
+`,
+        solution: `$ grep -rn "TODO" src/
+src/app/page.tsx:12:// TODO: add loading state
+src/lib/data.ts:45:// TODO: cache this
+
+$ find . -name "*.log" -not -path "*/node_modules/*"
+./app.log
+./logs/error.log
+
+$ find . -type f -size +1M
+./node_modules/.cache/large.bin
+
+$ which node
+/usr/bin/node`,
+      },
+      points_reward: 10,
+    },
+    {
+      title: "6. Get Help Without Leaving the Terminal",
+      content: {
+        type: "browser",
+        instructions: `
+<h2>Documentation at your fingertips</h2>
+<p>You never need to leave the terminal to learn a command. Built-in help is faster than a web search and always matches your installed version.</p>
+
+<h3>Manual pages: <code>man</code></h3>
+${codeBlock(`man ls                  # full manual for ls
+man 5 passwd            # section 5 = file format (vs section 1 = command)
+# inside man: Space=page down, /text=search, n=next match, q=quit`)}
+
+<p><code>man</code> pages are comprehensive but dense. Read the SYNOPSIS and EXAMPLES sections first.</p>
+
+<h3>Quick help: <code>--help</code></h3>
+${codeBlock(`ls --help               # concise usage summary
+grep --help
+cp --help`)}
+
+<p>Most GNU commands support <code>--help</code>. It is shorter than <code>man</code> and easier to skim.</p>
+
+<h3>One-line descriptions: <code>whatis</code> and <code>apropos</code></h3>
+${codeBlock(`whatis ls               # "ls (1) - list directory contents"
+whatis grep             # short description
+apropos "search"        # list commands whose description matches
+apropos "copy file"     # discover commands you didn't know existed`)}
+
+<p><code>apropos</code> is a discovery tool: "I need to do X, what command does that?"</p>
+
+<h3>TLDR: concise examples</h3>
+<p><a href="https://tldr.sh/" target="_blank" rel="noopener noreferrer">TLDR pages</a> give practical examples instead of dense manuals. Install with <code>npm install -g tldr</code> or <code>pip install tldr</code>, then:</p>
+${codeBlock(`tldr tar                # common tar recipes
+tldr find               # find examples
+tldr chmod              # chmod recipes`)}
+
+<h3>Learn more</h3>
+<p>${externalLink("Linux Journey — getting help", "https://linuxjourney.com/lesson/man-pages")} · ${externalLink("TLDR pages", "https://tldr.sh/")} · ${externalLink("Ubuntu — command line for beginners", "https://ubuntu.com/tutorials/command-line-for-beginners")}</p>
+
+<h3>Your task</h3>
+<p>Practice the help workflow on three commands:</p>
+${codeBlock(`man ls                  # read; find the -h (human-readable) flag; quit with q
+ls --help | head -20    # skim the first 20 lines
+whatis chmod            # one-line description
+apropos "rename"        # which commands rename files?
+# (expect mv among the results)`)}
+
+<p><strong>Verify:</strong> <code>man ls</code> opens a pager you exit with <code>q</code>. <code>apropos "rename"</code> includes <code>mv (1)</code>. If <code>man</code> says "No manual entry", install <code>man-db</code> (<code>sudo apt install man-db</code>).</p>
+`,
+        initialCode: `# Help scratchpad
+# man ls
+# ls --help
+# whatis chmod
+# apropos "copy"
+`,
+        solution: `$ man ls
+# (pager opens; find -h "human readable sizes"; press q)
+
+$ ls --help | head -20
+Usage: ls [OPTION]... [FILE]...
+List information about the FILEs...
+  -a, --all                  do not ignore entries starting with .
+  -A, --almost-all           do not list implied . and ..
+...
+
+$ whatis chmod
+chmod (1) - change file mode bits
+
+$ apropos "rename"
+mv (1) - move (rename) files
+rename (1) - renames multiple files
+rename (2) - change the name or location of a file`,
+      },
+      points_reward: 10,
+    },
+    {
+      title: "7. Permissions & Ownership",
+      content: {
+        type: "browser",
+        instructions: `
+<h2>Who can do what</h2>
+<p>Linux permissions decide who can read, write, or execute a file. Every file has an owner, a group, and three permission sets (owner / group / others). Misunderstanding permissions causes half of all "Permission denied" errors.</p>
+
+<h3>Reading permissions: <code>ls -l</code></h3>
+${codeBlock(`ls -l
+# -rw-r--r-- 1 jack developers 1234 Jan 1 10:00 notes.txt
+# ^^^^^^^^^^^
+# 1: file type (- = file, d = dir, l = symlink)
+# 2-4: owner (rw-)  5-7: group (r--)  8-10: others (r--)`)}
+
+<p><code>r</code> = read, <code>w</code> = write, <code>x</code> = execute. A directory needs <code>x</code> to be entered and <code>r</code> to be listed.</p>
+
+<h3>Changing permissions: <code>chmod</code></h3>
+<p>Two syntaxes — symbolic (readable) and numeric (fast).</p>
+${codeBlock(`# Symbolic
+chmod u+x script.sh        # owner: add execute
+chmod g-w file.txt         # group: remove write
+chmod o+r file.txt         # others: add read
+chmod a+x script.sh        # all: add execute
+chmod u=rwx,g=rx,o=r dir   # set exact bits
+
+# Numeric (r=4, w=2, x=1; sum them)
+chmod 755 script.sh        # rwxr-xr-x  (owner full, others read+exec)
+chmod 644 file.txt         # rw-r--r--  (owner rw, others read)
+chmod 600 secret.key       # rw-------  (owner only)
+chmod 700 private/         # rwx------  (owner only, dir)`)}
+
+<h3>Ownership: <code>chown</code> and <code>chgrp</code></h3>
+${codeBlock(`sudo chown alice file.txt          # change owner
+sudo chown alice:developers file.txt # owner + group
+sudo chgrp developers file.txt      # group only
+sudo chown -R alice:developers dir/ # recursive`)}
+
+<h3>Superuser: <code>sudo</code> and <code>su</code></h3>
+<ul>
+  <li><code>sudo command</code> — run one command as root (needs your password, and you must be in the <code>sudoers</code> list).</li>
+  <li><code>sudo -i</code> / <code>sudo su</code> — open a root shell (exit with <code>exit</code> or <kbd>Ctrl</kbd>+<kbd>D</kbd>).</li>
+  <li>Rule of least privilege: use <code>sudo</code> for single commands; avoid living in a root shell.</li>
+</ul>
+
+<div style="${BOX_STYLE}">
+<strong>Warning:</strong> <code>chmod 777</code> makes a file writable by everyone — almost never correct and a security hole. <code>sudo rm</code> / <code>sudo chmod</code> on system files can break the OS. When in doubt, copy the file first.
+</div>
+
+<h3>Learn more</h3>
+<p>${externalLink("Opensource.com — chmod cheat sheet", "https://opensource.com/article/19/11/cheat-sheet-common-linux-commands")} · ${externalLink("Opensource.com — essential commands", "https://opensource.com/article/22/5/essential-linux-commands")} · ${externalLink("Linux Journey — permissions", "https://linuxjourney.com/lesson/file-permissions")}</p>
+
+<h3>Your task</h3>
+<p>Create a script and lock it down:</p>
+${codeBlock(`cd /tmp/practice
+echo '#!/bin/bash' > greet.sh
+echo 'echo "hi $USER"' >> greet.sh
+ls -l greet.sh                # note: -rw-r--r-- (no execute)
+chmod u+x greet.sh            # add execute for owner
+ls -l greet.sh                # -> -rwxr--r--
+./greet.sh                    # runs: hi <you>
+chmod 600 greet.sh            # owner only
+ls -l greet.sh                # -> -rw-------
+./greet.sh                    # still runs (you are owner)
+sudo chown nobody greet.sh    # change owner (requires sudo)
+ls -l greet.sh                # owner is now nobody`)}
+
+<p><strong>Verify:</strong> before <code>chmod u+x</code>, running <code>./greet.sh</code> says "Permission denied". After, it prints <code>hi &lt;you&gt;</code>. Numeric <code>600</code> removes all access for group/others.</p>
+`,
+        initialCode: `# Permissions scratchpad
+# ls -l file.txt
+# chmod 755 script.sh
+# chmod u+x script.sh
+# sudo chown alice file.txt
+`,
+        solution: `$ ls -l greet.sh
+-rw-r--r-- 1 jack jack 27 Jan  1 10:00 greet.sh
+$ chmod u+x greet.sh
+$ ls -l greet.sh
+-rwxr--r-- 1 jack jack 27 Jan  1 10:00 greet.sh
+$ ./greet.sh
+hi jack
+$ chmod 600 greet.sh
+$ ls -l greet.sh
+-rw------- 1 jack jack 27 Jan  1 10:00 greet.sh
+$ ./greet.sh
+hi jack
+$ sudo chown nobody greet.sh
+$ ls -l greet.sh
+-rw------- 1 nobody jack 27 Jan  1 10:00 greet.sh`,
+      },
+      points_reward: 10,
+    },
+    {
+      title: "8. Redirect Output & Pipes",
+      content: {
+        type: "browser",
+        instructions: `
+<h2>Connecting commands together</h2>
+<p>The Unix philosophy: small programs that do one thing well, combined with pipes and redirection. This is where the shell becomes more powerful than any GUI.</p>
+
+<h3>Redirection: <code>&gt;</code>, <code>&gt;&gt;</code>, <code>&lt;</code></h3>
+${codeBlock(`echo "hello" > out.txt          # overwrite (creates if missing)
+echo "world" >> out.txt         # append (does not overwrite)
+cat < in.txt                    # read stdin from a file
+sort < names.txt > sorted.txt   # read from file, write to file`)}
+
+<div style="${BOX_STYLE}">
+<strong>Warning:</strong> <code>&gt;</code> silently overwrites. Use <code>&gt;&gt;</code> to append. Enable <code>set -o noclobber</code> in your shell to prevent accidental overwrites.
+</div>
+
+<h3>Pipes: <code>|</code></h3>
+${codeBlock(`ls -l | grep ".log"            # list, then filter
+cat access.log | grep 404 | wc -l   # chain: read → filter → count
+ps aux | grep nginx | grep -v grep # find nginx processes
+history | tail -5              # last 5 commands`)}
+
+<p>A pipe takes the <strong>stdout</strong> of the left command and feeds it as <strong>stdin</strong> to the right command. No temp files needed.</p>
+
+<h3>Split output: <code>tee</code></h3>
+${codeBlock(`ls -l | tee listing.txt        # print to screen AND save to file
+make 2>&1 | tee build.log       # capture stdout+stderr`)}
+
+<h3>Passing args: <code>xargs</code></h3>
+${codeBlock(`find . -name "*.tmp" | xargs rm    # delete found files
+cat urls.txt | xargs -n1 curl -O  # download each URL
+echo "a b c" | xargs -n1 echo     # one item per line`)}
+
+<h3>Learn more</h3>
+<p>${externalLink("Linuxize — redirections", "https://linuxize.com/post/bash-redirect-stderr-stdout/")} · ${externalLink("Linux Journey — pipes", "https://linuxjourney.com/lesson/piping-and-redirection")} · ${externalLink("Boot.dev — I/O", "https://www.boot.dev/courses/learn-linux")}</p>
+
+<h3>Your task</h3>
+<p>Build a small pipeline and verify each stage:</p>
+${codeBlock(`cd /tmp/practice
+printf "apple\\nbanana\\ncherry\\napple\\n" > fruits.txt
+sort fruits.txt                 # alphabetical
+sort fruits.txt | uniq          # unique sorted
+sort fruits.txt | uniq -c       # count occurrences
+sort fruits.txt | uniq -c | sort -rn   # most common first
+cat fruits.txt | grep a | wc -l # lines containing 'a'
+ls -l | tee dir-listing.txt     # save + display
+cat dir-listing.txt | head -3`)}
+
+<p><strong>Verify:</strong> <code>uniq -c</code> shows <code>2 apple</code>. The final pipeline counts lines with "a" (apple, banana → 2). <code>tee</code> writes the same output to <code>dir-listing.txt</code> that you see on screen.</p>
+`,
+        initialCode: `# Pipes & redirection scratchpad
+# echo "hi" > out.txt
+# cat file | grep x | wc -l
+# ls | tee listing.txt
+`,
+        solution: `$ sort fruits.txt | uniq -c
+      2 apple
+      1 banana
+      1 cherry
+$ sort fruits.txt | uniq -c | sort -rn
+      2 apple
+      1 cherry
+      1 banana
+$ cat fruits.txt | grep a | wc -l
+2
+$ ls -l | tee dir-listing.txt
+total 8
+-rw-r--r-- 1 jack jack 24 Jan 1 10:00 fruits.txt
+-rw-r--r-- 1 jack jack 95 Jan 1 10:00 dir-listing.txt
+$ cat dir-listing.txt | head -3
+total 8
+-rw-r--r-- 1 jack jack 24 Jan 1 10:00 fruits.txt`,
+      },
+      points_reward: 10,
+    },
   ],
 };
+
