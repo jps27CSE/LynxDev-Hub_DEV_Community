@@ -6,4 +6,9 @@ import { linuxCourse } from "./linux";
 
 export type { CourseData, ChapterContent } from "./types";
 
-export const allCourses: CourseData[] = [htmlCourse, cssCourse, jsCourse, linuxCourse];
+export const allCourses: CourseData[] = [
+  htmlCourse,
+  cssCourse,
+  jsCourse,
+  linuxCourse,
+];
