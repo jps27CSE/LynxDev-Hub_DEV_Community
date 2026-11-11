@@ -111,7 +111,7 @@ npx tsx config/seed-courses.ts
 | 1. Create `config/courses/typescript.ts` (ch 1–5) | ✅ Done | commit 0dc73e2 |
 | 2. Append chapters 6–10 | ✅ Done | this commit |
 | 3. Append chapters 11–14 | ✅ Done | this commit |
-| 4. Register + cache bump | ⏳ Pending | |
+| 4. Register + cache bump | ✅ Done | this commit |
 | 5. Manual review + seed | ⏳ Pending (maintainer) | |
 | 6. Verify UI | ⏳ Pending | |
 | 7. Run checks | ⏳ Pending | |
