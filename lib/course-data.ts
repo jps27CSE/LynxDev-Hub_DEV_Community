@@ -46,6 +46,7 @@ export function getCourseLanguage(
   const lower = title.toLowerCase();
   if (lower.includes("css")) return "css";
   if (lower.includes("typescript")) return "typescript";
+  if (lower.includes("react")) return "typescript";
   if (lower.includes("javascript")) return "javascript";
   if (lower.includes("html")) return "html";
   if (lower.includes("linux")) return "shell";

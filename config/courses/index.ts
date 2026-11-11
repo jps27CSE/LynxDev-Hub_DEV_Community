@@ -5,6 +5,7 @@ import { jsCourse } from "./js";
 import { linuxCourse } from "./linux";
 import { typescriptCourse } from "./typescript";
 import { gitCourse } from "./git";
+import { reactCourse } from "./react";
 
 export type { CourseData, ChapterContent } from "./types";
 
@@ -15,4 +16,5 @@ export const allCourses: CourseData[] = [
   linuxCourse,
   typescriptCourse,
   gitCourse,
+  reactCourse,
 ];
