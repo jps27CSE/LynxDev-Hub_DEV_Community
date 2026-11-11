@@ -108,8 +108,8 @@ npx tsx config/seed-courses.ts
 
 | Task | Status | Notes |
 |------|--------|-------|
-| 1. Create `config/courses/typescript.ts` (ch 1–5) | ✅ Done | this commit |
-| 2. Append chapters 6–10 | ⏳ Pending | |
+| 1. Create `config/courses/typescript.ts` (ch 1–5) | ✅ Done | commit 0dc73e2 |
+| 2. Append chapters 6–10 | ✅ Done | this commit |
 | 3. Append chapters 11–14 | ⏳ Pending | |
 | 4. Register + cache bump | ⏳ Pending | |
 | 5. Manual review + seed | ⏳ Pending (maintainer) | |
