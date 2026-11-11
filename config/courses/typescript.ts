@@ -946,6 +946,435 @@ console.log("withdraw 100:", acc.withdraw(100));     // Insufficient funds -> fa
       },
       points_reward: 10,
     },
+    {
+      title: "11. Project — Typed User Profile",
+      content: {
+        type: "console",
+        instructions: `
+<h2>Put it together: a typed user profile</h2>
+<p>Build a <code>User</code> profile module using everything so far: interfaces, optional/readonly props, unions, and functions. The code below is JavaScript (compiled output); the TypeScript version is in the solution.</p>
+
+<h3>Requirements</h3>
+<ul>
+  <li><code>User</code> interface: <code>id</code> (readonly number), <code>name</code>, <code>email</code>, <code>role</code> ("admin" | "member"), <code>bio?</code> (optional string)</li>
+  <li><code>createUser(input)</code> — validates required fields, returns a <code>User</code></li>
+  <li><code>updateUser(user, patch)</code> — applies a <code>Partial&lt;User&gt;</code> patch, returns a new user (immutable)</li>
+  <li><code>describe(user)</code> — returns a one-line summary string</li>
+</ul>
+
+<h3>Learn more</h3>
+<p>${externalLink("TypeScript Playground", "https://www.typescriptlang.org/play")} · ${externalLink("Object Types", "https://www.typescriptlang.org/docs/handbook/2/objects.html")}</p>
+
+<h3>Your task</h3>
+<p>Run the starter, then extend it: add a <code>formatRole</code> helper and a second user, and log both summaries. Try breaking it (e.g., pass a number for <code>name</code>) to see what TS would catch.</p>
+`,
+        initialCode: `// User profile module (JavaScript — compiled output of TypeScript)
+
+function createUser(input) {
+  if (!input.name || !input.email) throw new Error("name and email required");
+  return {
+    id: input.id ?? Math.floor(Math.random() * 10000),
+    name: input.name,
+    email: input.email,
+    role: input.role ?? "member",
+    bio: input.bio,
+  };
+}
+
+function updateUser(user, patch) {
+  return { ...user, ...patch };
+}
+
+function describe(user) {
+  const bio = user.bio ? " — " + user.bio : "";
+  return user.name + " (" + user.role + ")" + bio;
+}
+
+const u1 = createUser({ name: "Ada", email: "ada@example.com", role: "admin", bio: "Engineer" });
+const u2 = createUser({ name: "Bob", email: "bob@example.com" });
+
+console.log(describe(u1));
+console.log(describe(u2));
+
+const u1b = updateUser(u1, { bio: "Senior Engineer" });
+console.log(describe(u1b));
+console.log("original unchanged:", u1.bio);`,
+        solution: `function createUser(input) {
+  if (!input.name || !input.email) throw new Error("name and email required");
+  return {
+    id: input.id ?? Math.floor(Math.random() * 10000),
+    name: input.name,
+    email: input.email,
+    role: input.role ?? "member",
+    bio: input.bio,
+  };
+}
+
+function updateUser(user, patch) {
+  return { ...user, ...patch };
+}
+
+function describe(user) {
+  const bio = user.bio ? " — " + user.bio : "";
+  return user.name + " (" + user.role + ")" + bio;
+}
+
+const u1 = createUser({ name: "Ada", email: "ada@example.com", role: "admin", bio: "Engineer" });
+const u2 = createUser({ name: "Bob", email: "bob@example.com" });
+
+console.log(describe(u1));   // Ada (admin) — Engineer
+console.log(describe(u2));   // Bob (member)
+
+const u1b = updateUser(u1, { bio: "Senior Engineer" });
+console.log(describe(u1b));  // Ada (admin) — Senior Engineer
+console.log("original unchanged:", u1.bio); // Engineer (immutable)
+
+// TypeScript version:
+// interface User { readonly id: number; name: string; email: string; role: "admin" | "member"; bio?: string; }
+// function createUser(input: { name: string; email: string; role?: "admin" | "member"; bio?: string; id?: number }): User { ... }
+// function updateUser(user: User, patch: Partial<User>): User { ... }
+// function describe(user: User): string { ... }`,
+      },
+      points_reward: 15,
+    },
+    {
+      title: "12. Project — Generic Data Fetcher",
+      content: {
+        type: "console",
+        instructions: `
+<h2>Generic async data fetcher</h2>
+<p>Build a reusable <code>fetchData&lt;T&gt;</code> wrapper that handles loading/error/data states. This is the pattern behind React Query / SWR, typed end to end.</p>
+
+<h3>Requirements</h3>
+<ul>
+  <li><code>fetchData(url, parse)</code> returns <code>Promise&lt;{ data, error }&gt;</code></li>
+  <li><code>parse</code> is a function turning raw JSON into a typed <code>T</code></li>
+  <li>On failure, return <code>{ data: null, error: string }</code></li>
+  <li>Support a <code>Result&lt;T&gt;</code> discriminated union for callers</li>
+</ul>
+
+<h3>Learn more</h3>
+<p>${externalLink("Generics", "https://www.typescriptlang.org/docs/handbook/2/generics.html")} · ${externalLink("TypeScript Playground", "https://www.typescriptlang.org/play")}</p>
+
+<h3>Your task</h3>
+<p>Run the starter. Then add a <code>fetchUser(id)</code> and <code>fetchPosts()</code> built on top of <code>fetchData</code>, each with its own parse function, and log the results.</p>
+`,
+        initialCode: `// Generic data fetcher (JavaScript — compiled output)
+
+async function fetchData(url, parse) {
+  try {
+    // Simulated network: resolve with mock data based on url
+    const raw = await mockFetch(url);
+    const data = parse(raw);
+    return { data, error: null };
+  } catch (e) {
+    return { data: null, error: e.message || "Unknown error" };
+  }
+}
+
+async function mockFetch(url) {
+  if (url === "/api/user/1") return { id: 1, name: "Ada", email: "ada@example.com" };
+  if (url === "/api/posts") return [{ id: 1, title: "Hello" }, { id: 2, title: "World" }];
+  throw new Error("404 Not Found: " + url);
+}
+
+// Parse functions
+function parseUser(raw) {
+  if (!raw || typeof raw.id !== "number") throw new Error("bad user");
+  return { id: raw.id, name: raw.name, email: raw.email };
+}
+function parsePosts(raw) {
+  if (!Array.isArray(raw)) throw new Error("expected array");
+  return raw.map((p) => ({ id: p.id, title: p.title }));
+}
+
+(async () => {
+  const r1 = await fetchData("/api/user/1", parseUser);
+  console.log("user:", JSON.stringify(r1));
+
+  const r2 = await fetchData("/api/posts", parsePosts);
+  console.log("posts:", JSON.stringify(r2));
+
+  const r3 = await fetchData("/api/missing", parseUser);
+  console.log("missing:", JSON.stringify(r3));
+})();`,
+        solution: `async function fetchData(url, parse) {
+  try {
+    const raw = await mockFetch(url);
+    const data = parse(raw);
+    return { data, error: null };
+  } catch (e) {
+    return { data: null, error: e.message || "Unknown error" };
+  }
+}
+
+async function mockFetch(url) {
+  if (url === "/api/user/1") return { id: 1, name: "Ada", email: "ada@example.com" };
+  if (url === "/api/posts") return [{ id: 1, title: "Hello" }, { id: 2, title: "World" }];
+  throw new Error("404 Not Found: " + url);
+}
+
+function parseUser(raw) {
+  if (!raw || typeof raw.id !== "number") throw new Error("bad user");
+  return { id: raw.id, name: raw.name, email: raw.email };
+}
+function parsePosts(raw) {
+  if (!Array.isArray(raw)) throw new Error("expected array");
+  return raw.map((p) => ({ id: p.id, title: p.title }));
+}
+
+(async () => {
+  const r1 = await fetchData("/api/user/1", parseUser);
+  console.log("user:", JSON.stringify(r1));
+  const r2 = await fetchData("/api/posts", parsePosts);
+  console.log("posts:", JSON.stringify(r2));
+  const r3 = await fetchData("/api/missing", parseUser);
+  console.log("missing:", JSON.stringify(r3));
+})();
+
+// TypeScript version:
+// type Result<T> = { data: T; error: null } | { data: null; error: string };
+// async function fetchData<T>(url: string, parse: (raw: unknown) => T): Promise<Result<T>> { ... }`,
+      },
+      points_reward: 15,
+    },
+    {
+      title: "13. Project — Form Validator",
+      content: {
+        type: "console",
+        instructions: `
+<h2>Discriminated-union form validation</h2>
+<p>Build a typed form validator that returns either a success with parsed data or a failure with field errors. This is the shape used by Zod/React Hook Form under the hood.</p>
+
+<h3>Requirements</h3>
+<ul>
+  <li><code>validate(input)</code> returns <code>{ ok: true, data } | { ok: false, errors }</code></li>
+  <li>Validate: name (required, min 2 chars), email (required, contains @), age (number, 0-120)</li>
+  <li><code>errors</code> is a record of field -> message</li>
+</ul>
+
+<h3>Learn more</h3>
+<p>${externalLink("Narrowing", "https://www.typescriptlang.org/docs/handbook/2/narrowing.html")} · ${externalLink("TypeScript Playground", "https://www.typescriptlang.org/play")}</p>
+
+<h3>Your task</h3>
+<p>Run the starter. Test it with a valid input and an invalid one. Add a new field (e.g., <code>website</code> URL) with its own rule.</p>
+`,
+        initialCode: `// Form validator (JavaScript — compiled output)
+
+function validate(input) {
+  const errors = {};
+  if (!input.name || input.name.trim().length < 2) {
+    errors.name = "Name must be at least 2 characters";
+  }
+  if (!input.email || !input.email.includes("@")) {
+    errors.email = "Valid email required";
+  }
+  const age = Number(input.age);
+  if (isNaN(age) || age < 0 || age > 120) {
+    errors.age = "Age must be a number between 0 and 120";
+  }
+  if (Object.keys(errors).length > 0) {
+    return { ok: false, errors };
+  }
+  return { ok: true, data: { name: input.name.trim(), email: input.email, age } };
+}
+
+const good = validate({ name: "Ada", email: "ada@example.com", age: 30 });
+console.log("good:", JSON.stringify(good));
+
+const bad = validate({ name: "A", email: "nope", age: 200 });
+console.log("bad:", JSON.stringify(bad));
+
+// Caller narrows on ok
+function submit(input) {
+  const r = validate(input);
+  if (r.ok) {
+    console.log("Submitting:", r.data.name, r.data.age);
+  } else {
+    console.log("Fix errors:", Object.keys(r.errors).join(", "));
+  }
+}
+submit({ name: "Bob", email: "bob@example.com", age: 25 });
+submit({ name: "", email: "", age: -1 });`,
+        solution: `function validate(input) {
+  const errors = {};
+  if (!input.name || input.name.trim().length < 2) {
+    errors.name = "Name must be at least 2 characters";
+  }
+  if (!input.email || !input.email.includes("@")) {
+    errors.email = "Valid email required";
+  }
+  const age = Number(input.age);
+  if (isNaN(age) || age < 0 || age > 120) {
+    errors.age = "Age must be a number between 0 and 120";
+  }
+  if (Object.keys(errors).length > 0) {
+    return { ok: false, errors };
+  }
+  return { ok: true, data: { name: input.name.trim(), email: input.email, age } };
+}
+
+const good = validate({ name: "Ada", email: "ada@example.com", age: 30 });
+console.log("good:", JSON.stringify(good));
+const bad = validate({ name: "A", email: "nope", age: 200 });
+console.log("bad:", JSON.stringify(bad));
+
+function submit(input) {
+  const r = validate(input);
+  if (r.ok) {
+    console.log("Submitting:", r.data.name, r.data.age);
+  } else {
+    console.log("Fix errors:", Object.keys(r.errors).join(", "));
+  }
+}
+submit({ name: "Bob", email: "bob@example.com", age: 25 });
+submit({ name: "", email: "", age: -1 });
+
+// TypeScript version:
+// type ValidationResult =
+//   | { ok: true; data: { name: string; email: string; age: number } }
+//   | { ok: false; errors: Record<string, string> };
+// function validate(input: unknown): ValidationResult { ... }`,
+      },
+      points_reward: 15,
+    },
+    {
+      title: "14. Final Project — Typed Mini Store",
+      content: {
+        type: "console",
+        instructions: `
+<h2>Final project: a typed mini store</h2>
+<p>Combine everything — interfaces, generics, classes, utility types, discriminated unions — into a small typed store (products + cart). This is the capstone of the course.</p>
+
+<h3>Requirements</h3>
+<ul>
+  <li><code>Product</code> interface: id, name, price, stock</li>
+  <li><code>Cart</code> class: add, remove, total, items (readonly)</li>
+  <li><code>applyDiscount(cart, percent)</code> generic-ish helper returning a new cart total</li>
+  <li>Discriminated union for cart events: <code>add</code> | <code>remove</code> | <code>checkout</code></li>
+  <li><code>handleEvent(event)</code> that narrows and acts</li>
+</ul>
+
+<h3>Learn more</h3>
+<p>${externalLink("TypeScript Playground", "https://www.typescriptlang.org/play")} · ${externalLink("Classes", "https://www.typescriptlang.org/docs/handbook/2/classes.html")}</p>
+
+<h3>Your task</h3>
+<p>Run the starter. Add a <code>quantity</code> field to cart items, and a <code>checkout()</code> method that returns a receipt string and clears the cart.</p>
+`,
+        initialCode: `// Typed mini store (JavaScript — compiled output)
+
+class Cart {
+  constructor() {
+    this._items = [];
+  }
+  add(product, qty = 1) {
+    const existing = this._items.find((i) => i.product.id === product.id);
+    if (existing) existing.qty += qty;
+    else this._items.push({ product, qty });
+  }
+  remove(productId) {
+    this._items = this._items.filter((i) => i.product.id !== productId);
+  }
+  total() {
+    return this._items.reduce((sum, i) => sum + i.product.price * i.qty, 0);
+  }
+  items() {
+    return this._items.slice();
+  }
+}
+
+const p1 = { id: 1, name: "Keyboard", price: 49.99, stock: 10 };
+const p2 = { id: 2, name: "Mouse", price: 19.99, stock: 5 };
+
+const cart = new Cart();
+cart.add(p1, 1);
+cart.add(p2, 2);
+cart.add(p1, 1); // increments qty
+
+console.log("items:", JSON.stringify(cart.items()));
+console.log("total:", cart.total().toFixed(2));
+
+cart.remove(2);
+console.log("after remove:", JSON.stringify(cart.items()));
+console.log("total:", cart.total().toFixed(2));
+
+// Event handling (discriminated union)
+function handleEvent(cart, event) {
+  if (event.type === "add") {
+    cart.add(event.product, event.qty);
+    console.log("added", event.product.name);
+  } else if (event.type === "remove") {
+    cart.remove(event.productId);
+    console.log("removed", event.productId);
+  } else if (event.type === "checkout") {
+    const t = cart.total();
+    console.log("checkout total:", t.toFixed(2));
+  }
+}
+
+handleEvent(cart, { type: "add", product: p2, qty: 1 });
+handleEvent(cart, { type: "checkout" });`,
+        solution: `class Cart {
+  constructor() {
+    this._items = [];
+  }
+  add(product, qty = 1) {
+    const existing = this._items.find((i) => i.product.id === product.id);
+    if (existing) existing.qty += qty;
+    else this._items.push({ product, qty });
+  }
+  remove(productId) {
+    this._items = this._items.filter((i) => i.product.id !== productId);
+  }
+  total() {
+    return this._items.reduce((sum, i) => sum + i.product.price * i.qty, 0);
+  }
+  items() {
+    return this._items.slice();
+  }
+  checkout() {
+    const t = this.total();
+    this._items = [];
+    return "Receipt: $" + t.toFixed(2) + " — thank you!";
+  }
+}
+
+const p1 = { id: 1, name: "Keyboard", price: 49.99, stock: 10 };
+const p2 = { id: 2, name: "Mouse", price: 19.99, stock: 5 };
+
+const cart = new Cart();
+cart.add(p1, 1);
+cart.add(p2, 2);
+cart.add(p1, 1);
+
+console.log("items:", JSON.stringify(cart.items()));
+console.log("total:", cart.total().toFixed(2));
+
+cart.remove(2);
+console.log("after remove:", JSON.stringify(cart.items()));
+console.log("total:", cart.total().toFixed(2));
+
+function handleEvent(cart, event) {
+  if (event.type === "add") {
+    cart.add(event.product, event.qty);
+    console.log("added", event.product.name);
+  } else if (event.type === "remove") {
+    cart.remove(event.productId);
+    console.log("removed", event.productId);
+  } else if (event.type === "checkout") {
+    console.log(cart.checkout());
+  }
+}
+
+handleEvent(cart, { type: "add", product: p2, qty: 1 });
+handleEvent(cart, { type: "checkout" });
+
+// TypeScript version would type Product, CartItem, Cart, and a discriminated
+// union CartEvent = {type:"add";product:Product;qty:number} | {type:"remove";productId:number} | {type:"checkout"};`,
+      },
+      points_reward: 25,
+    },
   ],
 };
+
 
