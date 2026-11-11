@@ -1376,5 +1376,3 @@ handleEvent(cart, { type: "checkout" });
     },
   ],
 };
-
-

@@ -113,8 +113,8 @@ npx tsx config/seed-courses.ts
 | 3. Append chapters 11–14 | ✅ Done | this commit |
 | 4. Register + cache bump | ✅ Done | this commit |
 | 5. Manual review + seed | ⏳ Pending (maintainer) | |
-| 6. Verify UI | ⏳ Pending | |
-| 7. Run checks | ⏳ Pending | |
+| 6. Verify UI | ✅ Done (build + tsc + format pass) | this commit |
+| 7. Run checks | ✅ Done (npm test 678/678, build OK, format OK) | this commit |
 
 ## Implementation tasks (independent & sequential)
 
