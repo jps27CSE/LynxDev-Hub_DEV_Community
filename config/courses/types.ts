@@ -2,7 +2,9 @@ export type ChapterContent = {
   instructions: string;
   initialCode: string;
   solution: string;
-  type?: "console" | "browser";
+  type?: "console" | "browser" | "sql";
+  /** SQL run into a fresh in-memory DB before the learner's query (interactive SQL chapters only). */
+  seedSql?: string;
 };
 
 export type CourseData = {

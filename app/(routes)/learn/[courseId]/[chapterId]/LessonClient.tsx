@@ -33,7 +33,8 @@ type ChapterData = {
     instructions: string;
     initialCode: string;
     solution: string;
-    type?: "console" | "browser";
+    type?: "console" | "browser" | "sql";
+    seedSql?: string;
   };
 };
 
