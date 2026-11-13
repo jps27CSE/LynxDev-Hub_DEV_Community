@@ -1,0 +1,10 @@
+{
+  "description": "Soft performance budget for Lighthouse desktop audits. Warn only (no fail) until a stable baseline exists; tighten later.",
+  "performance": 80,
+  "accessibility": 90,
+  "bestPractices": 90,
+  "seo": 90,
+  "maxLCP_ms": 2500,
+  "maxCLS": 0.1,
+  "maxTBT_ms": 300
+}

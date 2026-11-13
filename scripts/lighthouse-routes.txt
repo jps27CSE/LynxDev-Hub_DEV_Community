@@ -1,0 +1,40 @@
+# Lighthouse desktop audit — route list
+# One path per line. Lines starting with # are ignored.
+# Add new feature routes here as part of the PR.
+#
+# Tier 1 — core / high-traffic routes
+/
+/dashboard
+/courses
+/problems
+/interview
+/mentor
+/profile
+/blog
+/system-design
+/editor
+/whats-new
+/feedback
+#
+# Blog posts (representative samples)
+/blog/sandboxed-code-execution
+/blog/rate-limiting-on-serverless
+/blog/server-client-boundary
+/blog/caching-strategies-nextjs-app-router
+/blog/designing-scalable-architecture
+#
+# Tier 2 — dynamic samples (uncomment + fill a real id/slug to audit)
+# /courses/1
+# /learn/1/1
+# /problems/two-sum
+# /interview/frontend-engineer
+# /system-design/what-is-system-design
+# /system-design/what-is-system-design/lesson/choices-not-boxes
+# /system-design/what-is-system-design/task
+#
+# Auth-gated (audited as signed-out shell — see script notes)
+# /sign-in
+# /admin
+# /admin/users
+# /admin/feedback
+# /admin/site-notice
