@@ -127,7 +127,7 @@ Dependencies noted. Execute in order.
 6. **Create `SqlResultTable` component** — renders columns as `<th>`, rows as `<tr>`; handles empty result, NULL display, row count footer, error state. Dark-mode friendly, responsive (horizontal scroll on mobile). ✅ Done — `components/editor/SqlResultTable.tsx` created (loading/empty/error/DML/SELECT states, NULL styling, row-count footer, truncation warning, horizontal scroll). tsc clean.
 7. **Update `LessonClient.tsx`** — `isSqlMode = type === "sql"`; Run button enabled (not disabled like browser mode); on Run call `runSql(code, chapter.content.seedSql)`; render `SqlResultTable` in output pane; reset clears output; Show Solution loads solution + re-runs. ✅ Done — imports, state, runCode (with overrideCode), resetCode, handleShowSolution, output rendering updated. tsc clean.
 8. **Add `sql` → `sql` in `getCourseLanguage`** in `lib/course-data.ts`. ✅ Done — `lower.includes("sql")` → `"sql"` (Monaco's built-in SQL mode). tsc clean.
-9. **Bump `COURSE_CACHE_VERSION`** 4 → 5.
+9. **Bump `COURSE_CACHE_VERSION`** 4 → 5. ✅ Done — `lib/course-data.ts` now `COURSE_CACHE_VERSION = 5`. tsc clean.
 10. **Create `config/courses/sql.ts`** — 12 chapters with instructions, initialCode, solution, seedSql, points_reward. (Biggest single task — content authoring.)
 11. **Register in `config/courses/index.ts`** — import + add to `allCourses`.
 12. **Manual review + seed** (maintainer) — `npx tsx config/seed-courses.ts`; verify card on `/courses`; open a lesson; confirm SQL highlighting, Run produces a table, error states render, Show Solution works, dark mode, mobile.
