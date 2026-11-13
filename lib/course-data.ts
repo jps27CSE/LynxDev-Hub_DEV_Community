@@ -52,6 +52,7 @@ export function getCourseLanguage(
   if (lower.includes("html")) return "html";
   if (lower.includes("linux")) return "shell";
   if (lower.includes("git")) return "shell";
+  if (lower.includes("sql")) return "sql";
   return contentType === "console" ? "javascript" : "html";
 }
 
