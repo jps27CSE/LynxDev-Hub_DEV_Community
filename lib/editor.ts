@@ -133,6 +133,199 @@ export function saveCodeAsFile(code: string, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
+export type SqlRunResult = {
+  columns: string[];
+  rows: (string | number | null | Uint8Array)[][];
+  rowCount: number;
+  affectedRows: number;
+  error: string | null;
+  statementType: "select" | "dml" | "ddl" | "empty";
+};
+
+const SQL_MAX_ROWS = 1000;
+
+/**
+ * Runs SQL in the browser via WebAssembly SQLite (sql.js).
+ * - `seedSql` is executed first to build the chapter's schema + sample data.
+ * - `code` is the learner's query; result sets are returned as columns + rows.
+ * - DML/DDL statements report affected row counts instead of a result set.
+ * - All execution is client-side: no server, no TiDB RU, no rate-limit surface.
+ * - sql.js is dynamically imported so the ~673KB WASM stays out of the main bundle.
+ */
+export async function runSql(
+  code: string,
+  seedSql?: string,
+): Promise<SqlRunResult> {
+  const empty: SqlRunResult = {
+    columns: [],
+    rows: [],
+    rowCount: 0,
+    affectedRows: 0,
+    error: null,
+    statementType: "empty",
+  };
+
+  const trimmed = code.trim();
+  if (!trimmed) {
+    return { ...empty, error: "No query to run — write some SQL first." };
+  }
+
+  let SQL: any;
+  try {
+    const mod: any = await import("sql.js");
+    const initSqlJs = mod.default ?? mod;
+    SQL = await initSqlJs({ locateFile: () => "/sql-wasm.wasm" });
+  } catch (err) {
+    return {
+      ...empty,
+      error:
+        err instanceof Error
+          ? `Failed to load SQL engine: ${err.message}`
+          : "Failed to load SQL engine",
+    };
+  }
+
+  let db: any;
+  try {
+    db = new SQL.Database();
+  } catch (err) {
+    return {
+      ...empty,
+      error: err instanceof Error ? err.message : "Failed to create database",
+    };
+  }
+
+  // Seed the chapter's schema + sample data.
+  if (seedSql && seedSql.trim()) {
+    try {
+      db.run(seedSql);
+    } catch (err) {
+      try {
+        db.close();
+      } catch {
+        /* ignore */
+      }
+      return {
+        ...empty,
+        error: `Seed failed: ${
+          err instanceof Error ? err.message : "invalid seed SQL"
+        }`,
+      };
+    }
+  }
+
+  // Try a result-set-producing execution first.
+  try {
+    const results = db.exec(trimmed) as Array<{
+      columns: string[];
+      values: (string | number | null | Uint8Array)[][];
+    }>;
+    if (Array.isArray(results) && results.length > 0) {
+      // Use the last non-empty result set (handles "INSERT; SELECT ..." flows).
+      let chosen = results[results.length - 1];
+      for (let i = results.length - 1; i >= 0; i--) {
+        if (
+          results[i] &&
+          Array.isArray(results[i].values) &&
+          results[i].values.length > 0
+        ) {
+          chosen = results[i];
+          break;
+        }
+      }
+      const columns = Array.isArray(chosen?.columns) ? chosen.columns : [];
+      const allRows = Array.isArray(chosen?.values) ? chosen.values : [];
+      const truncated = allRows.length > SQL_MAX_ROWS;
+      const rows = truncated ? allRows.slice(0, SQL_MAX_ROWS) : allRows;
+      try {
+        db.close();
+      } catch {
+        /* ignore */
+      }
+      return {
+        columns,
+        rows,
+        rowCount: allRows.length,
+        affectedRows: 0,
+        error: truncated
+          ? `Result truncated to ${SQL_MAX_ROWS} rows (${allRows.length} total).`
+          : null,
+        statementType: "select",
+      };
+    }
+  } catch (err) {
+    // Fall through to DML/DDL handling below; if that also fails, surface this error.
+    const execError = err instanceof Error ? err.message : "SQL error";
+    // Attempt DML/DDL via run().
+    try {
+      db.run(trimmed);
+      const affected =
+        typeof db.getRowsModified === "function" ? db.getRowsModified() : 0;
+      try {
+        db.close();
+      } catch {
+        /* ignore */
+      }
+      return {
+        columns: [],
+        rows: [],
+        rowCount: 0,
+        affectedRows: affected,
+        error: null,
+        statementType: affected > 0 ? "dml" : "ddl",
+      };
+    } catch {
+      try {
+        db.close();
+      } catch {
+        /* ignore */
+      }
+      return {
+        columns: [],
+        rows: [],
+        rowCount: 0,
+        affectedRows: 0,
+        error: execError,
+        statementType: "empty",
+      };
+    }
+  }
+
+  // exec() returned [] (DML/DDL/empty) without throwing.
+  try {
+    db.run(trimmed);
+    const affected =
+      typeof db.getRowsModified === "function" ? db.getRowsModified() : 0;
+    try {
+      db.close();
+    } catch {
+      /* ignore */
+    }
+    return {
+      columns: [],
+      rows: [],
+      rowCount: 0,
+      affectedRows: affected,
+      error: null,
+      statementType: affected > 0 ? "dml" : "ddl",
+    };
+  } catch (err) {
+    try {
+      db.close();
+    } catch {
+      /* ignore */
+    }
+    return {
+      columns: [],
+      rows: [],
+      rowCount: 0,
+      affectedRows: 0,
+      error: err instanceof Error ? err.message : "SQL error",
+      statementType: "empty",
+    };
+  }
+}
+
 export function readCodeFile(file: File): Promise<string> {
   return file.text();
 }

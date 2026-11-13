@@ -7,6 +7,7 @@ import { typescriptCourse } from "./typescript";
 import { gitCourse } from "./git";
 import { reactCourse } from "./react";
 import { nodeCourse } from "./node";
+import { sqlCourse } from "./sql";
 
 export type { CourseData, ChapterContent } from "./types";
 
@@ -19,4 +20,5 @@ export const allCourses: CourseData[] = [
   gitCourse,
   reactCourse,
   nodeCourse,
+  sqlCourse,
 ];
