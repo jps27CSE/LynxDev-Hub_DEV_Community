@@ -200,7 +200,11 @@ export async function runSql(
     try {
       db.run(seedSql);
     } catch (err) {
-      try { db.close(); } catch { /* ignore */ }
+      try {
+        db.close();
+      } catch {
+        /* ignore */
+      }
       return {
         ...empty,
         error: `Seed failed: ${
@@ -220,7 +224,11 @@ export async function runSql(
       // Use the last non-empty result set (handles "INSERT; SELECT ..." flows).
       let chosen = results[results.length - 1];
       for (let i = results.length - 1; i >= 0; i--) {
-        if (results[i] && Array.isArray(results[i].values) && results[i].values.length > 0) {
+        if (
+          results[i] &&
+          Array.isArray(results[i].values) &&
+          results[i].values.length > 0
+        ) {
           chosen = results[i];
           break;
         }
@@ -229,7 +237,11 @@ export async function runSql(
       const allRows = Array.isArray(chosen?.values) ? chosen.values : [];
       const truncated = allRows.length > SQL_MAX_ROWS;
       const rows = truncated ? allRows.slice(0, SQL_MAX_ROWS) : allRows;
-      try { db.close(); } catch { /* ignore */ }
+      try {
+        db.close();
+      } catch {
+        /* ignore */
+      }
       return {
         columns,
         rows,
@@ -247,8 +259,13 @@ export async function runSql(
     // Attempt DML/DDL via run().
     try {
       db.run(trimmed);
-      const affected = typeof db.getRowsModified === "function" ? db.getRowsModified() : 0;
-      try { db.close(); } catch { /* ignore */ }
+      const affected =
+        typeof db.getRowsModified === "function" ? db.getRowsModified() : 0;
+      try {
+        db.close();
+      } catch {
+        /* ignore */
+      }
       return {
         columns: [],
         rows: [],
@@ -258,7 +275,11 @@ export async function runSql(
         statementType: affected > 0 ? "dml" : "ddl",
       };
     } catch {
-      try { db.close(); } catch { /* ignore */ }
+      try {
+        db.close();
+      } catch {
+        /* ignore */
+      }
       return {
         columns: [],
         rows: [],
@@ -273,8 +294,13 @@ export async function runSql(
   // exec() returned [] (DML/DDL/empty) without throwing.
   try {
     db.run(trimmed);
-    const affected = typeof db.getRowsModified === "function" ? db.getRowsModified() : 0;
-    try { db.close(); } catch { /* ignore */ }
+    const affected =
+      typeof db.getRowsModified === "function" ? db.getRowsModified() : 0;
+    try {
+      db.close();
+    } catch {
+      /* ignore */
+    }
     return {
       columns: [],
       rows: [],
@@ -284,7 +310,11 @@ export async function runSql(
       statementType: affected > 0 ? "dml" : "ddl",
     };
   } catch (err) {
-    try { db.close(); } catch { /* ignore */ }
+    try {
+      db.close();
+    } catch {
+      /* ignore */
+    }
     return {
       columns: [],
       rows: [],

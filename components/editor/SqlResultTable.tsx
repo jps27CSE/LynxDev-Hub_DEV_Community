@@ -33,7 +33,12 @@ export default function SqlResultTable({ result, running }: Props) {
   }
 
   // Hard error (no result set at all).
-  if (result.error && result.columns.length === 0 && result.rows.length === 0 && result.affectedRows === 0) {
+  if (
+    result.error &&
+    result.columns.length === 0 &&
+    result.rows.length === 0 &&
+    result.affectedRows === 0
+  ) {
     return (
       <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
         <span className="font-semibold">SQL error: </span>
@@ -48,7 +53,9 @@ export default function SqlResultTable({ result, running }: Props) {
       <div className="space-y-2 py-2">
         <div className="text-sm text-emerald-500 font-medium">
           ✓ Statement executed
-          {result.affectedRows > 0 ? ` — ${result.affectedRows} row${result.affectedRows === 1 ? "" : "s"} affected` : ""}
+          {result.affectedRows > 0
+            ? ` — ${result.affectedRows} row${result.affectedRows === 1 ? "" : "s"} affected`
+            : ""}
         </div>
         {result.error && (
           <div className="text-xs text-amber-500">{result.error}</div>
@@ -116,9 +123,7 @@ export default function SqlResultTable({ result, running }: Props) {
             ? ` (showing first ${result.rows.length})`
             : ""}
         </span>
-        {result.error && (
-          <span className="text-amber-500">{result.error}</span>
-        )}
+        {result.error && <span className="text-amber-500">{result.error}</span>}
       </div>
     </div>
   );

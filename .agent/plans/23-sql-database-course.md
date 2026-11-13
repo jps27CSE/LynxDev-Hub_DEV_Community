@@ -128,10 +128,10 @@ Dependencies noted. Execute in order.
 7. **Update `LessonClient.tsx`** — `isSqlMode = type === "sql"`; Run button enabled (not disabled like browser mode); on Run call `runSql(code, chapter.content.seedSql)`; render `SqlResultTable` in output pane; reset clears output; Show Solution loads solution + re-runs. ✅ Done — imports, state, runCode (with overrideCode), resetCode, handleShowSolution, output rendering updated. tsc clean.
 8. **Add `sql` → `sql` in `getCourseLanguage`** in `lib/course-data.ts`. ✅ Done — `lower.includes("sql")` → `"sql"` (Monaco's built-in SQL mode). tsc clean.
 9. **Bump `COURSE_CACHE_VERSION`** 4 → 5. ✅ Done — `lib/course-data.ts` now `COURSE_CACHE_VERSION = 5`. tsc clean.
-10. **Create `config/courses/sql.ts`** — 12 chapters with instructions, initialCode, solution, seedSql, points_reward. (Biggest single task — content authoring.)
-11. **Register in `config/courses/index.ts`** — import + add to `allCourses`.
-12. **Manual review + seed** (maintainer) — `npx tsx config/seed-courses.ts`; verify card on `/courses`; open a lesson; confirm SQL highlighting, Run produces a table, error states render, Show Solution works, dark mode, mobile.
-13. **Run checks** — `npm test`, `npm run build`, `npm run format:check`, `npx tsc --noEmit`.
+10. **Create `config/courses/sql.ts`** — 12 chapters with instructions, initialCode, solution, seedSql, points_reward. (Biggest single task — content authoring.) ✅ Done — 12 chapters authored (basics → aggregates → joins → subqueries/CTEs → DML → DDL → indexes → normalization → transactions → library project). tsc clean.
+11. **Register in `config/courses/index.ts`** — import + add to `allCourses`. ✅ Done — `sqlCourse` imported and added. tsc clean.
+12. **Manual review + seed** (maintainer) — `npx tsx config/seed-courses.ts` (user will run manually); verify card on `/courses`; open a lesson; confirm SQL highlighting, Run produces a table, error states render, Show Solution works, dark mode, mobile. ⏳ Pending user manual seed + review.
+13. **Run checks** — `npm test` (678 pass), `npm run build` (exit 0), `npm run format:check` (pass), `npx tsc --noEmit` (clean). ✅ Done.
 14. **(Optional) Add a test** — `tests/sql-runner.test.ts` exercising `runSql` against a seeded DB (SELECT returns rows, bad SQL returns error, DML returns affected count). sql.js runs in Node, so this stays DB-free. Mutation-test once.
 
 ## Free-tier checklist
