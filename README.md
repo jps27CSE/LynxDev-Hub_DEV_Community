@@ -20,7 +20,7 @@
   <br>
   <a href="https://github.com/vercel/next.js/actions"><img src="https://github.com/jps27CSE/LynxDev-Hub_DEV_Community/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License"></a>
-  <a href="https://github.com/jps27CSE/LynxDev-Hub_DEV_Community"><img src="https://img.shields.io/badge/Version-2.0.0-blue" alt="Version 2.0.0"></a>
+  <a href="https://github.com/jps27CSE/LynxDev-Hub_DEV_Community"><img src="https://img.shields.io/badge/Version-2.3.0-blue" alt="Version 2.3.0"></a>
 </p>
 
 ---

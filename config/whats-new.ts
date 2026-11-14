@@ -22,8 +22,8 @@ export type WhatsNewData = {
 
 export const WHATS_NEW: WhatsNewData = {
   version: APP_VERSION,
-  highlight: "2.0",
-  headline: "LynxDEV 2.0 is here",
+  highlight: "2.3",
+  headline: "LynxDEV 2.3 is here",
   summary:
     "The system design learning path — 15 modules, 79 lessons, 14 hands-on build tasks with a real traffic simulator. Plus a smoother, more reliable platform across the board. Everything stays free.",
   features: [
