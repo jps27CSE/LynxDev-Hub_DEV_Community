@@ -23,7 +23,7 @@ const platformPoints: {
 }[] = [
   {
     icon: BookOpen,
-    text: "3 courses, 42 chapters with an embedded editor per chapter",
+    text: "9 courses, 115 chapters with an embedded editor per chapter",
     accent: "text-cyan-400",
   },
   {

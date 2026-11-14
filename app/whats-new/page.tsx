@@ -6,6 +6,7 @@ import {
   BookOpen,
   BrainCircuit,
   Code2,
+  Database,
   LucideIcon,
   Network,
   ShieldCheck,
@@ -24,6 +25,7 @@ export const metadata: Metadata = {
 const iconMap: Record<string, LucideIcon> = {
   BookOpen,
   Code2,
+  Database,
   BrainCircuit,
   Target,
   Network,
@@ -32,6 +34,10 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 const accentMap: Record<string, { accent: string; glow: string }> = {
+  Database: {
+    accent: "text-blue-400",
+    glow: "bg-blue-400/10 shadow-[0_0_20px_rgba(59,130,246,0.2)]",
+  },
   BookOpen: {
     accent: "text-cyan-400",
     glow: "bg-cyan-400/10 shadow-[0_0_20px_rgba(34,211,238,0.2)]",

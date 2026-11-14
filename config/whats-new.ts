@@ -25,8 +25,14 @@ export const WHATS_NEW: WhatsNewData = {
   highlight: "2.3",
   headline: "LynxDEV 2.3 is here",
   summary:
-    "The system design learning path — 15 modules, 79 lessons, 14 hands-on build tasks with a real traffic simulator. Plus a smoother, more reliable platform across the board. Everything stays free.",
+    "New: an interactive SQL & Databases course — 12 hands-on lessons where you write real SQL in the browser and watch result tables appear instantly. Plus the full course catalog (HTML, CSS, JavaScript, TypeScript, React, Node, Git, Linux) and the system design learning path. Everything stays free.",
   features: [
+    {
+      title: "SQL & Databases Course",
+      description:
+        "12 interactive lessons — SELECT, WHERE, JOINs, GROUP BY, subqueries, CTEs, INSERT/UPDATE/DELETE, schema design, indexes, normalization, transactions. Write real SQL in the browser, hit Run, and watch result tables appear. Powered by WebAssembly SQLite — no install, no server, zero cost.",
+      icon: "Database",
+    },
     {
       title: "System Design Learning Path",
       description:
@@ -53,6 +59,8 @@ export const WHATS_NEW: WhatsNewData = {
     },
   ],
   fixesSummary: [
+    "New: SQL & Databases course — 12 interactive lessons with in-browser query runner",
+    "New: Course catalog expanded — 9 courses, 115 chapters (HTML, CSS, JS, TS, React, Node, Git, Linux, SQL)",
     "New: System Design learning path — 15 modules, 79 lessons, 14 build tasks",
     "New: Interactive canvas with real traffic simulation",
     "New: Build tasks with pass criteria and server-verified results",
