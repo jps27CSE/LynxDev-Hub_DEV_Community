@@ -43,9 +43,7 @@ function WelcomeBanner({
         {/* Heading */}
         <h1 className="text-lg sm:text-2xl lg:text-3xl font-display font-bold tracking-tight leading-snug sm:leading-tight">
           Welcome back,{" "}
-          <span className="text-primary">
-            {name?.trim() || "Developer"}
-          </span>
+          <span className="text-primary">{name?.trim() || "Developer"}</span>
         </h1>
 
         {/* Subtitle */}

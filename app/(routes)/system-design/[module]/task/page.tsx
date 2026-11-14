@@ -14,7 +14,9 @@ export async function generateStaticParams() {
   const loaded = await Promise.all(
     slugs.map(async (slug) => ({ slug, task: await getTask(slug) })),
   );
-  return loaded.filter(({ task }) => !!task).map(({ slug }) => ({ module: slug }));
+  return loaded
+    .filter(({ task }) => !!task)
+    .map(({ slug }) => ({ module: slug }));
 }
 
 export async function generateMetadata({

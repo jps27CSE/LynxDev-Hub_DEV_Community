@@ -2,7 +2,23 @@ import type { CourseData } from "./types";
 import { htmlCourse } from "./html";
 import { cssCourse } from "./css";
 import { jsCourse } from "./js";
+import { linuxCourse } from "./linux";
+import { typescriptCourse } from "./typescript";
+import { gitCourse } from "./git";
+import { reactCourse } from "./react";
+import { nodeCourse } from "./node";
+import { sqlCourse } from "./sql";
 
 export type { CourseData, ChapterContent } from "./types";
 
-export const allCourses: CourseData[] = [htmlCourse, cssCourse, jsCourse];
+export const allCourses: CourseData[] = [
+  htmlCourse,
+  cssCourse,
+  jsCourse,
+  linuxCourse,
+  typescriptCourse,
+  gitCourse,
+  reactCourse,
+  nodeCourse,
+  sqlCourse,
+];

@@ -15,7 +15,7 @@ const log = createLogger("course-data");
  * `ttl: false` = cache indefinitely; a version bump is the ONLY invalidation.
  * Cached values are shared references across requests — treat as read-only.
  */
-const COURSE_CACHE_VERSION = 1;
+const COURSE_CACHE_VERSION = 6;
 
 const withCourseCache = createContentCache({
   tag: "courses",
@@ -46,8 +46,13 @@ export function getCourseLanguage(
   const lower = title.toLowerCase();
   if (lower.includes("css")) return "css";
   if (lower.includes("typescript")) return "typescript";
+  if (lower.includes("react")) return "typescript";
+  if (lower.includes("node")) return "javascript";
   if (lower.includes("javascript")) return "javascript";
   if (lower.includes("html")) return "html";
+  if (lower.includes("linux")) return "shell";
+  if (lower.includes("git")) return "shell";
+  if (lower.includes("sql")) return "sql";
   return contentType === "console" ? "javascript" : "html";
 }
 

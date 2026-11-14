@@ -16,7 +16,14 @@ import axios from "axios";
 import { UserDetailContext } from "@/context/UserDetailContext";
 import { toast } from "sonner";
 import { MonacoEditor } from "@/components/editor/MonacoEditor";
-import { runJavaScript, buildSandboxedSrcDoc } from "@/lib/editor";
+import SqlResultTable from "@/components/editor/SqlResultTable";
+import {
+  runJavaScript,
+  runTypeScript,
+  runSql,
+  buildSandboxedSrcDoc,
+} from "@/lib/editor";
+import type { SqlRunResult } from "@/lib/editor";
 
 const IFRAME_SCROLLBAR_CSS = [
   "html{scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.35) transparent}",
@@ -33,7 +40,8 @@ type ChapterData = {
     instructions: string;
     initialCode: string;
     solution: string;
-    type?: "console" | "browser";
+    type?: "console" | "browser" | "sql";
+    seedSql?: string;
   };
 };
 
@@ -49,12 +57,20 @@ export default function LessonClient({
   const [code, setCode] = useState(chapter.content.initialCode);
   const [output, setOutput] = useState("");
   const [runError, setRunError] = useState(false);
+  const [sqlResult, setSqlResult] = useState<SqlRunResult | null>(null);
   const [running, setRunning] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [mobileTab, setMobileTab] = useState<"code" | "preview">("code");
   const isBrowserMode = chapter.content.type === "browser";
+  const isSqlMode = chapter.content.type === "sql";
+  const isTypeScriptMode = language === "typescript";
+  // The live browser preview is only meaningful for markup/style courses.
+  // Linux/Git (and any other "browser"-typed read-only course) must not
+  // render an HTML preview of their bash/notes content.
+  const isPreviewMode =
+    isBrowserMode && (language === "html" || language === "css");
   const { setUserDetail } = useContext(UserDetailContext);
 
   const editorContainerRef = useRef<HTMLDivElement>(null);
@@ -87,15 +103,39 @@ export default function LessonClient({
     };
   }, []);
 
-  const runCode = async () => {
+  const runCode = async (overrideCode?: string) => {
+    const src = overrideCode ?? code;
     if (isBrowserMode) {
       setOutput("");
       return;
     }
 
+    if (isSqlMode) {
+      setRunning(true);
+      try {
+        const result = await runSql(src, chapter.content.seedSql);
+        setSqlResult(result);
+      } finally {
+        setRunning(false);
+      }
+      return;
+    }
+
+    if (isTypeScriptMode) {
+      setRunning(true);
+      try {
+        const result = await runTypeScript(src);
+        setOutput(result.error ? `Error: ${result.error}` : result.output);
+        setRunError(result.error !== null);
+      } finally {
+        setRunning(false);
+      }
+      return;
+    }
+
     setRunning(true);
     try {
-      const result = await runJavaScript(code);
+      const result = await runJavaScript(src);
       if (result.error) {
         console.warn("[editor] run failed:", result.error);
       }
@@ -110,12 +150,16 @@ export default function LessonClient({
     setCode(chapter.content.initialCode);
     setOutput("");
     setRunError(false);
+    setSqlResult(null);
     setShowSolution(false);
   };
 
   const handleShowSolution = () => {
     setCode(chapter.content.solution);
     setShowSolution(true);
+    if (isSqlMode) {
+      void runCode(chapter.content.solution);
+    }
   };
 
   const handleMarkComplete = async () => {
@@ -191,8 +235,8 @@ export default function LessonClient({
         </div>
       </div>
 
-      {/* Mobile tab toggle — only in browser mode, only on mobile */}
-      {isBrowserMode && (
+      {/* Mobile tab toggle — only in preview mode, only on mobile */}
+      {isPreviewMode && (
         <div className="flex lg:hidden border-b border-border/40 bg-card shrink-0">
           <button
             onClick={() => setMobileTab("code")}
@@ -223,7 +267,7 @@ export default function LessonClient({
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 min-w-0 overflow-hidden">
         <div
           className={`flex-1 flex flex-col min-w-0 min-h-0 ${
-            isBrowserMode && mobileTab !== "code" ? "hidden lg:flex" : ""
+            isPreviewMode && mobileTab !== "code" ? "hidden lg:flex" : ""
           }`}
         >
           <div
@@ -244,7 +288,7 @@ export default function LessonClient({
             <div className="flex items-center gap-2 flex-wrap">
               <Button
                 size="sm"
-                onClick={runCode}
+                onClick={() => runCode()}
                 disabled={isBrowserMode || running}
               >
                 {running ? (
@@ -264,7 +308,13 @@ export default function LessonClient({
               </Button>
             </div>
 
-            {!isBrowserMode && (output || runError) && (
+            {isSqlMode && (
+              <div className="mt-3">
+                <SqlResultTable result={sqlResult} running={running} />
+              </div>
+            )}
+
+            {!isBrowserMode && !isSqlMode && (output || runError) && (
               <div className="mt-3 rounded-lg bg-[#1e1e1e] max-h-64 overflow-y-auto scrollbar-thin overscroll-contain">
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border-b border-white/10 sticky top-0">
                   <span
@@ -288,7 +338,7 @@ export default function LessonClient({
           </div>
         </div>
 
-        {isBrowserMode && (
+        {isPreviewMode && (
           <div
             className={`border-t lg:border-t-0 lg:border-l border-border/40 bg-white flex flex-col min-h-0 min-w-0 ${
               mobileTab !== "preview" ? "hidden lg:flex" : "flex-1"

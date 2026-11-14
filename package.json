@@ -1,6 +1,6 @@
 {
   "name": "lynxdev-hub_dev_community",
-  "version": "2.0.0",
+  "version": "2.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -71,6 +71,7 @@
     "rehype-highlight": "^7.0.2",
     "remark-gfm": "^4.0.1",
     "sonner": "^2.0.7",
+    "sql.js": "^1.16.0",
     "tailwind-merge": "^3.4.0",
     "vaul": "^1.1.2",
     "zod": "^4.3.5"

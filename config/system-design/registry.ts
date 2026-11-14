@@ -67,7 +67,8 @@ const TASK_LOADERS: Record<string, SdTaskLoader> = {
   "partitioning-and-sharding": () =>
     import("./modules/partitioning-and-sharding.task"),
   "rate-limiting": () => import("./modules/rate-limiting.task"),
-  "cdns-and-static-content": () => import("./modules/cdns-and-static-content.task"),
+  "cdns-and-static-content": () =>
+    import("./modules/cdns-and-static-content.task"),
   "how-systems-fail": () => import("./modules/how-systems-fail.task"),
   "timeouts-retries-circuit-breakers": () =>
     import("./modules/timeouts-retries-circuit-breakers.task"),

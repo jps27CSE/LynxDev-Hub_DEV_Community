@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, Code2, Sparkles } from "lucide-react";
+import { ArrowUpRight, BookOpen, Code2, Network, Sparkles } from "lucide-react";
 
 const actions = [
   {
@@ -26,6 +26,14 @@ const actions = [
     accent: "bg-emerald-500/10 text-emerald-500",
     glow: "group-hover:shadow-emerald-500/10",
   },
+  {
+    label: "System Design",
+    description: "Scale one app from 100 users to chaos",
+    href: "/system-design",
+    icon: Network,
+    accent: "bg-indigo-500/10 text-indigo-500",
+    glow: "group-hover:shadow-indigo-500/10",
+  },
 ];
 
 function QuickActions() {
@@ -34,7 +42,7 @@ function QuickActions() {
       <h2 className="text-lg sm:text-xl font-bold tracking-tight mb-4 sm:mb-6">
         Explore
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {actions.map((action) => {
           const Icon = action.icon;
           return (

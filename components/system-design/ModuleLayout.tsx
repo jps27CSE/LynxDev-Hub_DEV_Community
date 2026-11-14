@@ -161,7 +161,9 @@ export function ModuleLayout({ module }: { module: ModuleOverview }) {
                 Part {module.part}: {module.partTitle}
               </span>
               <span aria-hidden="true">·</span>
-              <span className="tabular-nums">Module {String(module.order).padStart(2, "0")}</span>
+              <span className="tabular-nums">
+                Module {String(module.order).padStart(2, "0")}
+              </span>
               <span aria-hidden="true">·</span>
               <span>{module.kind === "sim" ? "Simulated" : "Reading"}</span>
             </div>
@@ -318,7 +320,10 @@ export function ModuleLayout({ module }: { module: ModuleOverview }) {
                   key={`${index}-${point}`}
                   className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm leading-6 text-muted-foreground"
                 >
-                  <span aria-hidden="true" className="font-mono tabular-nums text-sd-accent">
+                  <span
+                    aria-hidden="true"
+                    className="font-mono tabular-nums text-sd-accent"
+                  >
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <span>{point}</span>
