@@ -123,6 +123,51 @@ export function buildSandboxedSrcDoc(html: string, css = ""): string {
   return `<!DOCTYPE html><html><head>${styleBlock}</head><body>${html}</body></html>`;
 }
 
+/**
+ * Transpiles TypeScript to JavaScript in the browser (via the `typescript`
+ * compiler, lazy-loaded) and runs the result. Used by the TypeScript course so
+ * learners can write real TS (annotations, interfaces, generics) and click Run.
+ * Types are erased at runtime — same model as the course's stated design, but
+ * now actually executable instead of requiring the TS Playground.
+ */
+export async function runTypeScript(
+  code: string,
+  timeoutMs = RUN_TIMEOUT_MS,
+): Promise<RunResult> {
+  let ts: any;
+  try {
+    ts = await import("typescript");
+  } catch (err) {
+    return {
+      output: "",
+      error:
+        err instanceof Error
+          ? `Failed to load TypeScript compiler: ${err.message}`
+          : "Failed to load TypeScript compiler",
+    };
+  }
+  const mod = ts.default ?? ts;
+  let js: string;
+  try {
+    const transpiled = mod.transpileModule(code, {
+      compilerOptions: {
+        module: mod.ModuleKind ? mod.ModuleKind.None : 0,
+        target: mod.ScriptTarget ? mod.ScriptTarget.ES2020 : 7,
+        esModuleInterop: true,
+        skipLibCheck: true,
+      },
+      reportDiagnostics: false,
+    });
+    js = transpiled.outputText;
+  } catch (err) {
+    return {
+      output: "",
+      error: err instanceof Error ? err.message : "Transpile failed",
+    };
+  }
+  return runJavaScript(js, timeoutMs);
+}
+
 export function saveCodeAsFile(code: string, filename: string) {
   const blob = new Blob([code], { type: "text/javascript;charset=utf-8" });
   const url = URL.createObjectURL(blob);

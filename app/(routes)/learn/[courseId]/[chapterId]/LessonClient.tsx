@@ -17,7 +17,7 @@ import { UserDetailContext } from "@/context/UserDetailContext";
 import { toast } from "sonner";
 import { MonacoEditor } from "@/components/editor/MonacoEditor";
 import SqlResultTable from "@/components/editor/SqlResultTable";
-import { runJavaScript, runSql, buildSandboxedSrcDoc } from "@/lib/editor";
+import { runJavaScript, runTypeScript, runSql, buildSandboxedSrcDoc } from "@/lib/editor";
 import type { SqlRunResult } from "@/lib/editor";
 
 const IFRAME_SCROLLBAR_CSS = [
@@ -60,6 +60,7 @@ export default function LessonClient({
   const [mobileTab, setMobileTab] = useState<"code" | "preview">("code");
   const isBrowserMode = chapter.content.type === "browser";
   const isSqlMode = chapter.content.type === "sql";
+  const isTypeScriptMode = language === "typescript";
   const { setUserDetail } = useContext(UserDetailContext);
 
   const editorContainerRef = useRef<HTMLDivElement>(null);
@@ -104,6 +105,18 @@ export default function LessonClient({
       try {
         const result = await runSql(src, chapter.content.seedSql);
         setSqlResult(result);
+      } finally {
+        setRunning(false);
+      }
+      return;
+    }
+
+    if (isTypeScriptMode) {
+      setRunning(true);
+      try {
+        const result = await runTypeScript(src);
+        setOutput(result.error ? `Error: ${result.error}` : result.output);
+        setRunError(result.error !== null);
       } finally {
         setRunning(false);
       }
