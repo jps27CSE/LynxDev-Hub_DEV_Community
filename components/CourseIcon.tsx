@@ -21,8 +21,8 @@ function findIcon(title: string): string | null {
   const t = title.toLowerCase();
   if (t.includes("html")) return icons.html;
   if (t.includes("css")) return icons.css;
-  if (t.includes("javascript") || t.includes("js")) return icons.javascript;
   if (t.includes("typescript") || t.includes("ts")) return icons.typescript;
+  if (t.includes("javascript") || t.includes("js")) return icons.javascript;
   if (t.includes("react")) return icons.react;
   if (t.includes("next")) return icons.next;
   if (t.includes("node")) return icons.nodejs;
