@@ -267,7 +267,8 @@ export default function LessonClient({
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 min-w-0 overflow-hidden">
         <div
           className={`flex-1 flex flex-col min-w-0 min-h-0 ${
-            isPreviewMode && mobileTab !== "code" ? "hidden lg:flex" : ""          }`}
+            isPreviewMode && mobileTab !== "code" ? "hidden lg:flex" : ""
+          }`}
         >
           <div
             ref={editorContainerRef}
