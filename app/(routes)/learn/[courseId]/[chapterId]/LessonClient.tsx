@@ -66,6 +66,11 @@ export default function LessonClient({
   const isBrowserMode = chapter.content.type === "browser";
   const isSqlMode = chapter.content.type === "sql";
   const isTypeScriptMode = language === "typescript";
+  // The live browser preview is only meaningful for markup/style courses.
+  // Linux/Git (and any other "browser"-typed read-only course) must not
+  // render an HTML preview of their bash/notes content.
+  const isPreviewMode =
+    isBrowserMode && (language === "html" || language === "css");
   const { setUserDetail } = useContext(UserDetailContext);
 
   const editorContainerRef = useRef<HTMLDivElement>(null);
@@ -230,8 +235,8 @@ export default function LessonClient({
         </div>
       </div>
 
-      {/* Mobile tab toggle — only in browser mode, only on mobile */}
-      {isBrowserMode && (
+      {/* Mobile tab toggle — only in preview mode, only on mobile */}
+      {isPreviewMode && (
         <div className="flex lg:hidden border-b border-border/40 bg-card shrink-0">
           <button
             onClick={() => setMobileTab("code")}
@@ -262,8 +267,7 @@ export default function LessonClient({
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 min-w-0 overflow-hidden">
         <div
           className={`flex-1 flex flex-col min-w-0 min-h-0 ${
-            isBrowserMode && mobileTab !== "code" ? "hidden lg:flex" : ""
-          }`}
+            isPreviewMode && mobileTab !== "code" ? "hidden lg:flex" : ""          }`}
         >
           <div
             ref={editorContainerRef}
@@ -333,7 +337,7 @@ export default function LessonClient({
           </div>
         </div>
 
-        {isBrowserMode && (
+        {isPreviewMode && (
           <div
             className={`border-t lg:border-t-0 lg:border-l border-border/40 bg-white flex flex-col min-h-0 min-w-0 ${
               mobileTab !== "preview" ? "hidden lg:flex" : "flex-1"
