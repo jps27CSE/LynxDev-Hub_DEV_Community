@@ -17,7 +17,12 @@ import { UserDetailContext } from "@/context/UserDetailContext";
 import { toast } from "sonner";
 import { MonacoEditor } from "@/components/editor/MonacoEditor";
 import SqlResultTable from "@/components/editor/SqlResultTable";
-import { runJavaScript, runTypeScript, runSql, buildSandboxedSrcDoc } from "@/lib/editor";
+import {
+  runJavaScript,
+  runTypeScript,
+  runSql,
+  buildSandboxedSrcDoc,
+} from "@/lib/editor";
 import type { SqlRunResult } from "@/lib/editor";
 
 const IFRAME_SCROLLBAR_CSS = [

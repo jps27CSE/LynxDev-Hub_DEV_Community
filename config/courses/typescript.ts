@@ -53,7 +53,7 @@ const name = "Alex";
 console.log(points + 10, name.toUpperCase());`)}
 
 <h3>How this course runs code</h3>
-<p>This editor runs <strong>JavaScript</strong> (types are erased at runtime, so the Run button executes the compiled output). Each chapter shows the idiomatic <strong>TypeScript</strong> in the lesson, then gives you JavaScript to run. Try typing the TS version in the <a href="https://www.typescriptlang.org/play" target="_blank" rel="noopener noreferrer">TypeScript Playground &#8599;</a> to see the compiler check it.</p>
+<p>This editor now <strong>transpiles TypeScript to JavaScript in your browser</strong> (via the TypeScript compiler, loaded on demand) and runs the result — so you can write real TS (annotations, interfaces, generics, classes) and click <strong>Run</strong>. Types are erased at runtime (zero cost), and type errors don't block execution. For full type-checking and red squiggles, also try the <a href="https://www.typescriptlang.org/play" target="_blank" rel="noopener noreferrer">TypeScript Playground &#8599;</a>.</p>
 
 <h3>When NOT to use TypeScript</h3>
 <ul>
