@@ -158,15 +158,22 @@ console.log(name, age, isMember, tags);
 // Inference check: what type is \`total\`?
 const total = age * 2 + tags.length;
 console.log("total:", total, " (inferred: number)");`,
-        solution: `const name: string = "Ada";
-const age: number = 30;
-const isMember: boolean = true;
-const tags: string[] = ["js", "ts"];
+        solution: `const name = "Ada";          // string
+const age = 30;              // number
+const isMember = true;       // boolean
+const tags = ["js", "ts"];   // string[]
 
 console.log(name, age, isMember, tags);
 
-const total: number = age * 2 + tags.length;
-console.log("total:", total); // 62`,
+const total = age * 2 + tags.length;   // inferred: number
+console.log("total:", total); // 62
+
+// TypeScript version (what you'd write):
+// const name: string = "Ada";
+// const age: number = 30;
+// const isMember: boolean = true;
+// const tags: string[] = ["js", "ts"];
+// const total: number = age * 2 + tags.length;`,
       },
       points_reward: 10,
     },
