@@ -34,9 +34,12 @@ export function isAdminDecision(
   userEmail: string | null | undefined,
   config: AdminConfig,
 ): boolean {
-  if (config.emails.length === 0 && config.clerkIds.length === 0) return false;
+  // AND policy: BOTH allowlists must be configured and BOTH must match the
+  // login user. An empty list means "no admin" (fail-closed), and a missing
+  // clerk-id or email match denies access.
+  if (config.emails.length === 0 || config.clerkIds.length === 0) return false;
 
-  if (config.clerkIds.includes(userId)) return true;
+  if (!config.clerkIds.includes(userId)) return false;
 
   if (!userEmail) return false;
 
@@ -45,9 +48,11 @@ export function isAdminDecision(
 
 export const isAdmin = cache(async (userId: string): Promise<boolean> => {
   const config = parseAdminConfig();
-  if (config.emails.length === 0 && config.clerkIds.length === 0) return false;
+  // AND policy: both allowlists must be configured.
+  if (config.emails.length === 0 || config.clerkIds.length === 0) return false;
 
-  if (config.clerkIds.includes(userId)) return true;
+  // Clerk id must match; otherwise deny without a DB round-trip.
+  if (!config.clerkIds.includes(userId)) return false;
 
   try {
     const users = await withConnectRetry(() =>
