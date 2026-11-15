@@ -3,25 +3,17 @@
  *
  * Pins the security-critical admin decision logic in `lib/admin-auth.ts`.
  *
- * This is the **entire auth boundary for `/admin`**. A regression here either
- * locks every admin out or, worse, lets a non-admin in. The async `isAdmin`
- * wrapper and `requireAdmin` are I/O (React `cache`, Clerk `auth()`, Drizzle
- * DB lookup) and are intentionally NOT asserted here — they cannot run in this
- * DB-free harness. What IS asserted is the pure decision core:
+ * Policy: AND — a user is admin only if their Clerk id is on ADMIN_CLERK_IDS
+ * AND their DB email is on ADMIN_EMAILS. Both allowlists must be configured;
+ * an empty list means "no admin" (fail-closed).
  *
- *   - `parseAdminConfig` (env parsing / normalization)
- *   - `isAdminDecision` (fail-closed + fast-path + email match)
+ * The async `isAdmin` wrapper and `requireAdmin` are I/O (React `cache`, Clerk
+ * `auth()`, Drizzle DB lookup) and are intentionally NOT asserted here.
  *
- * Unasserted boundaries (stated honestly, per the repo's testing rules):
- *   - The Drizzle lookup inside `isAdmin` (DB I/O) — covered only by the
- *     pure `isAdminDecision` branch it feeds.
- *   - `requireAdmin`'s Clerk `auth()` call and Response throwing — needs a
- *     Clerk session context; not reachable from a unit test.
- *   - The `cache()` deduplication wrapper — React runtime concern.
- *
- * Mutation-tested once: flipping `&&` -> `||` in the fail-closed guard, dropping
- * `.toLowerCase()` on the email, and replacing `includes` with a truthy check
- * all made this suite go red.
+ * Unasserted boundaries (stated honestly):
+ *   - The Drizzle lookup inside `isAdmin` (DB I/O).
+ *   - `requireAdmin`'s Clerk `auth()` call and Response throwing.
+ *   - The `cache()` deduplication wrapper.
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
@@ -78,7 +70,6 @@ describe("parseAdminConfig", () => {
   });
 
   it("defaults to process.env when no arg given", () => {
-    // Smoke test: calling with no arg must not throw.
     const cfg = parseAdminConfig();
     assert.ok(Array.isArray(cfg.emails));
     assert.ok(Array.isArray(cfg.clerkIds));
@@ -86,85 +77,92 @@ describe("parseAdminConfig", () => {
 });
 
 describe("isAdminDecision — fail-closed", () => {
-  it("returns false when both allowlists are empty, regardless of userId/email", () => {
+  it("returns false when both allowlists are empty", () => {
     assert.equal(isAdminDecision("any_user", "any@email.com", EMPTY), false);
     assert.equal(isAdminDecision("", "", EMPTY), false);
-    assert.equal(isAdminDecision("user_123", null, EMPTY), false);
-    assert.equal(isAdminDecision("user_123", undefined, EMPTY), false);
   });
 
-  it("returns false when only emails configured but email missing", () => {
+  it("returns false when only emails configured (clerk ids empty)", () => {
     const cfg: AdminConfig = { emails: ["admin@x.com"], clerkIds: [] };
+    assert.equal(isAdminDecision("user_123", "admin@x.com", cfg), false);
+  });
+
+  it("returns false when only clerk ids configured (emails empty)", () => {
+    const cfg: AdminConfig = { emails: [], clerkIds: ["user_123"] };
+    assert.equal(isAdminDecision("user_123", "admin@x.com", cfg), false);
+  });
+
+  it("returns false when email is missing", () => {
+    const cfg: AdminConfig = {
+      emails: ["admin@x.com"],
+      clerkIds: ["user_123"],
+    };
     assert.equal(isAdminDecision("user_123", null, cfg), false);
     assert.equal(isAdminDecision("user_123", undefined, cfg), false);
   });
-
-  it("returns false when only emails configured and email not on list", () => {
-    const cfg: AdminConfig = { emails: ["admin@x.com"], clerkIds: [] };
-    assert.equal(isAdminDecision("user_123", "other@x.com", cfg), false);
-  });
 });
 
-describe("isAdminDecision — clerk-id fast path", () => {
-  it("returns true when userId is on the clerk-id allowlist", () => {
-    const cfg: AdminConfig = { emails: [], clerkIds: ["user_admin"] };
-    assert.equal(isAdminDecision("user_admin", null, cfg), true);
-  });
-
-  it("clerk-id match wins even if email is absent or not on the email list", () => {
+describe("isAdminDecision — clerk-id must match", () => {
+  it("returns false when clerk id is not on the allowlist, even if email matches", () => {
     const cfg: AdminConfig = {
-      emails: ["other@x.com"],
-      clerkIds: ["user_admin"],
+      emails: ["admin@x.com"],
+      clerkIds: ["other_user"],
     };
-    assert.equal(isAdminDecision("user_admin", null, cfg), true);
-    assert.equal(isAdminDecision("user_admin", "notlisted@x.com", cfg), true);
+    assert.equal(isAdminDecision("user_123", "admin@x.com", cfg), false);
   });
 
-  it("clerk ids are case-sensitive (no implicit lowercasing)", () => {
-    const cfg: AdminConfig = { emails: [], clerkIds: ["User_Admin"] };
-    assert.equal(isAdminDecision("user_admin", null, cfg), false);
-    assert.equal(isAdminDecision("User_Admin", null, cfg), true);
+  it("clerk ids are case-sensitive", () => {
+    const cfg: AdminConfig = {
+      emails: ["admin@x.com"],
+      clerkIds: ["User_Admin"],
+    };
+    assert.equal(isAdminDecision("user_admin", "admin@x.com", cfg), false);
+    assert.equal(isAdminDecision("User_Admin", "admin@x.com", cfg), true);
   });
 });
 
-describe("isAdminDecision — email path", () => {
-  it("returns true when userEmail (lowercased) is on the email allowlist", () => {
-    const cfg: AdminConfig = { emails: ["admin@x.com"], clerkIds: [] };
-    assert.equal(isAdminDecision("user_123", "admin@x.com", cfg), true);
-    assert.equal(isAdminDecision("user_123", "ADMIN@X.COM", cfg), true);
-    assert.equal(isAdminDecision("user_123", "  Admin@X.com  ", cfg), false);
+describe("isAdminDecision — email must match", () => {
+  it("returns false when email is not on the allowlist, even if clerk id matches", () => {
+    const cfg: AdminConfig = {
+      emails: ["admin@x.com"],
+      clerkIds: ["user_123"],
+    };
+    assert.equal(isAdminDecision("user_123", "other@x.com", cfg), false);
   });
 
-  it("returns false when userEmail is not on the email allowlist", () => {
-    const cfg: AdminConfig = { emails: ["admin@x.com"], clerkIds: [] };
-    assert.equal(isAdminDecision("user_123", "other@x.com", cfg), false);
+  it("returns true only when BOTH clerk id and email match", () => {
+    const cfg: AdminConfig = {
+      emails: ["admin@x.com"],
+      clerkIds: ["user_123"],
+    };
+    assert.equal(isAdminDecision("user_123", "admin@x.com", cfg), true);
   });
 
   it("email match is case-insensitive on the user side", () => {
-    const cfg: AdminConfig = { emails: ["admin@x.com"], clerkIds: [] };
-    assert.equal(isAdminDecision("user_123", "AdMiN@X.CoM", cfg), true);
-  });
-
-  it("combined allowlists: either path grants admin", () => {
     const cfg: AdminConfig = {
       emails: ["admin@x.com"],
-      clerkIds: ["user_admin"],
+      clerkIds: ["user_123"],
     };
-    assert.equal(isAdminDecision("user_admin", null, cfg), true);
-    assert.equal(isAdminDecision("other_user", "admin@x.com", cfg), true);
-    assert.equal(isAdminDecision("other_user", "nope@x.com", cfg), false);
+    assert.equal(isAdminDecision("user_123", "AdMiN@X.CoM", cfg), true);
   });
 });
 
 describe("isAdminDecision — edge cases", () => {
-  it("empty userId with empty allowlists is not admin", () => {
-    assert.equal(isAdminDecision("", "", EMPTY), false);
-  });
-
   it("does not mutate the config", () => {
     const cfg: AdminConfig = { emails: ["admin@x.com"], clerkIds: ["u1"] };
     const snapshot = JSON.stringify(cfg);
     isAdminDecision("u2", "nope@x.com", cfg);
     assert.equal(JSON.stringify(cfg), snapshot);
+  });
+
+  it("combined: both must match", () => {
+    const cfg: AdminConfig = {
+      emails: ["admin@x.com"],
+      clerkIds: ["user_admin", "user_123"],
+    };
+    assert.equal(isAdminDecision("user_admin", "admin@x.com", cfg), true);
+    assert.equal(isAdminDecision("user_123", "admin@x.com", cfg), true);
+    assert.equal(isAdminDecision("user_admin", "other@x.com", cfg), false);
+    assert.equal(isAdminDecision("stranger", "admin@x.com", cfg), false);
   });
 });
