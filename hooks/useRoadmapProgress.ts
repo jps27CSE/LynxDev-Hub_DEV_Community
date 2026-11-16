@@ -2,53 +2,51 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  loadCompleted,
-  saveCompleted,
-  clearCompleted,
+  type RoadmapNodeStatus,
+  type RoadmapProgress,
+  loadProgress,
+  saveProgress,
+  clearProgress,
 } from "@/lib/roadmap-progress";
 
 /**
  * Client hook for roadmap progress backed by localStorage.
  *
  * SSR-safe: starts empty on the server, hydrates from localStorage on mount.
- * Returns a stable toggle function.
+ * `setStatus(nodeId, null)` clears a node's status.
  */
 export function useRoadmapProgress(slug: string) {
-  const [completed, setCompleted] = useState<Set<string>>(() => new Set());
+  const [statuses, setStatuses] = useState<RoadmapProgress>({});
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setCompleted(loadCompleted(slug));
+    setStatuses(loadProgress(slug));
     setHydrated(true);
     return () => setHydrated(false);
   }, [slug]);
 
-  // Persist whenever the completed set changes after hydration. Keeping this
-  // out of the state updater avoids running side effects inside an updater
-  // (which React may invoke more than once in StrictMode).
+  // Persist after hydration. Kept out of the state updater so React can call
+  // the updater more than once in StrictMode without duplicating writes.
   useEffect(() => {
     if (!hydrated) return;
-    saveCompleted(slug, completed);
-  }, [hydrated, slug, completed]);
+    saveProgress(slug, statuses);
+  }, [hydrated, slug, statuses]);
 
-  const toggle = useCallback((nodeId: string) => {
-    setCompleted((prev) => {
-      const next = new Set(prev);
-      if (next.has(nodeId)) next.delete(nodeId);
-      else next.add(nodeId);
+  const setStatus = useCallback((nodeId: string, status: RoadmapNodeStatus | null) => {
+    setStatuses((prev) => {
+      const next = { ...prev };
+      if (status === null) delete next[nodeId];
+      else next[nodeId] = status;
       return next;
     });
   }, []);
 
-  const isCompleted = useCallback(
-    (nodeId: string) => completed.has(nodeId),
-    [completed],
-  );
+  const getStatus = useCallback((nodeId: string) => statuses[nodeId], [statuses]);
 
   const reset = useCallback(() => {
-    clearCompleted(slug);
-    setCompleted(new Set());
+    clearProgress(slug);
+    setStatuses({});
   }, [slug]);
 
-  return { completed, hydrated, toggle, isCompleted, reset };
+  return { statuses, hydrated, setStatus, getStatus, reset };
 }

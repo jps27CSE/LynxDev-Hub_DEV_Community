@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, Clock } from "lucide-react";
 import { getRoadmapBySlug } from "@/lib/roadmaps";
 import { getAllCourses } from "@/lib/course-data";
 import { createLogger } from "@/lib/logger";
@@ -37,27 +39,62 @@ export default async function RoadmapDetailPage({
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <a href="/roadmaps" className="text-xs text-muted-foreground hover:text-foreground">
-          ← All roadmaps
-        </a>
-        <h1 className="text-3xl font-bold tracking-tight mt-2">{roadmap.title}</h1>
-        <p className="text-muted-foreground mt-2 max-w-2xl">{roadmap.description}</p>
-        <div className="flex flex-wrap gap-2 mt-3 text-xs text-muted-foreground">
-          <span className="px-2 py-0.5 rounded-full border border-border/50 bg-card/40">
-            {roadmap.category}
-          </span>
-          <span className="px-2 py-0.5 rounded-full border border-border/50 bg-card/40">
-            {roadmap.level}
-          </span>
-          {roadmap.estimatedHours && (
-            <span className="px-2 py-0.5 rounded-full border border-border/50 bg-card/40">
-              ~{roadmap.estimatedHours}h
+    <div className="mx-auto max-w-[1200px] px-4 py-8">
+      <header className="mb-6">
+        <Link
+          href="/roadmaps"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          All roadmaps
+        </Link>
+
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+          <h1 className="text-3xl font-bold tracking-tight">{roadmap.title}</h1>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="rounded-full border border-border/50 bg-card/40 px-2 py-0.5 capitalize">
+              {roadmap.category}
             </span>
-          )}
+            <span className="rounded-full border border-border/50 bg-card/40 px-2 py-0.5 capitalize">
+              {roadmap.level}
+            </span>
+            {roadmap.estimatedHours && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-card/40 px-2 py-0.5">
+                <Clock className="h-3 w-3" />
+                ~{roadmap.estimatedHours}h
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+          {roadmap.description}
+        </p>
+
+        {/* Legend */}
+        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#22c55e]" /> Done
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#8b5cf6]" /> Learning
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#9ca3af]" /> Skipped
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm border border-black/30 bg-[#ffd93a]" /> Core
+            section
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm border border-black/30 bg-[#f4e9d1]" /> Topic
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="rounded-full border border-border/60 px-1.5 text-[9px]">opt</span>
+            Optional
+          </span>
+        </div>
+      </header>
 
       <RoadmapTree roadmap={roadmap} courseIdByTitle={courseIdByTitle} />
     </div>

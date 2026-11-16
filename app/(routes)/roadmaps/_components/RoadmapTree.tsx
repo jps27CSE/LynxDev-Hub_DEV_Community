@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { ArrowRight, RotateCcw } from "lucide-react";
 import { useRoadmapProgress } from "@/hooks/useRoadmapProgress";
-import { collectLeafIds } from "@/config/roadmaps/utils";
+import { collectLeafIds, findNode, findPath } from "@/config/roadmaps/utils";
 import type { Roadmap } from "@/config/roadmaps/types";
-import RoadmapTreeNode from "./RoadmapTreeNode";
+import RoadmapStage from "./RoadmapStage";
+import RoadmapDetailPanel from "./RoadmapDetailPanel";
 
 export default function RoadmapTree({
   roadmap,
@@ -14,194 +16,157 @@ export default function RoadmapTree({
   roadmap: Roadmap;
   courseIdByTitle: Record<string, number>;
 }) {
-  const { completed, toggle, isCompleted } = useRoadmapProgress(roadmap.slug);
+  const { statuses, setStatus, reset } = useRoadmapProgress(roadmap.slug);
   const searchParams = useSearchParams();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const allLeaves = useMemo(() => collectLeafIds(roadmap.root), [roadmap.root]);
+  const leaves = useMemo(() => collectLeafIds(roadmap.root), [roadmap.root]);
+  const doneCount = leaves.filter((id) => statuses[id] === "done").length;
+  const skippedCount = leaves.filter((id) => statuses[id] === "skipped").length;
+  const pct = leaves.length > 0 ? Math.round((doneCount / leaves.length) * 100) : 0;
 
-  // Expanded nodes (children visible). Root expanded by default.
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set([roadmap.root.id]));
-  // Currently selected node for detail panel.
-  const [selected, setSelected] = useState<string>(roadmap.root.id);
+  const nextUp = useMemo(
+    () => leaves.find((id) => statuses[id] !== "done" && statuses[id] !== "skipped") ?? null,
+    [leaves, statuses],
+  );
+  const nextUpTitle = nextUp ? findNode(roadmap.root, nextUp)?.title : null;
 
-  const toggleExpand = (id: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  // "Next up": first non-completed leaf in DFS order.
-  const nextUp = useMemo(() => {
-    return allLeaves.find((id) => !completed.has(id)) ?? null;
-  }, [allLeaves, completed]);
-
-  // Deep link: ?node=xxx → expand path + select.
+  // Deep link: /roadmaps/frontend?node=react opens that node's panel.
   useEffect(() => {
-    const nodeParam = searchParams.get("node");
-    if (!nodeParam) return;
-    const findPath = (node: Roadmap["root"], target: string, path: string[]): string[] | null => {
-      if (node.id === target) return [...path, node.id];
-      for (const c of node.children ?? []) {
-        const r = findPath(c, target, [...path, node.id]);
-        if (r) return r;
-      }
-      return null;
-    };
-    const path = findPath(roadmap.root, nodeParam, []);
-    if (path) {
-      setExpanded((prev) => {
-        const next = new Set(prev);
-        path.forEach((id) => next.add(id));
-        return next;
-      });
-      setSelected(nodeParam);
-    }
+    const id = searchParams.get("node");
+    if (id && findNode(roadmap.root, id)) setSelectedId(id);
   }, [searchParams, roadmap.root]);
 
-  const doneCount = allLeaves.filter((id) => completed.has(id)).length;
-  const pct = allLeaves.length > 0 ? Math.round((doneCount / allLeaves.length) * 100) : 0;
+  const openNode = useCallback((id: string) => {
+    setSelectedId(id);
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("node", id);
+    window.history.replaceState(null, "", url);
+  }, []);
+
+  const closePanel = useCallback(() => {
+    setSelectedId(null);
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("node");
+    window.history.replaceState(null, "", url);
+  }, []);
+
+  const selected = useMemo(() => {
+    if (!selectedId) return null;
+    const path = findPath(roadmap.root, selectedId);
+    if (!path) return null;
+    return { node: path[path.length - 1], trail: path.slice(0, -1) };
+  }, [selectedId, roadmap.root]);
+
+  const platformCourseId = selected?.node.platformCourseTitle
+    ? courseIdByTitle[selected.node.platformCourseTitle.trim().toLowerCase()]
+    : undefined;
+
+  const handleReset = () => {
+    if (window.confirm("Reset all progress for this roadmap?")) reset();
+  };
+
+  const events = { statuses, nextUp, onOpen: openNode, onSetStatus: setStatus };
+  const children = roadmap.root.children ?? [];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
-      {/* Tree */}
-      <div className="rounded-2xl border border-border/50 bg-card/40 p-4 sm:p-6 overflow-x-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            Roadmap tree
-          </h2>
-          <span className="text-xs text-muted-foreground">
-            {doneCount}/{allLeaves.length} topics · {pct}%
-          </span>
+    <>
+      {/* Progress bar */}
+      <div className="mb-4 flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4 sm:flex-row sm:items-center sm:gap-6">
+        <div className="flex items-center gap-3">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-emerald-400/10 text-sm font-bold text-emerald-300 ring-1 ring-emerald-400/25">
+            {pct}%
+          </div>
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+              Your progress
+            </p>
+            <p className="text-sm font-medium">
+              {doneCount} of {leaves.length} topics done
+              {skippedCount > 0 && (
+                <span className="text-muted-foreground"> · {skippedCount} skipped</span>
+              )}
+            </p>
+          </div>
         </div>
-        <RoadmapTreeNode
-          node={roadmap.root}
-          depth={0}
-          expanded={expanded}
-          onToggleExpand={toggleExpand}
-          selected={selected}
-          onSelect={setSelected}
-          isCompleted={isCompleted}
-          onToggleComplete={toggle}
-          nextUp={nextUp}
-        />
-      </div>
 
-      {/* Detail panel */}
-      <aside className="lg:sticky lg:top-20 h-fit">
-        <NodeDetail
-          roadmap={roadmap}
-          selectedId={selected}
-          isCompleted={isCompleted}
-          onToggleComplete={toggle}
-          courseIdByTitle={courseIdByTitle}
-        />
-      </aside>
-    </div>
-  );
-}
-
-function NodeDetail({
-  roadmap,
-  selectedId,
-  isCompleted,
-  onToggleComplete,
-  courseIdByTitle,
-}: {
-  roadmap: Roadmap;
-  selectedId: string;
-  isCompleted: (id: string) => boolean;
-  onToggleComplete: (id: string) => void;
-  courseIdByTitle: Record<string, number>;
-}) {
-  const node = useMemo(() => {
-    const find = (n: Roadmap["root"], id: string): Roadmap["root"] | null => {
-      if (n.id === id) return n;
-      for (const c of n.children ?? []) {
-        const r = find(c, id);
-        if (r) return r;
-      }
-      return null;
-    };
-    return find(roadmap.root, selectedId);
-  }, [roadmap.root, selectedId]);
-  if (!node) return null;
-
-  const platformCourseId =
-    node.platformCourseTitle
-      ? courseIdByTitle[node.platformCourseTitle.trim().toLowerCase()]
-      : undefined;
-
-  return (
-    <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-5">
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="font-semibold text-lg">{node.title}</h3>
-        {node.optional && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full border border-border/50 text-muted-foreground">
-            optional
-          </span>
-        )}
-      </div>
-      <p className="text-sm text-muted-foreground mt-2">{node.description}</p>
-
-      {node.level && (
-        <div className="mt-3 text-xs text-muted-foreground">
-          Level: <span className="text-foreground">{node.level}</span>
-        </div>
-      )}
-
-      <div className="mt-4">
-        <label className="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={isCompleted(node.id)}
-            onChange={() => onToggleComplete(node.id)}
-            className="w-4 h-4 rounded border-border/50 accent-primary"
+        <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 transition-[width] duration-500"
+            style={{ width: `${pct}%` }}
           />
-          Mark as completed
-        </label>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {nextUp && nextUpTitle && (
+            <button
+              type="button"
+              onClick={() => openNode(nextUp)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-white/10"
+            >
+              Next up: <span className="max-w-40 truncate">{nextUpTitle}</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {(doneCount > 0 || skippedCount > 0) && (
+            <button
+              type="button"
+              onClick={handleReset}
+              className="inline-flex items-center gap-1 rounded-lg p-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Reset progress"
+              title="Reset progress"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
-      {node.resources.length > 0 && (
-        <div className="mt-5">
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-            Resources
-          </h4>
-          <ul className="space-y-2">
-            {node.resources.map((res, i) => (
-              <li key={i}>
-                <a
-                  href={res.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-primary hover:underline"
-                >
-                  <span className="text-[10px] uppercase text-muted-foreground w-14 shrink-0">
-                    {res.type}
-                  </span>
-                  <span className="truncate">{res.title}</span>
-                </a>
-                {res.note && (
-                  <p className="text-xs text-muted-foreground ml-16 mt-0.5">{res.note}</p>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* Canvas */}
+      <div className="rm-canvas overflow-hidden rounded-3xl border border-white/10">
+        <div
+          className="rm-scroll outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
+          tabIndex={0}
+          role="group"
+          aria-label={`${roadmap.title} roadmap map`}
+        >
+          <div className="rm-track px-6 py-14 sm:px-12">
+            <div className="mb-12 text-center">
+              <h2 className="font-display text-lg font-bold tracking-tight text-white">
+                {roadmap.root.title}
+              </h2>
+              <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-white/45">
+                {roadmap.root.description}
+              </p>
+            </div>
 
-      {platformCourseId && (
-        <div className="mt-5 pt-4 border-t border-border/50">
-          <a
-            href={`/courses/${platformCourseId}`}
-            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-          >
-            Start this topic on LynxDEV →
-          </a>
+            {children.length > 0 ? (
+              children.map((child) => (
+                <RoadmapStage key={child.id} node={child} {...events} />
+              ))
+            ) : (
+              <RoadmapStage node={roadmap.root} {...events} />
+            )}
+          </div>
         </div>
+      </div>
+
+      <p className="mt-3 text-center text-[11px] text-muted-foreground">
+        Hover a topic to mark it as learning, done, or skipped · Click any node for resources
+      </p>
+
+      {selected && (
+        <RoadmapDetailPanel
+          node={selected.node}
+          trail={selected.trail}
+          status={statuses[selected.node.id]}
+          platformCourseId={platformCourseId}
+          onSetStatus={setStatus}
+          onClose={closePanel}
+        />
       )}
-    </div>
+    </>
   );
 }

@@ -48,4 +48,6 @@ export {
   countNodes,
   collectLeafIds,
   findNode,
+  findPath,
+  isSection,
 } from "@/config/roadmaps/utils";

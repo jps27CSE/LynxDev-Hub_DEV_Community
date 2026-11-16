@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Map, Clock, Layers } from "lucide-react";
 import { useRoadmapProgress } from "@/hooks/useRoadmapProgress";
-import { countNodes, collectLeafIds } from "@/config/roadmaps/utils";
+import { collectLeafIds } from "@/config/roadmaps/utils";
 import type { Roadmap } from "@/config/roadmaps/types";
 
 const CATEGORY_COLOR: Record<Roadmap["category"], string> = {
@@ -23,11 +23,10 @@ const LEVEL_LABEL: Record<Roadmap["level"], string> = {
 };
 
 export default function RoadmapCard({ roadmap }: { roadmap: Roadmap }) {
-  const total = countNodes(roadmap.root);
   const leaves = collectLeafIds(roadmap.root);
-  const { completed, hydrated } = useRoadmapProgress(roadmap.slug);
-  const done = leaves.filter((id) => completed.has(id)).length;
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const { statuses, hydrated } = useRoadmapProgress(roadmap.slug);
+  const done = leaves.filter((id) => statuses[id] === "done").length;
+  const pct = leaves.length > 0 ? Math.round((done / leaves.length) * 100) : 0;
 
   const r = 18;
   const c = 2 * Math.PI * r;
@@ -83,7 +82,7 @@ export default function RoadmapCard({ roadmap }: { roadmap: Roadmap }) {
       <div className="flex items-center gap-3 mt-4 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1">
           <Layers className="w-3.5 h-3.5" />
-          {total} topics
+          {leaves.length} topics
         </span>
         <span className="inline-flex items-center gap-1">
           <Clock className="w-3.5 h-3.5" />
