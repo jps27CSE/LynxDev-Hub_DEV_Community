@@ -27,6 +27,11 @@ export type RoadmapNode = {
   /** Optional branch — not required to "complete" the roadmap. */
   optional?: boolean;
   resources: RoadmapResource[];
+  /**
+   * Optional title of a platform course that covers this topic. Resolved to an
+   * id at render time. Keeps content decoupled from database ids.
+   */
+  platformCourseTitle?: string;
   /** Branching children. Empty/undefined = leaf. */
   children?: RoadmapNode[];
 };

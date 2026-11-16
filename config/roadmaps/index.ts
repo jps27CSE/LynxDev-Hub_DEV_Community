@@ -1,11 +1,12 @@
 import type { Roadmap } from "./types";
 import { frontendRoadmap } from "./frontend";
+import { backendRoadmap } from "./backend";
 
 /**
  * Registry of all roadmaps. Single source of truth — add new roadmaps here.
  * Keep this list in sync with the files under `config/roadmaps/`.
  */
-const ROADMAPS: Roadmap[] = [frontendRoadmap];
+const ROADMAPS: Roadmap[] = [frontendRoadmap, backendRoadmap];
 
 export function getAllRoadmaps(): Roadmap[] {
   return ROADMAPS;
