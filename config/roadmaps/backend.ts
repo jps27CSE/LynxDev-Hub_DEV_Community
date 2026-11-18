@@ -73,6 +73,7 @@ export const backendRoadmap: Roadmap = {
         description:
           "Node.js/TypeScript, Python, Go, Java, or C#. Pick one and go deep.",
         level: "beginner",
+        platform: [{ kind: "course", courseKey: "node" }],
         resources: [
           {
             type: "docs",
@@ -96,7 +97,7 @@ export const backendRoadmap: Roadmap = {
             title: "Node.js & npm",
             description: "Event loop, modules, npm, package.json.",
             level: "beginner",
-            platformCourseTitle: "Node.js",
+            platform: [{ kind: "course", courseKey: "node" }],
             resources: [
               {
                 type: "docs",
@@ -126,7 +127,7 @@ export const backendRoadmap: Roadmap = {
             description: "Types for safer backend code.",
             level: "intermediate",
             optional: true,
-            platformCourseTitle: "TypeScript",
+            platform: [{ kind: "course", courseKey: "typescript" }],
             resources: [
               {
                 type: "docs",
@@ -157,6 +158,23 @@ export const backendRoadmap: Roadmap = {
         title: "APIs & Web Frameworks",
         description: "REST, routing, middleware, request/response lifecycle.",
         level: "beginner",
+        platform: [
+          {
+            kind: "lesson",
+            title: "The contract before the code",
+            href: "/system-design/api-and-contracts/lesson/the-contract-before-the-code",
+          },
+          {
+            kind: "lesson",
+            title: "Pagination that doesn't lie",
+            href: "/system-design/api-and-contracts/lesson/pagination-that-doesnt-lie",
+          },
+          {
+            kind: "lesson",
+            title: "Errors and status codes",
+            href: "/system-design/api-and-contracts/lesson/errors-and-status-codes",
+          },
+        ],
         resources: [
           {
             type: "article",
@@ -176,6 +194,23 @@ export const backendRoadmap: Roadmap = {
             description:
               "Resources, HTTP verbs, status codes, pagination, versioning.",
             level: "beginner",
+            platform: [
+              {
+                kind: "lesson",
+                title: "The contract before the code",
+                href: "/system-design/api-and-contracts/lesson/the-contract-before-the-code",
+              },
+              {
+                kind: "lesson",
+                title: "Pagination that doesn't lie",
+                href: "/system-design/api-and-contracts/lesson/pagination-that-doesnt-lie",
+              },
+              {
+                kind: "lesson",
+                title: "Errors and status codes",
+                href: "/system-design/api-and-contracts/lesson/errors-and-status-codes",
+              },
+            ],
             resources: [
               {
                 type: "article",
@@ -205,6 +240,7 @@ export const backendRoadmap: Roadmap = {
             description:
               "Pick a framework and learn middleware, routing, error handling.",
             level: "beginner",
+            platform: [{ kind: "course", courseKey: "node" }],
             resources: [
               {
                 type: "docs",
@@ -250,7 +286,7 @@ export const backendRoadmap: Roadmap = {
         title: "Databases",
         description: "Relational vs NoSQL, modeling, queries, migrations.",
         level: "intermediate",
-        platformCourseTitle: "SQL & Databases",
+        platform: [{ kind: "course", courseKey: "sql" }],
         resources: [
           {
             type: "article",
@@ -269,6 +305,7 @@ export const backendRoadmap: Roadmap = {
             title: "SQL & Relational DBs",
             description: "SELECT, JOINs, indexes, transactions, normalization.",
             level: "intermediate",
+            platform: [{ kind: "course", courseKey: "sql" }],
             resources: [
               {
                 type: "article",
@@ -361,6 +398,13 @@ export const backendRoadmap: Roadmap = {
         title: "Authentication & Authorization",
         description: "Sessions, JWT, OAuth, RBAC.",
         level: "intermediate",
+        platform: [
+          {
+            kind: "lesson",
+            title: "Who you are vs what you may do",
+            href: "/system-design/api-and-contracts/lesson/who-are-you-vs-what-may-you-do",
+          },
+        ],
         resources: [
           {
             type: "article",
@@ -379,6 +423,13 @@ export const backendRoadmap: Roadmap = {
             title: "Sessions vs JWT",
             description: "Trade-offs, storage, expiry, refresh tokens.",
             level: "intermediate",
+            platform: [
+              {
+                kind: "lesson",
+                title: "Who you are vs what you may do",
+                href: "/system-design/api-and-contracts/lesson/who-are-you-vs-what-may-you-do",
+              },
+            ],
             resources: [
               {
                 type: "article",
@@ -431,6 +482,13 @@ export const backendRoadmap: Roadmap = {
             description: "Roles, scopes, policy enforcement.",
             level: "advanced",
             optional: true,
+            platform: [
+              {
+                kind: "lesson",
+                title: "Who you are vs what you may do",
+                href: "/system-design/api-and-contracts/lesson/who-are-you-vs-what-may-you-do",
+              },
+            ],
             resources: [
               {
                 type: "article",
@@ -456,6 +514,28 @@ export const backendRoadmap: Roadmap = {
         title: "Caching",
         description: "In-memory, Redis, HTTP caching, cache invalidation.",
         level: "intermediate",
+        platform: [
+          {
+            kind: "lesson",
+            title: "Why cache at all",
+            href: "/system-design/caching/lesson/why-cache",
+          },
+          {
+            kind: "lesson",
+            title: "Where a cache can live",
+            href: "/system-design/caching/lesson/where-to-cache",
+          },
+          {
+            kind: "lesson",
+            title: "Cache-aside",
+            href: "/system-design/caching/lesson/cache-aside",
+          },
+          {
+            kind: "lesson",
+            title: "TTL and eviction",
+            href: "/system-design/caching/lesson/ttl-and-eviction",
+          },
+        ],
         resources: [
           {
             type: "article",
@@ -485,6 +565,13 @@ export const backendRoadmap: Roadmap = {
         description: "Async work, event-driven architecture.",
         level: "advanced",
         optional: true,
+        platform: [
+          {
+            kind: "lesson",
+            title: "Every message can arrive twice",
+            href: "/system-design/idempotency/lesson/at-least-once-delivery",
+          },
+        ],
         resources: [
           {
             type: "article",
@@ -503,6 +590,18 @@ export const backendRoadmap: Roadmap = {
             title: "Message Queues (RabbitMQ, SQS, BullMQ)",
             description: "Producers, consumers, retries, DLQs.",
             level: "advanced",
+            platform: [
+              {
+                kind: "lesson",
+                title: "Every message can arrive twice",
+                href: "/system-design/idempotency/lesson/at-least-once-delivery",
+              },
+              {
+                kind: "lesson",
+                title: "The message that will never succeed",
+                href: "/system-design/idempotency/lesson/dead-letter-queues",
+              },
+            ],
             resources: [
               { type: "docs", title: "BullMQ", url: "https://docs.bullmq.io/" },
               {
@@ -523,6 +622,18 @@ export const backendRoadmap: Roadmap = {
             description: "Pub/sub, event sourcing basics.",
             level: "advanced",
             optional: true,
+            platform: [
+              {
+                kind: "lesson",
+                title: "Every message can arrive twice",
+                href: "/system-design/idempotency/lesson/at-least-once-delivery",
+              },
+              {
+                kind: "lesson",
+                title: "Exactly-once is a scope, not a promise",
+                href: "/system-design/idempotency/lesson/exactly-once-is-a-lie",
+              },
+            ],
             resources: [
               {
                 type: "article",
@@ -548,6 +659,13 @@ export const backendRoadmap: Roadmap = {
         title: "Security",
         description: "OWASP Top 10, secrets, input validation, rate limiting.",
         level: "intermediate",
+        platform: [
+          {
+            kind: "lesson",
+            title: "Who you are vs what you may do",
+            href: "/system-design/api-and-contracts/lesson/who-are-you-vs-what-may-you-do",
+          },
+        ],
         resources: [
           {
             type: "article",
@@ -643,6 +761,7 @@ export const backendRoadmap: Roadmap = {
         title: "Deployment & DevOps",
         description: "Containers, CI/CD, observability.",
         level: "advanced",
+        platform: [{ kind: "course", courseKey: "linux" }],
         resources: [
           {
             type: "article",
@@ -718,6 +837,13 @@ export const backendRoadmap: Roadmap = {
             description: "Structured logs, metrics, tracing, alerting.",
             level: "advanced",
             optional: true,
+            platform: [
+              {
+                kind: "lesson",
+                title: "The dashboard that said everything was fine",
+                href: "/system-design/how-systems-fail/lesson/logging-monitoring-and-traces",
+              },
+            ],
             resources: [
               {
                 type: "article",

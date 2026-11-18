@@ -2,13 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Clock } from "lucide-react";
 import { getRoadmapBySlug } from "@/lib/roadmaps";
-import { getAllCourses } from "@/lib/course-data";
-import { createLogger } from "@/lib/logger";
+import { getPlatformCourseMap } from "@/lib/roadmap-platform";
 import RoadmapTree from "../_components/RoadmapTree";
 
-const log = createLogger("roadmaps/[slug]");
-
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const roadmap = await getRoadmapBySlug(slug);
   if (!roadmap) return { title: "Roadmap not found" };
@@ -27,16 +28,9 @@ export default async function RoadmapDetailPage({
   const roadmap = await getRoadmapBySlug(slug);
   if (!roadmap) notFound();
 
-  // Resolve platform course titles to ids (cached). Degrade gracefully on failure.
-  const courseIdByTitle: Record<string, number> = {};
-  try {
-    const courses = await getAllCourses();
-    for (const c of courses) {
-      courseIdByTitle[c.title.trim().toLowerCase()] = c.id;
-    }
-  } catch (error) {
-    log.error("failed to load courses for roadmap links", error);
-  }
+  // Resolve course keys to ids (cached). Degrades to `{}` on failure, which
+  // hides course links and keeps lesson links (no DB) rendering.
+  const platformCourses = await getPlatformCourseMap();
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-8">
@@ -60,8 +54,7 @@ export default async function RoadmapDetailPage({
             </span>
             {roadmap.estimatedHours && (
               <span className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-card/40 px-2 py-0.5">
-                <Clock className="h-3 w-3" />
-                ~{roadmap.estimatedHours}h
+                <Clock className="h-3 w-3" />~{roadmap.estimatedHours}h
               </span>
             )}
           </div>
@@ -83,20 +76,23 @@ export default async function RoadmapDetailPage({
             <span className="h-2.5 w-2.5 rounded-full bg-[#9ca3af]" /> Skipped
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm border border-black/30 bg-[#ffd93a]" /> Core
-            section
+            <span className="h-2.5 w-2.5 rounded-sm border border-black/30 bg-[#ffd93a]" />{" "}
+            Core section
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm border border-black/30 bg-[#f4e9d1]" /> Topic
+            <span className="h-2.5 w-2.5 rounded-sm border border-black/30 bg-[#f4e9d1]" />{" "}
+            Topic
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="rounded-full border border-border/60 px-1.5 text-[9px]">opt</span>
+            <span className="rounded-full border border-border/60 px-1.5 text-[9px]">
+              opt
+            </span>
             Optional
           </span>
         </div>
       </header>
 
-      <RoadmapTree roadmap={roadmap} courseIdByTitle={courseIdByTitle} />
+      <RoadmapTree roadmap={roadmap} platformCourses={platformCourses} />
     </div>
   );
 }

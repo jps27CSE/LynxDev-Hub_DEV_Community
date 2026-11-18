@@ -38,6 +38,28 @@ export const systemDesignRoadmap: Roadmap = {
         title: "Requirements & Constraints",
         description: "Functional vs non-functional, SLAs.",
         level: "intermediate",
+        platform: [
+          {
+            kind: "lesson",
+            title: "Functional vs non-functional requirements",
+            href: "/system-design/requirements/lesson/functional-vs-nonfunctional",
+          },
+          {
+            kind: "lesson",
+            title: "Eliciting requirements: ask before you design",
+            href: "/system-design/requirements/lesson/eliciting-requirements",
+          },
+          {
+            kind: "lesson",
+            title: "Turning 'fast' into a number",
+            href: "/system-design/requirements/lesson/turning-fast-into-a-number",
+          },
+          {
+            kind: "lesson",
+            title: "What you're not building",
+            href: "/system-design/requirements/lesson/what-youre-not-building",
+          },
+        ],
         resources: [
           {
             type: "article",
@@ -61,6 +83,28 @@ export const systemDesignRoadmap: Roadmap = {
         title: "Back-of-the-Envelope Estimation",
         description: "QPS, storage, bandwidth.",
         level: "intermediate",
+        platform: [
+          {
+            kind: "lesson",
+            title: "Powers of two & latency numbers",
+            href: "/system-design/back-of-the-envelope/lesson/powers-of-two-and-latency-numbers",
+          },
+          {
+            kind: "lesson",
+            title: "QPS, storage and bandwidth",
+            href: "/system-design/back-of-the-envelope/lesson/qps-storage-bandwidth",
+          },
+          {
+            kind: "lesson",
+            title: "Little's Law",
+            href: "/system-design/back-of-the-envelope/lesson/littles-law",
+          },
+          {
+            kind: "lesson",
+            title: "Estimation under uncertainty",
+            href: "/system-design/back-of-the-envelope/lesson/estimation-under-uncertainty",
+          },
+        ],
         resources: [
           {
             type: "article",
@@ -89,6 +133,13 @@ export const systemDesignRoadmap: Roadmap = {
         title: "Scaling",
         description: "Vertical vs horizontal, stateless services.",
         level: "intermediate",
+        platform: [
+          {
+            kind: "lesson",
+            title: "Vertical vs horizontal",
+            href: "/system-design/load-balancers-and-stateless-services/lesson/vertical-vs-horizontal",
+          },
+        ],
         resources: [
           {
             type: "article",
@@ -107,6 +158,18 @@ export const systemDesignRoadmap: Roadmap = {
             title: "Load Balancers",
             description: "L4/L7, algorithms, health checks.",
             level: "intermediate",
+            platform: [
+              {
+                kind: "lesson",
+                title: "The balancer in the path",
+                href: "/system-design/load-balancers-and-stateless-services/lesson/load-balancing",
+              },
+              {
+                kind: "lesson",
+                title: "How many instances?",
+                href: "/system-design/load-balancers-and-stateless-services/lesson/autoscaling",
+              },
+            ],
             resources: [
               {
                 type: "article",
@@ -135,6 +198,18 @@ export const systemDesignRoadmap: Roadmap = {
             title: "Stateless Services",
             description: "Externalize state; scale out.",
             level: "intermediate",
+            platform: [
+              {
+                kind: "lesson",
+                title: "What stateless actually means",
+                href: "/system-design/load-balancers-and-stateless-services/lesson/stateless-services",
+              },
+              {
+                kind: "lesson",
+                title: "Sessions without sticky",
+                href: "/system-design/load-balancers-and-stateless-services/lesson/sessions-without-sticky",
+              },
+            ],
             resources: [
               {
                 type: "article",
@@ -160,6 +235,33 @@ export const systemDesignRoadmap: Roadmap = {
         title: "Caching",
         description: "Cache-aside, write-through, TTL, stampede protection.",
         level: "intermediate",
+        platform: [
+          {
+            kind: "lesson",
+            title: "Why cache at all",
+            href: "/system-design/caching/lesson/why-cache",
+          },
+          {
+            kind: "lesson",
+            title: "Cache-aside",
+            href: "/system-design/caching/lesson/cache-aside",
+          },
+          {
+            kind: "lesson",
+            title: "TTL and eviction",
+            href: "/system-design/caching/lesson/ttl-and-eviction",
+          },
+          {
+            kind: "lesson",
+            title: "Invalidation",
+            href: "/system-design/caching/lesson/invalidation",
+          },
+          {
+            kind: "lesson",
+            title: "The stampede",
+            href: "/system-design/caching/lesson/cache-stampede",
+          },
+        ],
         resources: [
           {
             type: "article",
@@ -206,6 +308,28 @@ export const systemDesignRoadmap: Roadmap = {
             title: "Read Replicas",
             description: "Scale reads; replication lag.",
             level: "advanced",
+            platform: [
+              {
+                kind: "lesson",
+                title: "Reads replicate, writes do not",
+                href: "/system-design/read-replicas/lesson/scaling-reads-vs-writes",
+              },
+              {
+                kind: "lesson",
+                title: "Lag is a position",
+                href: "/system-design/read-replicas/lesson/replication-lag",
+              },
+              {
+                kind: "lesson",
+                title: "Read your own writes",
+                href: "/system-design/read-replicas/lesson/read-your-own-writes",
+              },
+              {
+                kind: "lesson",
+                title: "When replicas do not help",
+                href: "/system-design/read-replicas/lesson/when-replicas-dont-help",
+              },
+            ],
             resources: [
               {
                 type: "article",
@@ -234,6 +358,33 @@ export const systemDesignRoadmap: Roadmap = {
             title: "Sharding / Partitioning",
             description: "Hash vs range; hot keys.",
             level: "advanced",
+            platform: [
+              {
+                kind: "lesson",
+                title: "One machine cannot hold it",
+                href: "/system-design/partitioning-and-sharding/lesson/why-partition-data",
+              },
+              {
+                kind: "lesson",
+                title: "Hash or range",
+                href: "/system-design/partitioning-and-sharding/lesson/hash-and-range-sharding",
+              },
+              {
+                kind: "lesson",
+                title: "Sixteen partitions, 1.29×",
+                href: "/system-design/partitioning-and-sharding/lesson/hot-keys-and-skew",
+              },
+              {
+                kind: "lesson",
+                title: "The ring",
+                href: "/system-design/partitioning-and-sharding/lesson/consistent-hashing",
+              },
+              {
+                kind: "lesson",
+                title: "When not to shard",
+                href: "/system-design/partitioning-and-sharding/lesson/when-not-to-shard",
+              },
+            ],
             resources: [
               {
                 type: "article",
@@ -259,6 +410,28 @@ export const systemDesignRoadmap: Roadmap = {
         title: "Edge & CDN",
         description: "Static content, edge compute.",
         level: "intermediate",
+        platform: [
+          {
+            kind: "lesson",
+            title: "Latency numbers every programmer should know",
+            href: "/system-design/cdns-and-static-content/lesson/latency-numbers",
+          },
+          {
+            kind: "lesson",
+            title: "Cache keys and TTL",
+            href: "/system-design/cdns-and-static-content/lesson/cache-keys-and-ttl",
+          },
+          {
+            kind: "lesson",
+            title: "What a CDN cannot cache",
+            href: "/system-design/cdns-and-static-content/lesson/what-a-cdn-cannot-cache",
+          },
+          {
+            kind: "lesson",
+            title: "Image and video delivery",
+            href: "/system-design/cdns-and-static-content/lesson/image-and-video-delivery",
+          },
+        ],
         resources: [
           {
             type: "article",
@@ -282,6 +455,33 @@ export const systemDesignRoadmap: Roadmap = {
         title: "Rate Limiting",
         description: "Token bucket, sliding window, distributed limits.",
         level: "intermediate",
+        platform: [
+          {
+            kind: "lesson",
+            title: "The bot in your traffic",
+            href: "/system-design/rate-limiting/lesson/the-bot-in-your-traffic",
+          },
+          {
+            kind: "lesson",
+            title: "Token bucket, leaky bucket, sliding window",
+            href: "/system-design/rate-limiting/lesson/algorithms",
+          },
+          {
+            kind: "lesson",
+            title: "Distributed rate limiting",
+            href: "/system-design/rate-limiting/lesson/distributed-rate-limiting",
+          },
+          {
+            kind: "lesson",
+            title: "429 and Retry-After",
+            href: "/system-design/rate-limiting/lesson/429-and-retry-after",
+          },
+          {
+            kind: "lesson",
+            title: "Backpressure and load shedding",
+            href: "/system-design/rate-limiting/lesson/load-shedding",
+          },
+        ],
         resources: [
           {
             type: "article",
@@ -328,6 +528,33 @@ export const systemDesignRoadmap: Roadmap = {
             title: "How Systems Fail",
             description: "Cascading failures, blast radius.",
             level: "advanced",
+            platform: [
+              {
+                kind: "lesson",
+                title: "Trace one request",
+                href: "/system-design/how-systems-fail/lesson/trace-your-own-design",
+              },
+              {
+                kind: "lesson",
+                title: "Retries become traffic",
+                href: "/system-design/how-systems-fail/lesson/retry-storms",
+              },
+              {
+                kind: "lesson",
+                title: "Slow is worse than down",
+                href: "/system-design/how-systems-fail/lesson/cascades",
+              },
+              {
+                kind: "lesson",
+                title: "Failure domains and headroom",
+                href: "/system-design/how-systems-fail/lesson/blast-radius-and-bulkheads",
+              },
+              {
+                kind: "lesson",
+                title: "The dashboard that said everything was fine",
+                href: "/system-design/how-systems-fail/lesson/logging-monitoring-and-traces",
+              },
+            ],
             resources: [
               {
                 type: "article",
@@ -356,6 +583,33 @@ export const systemDesignRoadmap: Roadmap = {
             title: "Timeouts, Retries, Circuit Breakers",
             description: "Backoff, jitter, bulkheads.",
             level: "advanced",
+            platform: [
+              {
+                kind: "lesson",
+                title: "No timeout is worse than a bad one",
+                href: "/system-design/timeouts-retries-circuit-breakers/lesson/no-timeout-is-worse",
+              },
+              {
+                kind: "lesson",
+                title: "Retry with intent",
+                href: "/system-design/timeouts-retries-circuit-breakers/lesson/retries-and-jitter",
+              },
+              {
+                kind: "lesson",
+                title: "Breakers and bulkheads",
+                href: "/system-design/timeouts-retries-circuit-breakers/lesson/breakers-and-bulkheads",
+              },
+              {
+                kind: "lesson",
+                title: "One deadline for the whole request",
+                href: "/system-design/timeouts-retries-circuit-breakers/lesson/timeout-budgets",
+              },
+              {
+                kind: "lesson",
+                title: "A fallback with no capacity is an outage",
+                href: "/system-design/timeouts-retries-circuit-breakers/lesson/fallbacks-and-degradation",
+              },
+            ],
             resources: [
               {
                 type: "article",
@@ -384,6 +638,28 @@ export const systemDesignRoadmap: Roadmap = {
             title: "Idempotency",
             description: "Safe retries, idempotency keys.",
             level: "advanced",
+            platform: [
+              {
+                kind: "lesson",
+                title: "Every message can arrive twice",
+                href: "/system-design/idempotency/lesson/at-least-once-delivery",
+              },
+              {
+                kind: "lesson",
+                title: "The client chooses the key",
+                href: "/system-design/idempotency/lesson/idempotency-keys",
+              },
+              {
+                kind: "lesson",
+                title: "Exactly-once is a scope, not a promise",
+                href: "/system-design/idempotency/lesson/exactly-once-is-a-lie",
+              },
+              {
+                kind: "lesson",
+                title: "The message that will never succeed",
+                href: "/system-design/idempotency/lesson/dead-letter-queues",
+              },
+            ],
             resources: [
               {
                 type: "article",
@@ -415,6 +691,28 @@ export const systemDesignRoadmap: Roadmap = {
         description: "Design real systems; do mock interviews.",
         level: "advanced",
         optional: true,
+        platform: [
+          {
+            kind: "task",
+            title: "Chaos Capstone: Survive the Loss",
+            href: "/system-design/chaos-capstone/task",
+          },
+          {
+            kind: "lesson",
+            title: "Break it on purpose",
+            href: "/system-design/chaos-capstone/lesson/chaos-as-practice",
+          },
+          {
+            kind: "lesson",
+            title: "Every tier, sized for the loss",
+            href: "/system-design/chaos-capstone/lesson/surviving-everything",
+          },
+          {
+            kind: "lesson",
+            title: "The postmortem nobody is afraid of",
+            href: "/system-design/chaos-capstone/lesson/postmortems-without-blame",
+          },
+        ],
         resources: [
           {
             type: "article",

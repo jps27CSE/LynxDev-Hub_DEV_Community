@@ -5,16 +5,17 @@ import { useSearchParams } from "next/navigation";
 import { ArrowRight, RotateCcw } from "lucide-react";
 import { useRoadmapProgress } from "@/hooks/useRoadmapProgress";
 import { collectLeafIds, findNode, findPath } from "@/config/roadmaps/utils";
-import type { Roadmap } from "@/config/roadmaps/types";
+import type { CourseKey } from "@/config/courses/types";
+import type { PlatformCourseRef, Roadmap } from "@/config/roadmaps/types";
 import RoadmapStage from "./RoadmapStage";
 import RoadmapDetailPanel from "./RoadmapDetailPanel";
 
 export default function RoadmapTree({
   roadmap,
-  courseIdByTitle,
+  platformCourses,
 }: {
   roadmap: Roadmap;
-  courseIdByTitle: Record<string, number>;
+  platformCourses: Partial<Record<CourseKey, PlatformCourseRef>>;
 }) {
   const { statuses, setStatus, reset } = useRoadmapProgress(roadmap.slug);
   const searchParams = useSearchParams();
@@ -23,10 +24,14 @@ export default function RoadmapTree({
   const leaves = useMemo(() => collectLeafIds(roadmap.root), [roadmap.root]);
   const doneCount = leaves.filter((id) => statuses[id] === "done").length;
   const skippedCount = leaves.filter((id) => statuses[id] === "skipped").length;
-  const pct = leaves.length > 0 ? Math.round((doneCount / leaves.length) * 100) : 0;
+  const pct =
+    leaves.length > 0 ? Math.round((doneCount / leaves.length) * 100) : 0;
 
   const nextUp = useMemo(
-    () => leaves.find((id) => statuses[id] !== "done" && statuses[id] !== "skipped") ?? null,
+    () =>
+      leaves.find(
+        (id) => statuses[id] !== "done" && statuses[id] !== "skipped",
+      ) ?? null,
     [leaves, statuses],
   );
   const nextUpTitle = nextUp ? findNode(roadmap.root, nextUp)?.title : null;
@@ -60,10 +65,6 @@ export default function RoadmapTree({
     return { node: path[path.length - 1], trail: path.slice(0, -1) };
   }, [selectedId, roadmap.root]);
 
-  const platformCourseId = selected?.node.platformCourseTitle
-    ? courseIdByTitle[selected.node.platformCourseTitle.trim().toLowerCase()]
-    : undefined;
-
   const handleReset = () => {
     if (window.confirm("Reset all progress for this roadmap?")) reset();
   };
@@ -86,7 +87,10 @@ export default function RoadmapTree({
             <p className="text-sm font-medium">
               {doneCount} of {leaves.length} topics done
               {skippedCount > 0 && (
-                <span className="text-muted-foreground"> · {skippedCount} skipped</span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  · {skippedCount} skipped
+                </span>
               )}
             </p>
           </div>
@@ -154,7 +158,8 @@ export default function RoadmapTree({
       </div>
 
       <p className="mt-3 text-center text-[11px] text-muted-foreground">
-        Hover a topic to mark it as learning, done, or skipped · Click any node for resources
+        Hover a topic to mark it as learning, done, or skipped · Click any node
+        for resources
       </p>
 
       {selected && (
@@ -162,7 +167,7 @@ export default function RoadmapTree({
           node={selected.node}
           trail={selected.trail}
           status={statuses[selected.node.id]}
-          platformCourseId={platformCourseId}
+          platformCourses={platformCourses}
           onSetStatus={setStatus}
           onClose={closePanel}
         />

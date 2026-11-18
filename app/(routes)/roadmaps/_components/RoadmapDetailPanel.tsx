@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import {
+  ArrowRight,
   ArrowUpRight,
   Bookmark,
   BookOpen,
@@ -11,11 +13,18 @@ import {
   GraduationCap,
   Minus,
   PlayCircle,
-  Star,
+  Sparkles,
   X,
 } from "lucide-react";
-import type { RoadmapNode, RoadmapResourceType } from "@/config/roadmaps/types";
+import type { CourseKey } from "@/config/courses/types";
+import type {
+  PlatformCourseRef,
+  RoadmapNode,
+  RoadmapResourceType,
+} from "@/config/roadmaps/types";
 import type { RoadmapNodeStatus } from "@/lib/roadmap-progress";
+import { resolvePlatformEntries } from "@/config/roadmaps/platform";
+import type { PlatformEntry } from "@/config/roadmaps/platform";
 
 const RESOURCE_META: Record<
   RoadmapResourceType,
@@ -65,7 +74,8 @@ const STATUS_ACTION = [
     key: "done",
     label: "Done",
     icon: Check,
-    activeClass: "bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/40",
+    activeClass:
+      "bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/40",
   },
   {
     key: "skipped",
@@ -80,16 +90,26 @@ type Props = {
   /** Ancestors from the root down to (but excluding) this node. */
   trail: RoadmapNode[];
   status?: RoadmapNodeStatus;
-  platformCourseId?: number;
+  platformCourses: Partial<Record<CourseKey, PlatformCourseRef>>;
   onSetStatus: (id: string, status: RoadmapNodeStatus | null) => void;
   onClose: () => void;
+};
+
+/** Kind → badge vocabulary for the in-platform block. */
+const PLATFORM_KIND: Record<
+  PlatformEntry["kind"],
+  { label: string; icon: typeof BookOpen }
+> = {
+  course: { label: "Course", icon: GraduationCap },
+  lesson: { label: "Lesson", icon: BookOpen },
+  task: { label: "Task", icon: Dumbbell },
 };
 
 export default function RoadmapDetailPanel({
   node,
   trail,
   status,
-  platformCourseId,
+  platformCourses,
   onSetStatus,
   onClose,
 }: Props) {
@@ -138,6 +158,11 @@ export default function RoadmapDetailPanel({
     .slice(1)
     .map((n) => n.title)
     .join(" / ");
+
+  const platformEntries = resolvePlatformEntries(
+    node.platform ?? [],
+    platformCourses,
+  );
 
   return (
     <div className="fixed inset-0 z-[60]">
@@ -221,27 +246,50 @@ export default function RoadmapDetailPanel({
           >
             {node.title}
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{node.description}</p>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            {node.description}
+          </p>
 
-          {/* Recommended: platform course */}
-          {platformCourseId && (
+          {/* Learn it on LynxDEV — our own courses and lessons */}
+          {platformEntries.length > 0 && (
             <div className="mt-6 rounded-xl border border-amber-400/40 bg-amber-400/[0.06] p-4">
               <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
-                <Star className="h-3.5 w-3.5 fill-amber-300" />
-                Recommended on LynxDEV
+                <Sparkles className="h-3.5 w-3.5" />
+                Learn it on LynxDEV
               </div>
-              <div className="mt-2 flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-foreground">
-                  {node.platformCourseTitle}
-                </p>
-                <a
-                  href={`/courses/${platformCourseId}`}
-                  className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-amber-400 px-3 py-1.5 text-xs font-bold text-black transition-colors hover:bg-amber-300"
-                >
-                  Start
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </a>
-              </div>
+
+              <ul className="mt-3 space-y-1">
+                {platformEntries.map((entry) => {
+                  const meta = PLATFORM_KIND[entry.kind];
+                  const Icon = meta.icon;
+                  return (
+                    <li key={entry.key}>
+                      <Link
+                        href={entry.href}
+                        className="group flex items-start gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-amber-400/10"
+                      >
+                        <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-400/30 bg-amber-400/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-300">
+                          <Icon className="h-3 w-3" />
+                          {meta.label}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium text-foreground group-hover:text-amber-100">
+                            {entry.title}
+                          </span>
+                          {(entry.detail || entry.note) && (
+                            <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
+                              {[entry.detail, entry.note]
+                                .filter(Boolean)
+                                .join(" · ")}
+                            </span>
+                          )}
+                        </span>
+                        <ArrowRight className="mt-1 h-3.5 w-3.5 shrink-0 text-amber-300/60 transition-transform group-hover:translate-x-0.5 group-hover:text-amber-300" />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
 
@@ -250,7 +298,9 @@ export default function RoadmapDetailPanel({
             <div className="mt-6">
               <div className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-emerald-400" />
-                <h3 className="text-sm font-semibold text-foreground">Free resources</h3>
+                <h3 className="text-sm font-semibold text-foreground">
+                  Free resources
+                </h3>
                 <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">
                   {node.resources.length}
                 </span>
@@ -293,7 +343,8 @@ export default function RoadmapDetailPanel({
             </div>
           ) : (
             <p className="mt-6 rounded-xl border border-white/10 bg-white/[0.02] p-4 text-sm text-muted-foreground">
-              No external resources for this section yet — it groups the topics below it.
+              No external resources for this section yet — it groups the topics
+              below it.
             </p>
           )}
         </div>

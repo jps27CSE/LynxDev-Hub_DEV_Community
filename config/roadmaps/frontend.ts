@@ -51,7 +51,7 @@ export const frontendRoadmap: Roadmap = {
         title: "HTML",
         description: "Structure and semantics of web pages.",
         level: "beginner",
-        platformCourseTitle: "HTML",
+        platform: [{ kind: "course", courseKey: "html" }],
         resources: [
           {
             type: "docs",
@@ -81,6 +81,7 @@ export const frontendRoadmap: Roadmap = {
             description:
               "Use the right element for the right meaning (article, nav, main, …).",
             level: "beginner",
+            platform: [{ kind: "course", courseKey: "html" }],
             resources: [
               {
                 type: "docs",
@@ -110,6 +111,7 @@ export const frontendRoadmap: Roadmap = {
             description:
               "Inputs, labels, constraint validation, and accessible error states.",
             level: "beginner",
+            platform: [{ kind: "course", courseKey: "html" }],
             resources: [
               {
                 type: "docs",
@@ -139,6 +141,7 @@ export const frontendRoadmap: Roadmap = {
             description:
               "Keyboard navigation, ARIA, screen readers, color contrast.",
             level: "intermediate",
+            platform: [{ kind: "course", courseKey: "html" }],
             resources: [
               {
                 type: "docs",
@@ -174,7 +177,7 @@ export const frontendRoadmap: Roadmap = {
         title: "CSS",
         description: "Styling, layout, and responsive design.",
         level: "beginner",
-        platformCourseTitle: "CSS",
+        platform: [{ kind: "course", courseKey: "css" }],
         resources: [
           {
             type: "docs",
@@ -193,6 +196,7 @@ export const frontendRoadmap: Roadmap = {
             title: "Box Model, Flexbox & Grid",
             description: "The three layout primitives. Master all three.",
             level: "beginner",
+            platform: [{ kind: "course", courseKey: "css" }],
             resources: [
               {
                 type: "article",
@@ -231,6 +235,7 @@ export const frontendRoadmap: Roadmap = {
             title: "Responsive Design",
             description: "Media queries, fluid typography, container queries.",
             level: "beginner",
+            platform: [{ kind: "course", courseKey: "css" }],
             resources: [
               {
                 type: "article",
@@ -254,6 +259,7 @@ export const frontendRoadmap: Roadmap = {
             title: "CSS Variables & Theming",
             description: "Custom properties for theming and dark mode.",
             level: "intermediate",
+            platform: [{ kind: "course", courseKey: "css" }],
             resources: [
               {
                 type: "docs",
@@ -279,6 +285,7 @@ export const frontendRoadmap: Roadmap = {
               "CSS transitions, keyframes, and the Web Animations API.",
             level: "intermediate",
             optional: true,
+            platform: [{ kind: "course", courseKey: "css" }],
             resources: [
               {
                 type: "docs",
@@ -309,7 +316,7 @@ export const frontendRoadmap: Roadmap = {
         title: "JavaScript",
         description: "The language of the web.",
         level: "beginner",
-        platformCourseTitle: "JavaScript",
+        platform: [{ kind: "course", courseKey: "javascript" }],
         resources: [
           {
             type: "docs",
@@ -334,6 +341,7 @@ export const frontendRoadmap: Roadmap = {
             description:
               "let/const, arrow functions, destructuring, modules, classes.",
             level: "beginner",
+            platform: [{ kind: "course", courseKey: "javascript" }],
             resources: [
               {
                 type: "article",
@@ -362,6 +370,7 @@ export const frontendRoadmap: Roadmap = {
             title: "DOM & Events",
             description: "Querying, mutating, and listening to the DOM.",
             level: "beginner",
+            platform: [{ kind: "course", courseKey: "javascript" }],
             resources: [
               {
                 type: "docs",
@@ -390,6 +399,7 @@ export const frontendRoadmap: Roadmap = {
             title: "Async JavaScript",
             description: "Promises, fetch, async/await, error handling.",
             level: "intermediate",
+            platform: [{ kind: "course", courseKey: "javascript" }],
             resources: [
               {
                 type: "article",
@@ -423,8 +433,8 @@ export const frontendRoadmap: Roadmap = {
             title: "TypeScript",
             description: "Typed JavaScript for safer, larger codebases.",
             level: "intermediate",
-            platformCourseTitle: "TypeScript",
             optional: true,
+            platform: [{ kind: "course", courseKey: "typescript" }],
             resources: [
               {
                 type: "docs",
@@ -460,6 +470,7 @@ export const frontendRoadmap: Roadmap = {
         title: "Tooling & Workflow",
         description: "Version control, bundlers, and code quality.",
         level: "beginner",
+        platform: [{ kind: "course", courseKey: "git" }],
         resources: [
           {
             type: "docs",
@@ -483,7 +494,7 @@ export const frontendRoadmap: Roadmap = {
             title: "Git & GitHub",
             description: "Version control, branching, PRs, collaboration.",
             level: "beginner",
-            platformCourseTitle: "Git",
+            platform: [{ kind: "course", courseKey: "git" }],
             resources: [
               {
                 type: "article",
@@ -571,7 +582,7 @@ export const frontendRoadmap: Roadmap = {
         title: "React",
         description: "Component-based UI library (the industry default).",
         level: "intermediate",
-        platformCourseTitle: "React",
+        platform: [{ kind: "course", courseKey: "react" }],
         resources: [
           { type: "docs", title: "React Docs", url: "https://react.dev/" },
           {
@@ -591,6 +602,7 @@ export const frontendRoadmap: Roadmap = {
             title: "Components & Props",
             description: "Function components, props, composition.",
             level: "intermediate",
+            platform: [{ kind: "course", courseKey: "react" }],
             resources: [
               {
                 type: "docs",
@@ -619,6 +631,7 @@ export const frontendRoadmap: Roadmap = {
             title: "State & Hooks",
             description: "useState, useEffect, useContext, custom hooks.",
             level: "intermediate",
+            platform: [{ kind: "course", courseKey: "react" }],
             resources: [
               {
                 type: "docs",
@@ -653,6 +666,7 @@ export const frontendRoadmap: Roadmap = {
             description:
               "Client-side routing with React Router / Next.js App Router.",
             level: "intermediate",
+            platform: [{ kind: "course", courseKey: "react" }],
             resources: [
               {
                 type: "docs",
@@ -681,6 +695,7 @@ export const frontendRoadmap: Roadmap = {
             title: "Data Fetching",
             description: "React Query / SWR, caching, mutations.",
             level: "intermediate",
+            platform: [{ kind: "course", courseKey: "react" }],
             resources: [
               {
                 type: "docs",
@@ -710,6 +725,7 @@ export const frontendRoadmap: Roadmap = {
             description: "Tailwind, CSS Modules, styled-components.",
             level: "intermediate",
             optional: true,
+            platform: [{ kind: "course", courseKey: "react" }],
             resources: [
               {
                 type: "docs",

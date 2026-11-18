@@ -2,6 +2,7 @@ import type { CourseData } from "./types";
 import { codeBlock, externalLink, BOX_STYLE } from "./format";
 
 export const reactCourse: CourseData = {
+  key: "react",
   title: "React — Build Interactive UIs",
   description:
     "The library behind this platform — 10 hands-on lessons plus 3 projects (todo app, weather widget, mini dashboard). Components, props, state, effects, and context. Requires JavaScript & TypeScript basics.",

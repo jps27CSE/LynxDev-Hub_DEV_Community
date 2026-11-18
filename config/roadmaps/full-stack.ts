@@ -38,7 +38,10 @@ export const fullStackRoadmap: Roadmap = {
         title: "Frontend (React + TS)",
         description: "Build the UI. See the Frontend roadmap for depth.",
         level: "beginner",
-        platformCourseTitle: "React",
+        platform: [
+          { kind: "course", courseKey: "html" },
+          { kind: "course", courseKey: "react" },
+        ],
         resources: [
           {
             type: "article",
@@ -62,6 +65,10 @@ export const fullStackRoadmap: Roadmap = {
             title: "HTML & CSS",
             description: "Structure and styling.",
             level: "beginner",
+            platform: [
+              { kind: "course", courseKey: "html" },
+              { kind: "course", courseKey: "css" },
+            ],
             resources: [
               {
                 type: "docs",
@@ -95,7 +102,10 @@ export const fullStackRoadmap: Roadmap = {
             title: "JavaScript & TypeScript",
             description: "Language + types.",
             level: "beginner",
-            platformCourseTitle: "TypeScript",
+            platform: [
+              { kind: "course", courseKey: "javascript" },
+              { kind: "course", courseKey: "typescript" },
+            ],
             resources: [
               {
                 type: "docs",
@@ -124,7 +134,7 @@ export const fullStackRoadmap: Roadmap = {
             title: "React",
             description: "Components, state, routing.",
             level: "intermediate",
-            platformCourseTitle: "React",
+            platform: [{ kind: "course", courseKey: "react" }],
             resources: [
               { type: "docs", title: "React", url: "https://react.dev/" },
               {
@@ -151,7 +161,7 @@ export const fullStackRoadmap: Roadmap = {
         title: "Backend (Node + API)",
         description: "Server, routes, business logic.",
         level: "beginner",
-        platformCourseTitle: "Node.js",
+        platform: [{ kind: "course", courseKey: "node" }],
         resources: [
           {
             type: "article",
@@ -175,6 +185,13 @@ export const fullStackRoadmap: Roadmap = {
             title: "HTTP & REST",
             description: "Verbs, status codes, JSON.",
             level: "beginner",
+            platform: [
+              {
+                kind: "lesson",
+                title: "The contract before the code",
+                href: "/system-design/api-and-contracts/lesson/the-contract-before-the-code",
+              },
+            ],
             resources: [
               {
                 type: "article",
@@ -203,6 +220,7 @@ export const fullStackRoadmap: Roadmap = {
             title: "Web Framework (Express/Hono)",
             description: "Routing, middleware.",
             level: "beginner",
+            platform: [{ kind: "course", courseKey: "node" }],
             resources: [
               { type: "docs", title: "Express", url: "https://expressjs.com/" },
               {
@@ -248,7 +266,7 @@ export const fullStackRoadmap: Roadmap = {
         title: "Database & ORM",
         description: "Persist data; query efficiently.",
         level: "intermediate",
-        platformCourseTitle: "SQL & Databases",
+        platform: [{ kind: "course", courseKey: "sql" }],
         resources: [
           {
             type: "practice",
@@ -267,6 +285,7 @@ export const fullStackRoadmap: Roadmap = {
             title: "SQL",
             description: "Queries, joins, indexes.",
             level: "intermediate",
+            platform: [{ kind: "course", courseKey: "sql" }],
             resources: [
               {
                 type: "article",
@@ -320,6 +339,13 @@ export const fullStackRoadmap: Roadmap = {
         title: "Auth",
         description: "Sign-in, sessions, protected routes.",
         level: "intermediate",
+        platform: [
+          {
+            kind: "lesson",
+            title: "Who you are vs what you may do",
+            href: "/system-design/api-and-contracts/lesson/who-are-you-vs-what-may-you-do",
+          },
+        ],
         resources: [
           {
             type: "docs",
@@ -439,6 +465,13 @@ export const fullStackRoadmap: Roadmap = {
             title: "Server Actions / Route Handlers",
             description: "Server-side mutations.",
             level: "intermediate",
+            platform: [
+              {
+                kind: "lesson",
+                title: "Idempotent writes",
+                href: "/system-design/api-and-contracts/lesson/idempotent-writes",
+              },
+            ],
             resources: [
               {
                 type: "docs",
@@ -613,6 +646,13 @@ export const fullStackRoadmap: Roadmap = {
             description: "Errors, metrics, alerts.",
             level: "advanced",
             optional: true,
+            platform: [
+              {
+                kind: "lesson",
+                title: "The dashboard that said everything was fine",
+                href: "/system-design/how-systems-fail/lesson/logging-monitoring-and-traces",
+              },
+            ],
             resources: [
               {
                 type: "article",
