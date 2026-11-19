@@ -2,6 +2,7 @@ import type { CourseData } from "./types";
 import { codeBlock, externalLink, BOX_STYLE } from "./format";
 
 export const cssCourse: CourseData = {
+  key: "css",
   title: "CSS Essentials — Style the Web",
   description:
     "From your first property to full layouts — 9 hands-on lessons plus 5 real projects (profile cards, nav bars, pricing cards, hero sections) with live preview.",

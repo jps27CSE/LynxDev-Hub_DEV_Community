@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Opts this app into agent-driven security upgrades: `next upgrade
+    // --agent=security` (16.4.2 → 16.4.6, GHSA-mfr8-8qww-v76h). Next only
+    // acts on it when an upgrade command is run explicitly; it changes no
+    // runtime behaviour.
+    agentUpgrade: "security",
+  },
   images: {
     remotePatterns: [
       {
