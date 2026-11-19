@@ -2,6 +2,7 @@ import type { CourseData } from "./types";
 import { codeBlock, externalLink, BOX_STYLE } from "./format";
 
 export const linuxCourse: CourseData = {
+  key: "linux",
   title: "Linux Commands — The Terminal from Scratch",
   description:
     "Master the command line — 12 hands-on lessons from your first prompt to a mini sysadmin task. Navigate files, read logs, manage permissions, chain commands, and inspect systems. Practice in your own terminal.",

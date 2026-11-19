@@ -8,7 +8,9 @@ async function main() {
   console.log("Seeding courses...");
 
   for (const courseData of coursesData) {
-    const { chapters: chapterData, ...courseFields } = courseData;
+    const { chapters: chapterData, key, ...courseFields } = courseData;
+    // `key` is config identity for roadmap links, not a `courses` column.
+    void key;
 
     // Idempotent: reuse an existing course row with the same title instead of
     // inserting a duplicate. This keeps course ids (and any enrollments/progress)

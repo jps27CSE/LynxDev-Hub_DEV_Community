@@ -64,6 +64,7 @@
 | 5.6 | Weekly limit (1/user) | Pending | Medium | One completed interview per user per week |
 | 5.7 | Skills roadmap tree | Pending | High | Interactive skill nodes with resources (articles, docs, videos) |
 | 5.8 | YouTube video courses | Pending | High | Videos from CodeInsightsByJack channel, mark complete with progress |
+| 5.9 | Roadmaps module | In Progress | High | roadmap.sh-style map + in-platform learning links (`/roadmaps`, `/roadmaps/[slug]`). Plan: `.agent/plans/24-roadmaps-module.md`. Tasks 1-4 done (118 platform links, 717 tests); pending manual test + commit. |
 
 ## Phase 6 — System Design Learning
 

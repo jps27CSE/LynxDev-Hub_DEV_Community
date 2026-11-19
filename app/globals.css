@@ -538,3 +538,347 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Roadmap canvas — roadmap.sh-style flowchart                         */
+/*                                                                    */
+/* Structure per stage: [ yellow section card ] --- fan of tan topic   */
+/* cards, joined by a solid blue spine and dotted blue branches.      */
+/* ------------------------------------------------------------------ */
+.rm-canvas {
+  --rm-line: #3b82f6;
+  --rm-line-dot: rgba(59, 130, 246, 0.9);
+  --rm-section-a: #ffe873;
+  --rm-section-b: #ffd93a;
+  --rm-topic: #f4e9d1;
+  --rm-ink: #141414;
+  position: relative;
+  background-color: #08090d;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.rm-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.rm-track {
+  display: flex;
+  flex-direction: column;
+  min-width: 620px;
+}
+
+/* One stage = section card on the spine + its fan of topics. */
+.rm-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  column-gap: 48px;
+  padding-bottom: 40px;
+}
+.rm-stage:last-child {
+  padding-bottom: 0;
+}
+
+/* Solid blue spine behind the section cards. */
+.rm-stage::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 100px;
+  border-left: 3px solid var(--rm-line);
+  transform: translateX(-1.5px);
+  border-radius: 3px;
+}
+.rm-stage:first-child::before {
+  top: 50%;
+}
+.rm-stage:last-child::before {
+  bottom: 50%;
+}
+
+.rm-stage-pin {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-self: center;
+  justify-content: center;
+}
+
+/* Fan of topic cards branching right from the spine. */
+.rm-fan {
+  position: relative;
+  align-self: center;
+  justify-self: start;
+  width: min(320px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0 0 0 44px;
+  list-style: none;
+}
+/* Join: section card's right edge → branch trunk (spans the column gap). */
+.rm-fan::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -48px;
+  width: 48px;
+  border-top: 2px dotted var(--rm-line-dot);
+  transform: translateY(-1px);
+}
+/* Branch trunk between first and last child. */
+.rm-fan::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 32px;
+  bottom: 32px;
+  border-left: 2px dotted var(--rm-line-dot);
+}
+.rm-fan > li {
+  position: relative;
+}
+.rm-fan > li::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -44px;
+  width: 44px;
+  border-top: 2px dotted var(--rm-line-dot);
+}
+
+/* Nested fan (depth > 2) — tighten the connectors. */
+.rm-fan .rm-fan {
+  width: 100%;
+  padding-left: 28px;
+  margin-top: 10px;
+}
+.rm-fan .rm-fan::before,
+.rm-fan .rm-fan > li::before {
+  width: 28px;
+}
+/* A nested fan hangs from its parent card, so the spine join is noise. */
+.rm-fan .rm-fan::before {
+  display: none;
+}
+.rm-fan .rm-fan > li::before {
+  left: -28px;
+}
+
+/* Node card -------------------------------------------------------- */
+.rm-node-wrap {
+  position: relative;
+  display: flex;
+  width: 100%;
+}
+
+.rm-node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  overflow: hidden;
+  padding: 0.55rem 0.7rem;
+  border: 2px solid rgba(0, 0, 0, 0.8);
+  border-radius: 12px;
+  color: var(--rm-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+.rm-node > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.rm-node:hover {
+  transform: translateY(-2px);
+}
+.rm-node:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.rm-node--section {
+  min-height: 58px;
+  background-image: linear-gradient(180deg, var(--rm-section-a), var(--rm-section-b));
+  box-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.45),
+    0 14px 34px -18px rgba(255, 214, 61, 0.6);
+}
+.rm-node--topic {
+  min-height: 64px;
+  background-color: var(--rm-topic);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  font-weight: 500;
+}
+.rm-node--learning {
+  background-image: none;
+  background-color: #ded4fb;
+}
+.rm-node--done {
+  background-image: none;
+  background-color: #cdeac2;
+}
+.rm-node--skipped {
+  background-image: none;
+  background-color: #dcdcdc;
+  color: #6a6a6a;
+}
+.rm-node--next {
+  box-shadow:
+    0 0 0 3px rgba(59, 130, 246, 0.55),
+    0 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Hover / focus action bar (Learning · Done · Skip) ----------------- */
+.rm-actions {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 26px -10px rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 120ms ease;
+}
+.rm-node-wrap:hover .rm-actions,
+.rm-node-wrap:focus-within .rm-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+.rm-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 7px;
+  color: #2b2b2b;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.rm-action:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.rm-action[data-active="true"] {
+  background: rgba(0, 0, 0, 0.09);
+}
+
+/* Status badge on the card edge ------------------------------------ */
+.rm-badge {
+  position: absolute;
+  top: 50%;
+  right: -9px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #9ca3af;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease;
+}
+.rm-badge:hover {
+  transform: translateY(-50%) scale(1.12);
+}
+.rm-badge[data-status="done"] {
+  background: #22c55e;
+}
+.rm-badge[data-status="learning"] {
+  background: #8b5cf6;
+}
+.rm-badge[data-status="skipped"] {
+  background: #9ca3af;
+}
+.rm-badge[data-status="none"] {
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.25);
+  color: #9ca3af;
+  opacity: 0;
+}
+.rm-node-wrap:hover .rm-badge[data-status="none"],
+.rm-node-wrap:focus-within .rm-badge[data-status="none"] {
+  opacity: 1;
+}
+
+/* Phones: stack each section above an indented topic list instead of
+   horizontally scrolling a 620px canvas. */
+@media (max-width: 640px) {
+  .rm-track {
+    min-width: 0;
+  }
+  .rm-stage {
+    display: block;
+    padding-bottom: 30px;
+  }
+  .rm-stage::before {
+    display: none;
+  }
+  .rm-stage-pin {
+    display: block;
+  }
+  .rm-fan {
+    width: 100%;
+    padding-left: 34px;
+    margin-top: 0;
+    gap: 10px;
+  }
+  /* Stubs still reach the trunk; the join and trunk top move to the stack. */
+  .rm-fan::before {
+    display: none;
+  }
+  .rm-fan::after {
+    top: 0;
+    bottom: 32px;
+  }
+  .rm-fan > li::before {
+    left: -34px;
+    width: 34px;
+  }
+  .rm-fan .rm-fan {
+    padding-left: 24px;
+  }
+  .rm-fan .rm-fan > li::before {
+    left: -24px;
+    width: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rm-node,
+  .rm-badge,
+  .rm-actions {
+    transition: none;
+  }
+}

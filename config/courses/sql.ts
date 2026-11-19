@@ -2,6 +2,7 @@ import type { CourseData } from "./types";
 import { codeBlock, externalLink, BOX_STYLE } from "./format";
 
 export const sqlCourse: CourseData = {
+  key: "sql",
   title: "Learn SQL — Query Databases From Scratch",
   description:
     "Master the language behind every database. 12 interactive lessons: write real SQL in the browser, hit Run, and watch result tables appear instantly. SQLite-powered, no install needed.",
