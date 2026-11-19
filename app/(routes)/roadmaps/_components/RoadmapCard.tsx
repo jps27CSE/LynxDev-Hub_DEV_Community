@@ -57,7 +57,15 @@ export default function RoadmapCard({ roadmap }: { roadmap: Roadmap }) {
         {/* Progress ring */}
         <div className="relative w-12 h-12 shrink-0">
           <svg className="w-12 h-12 -rotate-90" viewBox="0 0 44 44">
-            <circle cx="22" cy="22" r={r} fill="none" stroke="currentColor" strokeWidth="3" className="text-muted/40" />
+            <circle
+              cx="22"
+              cy="22"
+              r={r}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              className="text-muted/40"
+            />
             <circle
               cx="22"
               cy="22"
@@ -77,7 +85,9 @@ export default function RoadmapCard({ roadmap }: { roadmap: Roadmap }) {
         </div>
       </div>
 
-      <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{roadmap.description}</p>
+      <p className="text-sm text-muted-foreground mt-3 line-clamp-2">
+        {roadmap.description}
+      </p>
 
       <div className="flex items-center gap-3 mt-4 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1">
@@ -85,15 +95,18 @@ export default function RoadmapCard({ roadmap }: { roadmap: Roadmap }) {
           {leaves.length} topics
         </span>
         <span className="inline-flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5" />
-          ~{roadmap.estimatedHours ?? "—"}h
+          <Clock className="w-3.5 h-3.5" />~{roadmap.estimatedHours ?? "—"}h
         </span>
         <span className="ml-auto">{LEVEL_LABEL[roadmap.level]}</span>
       </div>
 
       {roadmap.updatedAt && (
         <div className="mt-3 text-[10px] text-muted-foreground/70">
-          Updated {new Date(roadmap.updatedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+          Updated{" "}
+          {new Date(roadmap.updatedAt).toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          })}
         </div>
       )}
     </Link>

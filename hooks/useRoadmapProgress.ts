@@ -32,16 +32,22 @@ export function useRoadmapProgress(slug: string) {
     saveProgress(slug, statuses);
   }, [hydrated, slug, statuses]);
 
-  const setStatus = useCallback((nodeId: string, status: RoadmapNodeStatus | null) => {
-    setStatuses((prev) => {
-      const next = { ...prev };
-      if (status === null) delete next[nodeId];
-      else next[nodeId] = status;
-      return next;
-    });
-  }, []);
+  const setStatus = useCallback(
+    (nodeId: string, status: RoadmapNodeStatus | null) => {
+      setStatuses((prev) => {
+        const next = { ...prev };
+        if (status === null) delete next[nodeId];
+        else next[nodeId] = status;
+        return next;
+      });
+    },
+    [],
+  );
 
-  const getStatus = useCallback((nodeId: string) => statuses[nodeId], [statuses]);
+  const getStatus = useCallback(
+    (nodeId: string) => statuses[nodeId],
+    [statuses],
+  );
 
   const reset = useCallback(() => {
     clearProgress(slug);

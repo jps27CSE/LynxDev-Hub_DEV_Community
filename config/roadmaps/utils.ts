@@ -15,7 +15,10 @@ export function isSection(node: RoadmapNode): boolean {
   return !!node.children && node.children.length > 0;
 }
 
-export function collectLeafIds(node: RoadmapNode, out: string[] = []): string[] {
+export function collectLeafIds(
+  node: RoadmapNode,
+  out: string[] = [],
+): string[] {
   if (!isSection(node)) {
     out.push(node.id);
     return out;

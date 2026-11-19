@@ -18,7 +18,9 @@ const STORAGE_PREFIX = "lynxdev:roadmap:";
 const STATUSES: readonly RoadmapNodeStatus[] = ["learning", "done", "skipped"];
 
 function isBrowser(): boolean {
-  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+  return (
+    typeof window !== "undefined" && typeof window.localStorage !== "undefined"
+  );
 }
 
 function keyFor(slug: string): string {
@@ -26,7 +28,9 @@ function keyFor(slug: string): string {
 }
 
 function isStatus(value: unknown): value is RoadmapNodeStatus {
-  return typeof value === "string" && (STATUSES as readonly string[]).includes(value);
+  return (
+    typeof value === "string" && (STATUSES as readonly string[]).includes(value)
+  );
 }
 
 export function loadProgress(slug: string): RoadmapProgress {
@@ -66,7 +70,10 @@ export function loadProgress(slug: string): RoadmapProgress {
 export function saveProgress(slug: string, progress: RoadmapProgress): void {
   if (!isBrowser()) return;
   try {
-    window.localStorage.setItem(keyFor(slug), JSON.stringify({ statuses: progress }));
+    window.localStorage.setItem(
+      keyFor(slug),
+      JSON.stringify({ statuses: progress }),
+    );
   } catch {
     // Quota / privacy mode — fail silently; in-memory state still works.
   }

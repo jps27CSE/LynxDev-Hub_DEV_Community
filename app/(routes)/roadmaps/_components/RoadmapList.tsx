@@ -34,17 +34,21 @@ export default function RoadmapList({ roadmaps }: { roadmaps: Roadmap[] }) {
       if (category !== "all" && r.category !== category) return false;
       if (level !== "all" && r.level !== level) return false;
       if (!q) return true;
-      const haystack = [r.title, r.description, ...r.tags].join(" ").toLowerCase();
+      const haystack = [r.title, r.description, ...r.tags]
+        .join(" ")
+        .toLowerCase();
       return haystack.includes(q);
     });
   }, [roadmaps, query, category, level]);
 
-  const hasFilters = query.trim() !== "" || category !== "all" || level !== "all";
+  const hasFilters =
+    query.trim() !== "" || category !== "all" || level !== "all";
 
   const availableCategories = useMemo(
     () =>
       CATEGORIES.filter(
-        (c) => c.value === "all" || roadmaps.some((r) => r.category === c.value),
+        (c) =>
+          c.value === "all" || roadmaps.some((r) => r.category === c.value),
       ),
     [roadmaps],
   );
@@ -113,7 +117,9 @@ export default function RoadmapList({ roadmaps }: { roadmaps: Roadmap[] }) {
       {/* Results */}
       {filtered.length === 0 ? (
         <div className="text-center py-16 border border-dashed border-border/50 rounded-2xl">
-          <p className="text-muted-foreground text-sm">No roadmaps match your filters.</p>
+          <p className="text-muted-foreground text-sm">
+            No roadmaps match your filters.
+          </p>
           {hasFilters && (
             <button
               type="button"

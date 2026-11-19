@@ -37,7 +37,8 @@ export default function RoadmapNodeCard({
 
   const statusClass = status ? ` rm-node--${status}` : "";
   const nextClass = isNext ? " rm-node--next" : "";
-  const variantClass = variant === "section" ? "rm-node--section" : "rm-node--topic";
+  const variantClass =
+    variant === "section" ? "rm-node--section" : "rm-node--topic";
 
   return (
     <div className="rm-node-wrap">
@@ -66,7 +67,9 @@ export default function RoadmapNodeCard({
         className="rm-badge"
         data-status={status ?? "none"}
         aria-label={
-          status === "done" ? `Mark ${node.title} as not started` : `Mark ${node.title} as done`
+          status === "done"
+            ? `Mark ${node.title} as not started`
+            : `Mark ${node.title} as done`
         }
         title={status === "done" ? "Done — click to clear" : "Mark as done"}
       >
@@ -82,7 +85,11 @@ export default function RoadmapNodeCard({
       </button>
 
       {/* Hover / focus quick actions */}
-      <div className="rm-actions" role="group" aria-label={`Set status for ${node.title}`}>
+      <div
+        className="rm-actions"
+        role="group"
+        aria-label={`Set status for ${node.title}`}
+      >
         {(Object.keys(STATUS_META) as RoadmapNodeStatus[]).map((key) => {
           const { label, icon: Icon } = STATUS_META[key];
           const active = status === key;
