@@ -554,7 +554,11 @@
   --rm-ink: #141414;
   position: relative;
   background-color: #08090d;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.055) 1px,
+    transparent 1px
+  );
   background-size: 26px 26px;
   background-position: -1px -1px;
 }
@@ -714,7 +718,11 @@
 
 .rm-node--section {
   min-height: 58px;
-  background-image: linear-gradient(180deg, var(--rm-section-a), var(--rm-section-b));
+  background-image: linear-gradient(
+    180deg,
+    var(--rm-section-a),
+    var(--rm-section-b)
+  );
   box-shadow:
     0 2px 0 rgba(0, 0, 0, 0.45),
     0 14px 34px -18px rgba(255, 214, 61, 0.6);

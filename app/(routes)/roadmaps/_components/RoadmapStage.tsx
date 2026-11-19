@@ -25,7 +25,10 @@ export default function RoadmapStage({ node, ...events }: Props) {
   );
 }
 
-function RoadmapFan({ nodes, ...events }: RoadmapNodeEvents & { nodes: RoadmapNode[] }) {
+function RoadmapFan({
+  nodes,
+  ...events
+}: RoadmapNodeEvents & { nodes: RoadmapNode[] }) {
   return (
     <ul className="rm-fan">
       {nodes.map((child) => (
@@ -35,7 +38,9 @@ function RoadmapFan({ nodes, ...events }: RoadmapNodeEvents & { nodes: RoadmapNo
             variant={isSection(child) ? "section" : "topic"}
             {...events}
           />
-          {isSection(child) && <RoadmapFan nodes={child.children ?? []} {...events} />}
+          {isSection(child) && (
+            <RoadmapFan nodes={child.children ?? []} {...events} />
+          )}
         </li>
       ))}
     </ul>
