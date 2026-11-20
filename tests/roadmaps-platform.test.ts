@@ -19,6 +19,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   buildPlatformCourseMap,
+  findUnresolvedCourseKeys,
   resolvePlatformEntries,
 } from "../config/roadmaps/platform";
 import type { CourseKey } from "../config/courses/types";
@@ -182,4 +183,33 @@ test("preserves declaration order and keeps internal hrefs exactly as configured
 
 test("returns nothing for a node with no platform links — the block stays hidden", () => {
   assert.deepEqual(resolvePlatformEntries([], {}), []);
+});
+
+test("findUnresolvedCourseKeys names exactly the keys with no database row", () => {
+  const resolved = buildPlatformCourseMap(
+    [
+      { key: "html", title: "Learn HTML", order_index: 1 },
+      { key: "css", title: "CSS Essentials", order_index: 2 },
+    ],
+    [{ id: 1, title: "Learn HTML", order_index: 1, chapter_count: 14 }],
+  );
+
+  assert.deepEqual(
+    findUnresolvedCourseKeys(
+      [
+        { key: "html", title: "Learn HTML", order_index: 1 },
+        { key: "css", title: "CSS Essentials", order_index: 2 },
+      ],
+      resolved,
+    ),
+    ["css"],
+  );
+
+  assert.deepEqual(
+    findUnresolvedCourseKeys(
+      [{ key: "html", title: "Learn HTML", order_index: 1 }],
+      resolved,
+    ),
+    [],
+  );
 });

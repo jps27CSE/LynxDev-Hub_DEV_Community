@@ -1,9 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Clock } from "lucide-react";
-import { getRoadmapBySlug } from "@/lib/roadmaps";
+import { getRoadmapBySlug, getAllRoadmapSlugs } from "@/lib/roadmaps";
 import { getPlatformCourseMap } from "@/lib/roadmap-platform";
 import RoadmapTree from "../_components/RoadmapTree";
+
+// The roadmap content is identical for every user (progress lives in
+// localStorage), so there is no reason to render per request. Prerender all
+// known slugs at build time and revalidate hourly so a course re-seed is picked
+// up without a redeploy. Auth is enforced at the proxy, not here.
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  return getAllRoadmapSlugs().map((slug) => ({ slug }));
+}
 
 export async function generateMetadata({
   params,
