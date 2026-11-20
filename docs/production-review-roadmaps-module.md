@@ -113,7 +113,7 @@ Its single real inefficiency is that **`/roadmaps/[slug]` is dynamic (`ƒ`) even
 2. **🟡 Add an in-memory edge rate limit to page routes** (§2) only if abuse appears — reuse `lib/memory-rate-limit.ts`, keyed on IP. Do not use the DB counter on a read path. *(deferred)*
 3. ~~**🟡 Log unresolved platform keys at runtime** (§3).~~ ✅ **Done 2026-11-20** — `findUnresolvedCourseKeys()` + `log.warn` in `getPlatformCourseMap()`; tested.
 4. **🟡 Lazy-load roadmap resources** (§1) — fetch per-node instead of shipping all 434 URLs in the initial payload. Defer until Lighthouse shows a cost. *(deferred)*
-5. **🟢 Fix the `?node=` deep-link effect** (§6) — one-line dependency change once the cause is confirmed. Improves shareability of roadmap node links. *(open item, cause undetermined)*
+5. ~~**🟢 Fix the `?node=` deep-link effect** (§6).~~ ✅ **Done 2026-11-20** — effect now depends on the primitive `nodeParam` instead of the `searchParams` object. Verified: fresh load of `/roadmaps/frontend?node=html` opens the panel without a click.
 6. **🟢 Leave the loose CSP as-is** for this module — it is app-wide and tracked in the gap report. *(no action)*
 
 **Not recommended (and why):**

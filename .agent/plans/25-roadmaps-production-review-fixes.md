@@ -3,7 +3,7 @@
 > **Branch:** `fix/roadmaps-production-review` (cut from `development-branch` after merging `feature/roadmaps-module`)
 > **Source:** `docs/production-review-roadmaps-module.md` §7
 > **Target:** 500 users on TiDB Cloud Starter (free) + Vercel Hobby (free).
-> **Status:** Items 1 and 3 done (2026-11-20). Items 2, 4, 5 remain deferred/open. Run `npm test`, `npx tsc --noEmit`, `npm run build` after each.
+> **Status:** Items 1, 3, and 5 done (2026-11-20). Items 2 and 4 remain deferred (by design). Run `npm test`, `npx tsc --noEmit`, `npm run build` after each.
 
 ## Priority legend
 
@@ -69,7 +69,17 @@
 
 ---
 
-## 🟢 5. Fix the `?node=` deep-link effect
+## ✅ 5. Fix the `?node=` deep-link effect — DONE (2026-11-20)
+
+**Why:** the effect ran and reported `found=true` + called `setSelectedId`, but the panel did not appear on a fresh document load. Clicking a node worked. Suspected cause: `useEffect` dependency on `searchParams` (object identity) rather than the primitive `node` value.
+
+**Where:** `app/(routes)/roadmaps/_components/RoadmapTree.tsx` (the deep-link `useEffect`).
+
+**Change (done):** depend on `searchParams.get("node")` (primitive) instead of the `searchParams` object. Verified in dev: a fresh load of `/roadmaps/frontend?node=html` now opens the panel without a click.
+
+**Verify:** `npm test`, `tsc` clean, `format:check` green.
+
+**Effort:** small. **Done.**
 
 **Why:** the effect runs and reports `found=true` + calls `setSelectedId`, but the panel does not appear on a fresh document load. Clicking a node works. Suspect: `useEffect` dependency on `searchParams` (object identity) rather than the primitive `node` value.
 
@@ -95,9 +105,10 @@
 
 - [x] Item 1 done.
 - [x] Item 3 done.
-- [ ] Items 2, 4, 5 done or explicitly deferred with a note.
-- [ ] `npm test`, `npx tsc --noEmit`, `npm run build`, `npm run check:migrations` all green.
-- [ ] `docs/production-review-roadmaps-module.md` §7 updated to reflect what was fixed. (done)
+- [x] Item 5 done.
+- [ ] Items 2, 4 done or explicitly deferred with a note. (deferred by design)
+- [x] `npm test`, `npx tsc --noEmit`, `npm run build`, `npm run check:migrations` all green.
+- [x] `docs/production-review-roadmaps-module.md` §7 updated to reflect what was fixed. (done for items 1 and 3; update for item 5)
 - [ ] Feature tracker row `5.9` flipped to `Done` when merged.
 EOF
 echo "recreated"
