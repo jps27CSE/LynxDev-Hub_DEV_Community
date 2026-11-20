@@ -170,6 +170,7 @@ export default function RoadmapTree({
           trail={selected.trail}
           status={statuses[selected.node.id]}
           platformCourses={platformCourses}
+          roadmapSlug={roadmap.slug}
           onSetStatus={setStatus}
           onClose={closePanel}
         />

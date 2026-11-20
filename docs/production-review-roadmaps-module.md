@@ -15,7 +15,7 @@ Its single real inefficiency is that **`/roadmaps/[slug]` is dynamic (`ƒ`) even
 
 **RU consumption: ~0 per request after the first cold cache (one `getAllCourses` per instance lifetime).** No new tables, no schema change.
 
-> **Status:** No 🔴 findings. Items 1 and 3 from §7 implemented (2026-11-20): `/roadmaps/[slug]` is now SSG (`●`, 5 slugs) and unresolved platform keys log a runtime warning. Items 2, 4, 5 remain deferred/open.
+> **Status:** No 🔴 findings. Items 1, 3, 4 and 5 from §7 implemented: `/roadmaps/[slug]` is now SSG (`●`, 5 slugs), unresolved platform keys log a runtime warning, resources are lazy-loaded on demand (initial RSC payload 42.3→29.5 KB), and `?node=` deep links are reliable. Item 2 remains deferred (only if abuse appears).
 
 ---
 
@@ -26,7 +26,7 @@ Its single real inefficiency is that **`/roadmaps/[slug]` is dynamic (`ƒ`) even
 | Finding | Evidence | Impact | Fix |
 |---|---|---|---|
 | ~~**`/roadmaps/[slug]` is `ƒ` (dynamic) for content that is identical for every user**~~ | ✅ **Fixed 2026-11-20** — added `generateStaticParams` + `export const revalidate = 3600` to `app/(routes)/roadmaps/[slug]/page.tsx`. Route table now shows `●` with all 5 slugs prerendered (`frontend`, `backend`, `full-stack`, `ai-engineer`, `system-design`). Build-time DB read resolves `platformCourses` into the static HTML. | Was one server function invocation per pageview (~75k/month at 500 users). Now paid once per build + hourly revalidation. | §7 item 1 — done |
-| **The full roadmap config is serialized into the page payload** | `config/roadmaps/frontend.ts` is 33 KB source (134 KB across all five). `RoadmapTree` is `"use client"` and receives the whole `roadmap` (incl. all 434 external resource entries) plus `platformCourses` as props | ~15–25 KB gzipped per pageview of roadmap data; client hydration cost scales with node × resource count. Not a 500-user blocker, but the dominant payload in this module | Lazy-load resources per node (e.g. fetch on panel open), or split the tree so only the visible stage hydrates. Defer until Lighthouse shows a real cost — the current scale (≤ ~40 nodes/roadmap) is fine. (§7 item 4 — deferred) |
+| ~~**The full roadmap config is serialized into the page payload**~~ | ✅ **Fixed** — resources stripped from the roadmap passed to `RoadmapTree`; external URLs are lazy-loaded per node via `getRoadmapNodeResources`. Measured reduction: RSC 42.3→29.5 KB raw (9.4→6.3 KB gz), HTML 62→49 KB. Tree structure (titles/ids) still ships, which is required to render the map. | — | §7 item 4 — done |
 | **`resolvePlatformEntries` runs on every render** | `RoadmapDetailPanel` calls it inline for the selected node | Negligible — the array is ≤ ~6 entries and the work is a linear scan | None needed. Memoize only if profiling shows a hot path. |
 
 ### 🟢 Verified good
@@ -112,7 +112,7 @@ Its single real inefficiency is that **`/roadmaps/[slug]` is dynamic (`ƒ`) even
 1. ~~**🟡 Make `/roadmaps/[slug]` ISR** (§1).~~ ✅ **Done 2026-11-20** — `generateStaticParams` + `revalidate = 3600`; route is now `●` with all 5 slugs prerendered.
 2. **🟡 Add an in-memory edge rate limit to page routes** (§2) only if abuse appears — reuse `lib/memory-rate-limit.ts`, keyed on IP. Do not use the DB counter on a read path. *(deferred)*
 3. ~~**🟡 Log unresolved platform keys at runtime** (§3).~~ ✅ **Done 2026-11-20** — `findUnresolvedCourseKeys()` + `log.warn` in `getPlatformCourseMap()`; tested.
-4. **🟡 Lazy-load roadmap resources** (§1) — fetch per-node instead of shipping all 434 URLs in the initial payload. Defer until Lighthouse shows a cost. *(deferred)*
+4. ~~**🟡 Lazy-load roadmap resources** (§1)~~ ✅ **Done** — resources stripped from initial payload and fetched per node via `getRoadmapNodeResources` server action on panel open. Measured: RSC 42.3→29.5 KB raw (9.4→6.3 KB gz), HTML 62→49 KB.
 5. ~~**🟢 Fix the `?node=` deep-link effect** (§6).~~ ✅ **Done 2026-11-20** — effect now depends on the primitive `nodeParam` instead of the `searchParams` object. Verified: fresh load of `/roadmaps/frontend?node=html` opens the panel without a click.
 6. **🟢 Leave the loose CSP as-is** for this module — it is app-wide and tracked in the gap report. *(no action)*
 
@@ -135,5 +135,12 @@ Its single real inefficiency is that **`/roadmaps/[slug]` is dynamic (`ƒ`) even
 - [x] Dark mode + responsive layout (panel `overflow-y-auto`, mobile sidebar clears the notice)
 - [x] **Manual:** ISR change (§1 item 1) — `npm run build` route table now shows `●` for all 5 slugs (was `ƒ`)
 - [ ] **Manual:** Lighthouse on `/roadmaps/frontend` to confirm hydration cost is acceptable
+- [x] **Manual:** Lazy-loaded resources verified — initial RSC payload 42.3→29.5 KB raw (9.4→6.3 KB gz); panel fetches on open
+- [x] **Manual:** Bangla AI-engineering playlist videos added to matching AI Engineer nodes (18 videos)
+
+## 9. Applied changes (2026-11-20)
+
+- **Lazy-loaded roadmap resources (§7.4)** — external URLs stripped from the initial RSC payload and fetched per node via the `getRoadmapNodeResources` server action when its panel opens. Measured reduction: RSC 42.3→29.5 KB raw (9.4→6.3 KB gz), HTML 62→49 KB.
+- **Bangla AI-engineering playlist** (`PLiGGopVZ-5D1V3EDv2ciYLq5cw2AkU-XP`) — 18 videos mapped to matching nodes in the AI Engineer roadmap (LLMs, embeddings, RAG, chunking, vector DBs, retrieval, agents, tool use, MCP, safety).
 EOF
 echo "written"; wc -l docs/production-review-roadmaps-module.md

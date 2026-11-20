@@ -29,6 +29,14 @@ export async function generateMetadata({
   };
 }
 
+function stripResources(node: any): any {
+  return {
+    ...node,
+    resources: [],
+    children: node.children ? node.children.map(stripResources) : undefined,
+  };
+}
+
 export default async function RoadmapDetailPage({
   params,
 }: {
@@ -37,6 +45,10 @@ export default async function RoadmapDetailPage({
   const { slug } = await params;
   const roadmap = await getRoadmapBySlug(slug);
   if (!roadmap) notFound();
+
+  // Resources are lazy-loaded on demand (see _actions.ts) to keep the initial
+  // payload small. The tree only needs titles/structure to render.
+  const leanRoadmap = { ...roadmap, root: stripResources(roadmap.root) };
 
   // Resolve course keys to ids (cached). Degrades to `{}` on failure, which
   // hides course links and keeps lesson links (no DB) rendering.
@@ -102,7 +114,7 @@ export default async function RoadmapDetailPage({
         </div>
       </header>
 
-      <RoadmapTree roadmap={roadmap} platformCourses={platformCourses} />
+      <RoadmapTree roadmap={leanRoadmap} platformCourses={platformCourses} />
     </div>
   );
 }
