@@ -142,7 +142,7 @@ export default function RoadmapList({ roadmaps }: { roadmaps: Roadmap[] }) {
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground/60 mt-6">
+      <p className="text-xs text-muted-foreground/80 mt-6">
         Showing {filtered.length} of {roadmaps.length} roadmaps
       </p>
     </div>

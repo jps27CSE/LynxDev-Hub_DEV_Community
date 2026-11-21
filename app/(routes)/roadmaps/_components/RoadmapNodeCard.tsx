@@ -52,7 +52,7 @@ export default function RoadmapNodeCard({
         <span className="line-clamp-2">{node.title}</span>
         {node.optional && (
           <span
-            className="shrink-0 rounded-full border border-black/25 px-1.5 text-[9px] font-bold uppercase tracking-wide text-black/55"
+            className="shrink-0 rounded-full border border-black/25 px-1.5 text-[9px] font-bold uppercase tracking-wide text-black/70"
             title="Optional — not required to finish this roadmap"
           >
             opt
