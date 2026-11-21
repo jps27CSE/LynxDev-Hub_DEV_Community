@@ -198,6 +198,12 @@ export const aiEngineerRoadmap: Roadmap = {
             title: "Anthropic: Prompt engineering overview",
             url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview",
           },
+          {
+            type: "video",
+            title:
+              "Generative AI Explained for Developers: LLMs, LangChain & AI Apps (Bangla)",
+            url: "https://www.youtube.com/watch?v=5yWYv2WjcDU",
+          },
         ],
         children: [
           {
@@ -226,6 +232,12 @@ export const aiEngineerRoadmap: Roadmap = {
                 type: "docs",
                 title: "Google: Prompting guide",
                 url: "https://ai.google.dev/gemini-api/docs/prompting-strategies",
+              },
+              {
+                type: "video",
+                title:
+                  "LangChain Prompt Templates & Structured Output Explained (Bangla)",
+                url: "https://www.youtube.com/watch?v=S6F-jekTkO0",
               },
             ],
           },
@@ -278,6 +290,12 @@ export const aiEngineerRoadmap: Roadmap = {
                 title: "Instructor: Documentation",
                 url: "https://python.useinstructor.com/",
               },
+              {
+                type: "video",
+                title:
+                  "LangChain Prompt Templates & Structured Output Explained (Bangla)",
+                url: "https://www.youtube.com/watch?v=S6F-jekTkO0",
+              },
             ],
           },
         ],
@@ -321,6 +339,12 @@ export const aiEngineerRoadmap: Roadmap = {
                 title: "MTEB: Embedding leaderboard",
                 url: "https://huggingface.co/spaces/mteb/leaderboard",
               },
+              {
+                type: "video",
+                title:
+                  "What Are Embeddings? The Foundation of RAG & AI Search (Bangla)",
+                url: "https://www.youtube.com/watch?v=N2BJwtSFP7s",
+              },
             ],
           },
           {
@@ -343,6 +367,12 @@ export const aiEngineerRoadmap: Roadmap = {
                 type: "docs",
                 title: "Chroma: Documentation",
                 url: "https://docs.trychroma.com/",
+              },
+              {
+                type: "video",
+                title:
+                  "LangChain Vector Store Explained: Store & Search Embeddings for RAG (Bangla)",
+                url: "https://www.youtube.com/watch?v=vMV85pHr464",
               },
             ],
           },
@@ -369,6 +399,18 @@ export const aiEngineerRoadmap: Roadmap = {
             title: "LlamaIndex: Documentation",
             url: "https://docs.llamaindex.ai/en/stable/",
           },
+          {
+            type: "video",
+            title:
+              "RAG Explained: How Retrieval-Augmented Generation Actually Works (Bangla)",
+            url: "https://www.youtube.com/watch?v=8_cuad916us",
+          },
+          {
+            type: "video",
+            title:
+              "Build a PDF RAG Chatbot with LangChain in Bangla (Complete Beginner Project)",
+            url: "https://www.youtube.com/watch?v=4HFYZWXctak",
+          },
         ],
         children: [
           {
@@ -392,6 +434,18 @@ export const aiEngineerRoadmap: Roadmap = {
                 title: "Anthropic: Contextual retrieval",
                 url: "https://www.anthropic.com/news/contextual-retrieval",
               },
+              {
+                type: "video",
+                title:
+                  "LangChain Document Loaders Explained: Load PDFs, TXT & More for RAG (Bangla)",
+                url: "https://www.youtube.com/watch?v=TY6wAx2L3jA",
+              },
+              {
+                type: "video",
+                title:
+                  "LangChain Text Splitting Explained: Chunking for Better RAG (Bangla)",
+                url: "https://www.youtube.com/watch?v=eZED4LOUvr8",
+              },
             ],
           },
           {
@@ -414,6 +468,12 @@ export const aiEngineerRoadmap: Roadmap = {
                 type: "docs",
                 title: "MTEB: Retrieval leaderboard",
                 url: "https://huggingface.co/spaces/mteb/leaderboard",
+              },
+              {
+                type: "video",
+                title:
+                  "LangChain Retrievers Explained: Similarity, MMR & MultiQuery Search (Bangla)",
+                url: "https://www.youtube.com/watch?v=lgymF9qoVGE",
               },
             ],
           },
@@ -440,6 +500,23 @@ export const aiEngineerRoadmap: Roadmap = {
             title: "OpenAI: Agents guide",
             url: "https://platform.openai.com/docs/guides/agents",
           },
+          {
+            type: "video",
+            title: "Generative AI vs Agentic AI vs AI Agents Explained Simply",
+            url: "https://www.youtube.com/watch?v=sCN-DIcZegE",
+          },
+          {
+            type: "video",
+            title:
+              "How AI Agents Actually Work: Build One from Scratch with LangChain (Bangla)",
+            url: "https://www.youtube.com/watch?v=8mpa-4iRrvc",
+          },
+          {
+            type: "video",
+            title:
+              "My AI Agent Workflow: How I Manage Multiple AI Agents as a Developer (Bangla)",
+            url: "https://www.youtube.com/watch?v=Go_76y1Q-HU",
+          },
         ],
         children: [
           {
@@ -462,6 +539,18 @@ export const aiEngineerRoadmap: Roadmap = {
                 type: "docs",
                 title: "Google: Function calling",
                 url: "https://ai.google.dev/gemini-api/docs/function-calling",
+              },
+              {
+                type: "video",
+                title:
+                  "LangChain Tools Explained: How LLMs Use APIs, Search & Functions (Bangla)",
+                url: "https://www.youtube.com/watch?v=h4E2MsQCuu4",
+              },
+              {
+                type: "video",
+                title:
+                  "MCP Server Explained: Build Your First Model Context Protocol Server (Bangla)",
+                url: "https://www.youtube.com/watch?v=OhrNp2CsSBI",
               },
             ],
           },
@@ -486,6 +575,24 @@ export const aiEngineerRoadmap: Roadmap = {
                 type: "docs",
                 title: "Pydantic AI: Documentation",
                 url: "https://ai.pydantic.dev/",
+              },
+              {
+                type: "video",
+                title:
+                  "Build Your First AI Chatbot with LangChain in Python (Beginner Guide in Bangla)",
+                url: "https://www.youtube.com/watch?v=QndKWRg0LhU",
+              },
+              {
+                type: "video",
+                title:
+                  "OpenCode Tutorial: Build a Project with AI Agents (Complete Beginner Guide) in Bangla",
+                url: "https://www.youtube.com/watch?v=4wVmDzdCH0M",
+              },
+              {
+                type: "video",
+                title:
+                  "LangChain Runnables Explained: Build AI Pipelines the Easy Way (Bangla)",
+                url: "https://www.youtube.com/watch?v=JGsTM8UerAM",
               },
             ],
           },
@@ -720,6 +827,12 @@ export const aiEngineerRoadmap: Roadmap = {
                 type: "docs",
                 title: "NIST: AI Risk Management Framework",
                 url: "https://www.nist.gov/itl/ai-risk-management-framework",
+              },
+              {
+                type: "video",
+                title:
+                  "AI Agents Can Write Code, But Who Controls Them? Harness Engineering! (Bangla)",
+                url: "https://www.youtube.com/watch?v=-1bbwRB0l4I",
               },
             ],
           },

@@ -1,5 +1,8 @@
 import { allCourses } from "@/config/courses";
-import { buildPlatformCourseMap } from "@/config/roadmaps/platform";
+import {
+  buildPlatformCourseMap,
+  findUnresolvedCourseKeys,
+} from "@/config/roadmaps/platform";
 import type { PlatformCourseRef } from "@/config/roadmaps/types";
 import type { CourseKey } from "@/config/courses/types";
 import { getAllCourses } from "@/lib/course-data";
@@ -20,7 +23,12 @@ export async function getPlatformCourseMap(): Promise<
 > {
   try {
     const dbCourses = await getAllCourses();
-    return buildPlatformCourseMap(allCourses, dbCourses);
+    const resolved = buildPlatformCourseMap(allCourses, dbCourses);
+    const unresolved = findUnresolvedCourseKeys(allCourses, resolved);
+    if (unresolved.length > 0) {
+      log.warn("platform course unresolved", { unresolvedKeys: unresolved });
+    }
+    return resolved;
   } catch (error) {
     log.error("failed to resolve platform courses", error);
     return {};

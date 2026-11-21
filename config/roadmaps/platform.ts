@@ -80,6 +80,20 @@ export function buildPlatformCourseMap(
   return map;
 }
 
+/**
+ * Keys from `configCourses` that did not resolve to a database row. Surfaced
+ * as a runtime warning so seed/DB drift is visible between deploys (the build
+ * gate catches it at build time; this catches it in production).
+ */
+export function findUnresolvedCourseKeys(
+  configCourses: ReadonlyArray<PlatformCourseSource>,
+  resolved: Partial<Record<CourseKey, PlatformCourseRef>>,
+): CourseKey[] {
+  return configCourses
+    .map((course) => course.key)
+    .filter((key) => !resolved[key]);
+}
+
 /** One renderable row in the "Learn it on LynxDEV" block. */
 export type PlatformEntry = {
   /** Stable React key — a course key or the route href. */

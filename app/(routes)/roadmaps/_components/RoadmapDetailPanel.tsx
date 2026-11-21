@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -20,11 +20,13 @@ import type { CourseKey } from "@/config/courses/types";
 import type {
   PlatformCourseRef,
   RoadmapNode,
+  RoadmapResource,
   RoadmapResourceType,
 } from "@/config/roadmaps/types";
 import type { RoadmapNodeStatus } from "@/lib/roadmap-progress";
 import { resolvePlatformEntries } from "@/config/roadmaps/platform";
 import type { PlatformEntry } from "@/config/roadmaps/platform";
+import { getRoadmapNodeResources } from "../_actions";
 
 const RESOURCE_META: Record<
   RoadmapResourceType,
@@ -91,6 +93,8 @@ type Props = {
   trail: RoadmapNode[];
   status?: RoadmapNodeStatus;
   platformCourses: Partial<Record<CourseKey, PlatformCourseRef>>;
+  /** Roadmap slug, used to lazy-load this node's resources. */
+  roadmapSlug: string;
   onSetStatus: (id: string, status: RoadmapNodeStatus | null) => void;
   onClose: () => void;
 };
@@ -110,6 +114,7 @@ export default function RoadmapDetailPanel({
   trail,
   status,
   platformCourses,
+  roadmapSlug,
   onSetStatus,
   onClose,
 }: Props) {
@@ -153,6 +158,23 @@ export default function RoadmapDetailPanel({
       document.body.style.overflow = previousOverflow;
     };
   }, [onClose]);
+
+  // Lazy-load this node's external resources on demand.
+  const [resources, setResources] = useState<RoadmapResource[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    setResources(null);
+    getRoadmapNodeResources(roadmapSlug, node.id)
+      .then((result) => {
+        if (!cancelled) setResources(result);
+      })
+      .catch(() => {
+        if (!cancelled) setResources([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [roadmapSlug, node.id]);
 
   const parentLabel = trail
     .slice(1)
@@ -293,8 +315,15 @@ export default function RoadmapDetailPanel({
             </div>
           )}
 
-          {/* Resources */}
-          {node.resources.length > 0 ? (
+          {/* Resources (lazy-loaded) */}
+          {resources === null ? (
+            <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.02] p-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <BookOpen className="h-4 w-4 animate-pulse text-emerald-400" />
+                Loading resources…
+              </div>
+            </div>
+          ) : resources.length > 0 ? (
             <div className="mt-6">
               <div className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-emerald-400" />
@@ -302,12 +331,12 @@ export default function RoadmapDetailPanel({
                   Free resources
                 </h3>
                 <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">
-                  {node.resources.length}
+                  {resources.length}
                 </span>
               </div>
 
               <ul className="mt-3 space-y-1">
-                {node.resources.map((resource) => {
+                {resources.map((resource) => {
                   const meta = RESOURCE_META[resource.type];
                   const Icon = meta.icon;
                   return (

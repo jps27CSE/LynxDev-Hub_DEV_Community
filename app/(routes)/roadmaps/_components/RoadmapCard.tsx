@@ -43,9 +43,9 @@ export default function RoadmapCard({ roadmap }: { roadmap: Roadmap }) {
             <Map className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold text-base group-hover:text-primary transition-colors">
+            <h2 className="font-semibold text-base group-hover:text-primary transition-colors">
               {roadmap.title}
-            </h3>
+            </h2>
             <span
               className={`inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full border mt-1 ${CATEGORY_COLOR[roadmap.category]}`}
             >
@@ -101,7 +101,7 @@ export default function RoadmapCard({ roadmap }: { roadmap: Roadmap }) {
       </div>
 
       {roadmap.updatedAt && (
-        <div className="mt-3 text-[10px] text-muted-foreground/70">
+        <div className="mt-3 text-[10px] text-muted-foreground/80">
           Updated{" "}
           {new Date(roadmap.updatedAt).toLocaleDateString("en-US", {
             month: "short",

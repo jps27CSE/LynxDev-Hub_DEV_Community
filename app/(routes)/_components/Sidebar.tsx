@@ -159,6 +159,7 @@ export default function Sidebar({
 
         <button
           onClick={onToggleCollapse}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className="hidden lg:flex items-center justify-center h-10 border-t border-border/50 text-muted-foreground hover:text-foreground transition-colors"
         >
           {collapsed ? (

@@ -37,10 +37,12 @@ export default function RoadmapTree({
   const nextUpTitle = nextUp ? findNode(roadmap.root, nextUp)?.title : null;
 
   // Deep link: /roadmaps/frontend?node=react opens that node's panel.
+  const nodeParam = searchParams.get("node");
   useEffect(() => {
-    const id = searchParams.get("node");
-    if (id && findNode(roadmap.root, id)) setSelectedId(id);
-  }, [searchParams, roadmap.root]);
+    if (nodeParam && findNode(roadmap.root, nodeParam)) {
+      setSelectedId(nodeParam);
+    }
+  }, [nodeParam, roadmap.root]);
 
   const openNode = useCallback((id: string) => {
     setSelectedId(id);
@@ -168,6 +170,7 @@ export default function RoadmapTree({
           trail={selected.trail}
           status={statuses[selected.node.id]}
           platformCourses={platformCourses}
+          roadmapSlug={roadmap.slug}
           onSetStatus={setStatus}
           onClose={closePanel}
         />
