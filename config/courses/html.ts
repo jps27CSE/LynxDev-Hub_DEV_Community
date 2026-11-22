@@ -2,6 +2,7 @@ import type { CourseData } from "./types";
 import { codeBlock, externalLink, BOX_STYLE } from "./format";
 
 export const htmlCourse: CourseData = {
+  key: "html",
   title: "Learn HTML — Build Websites From Scratch",
   description:
     "Master the markup language behind every website. From your first tag to full pages — 9 hands-on lessons plus 5 real projects, all with live preview.",

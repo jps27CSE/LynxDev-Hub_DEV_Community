@@ -6,6 +6,7 @@ import {
   BookOpen,
   BrainCircuit,
   Code2,
+  Map,
   Network,
   Target,
   type LucideIcon,
@@ -25,6 +26,11 @@ const platformPoints: {
     icon: BookOpen,
     text: "9 courses, 115 chapters with an embedded editor per chapter",
     accent: "text-cyan-400",
+  },
+  {
+    icon: Map,
+    text: "5 developer roadmaps — 96 topics, curated resources, progress tracking",
+    accent: "text-sky-400",
   },
   {
     icon: Code2,
@@ -74,12 +80,12 @@ export default function SignInPage() {
           </h1>
 
           <p className="mt-6 text-lg text-slate-400 max-w-md leading-relaxed">
-            Interactive courses, 220+ DSA problems, interview prep, and hands-on
-            system design — handcrafted, zero-cost, and built for engineers who
-            want to ship.
+            Interactive courses, step-by-step roadmaps, 220+ DSA problems,
+            interview prep, and hands-on system design — handcrafted, zero-cost,
+            and built for engineers who want to ship.
           </p>
 
-          <ul className="mt-10 space-y-4">
+          <ul className="mt-9 space-y-3.5">
             {platformPoints.map((point) => {
               const Icon = point.icon;
               return (

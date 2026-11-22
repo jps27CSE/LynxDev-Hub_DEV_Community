@@ -2,6 +2,7 @@ import type { CourseData } from "./types";
 import { codeBlock, externalLink, BOX_STYLE } from "./format";
 
 export const typescriptCourse: CourseData = {
+  key: "typescript",
   title: "TypeScript — Type-Safe JavaScript",
   description:
     "JavaScript with types — 10 hands-on lessons plus 4 projects (typed user profile, generic data fetcher, form validator, mini store). Catch bugs before they run. Requires JavaScript Fundamentals.",

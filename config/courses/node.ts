@@ -2,6 +2,7 @@ import type { CourseData } from "./types";
 import { codeBlock, externalLink, BOX_STYLE } from "./format";
 
 export const nodeCourse: CourseData = {
+  key: "node",
   title: "Node.js & Express — Backend from Scratch",
   description:
     "Build backend servers with Node.js and Express — 10 hands-on lessons plus 3 projects (notes API, auth API, task manager). HTTP, routing, middleware, REST APIs. Requires JavaScript & TypeScript basics.",

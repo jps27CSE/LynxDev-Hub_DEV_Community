@@ -2,6 +2,7 @@ import type { CourseData } from "./types";
 import { codeBlock, externalLink, BOX_STYLE } from "./format";
 
 export const jsCourse: CourseData = {
+  key: "javascript",
   title: "JavaScript Fundamentals — Code It Yourself",
   description:
     "The language of the browser — 9 hands-on lessons plus 5 console projects (string utils, bill splitter, challenges, grade analyzer, store cart). Hit Run, read the console, learn by doing.",

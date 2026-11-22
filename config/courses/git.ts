@@ -2,6 +2,7 @@ import type { CourseData } from "./types";
 import { codeBlock, externalLink, BOX_STYLE } from "./format";
 
 export const gitCourse: CourseData = {
+  key: "git",
   title: "Git & GitHub — Version Control from Scratch",
   description:
     "Master version control — 10 hands-on lessons from your first commit to a collaborative pull request. Track changes, branch, merge, resolve conflicts, and ship code on GitHub. Practice in your own terminal.",

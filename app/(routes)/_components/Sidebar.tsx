@@ -15,6 +15,7 @@ import {
   Gift,
   Newspaper,
   Network,
+  Map,
 } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
 import { VersionBadge } from "@/components/VersionBadge";
@@ -25,6 +26,7 @@ const links = [
   { label: "Interview", href: "/interview", icon: Sparkles },
   { label: "Problems", href: "/problems", icon: Terminal },
   { label: "System Design", href: "/system-design", icon: Network },
+  { label: "Roadmaps", href: "/roadmaps", icon: Map },
   { label: "Editor", href: "/editor", icon: FileCode2 },
   { label: "Blog", href: "/blog", icon: Newspaper },
 ];
@@ -157,6 +159,7 @@ export default function Sidebar({
 
         <button
           onClick={onToggleCollapse}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className="hidden lg:flex items-center justify-center h-10 border-t border-border/50 text-muted-foreground hover:text-foreground transition-colors"
         >
           {collapsed ? (

@@ -9,6 +9,7 @@ import {
 
 const stats = [
   { value: "9", label: "Interactive courses", accent: "text-cyan-400" },
+  { value: "5", label: "Roadmaps", accent: "text-sky-400" },
   { value: "1,000+", label: "Interview questions", accent: "text-fuchsia-400" },
   { value: "$0", label: "Forever free", accent: "text-lime-400" },
 ];
@@ -33,6 +34,9 @@ function TerminalLines() {
       </p>
       <p className="text-slate-300">
         <span className="text-cyan-400">✔</span> 15 system design modules
+      </p>
+      <p className="text-slate-300">
+        <span className="text-cyan-400">✔</span> 5 roadmaps · 96 topics mapped
       </p>
       <p className="mt-3 text-slate-400">
         <span className="text-cyan-400">$</span> welcome, developer.
@@ -72,9 +76,9 @@ function Hero() {
             </h1>
 
             <p className="mt-6 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Interactive courses, 220+ DSA problems, interview prep, and
-              hands-on system design — handcrafted, zero-cost, and built for
-              engineers who want to ship.
+              Interactive courses, step-by-step roadmaps, 220+ DSA problems,
+              interview prep, and hands-on system design — handcrafted,
+              zero-cost, and built for engineers who want to ship.
             </p>
 
             <div className="mt-9 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
@@ -98,7 +102,7 @@ function Hero() {
               </Link>
             </div>
 
-            <div className="mt-12 grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0 border-t border-border/50 pt-8">
+            <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-6 max-w-md sm:max-w-lg mx-auto lg:mx-0 border-t border-border/50 pt-8">
               {stats.map((stat) => (
                 <div key={stat.label} className="text-center lg:text-left">
                   <div

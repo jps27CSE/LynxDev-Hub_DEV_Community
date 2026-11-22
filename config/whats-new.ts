@@ -22,11 +22,35 @@ export type WhatsNewData = {
 
 export const WHATS_NEW: WhatsNewData = {
   version: APP_VERSION,
-  highlight: "2.3",
-  headline: "LynxDEV 2.3 is here",
+  highlight: "2.5",
+  headline: "LynxDEV 2.5 is here",
   summary:
-    "New: an interactive SQL & Databases course — 12 hands-on lessons where you write real SQL in the browser and watch result tables appear instantly. Plus the full course catalog (HTML, CSS, JavaScript, TypeScript, React, Node, Git, Linux) and the system design learning path. Everything stays free.",
+    "New: Developer Roadmaps — five step-by-step paths (Frontend, Backend, Full Stack, AI Engineer, System Design) covering 96 topics, each with hand-picked free resources and a direct link to the LynxDEV lesson that teaches it. Mark topics done as you go and the map shows what is next. Plus everything from 2.3 — the SQL course, the system design path and the full course catalog. Everything stays free.",
   features: [
+    {
+      title: "Developer Roadmaps",
+      description:
+        "Five maps — Frontend, Backend, Full Stack, AI Engineer and System Design — with 96 topics laid out in the order they make sense. Search by title or tag, filter by category and level, and open any topic for its description and resources.",
+      icon: "Map",
+    },
+    {
+      title: "Learn It on LynxDEV",
+      description:
+        "118 topics link straight to our own courses, System Design lessons and build tasks, so the next step after reading is doing. External links are free docs, articles and videos; in-platform links never leave the site.",
+      icon: "BookOpen",
+    },
+    {
+      title: "Progress Tracking",
+      description:
+        "Mark any topic done, learning or skipped. The progress bar, the “next up” shortcut and a per-roadmap reset keep the map honest about where you actually are — and it saves in your browser, no account setup needed.",
+      icon: "ListChecks",
+    },
+    {
+      title: "479 Curated Resources",
+      description:
+        "Every topic carries free, hand-checked material — official docs first, then articles, videos and practice. Roadmap resources load on demand, so opening a map stays fast even with 479 links behind it.",
+      icon: "Sparkles",
+    },
     {
       title: "SQL & Databases Course",
       description:
@@ -51,14 +75,14 @@ export const WHATS_NEW: WhatsNewData = {
         "14 hands-on build tasks with pass criteria — size the API for a lost third, fix a cache stampede, shard a hot key, rate-limit a bot. Earn criteria by proving your design works.",
       icon: "Target",
     },
-    {
-      title: "Production Review",
-      description:
-        "The system design module went through a full production review: faster simulations, lower resource usage, and a more reliable save system. Every number measured, not estimated.",
-      icon: "ShieldCheck",
-    },
   ],
   fixesSummary: [
+    "New: Developer Roadmaps — 5 paths (Frontend, Backend, Full Stack, AI Engineer, System Design), 96 topics",
+    "New: 479 hand-picked free resources — docs, articles, videos and practice — across every roadmap topic",
+    "New: “Learn it on LynxDEV” — 118 links from roadmap topics to our own courses, System Design lessons and build tasks",
+    "New: Roadmap progress — mark topics done, learning or skipped; progress bar, next-up shortcut and reset, saved in your browser",
+    "New: Every roadmap topic has its own shareable URL (?node=…), and resources load on demand",
+    "New: Roadmap search plus category and level filters on /roadmaps",
     "New: SQL & Databases course — 12 interactive lessons with in-browser query runner",
     "New: Course catalog expanded — 9 courses, 115 chapters (HTML, CSS, JS, TS, React, Node, Git, Linux, SQL)",
     "New: System Design learning path — 15 modules, 79 lessons, 14 build tasks",
