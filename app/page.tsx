@@ -13,7 +13,7 @@ import Footer from "@/app/_components/Footer";
 export const metadata: Metadata = {
   title: "LynxDEV",
   description:
-    "Free developer community — learn web development, prep for interviews, solve DSA problems, and get AI mentorship.",
+    "Free developer community — learn web development with interactive courses and roadmaps, prep for interviews, solve DSA problems, and get AI mentorship.",
 };
 
 export default async function Home() {

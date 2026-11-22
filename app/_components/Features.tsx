@@ -2,6 +2,7 @@ import {
   BookOpen,
   BrainCircuit,
   Code2,
+  Map,
   Network,
   Target,
   type LucideIcon,
@@ -62,6 +63,15 @@ const features: Feature[] = [
     glow: "bg-violet-400/10 shadow-[0_0_20px_rgba(139,92,246,0.2)]",
     chip: "text-violet-400/80",
   },
+  {
+    title: "Roadmaps",
+    description:
+      "Five step-by-step paths — Frontend, Backend, Full Stack, AI Engineer and System Design — with 96 topics, 479 curated free resources, direct links to our own lessons, and progress tracking.",
+    icon: Map,
+    accent: "text-sky-400",
+    glow: "bg-sky-400/10 shadow-[0_0_20px_rgba(56,189,248,0.2)]",
+    chip: "text-sky-400/80",
+  },
 ];
 
 function SectionKicker() {
@@ -86,7 +96,7 @@ function Features() {
     <section className="py-20 sm:py-28 border-b border-border/40 bg-[#07090e]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionKicker />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
           {features.map((feature) => {
             const Icon = feature.icon;
             return (

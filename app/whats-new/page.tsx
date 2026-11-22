@@ -7,7 +7,9 @@ import {
   BrainCircuit,
   Code2,
   Database,
+  ListChecks,
   LucideIcon,
+  Map,
   Network,
   ShieldCheck,
   Sparkles,
@@ -27,10 +29,13 @@ const iconMap: Record<string, LucideIcon> = {
   Code2,
   Database,
   BrainCircuit,
+  ListChecks,
+  Map,
   Target,
   Network,
   Workflow,
   ShieldCheck,
+  Sparkles,
 };
 
 const accentMap: Record<string, { accent: string; glow: string }> = {
@@ -63,6 +68,18 @@ const accentMap: Record<string, { accent: string; glow: string }> = {
     glow: "bg-fuchsia-400/10 shadow-[0_0_20px_rgba(232,121,249,0.2)]",
   },
   ShieldCheck: {
+    accent: "text-emerald-400",
+    glow: "bg-emerald-400/10 shadow-[0_0_20px_rgba(52,211,153,0.2)]",
+  },
+  Map: {
+    accent: "text-sky-400",
+    glow: "bg-sky-400/10 shadow-[0_0_20px_rgba(56,189,248,0.2)]",
+  },
+  ListChecks: {
+    accent: "text-teal-400",
+    glow: "bg-teal-400/10 shadow-[0_0_20px_rgba(45,212,191,0.2)]",
+  },
+  Sparkles: {
     accent: "text-emerald-400",
     glow: "bg-emerald-400/10 shadow-[0_0_20px_rgba(52,211,153,0.2)]",
   },
@@ -186,9 +203,9 @@ export default function WhatsNewPage() {
 
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Button asChild size="lg" className="w-full sm:w-auto">
-            <Link href="/dashboard">
-              Start Learning
-              <ArrowRight className="w-4 h-4" />
+            <Link href="/roadmaps">
+              <Map className="w-4 h-4" />
+              Explore Roadmaps
             </Link>
           </Button>
           <Button
@@ -197,7 +214,10 @@ export default function WhatsNewPage() {
             size="lg"
             className="w-full sm:w-auto"
           >
-            <Link href="/">Back to Home</Link>
+            <Link href="/dashboard">
+              Start Learning
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </Button>
         </div>
       </div>

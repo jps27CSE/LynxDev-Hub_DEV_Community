@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>A free developer community & learning platform</strong><br>
-  Courses • Interview Prep • DSA Problems • System Design • Engineering Blog
+  Courses • Roadmaps • Interview Prep • DSA Problems • System Design • Engineering Blog
 </p>
 
 <p align="center">
@@ -20,7 +20,7 @@
   <br>
   <a href="https://github.com/vercel/next.js/actions"><img src="https://github.com/jps27CSE/LynxDev-Hub_DEV_Community/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License"></a>
-  <a href="https://github.com/jps27CSE/LynxDev-Hub_DEV_Community"><img src="https://img.shields.io/badge/Version-2.3.0-blue" alt="Version 2.3.0"></a>
+  <a href="https://github.com/jps27CSE/LynxDev-Hub_DEV_Community"><img src="https://img.shields.io/badge/Version-2.5.0-blue" alt="Version 2.5.0"></a>
 </p>
 
 ---
@@ -50,6 +50,7 @@ We believe high-quality developer education shouldn't cost a fortune. Every feat
 | 🔐 **Authentication**   | `/sign-in`                          | Clerk (Email, Google, GitHub) with middleware protection           |
 | 📊 **Dashboard**        | `/dashboard`                        | Stats, enrolled courses, progress, daily tips                      |
 | 📚 **Courses**          | `/courses`, `/learn/[id]/[chapter]` | Structured curriculum with Monaco code editor                      |
+| 🗺️ **Roadmaps**         | `/roadmaps`, `/roadmaps/[slug]`     | 5 paths, 96 topics, 479 curated resources, progress tracking       |
 | 🎯 **Interview Prep**   | `/interview/*`                      | 6 categories, 1000+ questions, custom practice                     |
 | 🧩 **DSA Problems**     | `/problems/*`                       | 220+ problems, Monaco editor, run-only execution                   |
 | 🏗️ **System Design**    | `/system-design/*`                  | 15 modules, interactive canvas, traffic simulation, 14 build tasks |
@@ -208,6 +209,7 @@ pnpm exec drizzle-kit studio
 │   │   ├── editor/               # Code editor
 │   │   ├── interview/            # Interview prep
 │   │   ├── system-design/        # System design learning path
+│   │   ├── roadmaps/             # Developer roadmaps (5 paths, 96 topics)
 │   │   ├── learn/                # Course chapters
 │   │   ├── mentor/               # AI mentor chat
 │   │   ├── problems/             # DSA problems
@@ -231,15 +233,19 @@ pnpm exec drizzle-kit studio
 │   ├── schema.tsx                # Drizzle schema
 │   ├── interview/                # Interview seed data
 │   ├── courses/                  # Course config
+│   ├── roadmaps/                 # Roadmap config (5 paths)
 │   └── ...
 ├── lib/                          # Pure utilities & data access
 │   ├── editor.ts                 # Monaco + sandboxed iframe
 │   ├── course-data.ts            # Course queries
+│   ├── roadmap-platform.ts       # Roadmap platform-link resolver
+│   ├── roadmap-progress.ts      # Roadmap progress (localStorage)
 │   ├── interview-data.ts         # Interview queries
 │   ├── logger.ts                 # Structured logging (redacts SQL)
 │   └── ...
 ├── scripts/                      # CI scripts
 │   ├── check-blog-toc.ts         # Blog TOC validation
+│   ├── check-system-design.ts    # System design registry validation
 │   └── check-migration-drift.ts  # Schema drift detection
 ├── tests/                        # Unit tests (node:test + tsx)
 ├── docs/                         # Architecture docs & gap reports
@@ -287,6 +293,15 @@ pnpm exec drizzle-kit studio
 - **14 build tasks** with pass criteria and server-verified results
 - **100% free tier sustainable** — measured and optimized for 500 users
 
+### 🗺️ Roadmaps (`/roadmaps/*`)
+
+- **5 paths** — Frontend, Backend, Full Stack, AI Engineer, System Design
+- **96 topics** laid out in the order they make sense
+- **479 curated resources** — docs, articles, videos, practice; official docs first
+- **"Learn it on LynxDEV"** — 118 topics link to our own courses, System Design lessons and build tasks
+- **Progress tracking** — mark topics done / learning / skipped; progress bar, "next up", reset; saved in the browser
+- **Shareable URLs** — every topic has its own `?node=` link; resources lazy-load on demand
+
 ### 📝 Engineering Blog (`/blog/*`)
 
 - 5 deep technical posts (architecture, caching, server/client boundary, rate limiting, sandboxed execution)
@@ -309,20 +324,21 @@ pnpm exec drizzle-kit studio
 
 ### Commands
 
-| Command                          | Description                        |
-| -------------------------------- | ---------------------------------- |
-| `pnpm dev`                       | Start dev server (Turbopack)       |
-| `pnpm build`                     | Production build                   |
-| `pnpm start`                     | Run production server              |
-| `pnpm typecheck`                 | `tsc --noEmit`                     |
-| `pnpm test`                      | Run 45 tests (`node:test` + `tsx`) |
-| `pnpm format`                    | `prettier --write .`               |
-| `pnpm format:check`              | `prettier --check .`               |
-| `pnpm check:blog-toc`            | Validate blog TOC anchors          |
-| `pnpm check:migrations`          | Detect schema drift                |
-| `pnpm exec drizzle-kit generate` | Generate migrations                |
-| `pnpm exec drizzle-kit migrate`  | Apply migrations                   |
-| `pnpm exec drizzle-kit studio`   | DB GUI                             |
+| Command                          | Description                         |
+| -------------------------------- | ----------------------------------- |
+| `pnpm dev`                       | Start dev server (Turbopack)        |
+| `pnpm build`                     | Production build                    |
+| `pnpm start`                     | Run production server               |
+| `pnpm typecheck`                 | `tsc --noEmit`                      |
+| `pnpm test`                      | Run 718 tests (`node:test` + `tsx`) |
+| `pnpm format`                    | `prettier --write .`                |
+| `pnpm format:check`              | `prettier --check .`                |
+| `pnpm check:blog-toc`            | Validate blog TOC anchors           |
+| `pnpm check:system-design`       | Validate system design registry     |
+| `pnpm check:migrations`          | Detect schema drift                 |
+| `pnpm exec drizzle-kit generate` | Generate migrations                 |
+| `pnpm exec drizzle-kit migrate`  | Apply migrations                    |
+| `pnpm exec drizzle-kit studio`   | DB GUI                              |
 
 ### CI Pipeline (`.github/workflows/ci.yml`)
 
