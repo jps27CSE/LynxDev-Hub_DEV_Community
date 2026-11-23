@@ -201,6 +201,15 @@ export const sdUserState = mysqlTable("sd_user_state", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
+export const dsaUserState = mysqlTable("dsa_user_state", {
+  user_id: int("user_id")
+    .references(() => usersTable.id)
+    .primaryKey(),
+  lessons_completed: json(),
+  tasks: json(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
+});
+
 /**
  * Per-task state, one row per (user, task). Replaces the single JSON blob
  * `sd_user_state.tasks`, which rewrote all 15 tasks on every save — O(N) write
