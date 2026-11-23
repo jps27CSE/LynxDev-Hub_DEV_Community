@@ -10,7 +10,7 @@
 
 **Spec:** §2 of this document (design agreed in conversation, 2026-11-23).
 
-> **Status:** Plan written, not started. Implementation pending user approval + manual test per task.
+> **Status:** Tasks 1–2 done. Task 1 (commit `542837e`): contract `config/dsa/types.ts`. Task 2 (commit pending): registry `config/dsa/registry.ts` + `tests/dsa-registry.test.ts` (5 new tests, all green). Task 3 next.
 
 ## Context
 
