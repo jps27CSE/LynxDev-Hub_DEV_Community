@@ -10,7 +10,7 @@
 
 **Spec:** §2 of this document (design agreed in conversation, 2026-11-23).
 
-> **Status:** Tasks 1–3 done. Task 1 (`542837e`): contract. Task 2 (`095c975`): registry + tests. Task 3 (commit pending): `dsa_user_state` table + migration `drizzle/0013_lame_jack_flag.sql` (applied, drift check green). Task 4 next.
+> **Status:** Tasks 1–4 done. Task 4 (commit pending): `lib/dsa-data.ts` + `app/api/dsa/progress/route.ts` + `app/api/dsa/task-state/route.ts`; rate-limit config + scope entries added. tsc clean, 724 tests pass. Task 5 next.
 
 ## Context
 

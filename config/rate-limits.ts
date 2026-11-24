@@ -116,6 +116,21 @@ const routes: { pattern: string; method: string; config: RateLimitConfig }[] = [
     method: "GET",
     config: { limit: 30, windowMs: WINDOW_1M },
   },
+  {
+    pattern: "/api/dsa/progress",
+    method: "POST",
+    config: { limit: 10, windowMs: WINDOW_1M },
+  },
+  {
+    pattern: "/api/dsa/task-state",
+    method: "GET",
+    config: { limit: 10, windowMs: WINDOW_1M },
+  },
+  {
+    pattern: "/api/dsa/task-state",
+    method: "POST",
+    config: { limit: 10, windowMs: WINDOW_1M },
+  },
 ];
 
 const defaultConfig: RateLimitConfig = { limit: 20, windowMs: WINDOW_1M };

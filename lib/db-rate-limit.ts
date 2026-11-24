@@ -21,7 +21,9 @@ export type RateLimitScope =
   | "admin-overview"
   | "admin-users"
   | "admin-users-detail"
-  | "admin-site-notice";
+  | "admin-site-notice"
+  | "dsa-progress"
+  | "dsa-task-state";
 
 export type DbRateLimitResult = {
   success: boolean;
