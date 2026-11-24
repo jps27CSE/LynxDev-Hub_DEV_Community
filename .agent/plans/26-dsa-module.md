@@ -10,7 +10,7 @@
 
 **Spec:** §2 of this document (design agreed in conversation, 2026-11-23).
 
-> **Status:** Tasks 1–7 done. Task 7 (commit pending): `components/dsa/DsaCodeRunner.tsx` (Monaco + run/reset/solution + hidden test runner). tsc clean, 724 tests pass. Task 8 next (Routes).
+> **Status:** Tasks 1–8 done. Task 8 (commit pending): routes `/dsa`, `/dsa/[module]`, `/dsa/[module]/lesson/[slug]`, `/dsa/[module]/task` + `DsaLessonView`/`DsaTaskView` + Sidebar entry. Build succeeds (exit 0), all 15 lessons + 3 tasks prerendered. tsc clean, 724 tests pass. Task 9 next (Content rules + check script).
 
 ## Context
 
