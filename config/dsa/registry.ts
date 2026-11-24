@@ -7,34 +7,45 @@
  * `getModule("__proto__")` returns `undefined` instead of leaking Object's
  * prototype.
  *
- * KEEP THIS FILE DEPENDENCY-FREE — no React, no `config/db`. It is imported
- * by `"use client"` components and by tests that must not drag mysql2 into
- * the browser bundle (I.9).
+ * MVP uses synchronous static imports (5 modules). Code-splitting via dynamic
+ * `import()` (as system design does) is a later optimization once module count
+ * grows; the public API stays the same.
+ *
+ * KEEP THIS FILE DEPENDENCY-FREE — see the I.9 note at the top of `types.ts`.
  */
 
 import type { DsaModule, DsaLesson } from "./types";
+import { foundationsModule } from "./modules/foundations";
+import { complexityAndMathsModule } from "./modules/complexity-and-maths";
+import { arraysAndStringsModule } from "./modules/arrays-and-strings";
+import { searchingModule } from "./modules/searching";
+import { binaryTreesModule } from "./modules/binary-trees";
 
-// Static imports of every module file. Empty until Task 5 adds content.
-// Each new module appends one line here AND a corresponding file under
-// `config/dsa/modules/`.
-const MODULE_LOADERS: Record<string, () => DsaModule> = {};
+const MODULES: DsaModule[] = [
+  foundationsModule,
+  complexityAndMathsModule,
+  arraysAndStringsModule,
+  searchingModule,
+  binaryTreesModule,
+];
 
 /**
  * Returns all DSA modules sorted by `order`. Pure — no DB, no side effects.
  */
 export function loadAllDsaModules(): DsaModule[] {
-  return Object.keys(MODULE_LOADERS)
-    .map((slug) => MODULE_LOADERS[slug]())
-    .sort((a, b) => a.order - b.order);
+  return [...MODULES].sort((a, b) => a.order - b.order);
 }
 
 /**
- * Returns a module by slug, or `undefined` if it does not exist or the slug
- * is a prototype-chain key (`__proto__`, `constructor`, `toString`, …).
+ * Returns a module by slug, or `undefined` if it does not exist or the slug is
+ * a prototype-chain key. Uses `Object.hasOwn` on a freshly built lookup so
+ * inherited keys (`__proto__`, `constructor`, …) never resolve.
  */
 export function getModule(slug: string): DsaModule | undefined {
-  if (!Object.hasOwn(MODULE_LOADERS, slug)) return undefined;
-  return MODULE_LOADERS[slug]();
+  const lookup: Record<string, DsaModule> = Object.create(null);
+  for (const m of MODULES) lookup[m.slug] = m;
+  if (!Object.hasOwn(lookup, slug)) return undefined;
+  return lookup[slug];
 }
 
 /**
