@@ -10,7 +10,7 @@
 
 **Spec:** §2 of this document (design agreed in conversation, 2026-11-23).
 
-> **Status:** Tasks 1–4 done. Task 4 (commit pending): `lib/dsa-data.ts` + `app/api/dsa/progress/route.ts` + `app/api/dsa/task-state/route.ts`; rate-limit config + scope entries added. tsc clean, 724 tests pass. Task 5 next.
+> **Status:** Tasks 1–6 done. Task 6 (commit pending): `VisualPlayer` + 7 renderers (Array, Tree, Graph, LinkedList, Stack, Queue, Heap). tsc clean, 724 tests pass. Task 7 next (Code runner).
 
 ## Context
 
