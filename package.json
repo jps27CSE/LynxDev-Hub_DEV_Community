@@ -10,6 +10,7 @@
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
     "check:blog-toc": "tsx scripts/check-blog-toc.ts",
     "check:system-design": "tsx scripts/check-system-design.ts",
+    "check:dsa": "tsx scripts/check-dsa.ts",
     "check:migrations": "tsx scripts/check-migration-drift.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

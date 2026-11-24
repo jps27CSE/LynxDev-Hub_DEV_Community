@@ -20,6 +20,19 @@ import { complexityAndMathsModule } from "./modules/complexity-and-maths";
 import { arraysAndStringsModule } from "./modules/arrays-and-strings";
 import { searchingModule } from "./modules/searching";
 import { binaryTreesModule } from "./modules/binary-trees";
+import { sortingModule } from "./modules/sorting";
+import { hashingModule } from "./modules/hashing";
+import { linkedListsModule } from "./modules/linked-lists";
+import { stacksAndQueuesModule } from "./modules/stacks-and-queues";
+import { twoPointersAndSlidingWindowModule } from "./modules/two-pointers-and-sliding-window";
+import { recursionAndBacktrackingModule } from "./modules/recursion-and-backtracking";
+import { binarySearchTreesModule } from "./modules/binary-search-trees";
+import { heapsModule } from "./modules/heaps";
+import { greedyModule } from "./modules/greedy";
+import { graphsModule } from "./modules/graphs";
+import { dynamicProgrammingModule } from "./modules/dynamic-programming";
+import { triesModule } from "./modules/tries";
+import { advancedTopicsModule } from "./modules/advanced-topics";
 
 const MODULES: DsaModule[] = [
   foundationsModule,
@@ -27,6 +40,19 @@ const MODULES: DsaModule[] = [
   arraysAndStringsModule,
   searchingModule,
   binaryTreesModule,
+  sortingModule,
+  hashingModule,
+  linkedListsModule,
+  stacksAndQueuesModule,
+  twoPointersAndSlidingWindowModule,
+  recursionAndBacktrackingModule,
+  binarySearchTreesModule,
+  heapsModule,
+  greedyModule,
+  graphsModule,
+  dynamicProgrammingModule,
+  triesModule,
+  advancedTopicsModule,
 ];
 
 /**

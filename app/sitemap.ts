@@ -4,6 +4,7 @@ import { getAllCategories } from "@/lib/interview-data";
 import { TOP_PROBLEMS } from "@/config/problems/top-problems";
 import { getSortedPosts } from "@/config/blog";
 import { getAllModuleSlugs, getModule } from "@/config/system-design/registry";
+import { getAllModuleSlugs as getAllDsaModuleSlugs, getModule as getDsaModule } from "@/config/dsa/registry";
 
 const BASE_URL = "https://lynxdev.io";
 
@@ -41,6 +42,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${BASE_URL}/system-design`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/dsa`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.8,
@@ -140,6 +147,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // ignore if not built yet
   }
 
+  const dsaPages: MetadataRoute.Sitemap = [];
+  try {
+    const dsaSlugs = getAllDsaModuleSlugs();
+    for (const slug of dsaSlugs) {
+      const mod = getDsaModule(slug);
+      if (!mod) continue;
+      dsaPages.push({
+        url: `${BASE_URL}/dsa/${slug}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      });
+      if (mod.kind === "lesson+task") {
+        dsaPages.push({
+          url: `${BASE_URL}/dsa/${slug}/task`,
+          lastModified: new Date(),
+          changeFrequency: "weekly" as const,
+          priority: 0.7,
+        });
+      }
+      for (const lesson of mod.lessons) {
+        dsaPages.push({
+          url: `${BASE_URL}/dsa/${slug}/lesson/${lesson.slug}`,
+          lastModified: new Date(),
+          changeFrequency: "monthly" as const,
+          priority: 0.6,
+        });
+      }
+    }
+  } catch {
+    // ignore if not built yet
+  }
+
   return [
     ...staticPages,
     ...coursePages,
@@ -147,5 +187,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...problemPages,
     ...blogPages,
     ...systemDesignPages,
+    ...dsaPages,
   ];
 }

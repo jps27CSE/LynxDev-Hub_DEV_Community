@@ -46,6 +46,7 @@ export const searchingModule: DsaModule = {
           ],
         },
       ],
+      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
       attribution: "Synthesis of Striver's A2Z searching section.",
     },
     {
@@ -132,6 +133,7 @@ export const searchingModule: DsaModule = {
           ],
         },
       ],
+      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
       attribution: "Synthesis of Striver's A2Z binary search section.",
     },
     {
@@ -165,6 +167,7 @@ export const searchingModule: DsaModule = {
           ],
         },
       ],
+      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
       attribution: "Synthesis of Striver's A2Z binary search on answer.",
     },
   ],

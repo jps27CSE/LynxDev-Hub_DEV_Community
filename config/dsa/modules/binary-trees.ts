@@ -45,6 +45,7 @@ export const binaryTreesModule: DsaModule = {
           ],
         },
       ],
+      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
       attribution: "Synthesis of Striver's A2Z binary trees section.",
     },
     {
@@ -143,6 +144,7 @@ export const binaryTreesModule: DsaModule = {
           ],
         },
       ],
+      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
       attribution: "Synthesis of Striver's A2Z binary trees section.",
     },
     {
@@ -176,6 +178,7 @@ export const binaryTreesModule: DsaModule = {
           ],
         },
       ],
+      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
       attribution: "Synthesis of Striver's A2Z binary trees section.",
     },
   ],

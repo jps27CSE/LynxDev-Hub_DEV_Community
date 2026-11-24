@@ -10,7 +10,7 @@
 
 **Spec:** §2 of this document (design agreed in conversation, 2026-11-23).
 
-> **Status:** Tasks 1–8 done. Task 8 (commit pending): routes `/dsa`, `/dsa/[module]`, `/dsa/[module]/lesson/[slug]`, `/dsa/[module]/task` + `DsaLessonView`/`DsaTaskView` + Sidebar entry. Build succeeds (exit 0), all 15 lessons + 3 tasks prerendered. tsc clean, 724 tests pass. Task 9 next (Content rules + check script).
+> **Status:** Complete. All 18 modules authored (54 lessons + 4 tasks). `npx tsc --noEmit` clean, `npm test` 726 pass / 0 fail, `npm run build` exit 0 (84 DSA routes), `npm run check:dsa` all passed.
 
 ## Context
 
