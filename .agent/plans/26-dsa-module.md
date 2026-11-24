@@ -10,7 +10,7 @@
 
 **Spec:** §2 of this document (design agreed in conversation, 2026-11-23).
 
-> **Status:** Tasks 1–6 done. Task 6 (commit pending): `VisualPlayer` + 7 renderers (Array, Tree, Graph, LinkedList, Stack, Queue, Heap). tsc clean, 724 tests pass. Task 7 next (Code runner).
+> **Status:** Tasks 1–7 done. Task 7 (commit pending): `components/dsa/DsaCodeRunner.tsx` (Monaco + run/reset/solution + hidden test runner). tsc clean, 724 tests pass. Task 8 next (Routes).
 
 ## Context
 
