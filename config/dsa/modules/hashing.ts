@@ -6,15 +6,28 @@ export const hashingModule: DsaModule = {
   part: 1,
   partTitle: "Core data structures",
   title: "Hashing",
-  description: "Hash functions, collisions, hash maps and sets, and frequency counting.",
+  description:
+    "Hash functions, collisions, hash maps and sets, and frequency counting.",
   kind: "lesson",
   story:
     "A hash map turns 'does this exist?' from O(n) to O(1). It is the single most useful structure in interview problems.",
   chapters: [
-    { slug: "hash-functions", title: "Hash functions", lessonSlug: "hash-functions" },
+    {
+      slug: "hash-functions",
+      title: "Hash functions",
+      lessonSlug: "hash-functions",
+    },
     { slug: "collisions", title: "Collisions", lessonSlug: "collisions" },
-    { slug: "maps-and-sets", title: "Maps & sets", lessonSlug: "maps-and-sets" },
-    { slug: "patterns", title: "Frequency patterns", lessonSlug: "frequency-patterns" },
+    {
+      slug: "maps-and-sets",
+      title: "Maps & sets",
+      lessonSlug: "maps-and-sets",
+    },
+    {
+      slug: "patterns",
+      title: "Frequency patterns",
+      lessonSlug: "frequency-patterns",
+    },
   ],
   lessons: [
     {
@@ -45,7 +58,12 @@ export const hashingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Hash table (VisuAlgo)", url: "https://visualgo.net/en/hashtable" }],
+      sources: [
+        {
+          label: "Hash table (VisuAlgo)",
+          url: "https://visualgo.net/en/hashtable",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z hashing section.",
     },
     {
@@ -66,7 +84,12 @@ export const hashingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Hash table (VisuAlgo)", url: "https://visualgo.net/en/hashtable" }],
+      sources: [
+        {
+          label: "Hash table (VisuAlgo)",
+          url: "https://visualgo.net/en/hashtable",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z hashing section.",
     },
     {
@@ -100,7 +123,12 @@ export const hashingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Hash table (VisuAlgo)", url: "https://visualgo.net/en/hashtable" }],
+      sources: [
+        {
+          label: "Hash table (VisuAlgo)",
+          url: "https://visualgo.net/en/hashtable",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z hashing section.",
     },
     {
@@ -134,7 +162,12 @@ export const hashingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "NeetCode anagram problems", url: "https://neetcode.io/practice" }],
+      sources: [
+        {
+          label: "NeetCode anagram problems",
+          url: "https://neetcode.io/practice",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z and NeetCode.",
     },
   ],

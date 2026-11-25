@@ -12,10 +12,18 @@ export const sortingModule: DsaModule = {
   story:
     "Every search, every merge, every 'is this sorted?' check assumes you can sort. Sorting is the foundation most other algorithms build on.",
   chapters: [
-    { slug: "elementary", title: "Elementary sorts", lessonSlug: "elementary-sorts" },
+    {
+      slug: "elementary",
+      title: "Elementary sorts",
+      lessonSlug: "elementary-sorts",
+    },
     { slug: "merge-sort", title: "Merge sort", lessonSlug: "merge-sort" },
     { slug: "quick-sort", title: "Quick sort", lessonSlug: "quick-sort" },
-    { slug: "linear-sorts", title: "Linear-time sorts", lessonSlug: "linear-sorts" },
+    {
+      slug: "linear-sorts",
+      title: "Linear-time sorts",
+      lessonSlug: "linear-sorts",
+    },
   ],
   lessons: [
     {
@@ -44,7 +52,8 @@ export const sortingModule: DsaModule = {
             {
               id: "f1",
               kind: "array",
-              caption: "Array [5, 3, 8, 1]. First pass compares adjacent pairs.",
+              caption:
+                "Array [5, 3, 8, 1]. First pass compares adjacent pairs.",
               state: { kind: "array", values: [5, 3, 8, 1], highlight: [0, 1] },
             },
             {
@@ -56,7 +65,8 @@ export const sortingModule: DsaModule = {
             {
               id: "f3",
               kind: "array",
-              caption: "8 > 1, swap → [3, 5, 1, 8]. Largest value bubbled to the end.",
+              caption:
+                "8 > 1, swap → [3, 5, 1, 8]. Largest value bubbled to the end.",
               state: { kind: "array", values: [3, 5, 1, 8], highlight: [2, 3] },
             },
             {
@@ -91,7 +101,10 @@ export const sortingModule: DsaModule = {
         },
       ],
       sources: [
-        { label: "Sorting algorithms (VisuAlgo)", url: "https://visualgo.net/en/sorting" },
+        {
+          label: "Sorting algorithms (VisuAlgo)",
+          url: "https://visualgo.net/en/sorting",
+        },
       ],
       attribution: "Synthesis of Striver's A2Z sorting section and VisuAlgo.",
     },
@@ -127,7 +140,12 @@ export const sortingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Merge sort (VisuAlgo)", url: "https://visualgo.net/en/sorting" }],
+      sources: [
+        {
+          label: "Merge sort (VisuAlgo)",
+          url: "https://visualgo.net/en/sorting",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z and CLRS.",
     },
     {
@@ -161,7 +179,12 @@ export const sortingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Quick sort (VisuAlgo)", url: "https://visualgo.net/en/sorting" }],
+      sources: [
+        {
+          label: "Quick sort (VisuAlgo)",
+          url: "https://visualgo.net/en/sorting",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z and CLRS.",
     },
     {
@@ -195,7 +218,12 @@ export const sortingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Counting/radix sort (VisuAlgo)", url: "https://visualgo.net/en/sorting" }],
+      sources: [
+        {
+          label: "Counting/radix sort (VisuAlgo)",
+          url: "https://visualgo.net/en/sorting",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z and CLRS.",
     },
   ],
@@ -203,7 +231,9 @@ export const sortingModule: DsaModule = {
     brief:
       "Merge sort's merge step must handle leftover elements in both arrays. The start code forgets the trailing loops. Fix it.",
     startState: {
-      data: { code: "while (i < a.length && j < b.length) { ... } // missing trailing loops" },
+      data: {
+        code: "while (i < a.length && j < b.length) { ... } // missing trailing loops",
+      },
       completedSteps: [],
       criteriaMet: [],
       attempts: 0,
@@ -211,7 +241,9 @@ export const sortingModule: DsaModule = {
       updatedAt: new Date().toISOString(),
     },
     solutionState: {
-      data: { code: "while (i < a.length && j < b.length) { ... } while (i < a.length) out.push(a[i++]); while (j < b.length) out.push(b[j++]);" },
+      data: {
+        code: "while (i < a.length && j < b.length) { ... } while (i < a.length) out.push(a[i++]); while (j < b.length) out.push(b[j++]);",
+      },
       completedSteps: ["add-trailing"],
       criteriaMet: ["merge-complete"],
       attempts: 1,
@@ -222,12 +254,17 @@ export const sortingModule: DsaModule = {
       {
         id: "add-trailing",
         title: "Drain the remainder",
-        brief: "After the main loop, push any remaining elements from both arrays.",
+        brief:
+          "After the main loop, push any remaining elements from both arrays.",
         hint: "One of a or b may still have elements when the other is exhausted.",
-        reveal: "while (i < a.length) out.push(a[i++]); while (j < b.length) out.push(b[j++]);",
+        reveal:
+          "while (i < a.length) out.push(a[i++]); while (j < b.length) out.push(b[j++]);",
         check: (s) => {
           const d = s.data as { code: string };
-          return { passed: d.code.includes("while (i < a.length)"), progress: d.code.includes("while (i < a.length)") ? "1/1" : "0/1" };
+          return {
+            passed: d.code.includes("while (i < a.length)"),
+            progress: d.code.includes("while (i < a.length)") ? "1/1" : "0/1",
+          };
         },
       },
     ],
@@ -238,9 +275,13 @@ export const sortingModule: DsaModule = {
         required: true,
         assert: (s) => {
           const d = s.data as { code: string };
-          return d.code.includes("while (i < a.length)") && d.code.includes("while (j < b.length)");
+          return (
+            d.code.includes("while (i < a.length)") &&
+            d.code.includes("while (j < b.length)")
+          );
         },
-        explain: "Forgetting the trailing loops drops elements and produces a shorter array.",
+        explain:
+          "Forgetting the trailing loops drops elements and produces a shorter array.",
       },
     ],
   },

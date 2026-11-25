@@ -9,7 +9,9 @@ export function HeapVisualizer({ state }: { state: State }) {
         <div
           key={i}
           className={`w-10 h-10 flex items-center justify-center rounded border text-sm font-mono ${
-            highlight.includes(i) ? "bg-emerald-500/20 border-emerald-500" : "bg-card border-border/60"
+            highlight.includes(i)
+              ? "bg-emerald-500/20 border-emerald-500"
+              : "bg-card border-border/60"
           }`}
         >
           {v}

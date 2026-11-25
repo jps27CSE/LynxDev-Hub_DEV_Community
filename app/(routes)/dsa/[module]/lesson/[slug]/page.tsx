@@ -2,7 +2,12 @@ import { getAllModuleSlugs, getModule, getLesson } from "@/config/dsa/registry";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import DsaLessonView from "@/components/dsa/DsaLessonView";
-import Link from "next/link";
+import {
+  lessonNeighbours,
+  lessonOrder,
+  lessonWordCount,
+  readingMinutes,
+} from "@/lib/dsa/view-model";
 
 interface LessonPageProps {
   params: Promise<{ module: string; slug: string }>;
@@ -25,12 +30,17 @@ export async function generateStaticParams(): Promise<
   return params;
 }
 
-export async function generateMetadata({ params }: LessonPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: LessonPageProps): Promise<Metadata> {
   const { module: moduleSlug, slug } = await params;
   const module = getModule(moduleSlug);
   const lesson = module ? getLesson(moduleSlug, slug) : undefined;
   if (!module || !lesson) return { title: "Lesson Not Found" };
-  return { title: `${lesson.title} — ${module.title} — DSA` };
+  return {
+    title: `${lesson.title} — ${module.title} — DSA`,
+    description: `${lesson.title}: part of the ${module.title} module.`,
+  };
 }
 
 export default async function LessonPage({ params }: LessonPageProps) {
@@ -39,14 +49,19 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const lesson = module ? getLesson(moduleSlug, slug) : undefined;
   if (!module || !lesson) notFound();
 
+  // Only slugs and titles cross the boundary for navigation. The prose of every
+  // other lesson in the module stays on the server.
+  const neighbours = lessonNeighbours(module, lesson.slug);
+
   return (
-    <div>
-      <div className="max-w-3xl mx-auto px-4 pt-4">
-        <Link href={`/dsa/${module.slug}`} className="text-sm text-muted-foreground hover:text-primary">
-          &larr; {module.title}
-        </Link>
-      </div>
-      <DsaLessonView moduleSlug={module.slug} lesson={lesson} />
-    </div>
+    <DsaLessonView
+      moduleSlug={module.slug}
+      moduleTitle={module.title}
+      lesson={lesson}
+      nav={lessonOrder(module)}
+      position={neighbours.position}
+      readMinutes={readingMinutes(lessonWordCount(lesson))}
+      hasTask={module.kind === "lesson+task" && Boolean(module.task)}
+    />
   );
 }

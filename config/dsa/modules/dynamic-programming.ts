@@ -88,7 +88,12 @@ export const dynamicProgrammingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "DP (Striver)", url: "https://takeuforward.org/dynamic-programming/" }],
+      sources: [
+        {
+          label: "DP (Striver)",
+          url: "https://takeuforward.org/dynamic-programming/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z DP section.",
     },
     {
@@ -121,7 +126,12 @@ export const dynamicProgrammingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "DP (Striver)", url: "https://takeuforward.org/dynamic-programming/" }],
+      sources: [
+        {
+          label: "DP (Striver)",
+          url: "https://takeuforward.org/dynamic-programming/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z DP section.",
     },
     {
@@ -155,7 +165,12 @@ export const dynamicProgrammingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Knapsack (Striver)", url: "https://takeuforward.org/dynamic-programming/" }],
+      sources: [
+        {
+          label: "Knapsack (Striver)",
+          url: "https://takeuforward.org/dynamic-programming/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z DP section.",
     },
   ],

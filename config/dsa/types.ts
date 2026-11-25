@@ -48,7 +48,12 @@ export type DsaFrame = {
       }
     | {
         kind: "tree";
-        nodes: { id: string; value: number | string; left?: string; right?: string }[];
+        nodes: {
+          id: string;
+          value: number | string;
+          left?: string;
+          right?: string;
+        }[];
         root: string;
         highlight?: string[];
         pointers?: { nodeId: string; label: string }[];
@@ -56,7 +61,12 @@ export type DsaFrame = {
     | {
         kind: "graph";
         nodes: { id: string; label: string }[];
-        edges: { from: string; to: string; weight?: number; directed?: boolean }[];
+        edges: {
+          from: string;
+          to: string;
+          weight?: number;
+          directed?: boolean;
+        }[];
         highlightNodes?: string[];
         highlightEdges?: string[];
       }

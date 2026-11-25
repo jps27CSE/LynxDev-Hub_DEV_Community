@@ -30,7 +30,11 @@ function ok(message: string): void {
   console.log(`OK   ${message}`);
 }
 
-type PrerenderRoute = { routeType?: string; compute?: string; srcRoute?: string };
+type PrerenderRoute = {
+  routeType?: string;
+  compute?: string;
+  srcRoute?: string;
+};
 type PrerenderManifest = { routes: Record<string, PrerenderRoute> };
 
 async function main(): Promise<void> {
@@ -42,7 +46,9 @@ async function main(): Promise<void> {
   }
 
   if (!fs.existsSync(MANIFEST)) {
-    console.error(`No build output at ${MANIFEST}. Run \`npm run build\` first.`);
+    console.error(
+      `No build output at ${MANIFEST}. Run \`npm run build\` first.`,
+    );
     process.exit(1);
   }
 

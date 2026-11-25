@@ -34,7 +34,10 @@ export const binarySearchTreesModule: DsaModule = {
           solution:
             "class TreeNode { constructor(val, left=null, right=null){this.val=val;this.left=left;this.right=right;} }\nfunction isValidBST(root) {\n  function helper(node, lo, hi) {\n    if (!node) return true;\n    if (node.val <= lo || node.val >= hi) return false;\n    return helper(node.left, lo, node.val) && helper(node.right, node.val, hi);\n  }\n  return helper(root, -Infinity, Infinity);\n}\n\nconst root = new TreeNode(2, new TreeNode(1), new TreeNode(3));\nconsole.log(isValidBST(root)); // true",
           tests: [
-            { input: "isValidBST(new TreeNode(1, new TreeNode(2)))", expected: "false" },
+            {
+              input: "isValidBST(new TreeNode(1, new TreeNode(2)))",
+              expected: "false",
+            },
           ],
         },
         {
@@ -46,7 +49,9 @@ export const binarySearchTreesModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "BST (VisuAlgo)", url: "https://visualgo.net/en/bst" }],
+      sources: [
+        { label: "BST (VisuAlgo)", url: "https://visualgo.net/en/bst" },
+      ],
       attribution: "Synthesis of Striver's A2Z BST section.",
     },
     {
@@ -66,9 +71,7 @@ export const binarySearchTreesModule: DsaModule = {
             "class TreeNode { constructor(val, left=null, right=null){this.val=val;this.left=left;this.right=right;} }\nfunction insert(root, val) {\n  // insert val, return root\n  return root;\n}\n\nconst root = new TreeNode(4, new TreeNode(2), new TreeNode(7));\nconsole.log(insert(root, 5).right.left.val);",
           solution:
             "class TreeNode { constructor(val, left=null, right=null){this.val=val;this.left=left;this.right=right;} }\nfunction insert(root, val) {\n  if (!root) return new TreeNode(val);\n  if (val < root.val) root.left = insert(root.left, val);\n  else if (val > root.val) root.right = insert(root.right, val);\n  return root;\n}\n\nconst root = new TreeNode(4, new TreeNode(2), new TreeNode(7));\nconsole.log(insert(root, 5).right.left.val); // 5",
-          tests: [
-            { input: "insert(null, 5).val", expected: "5" },
-          ],
+          tests: [{ input: "insert(null, 5).val", expected: "5" }],
         },
         {
           kind: "recap",
@@ -79,7 +82,9 @@ export const binarySearchTreesModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "BST (VisuAlgo)", url: "https://visualgo.net/en/bst" }],
+      sources: [
+        { label: "BST (VisuAlgo)", url: "https://visualgo.net/en/bst" },
+      ],
       attribution: "Synthesis of Striver's A2Z BST section.",
     },
     {
@@ -100,7 +105,11 @@ export const binarySearchTreesModule: DsaModule = {
           solution:
             "class TreeNode { constructor(val, left=null, right=null){this.val=val;this.left=left;this.right=right;} }\nfunction lca(root, p, q) {\n  let cur = root;\n  while (cur) {\n    if (p < cur.val && q < cur.val) cur = cur.left;\n    else if (p > cur.val && q > cur.val) cur = cur.right;\n    else return cur;\n  }\n  return null;\n}\n\nconst root = new TreeNode(6, new TreeNode(2, new TreeNode(0), new TreeNode(4)), new TreeNode(8));\nconsole.log(lca(root, 2, 8).val); // 6",
           tests: [
-            { input: "lca(new TreeNode(2, new TreeNode(1), new TreeNode(3)), 1, 3).val", expected: "2" },
+            {
+              input:
+                "lca(new TreeNode(2, new TreeNode(1), new TreeNode(3)), 1, 3).val",
+              expected: "2",
+            },
           ],
         },
         {
@@ -111,7 +120,9 @@ export const binarySearchTreesModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "BST (VisuAlgo)", url: "https://visualgo.net/en/bst" }],
+      sources: [
+        { label: "BST (VisuAlgo)", url: "https://visualgo.net/en/bst" },
+      ],
       attribution: "Synthesis of Striver's A2Z BST section.",
     },
   ],

@@ -12,7 +12,11 @@ export const triesModule: DsaModule = {
     "A trie (prefix tree) makes prefix search O(L) where L is the word length. It is the engine behind autocomplete and spell-check.",
   chapters: [
     { slug: "trie-basics", title: "Trie basics", lessonSlug: "trie-basics" },
-    { slug: "trie-problems", title: "Trie problems", lessonSlug: "trie-problems" },
+    {
+      slug: "trie-problems",
+      title: "Trie problems",
+      lessonSlug: "trie-problems",
+    },
   ],
   lessons: [
     {
@@ -33,9 +37,18 @@ export const triesModule: DsaModule = {
           solution:
             "class TrieNode {\n  constructor() { this.children = {}; this.isEnd = false; }\n}\nclass Trie {\n  constructor() { this.root = new TrieNode(); }\n  insert(word) {\n    let node = this.root;\n    for (const c of word) {\n      if (!node.children[c]) node.children[c] = new TrieNode();\n      node = node.children[c];\n    }\n    node.isEnd = true;\n  }\n  search(word) {\n    let node = this.root;\n    for (const c of word) {\n      if (!node.children[c]) return false;\n      node = node.children[c];\n    }\n    return node.isEnd;\n  }\n  startsWith(prefix) {\n    let node = this.root;\n    for (const c of prefix) {\n      if (!node.children[c]) return false;\n      node = node.children[c];\n    }\n    return true;\n  }\n}\n\nconst t = new Trie();\nt.insert('apple');\nconsole.log(t.search('apple'), t.search('app'), t.startsWith('app')); // true false true",
           tests: [
-            { input: "const t=new Trie(); t.insert('a'); t.search('a')", expected: "true" },
-            { input: "const t=new Trie(); t.insert('a'); t.search('b')", expected: "false" },
-            { input: "const t=new Trie(); t.insert('abc'); t.startsWith('ab')", expected: "true" },
+            {
+              input: "const t=new Trie(); t.insert('a'); t.search('a')",
+              expected: "true",
+            },
+            {
+              input: "const t=new Trie(); t.insert('a'); t.search('b')",
+              expected: "false",
+            },
+            {
+              input: "const t=new Trie(); t.insert('abc'); t.startsWith('ab')",
+              expected: "true",
+            },
           ],
         },
         {
@@ -47,7 +60,9 @@ export const triesModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Trie (VisuAlgo)", url: "https://visualgo.net/en/trie" }],
+      sources: [
+        { label: "Trie (VisuAlgo)", url: "https://visualgo.net/en/trie" },
+      ],
       attribution: "Synthesis of Striver's A2Z tries section.",
     },
     {
@@ -61,13 +76,15 @@ export const triesModule: DsaModule = {
         },
         {
           kind: "recap",
-          points: [
-            "Trie + board DFS for word search.",
-            "Prune dead branches.",
-          ],
+          points: ["Trie + board DFS for word search.", "Prune dead branches."],
         },
       ],
-      sources: [{ label: "Word search II (LeetCode)", url: "https://leetcode.com/problems/word-search-ii/" }],
+      sources: [
+        {
+          label: "Word search II (LeetCode)",
+          url: "https://leetcode.com/problems/word-search-ii/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z tries section.",
     },
   ],

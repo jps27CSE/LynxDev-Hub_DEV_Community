@@ -77,7 +77,10 @@ export function getModule(slug: string): DsaModule | undefined {
 /**
  * Returns a lesson by module slug + lesson slug, or `undefined`.
  */
-export function getLesson(moduleSlug: string, lessonSlug: string): DsaLesson | undefined {
+export function getLesson(
+  moduleSlug: string,
+  lessonSlug: string,
+): DsaLesson | undefined {
   const mod = getModule(moduleSlug);
   if (!mod) return undefined;
   return mod.lessons.find((lesson) => lesson.slug === lessonSlug);

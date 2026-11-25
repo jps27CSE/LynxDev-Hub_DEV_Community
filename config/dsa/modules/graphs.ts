@@ -11,10 +11,22 @@ export const graphsModule: DsaModule = {
   story:
     "Graphs model relationships: networks, dependencies, routes. Most 'hard' problems are graph problems in disguise.",
   chapters: [
-    { slug: "representation", title: "Representation", lessonSlug: "representation" },
+    {
+      slug: "representation",
+      title: "Representation",
+      lessonSlug: "representation",
+    },
     { slug: "traversals", title: "BFS & DFS", lessonSlug: "traversals" },
-    { slug: "shortest-paths", title: "Shortest paths", lessonSlug: "shortest-paths" },
-    { slug: "mst-uf", title: "MST & union-find", lessonSlug: "mst-and-union-find" },
+    {
+      slug: "shortest-paths",
+      title: "Shortest paths",
+      lessonSlug: "shortest-paths",
+    },
+    {
+      slug: "mst-uf",
+      title: "MST & union-find",
+      lessonSlug: "mst-and-union-find",
+    },
   ],
   lessons: [
     {
@@ -36,7 +48,11 @@ export const graphsModule: DsaModule = {
               caption: "Graph: 1-2, 2-3, 1-3. Undirected.",
               state: {
                 kind: "graph",
-                nodes: [{ id: "1", label: "1" }, { id: "2", label: "2" }, { id: "3", label: "3" }],
+                nodes: [
+                  { id: "1", label: "1" },
+                  { id: "2", label: "2" },
+                  { id: "3", label: "3" },
+                ],
                 edges: [
                   { from: "1", to: "2" },
                   { from: "2", to: "3" },
@@ -54,7 +70,9 @@ export const graphsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Graph (VisuAlgo)", url: "https://visualgo.net/en/graphds" }],
+      sources: [
+        { label: "Graph (VisuAlgo)", url: "https://visualgo.net/en/graphds" },
+      ],
       attribution: "Synthesis of Striver's A2Z graphs section.",
     },
     {
@@ -90,7 +108,9 @@ export const graphsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "BFS/DFS (VisuAlgo)", url: "https://visualgo.net/en/dfsbfs" }],
+      sources: [
+        { label: "BFS/DFS (VisuAlgo)", url: "https://visualgo.net/en/dfsbfs" },
+      ],
       attribution: "Synthesis of Striver's A2Z graphs section.",
     },
     {
@@ -117,7 +137,12 @@ export const graphsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Shortest paths (VisuAlgo)", url: "https://visualgo.net/en/sssp" }],
+      sources: [
+        {
+          label: "Shortest paths (VisuAlgo)",
+          url: "https://visualgo.net/en/sssp",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z graphs section.",
     },
     {
@@ -139,11 +164,14 @@ export const graphsModule: DsaModule = {
           title: "Union-find",
           language: "javascript",
           starter:
-            "class DSU {\n  constructor(n) { this.parent = Array.from({ length: n }, (_, i) => i); this.rank = new Array(n).fill(0); }\n  find(x) { return x; }\n  union(x, y) { return true; }\n}\n\nconst dsu = new DSU(4);\ndsdu.union(0, 1); dsu.union(2, 3);\nconsole.log(dsu.find(0) === dsu.find(1));",
+            "class DSU {\n  constructor(n) { this.parent = Array.from({ length: n }, (_, i) => i); this.rank = new Array(n).fill(0); }\n  find(x) { return x; }\n  union(x, y) { return true; }\n}\n\nconst dsu = new DSU(4);\ndsu.union(0, 1); dsu.union(2, 3);\nconsole.log(dsu.find(0) === dsu.find(1));",
           solution:
-            "class DSU {\n  constructor(n) { this.parent = Array.from({ length: n }, (_, i) => i); this.rank = new Array(n).fill(0); }\n  find(x) {\n    if (this.parent[x] !== x) this.parent[x] = this.find(this.parent[x]);\n    return this.parent[x];\n  }\n  union(x, y) {\n    const rx = this.find(x), ry = this.find(y);\n    if (rx === ry) return false;\n    if (this.rank[rx] < this.rank[ry]) this.parent[rx] = ry;\n    else if (this.rank[rx] > this.rank[ry]) this.parent[ry] = rx;\n    else { this.parent[ry] = rx; this.rank[rx]++; }\n    return true;\n  }\n}\n\nconst dsu = new DSU(4);\ndsdu.union(0, 1); dsu.union(2, 3);\nconsole.log(dsu.find(0) === dsu.find(1)); // true",
+            "class DSU {\n  constructor(n) { this.parent = Array.from({ length: n }, (_, i) => i); this.rank = new Array(n).fill(0); }\n  find(x) {\n    if (this.parent[x] !== x) this.parent[x] = this.find(this.parent[x]);\n    return this.parent[x];\n  }\n  union(x, y) {\n    const rx = this.find(x), ry = this.find(y);\n    if (rx === ry) return false;\n    if (this.rank[rx] < this.rank[ry]) this.parent[rx] = ry;\n    else if (this.rank[rx] > this.rank[ry]) this.parent[ry] = rx;\n    else { this.parent[ry] = rx; this.rank[rx]++; }\n    return true;\n  }\n}\n\nconst dsu = new DSU(4);\ndsu.union(0, 1); dsu.union(2, 3);\nconsole.log(dsu.find(0) === dsu.find(1)); // true",
           tests: [
-            { input: "const d=new DSU(3); d.union(0,1); d.find(0)===d.find(2)", expected: "false" },
+            {
+              input: "const d=new DSU(3); d.union(0,1); d.find(0)===d.find(2)",
+              expected: "false",
+            },
           ],
         },
         {
@@ -155,7 +183,9 @@ export const graphsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "MST (VisuAlgo)", url: "https://visualgo.net/en/mst" }],
+      sources: [
+        { label: "MST (VisuAlgo)", url: "https://visualgo.net/en/mst" },
+      ],
       attribution: "Synthesis of Striver's A2Z graphs section.",
     },
   ],

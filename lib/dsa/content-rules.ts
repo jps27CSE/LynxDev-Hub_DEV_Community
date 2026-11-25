@@ -16,7 +16,11 @@ import type {
   DsaModule,
 } from "@/config/dsa/types";
 
-export type ContentFinding = { level: "fail" | "warn"; code: string; message: string };
+export type ContentFinding = {
+  level: "fail" | "warn";
+  code: string;
+  message: string;
+};
 
 const VALID_VISUAL_KINDS = new Set<DsaFrame["kind"]>([
   "array",
@@ -124,7 +128,10 @@ export function inspectModuleContent(module: DsaModule): ContentFinding[] {
           });
         }
         for (const frame of section.frames ?? []) {
-          if (!VALID_VISUAL_KINDS.has(frame.kind) || frame.state.kind !== frame.kind) {
+          if (
+            !VALID_VISUAL_KINDS.has(frame.kind) ||
+            frame.state.kind !== frame.kind
+          ) {
             findings.push({
               level: "fail",
               code: "visual-kind-mismatch",
@@ -203,5 +210,45 @@ export function inspectModuleOrder(modules: DsaModule[]): ContentFinding[] {
       });
     }
   }
+
+  // Part and order must agree. The syllabus renders part groups of globally
+  // numbered rows, so a module whose `part` is out of step with its `order`
+  // appears as a hole in one group (03, 04, 06) and as a stray number at the
+  // top of the next — indistinguishable from deleted content to a reader, and
+  // invisible to every other gate because both fields are valid on their own.
+  // Binary Trees shipped as order 5 / part 2 exactly this way.
+  const byOrder = [...modules].sort((a, b) => a.order - b.order);
+  for (let i = 1; i < byOrder.length; i += 1) {
+    const previous = byOrder[i - 1];
+    const current = byOrder[i];
+    if (current.part < previous.part) {
+      findings.push({
+        level: "fail",
+        code: "part-order-inverted",
+        message: `module "${current.slug}" is order ${current.order} in part ${current.part}, after "${previous.slug}" at order ${previous.order} in part ${previous.part}`,
+      });
+    }
+  }
+
+  // One part, one name. The index takes the heading from its first module, so a
+  // renamed title in a single file would be silently overridden there and shown
+  // verbatim on that module's own page — two names for the same group.
+  const titleByPart = new Map<number, { title: string; slug: string }>();
+  for (const module of modules) {
+    const known = titleByPart.get(module.part);
+    if (!known) {
+      titleByPart.set(module.part, {
+        title: module.partTitle,
+        slug: module.slug,
+      });
+    } else if (known.title !== module.partTitle) {
+      findings.push({
+        level: "fail",
+        code: "part-title-drift",
+        message: `part ${module.part} is "${known.title}" in "${known.slug}" and "${module.partTitle}" in "${module.slug}"`,
+      });
+    }
+  }
+
   return findings;
 }

@@ -11,8 +11,16 @@ export const greedyModule: DsaModule = {
   story:
     "Greedy: make the locally optimal choice and hope it is globally optimal. The art is proving (or finding a counterexample to) that hope.",
   chapters: [
-    { slug: "greedy-basics", title: "Greedy basics", lessonSlug: "greedy-basics" },
-    { slug: "interval", title: "Interval scheduling", lessonSlug: "interval-scheduling" },
+    {
+      slug: "greedy-basics",
+      title: "Greedy basics",
+      lessonSlug: "greedy-basics",
+    },
+    {
+      slug: "interval",
+      title: "Interval scheduling",
+      lessonSlug: "interval-scheduling",
+    },
     { slug: "classic", title: "Classic greedy", lessonSlug: "classic-greedy" },
   ],
   lessons: [
@@ -69,7 +77,10 @@ export const greedyModule: DsaModule = {
             "function eraseOverlapIntervals(intervals) {\n  intervals.sort((a, b) => a[1] - b[1]);\n  let count = 0, end = -Infinity;\n  for (const [s, e] of intervals) {\n    if (s >= end) end = e;\n    else count++;\n  }\n  return count;\n}\n\nconsole.log(eraseOverlapIntervals([[1,2],[2,3],[3,4],[1,3]])); // 1",
           tests: [
             { input: "eraseOverlapIntervals([])", expected: "0" },
-            { input: "eraseOverlapIntervals([[1,2],[1,2],[1,2]])", expected: "2" },
+            {
+              input: "eraseOverlapIntervals([[1,2],[1,2],[1,2]])",
+              expected: "2",
+            },
           ],
         },
         {
@@ -80,7 +91,12 @@ export const greedyModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Interval scheduling (LeetCode)", url: "https://leetcode.com" }],
+      sources: [
+        {
+          label: "Interval scheduling (LeetCode)",
+          url: "https://leetcode.com",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z greedy section.",
     },
     {

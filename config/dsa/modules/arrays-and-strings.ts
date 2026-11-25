@@ -54,7 +54,12 @@ export const arraysAndStringsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
+      sources: [
+        {
+          label: "Striver's A2Z DSA Sheet",
+          url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z arrays section.",
     },
     {
@@ -73,7 +78,8 @@ export const arraysAndStringsModule: DsaModule = {
             {
               id: "f1",
               kind: "array",
-              caption: "Sorted array [1,2,3,4,6]. Target sum = 7. Start: left at 0 (value 1), right at 4 (value 6).",
+              caption:
+                "Sorted array [1,2,3,4,6]. Target sum = 7. Start: left at 0 (value 1), right at 4 (value 6).",
               state: {
                 kind: "array",
                 values: [1, 2, 3, 4, 6],
@@ -121,8 +127,14 @@ export const arraysAndStringsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
-      attribution: "Synthesis of Striver's A2Z arrays section and NeetCode patterns.",
+      sources: [
+        {
+          label: "Striver's A2Z DSA Sheet",
+          url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
+        },
+      ],
+      attribution:
+        "Synthesis of Striver's A2Z arrays section and NeetCode patterns.",
     },
     {
       slug: "prefix-sums",
@@ -142,8 +154,14 @@ export const arraysAndStringsModule: DsaModule = {
           solution:
             "function buildPrefix(arr) {\n  const p = [0];\n  for (let i = 0; i < arr.length; i++) p.push(p[p.length - 1] + arr[i]);\n  return p;\n}\nfunction rangeSum(prefix, l, r) {\n  return prefix[r + 1] - prefix[l];\n}\n\nconst p = buildPrefix([1, 2, 3, 4, 5]);\nconsole.log(rangeSum(p, 1, 3)); // 2+3+4 = 9",
           tests: [
-            { input: "rangeSum(buildPrefix([1,2,3,4,5]), 0, 4)", expected: "15" },
-            { input: "rangeSum(buildPrefix([1,2,3,4,5]), 2, 2)", expected: "3" },
+            {
+              input: "rangeSum(buildPrefix([1,2,3,4,5]), 0, 4)",
+              expected: "15",
+            },
+            {
+              input: "rangeSum(buildPrefix([1,2,3,4,5]), 2, 2)",
+              expected: "3",
+            },
           ],
         },
         {
@@ -155,7 +173,12 @@ export const arraysAndStringsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
+      sources: [
+        {
+          label: "Striver's A2Z DSA Sheet",
+          url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z prefix-sum problems.",
     },
   ],
@@ -204,7 +227,8 @@ export const arraysAndStringsModule: DsaModule = {
           const d = s.data as { right: number; arr: number[] };
           return d.right === d.arr.length - 1;
         },
-        explain: "Two pointers need to span the array; both at index 0 can never find a pair.",
+        explain:
+          "Two pointers need to span the array; both at index 0 can never find a pair.",
       },
     ],
   },
@@ -219,5 +243,6 @@ export const arraysAndStringsModule: DsaModule = {
     "Two pointers: O(n) on sorted input.",
     "Prefix sums: O(1) range queries after O(n) prep.",
   ],
-  attribution: "Synthesis of Striver's A2Z arrays section and NeetCode patterns.",
+  attribution:
+    "Synthesis of Striver's A2Z arrays section and NeetCode patterns.",
 };

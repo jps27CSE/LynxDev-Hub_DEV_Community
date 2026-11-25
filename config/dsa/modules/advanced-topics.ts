@@ -6,14 +6,23 @@ export const advancedTopicsModule: DsaModule = {
   part: 3,
   partTitle: "Advanced",
   title: "Advanced Topics",
-  description: "Bit manipulation, segment tree, Fenwick tree, union-find, string algorithms.",
+  description:
+    "Bit manipulation, segment tree, Fenwick tree, union-find, string algorithms.",
   kind: "lesson",
   story:
     "The toolkit for when standard structures are not enough: bit tricks, range queries, and string matching.",
   chapters: [
-    { slug: "bit-manipulation", title: "Bit manipulation", lessonSlug: "bit-manipulation" },
+    {
+      slug: "bit-manipulation",
+      title: "Bit manipulation",
+      lessonSlug: "bit-manipulation",
+    },
     { slug: "segment-tree", title: "Segment tree", lessonSlug: "segment-tree" },
-    { slug: "string-algos", title: "String algorithms", lessonSlug: "string-algorithms" },
+    {
+      slug: "string-algos",
+      title: "String algorithms",
+      lessonSlug: "string-algorithms",
+    },
   ],
   lessons: [
     {
@@ -47,7 +56,12 @@ export const advancedTopicsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Bit manipulation (Striver)", url: "https://takeuforward.org/bit-manipulation/" }],
+      sources: [
+        {
+          label: "Bit manipulation (Striver)",
+          url: "https://takeuforward.org/bit-manipulation/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z bit manipulation section.",
     },
     {
@@ -68,8 +82,14 @@ export const advancedTopicsModule: DsaModule = {
           solution:
             "class Fenwick {\n  constructor(n) { this.n = n; this.bit = new Array(n + 1).fill(0); }\n  update(i, delta) { for (i++; i <= this.n; i += i & -i) this.bit[i] += delta; }\n  query(i) { let s = 0; for (i++; i > 0; i -= i & -i) s += this.bit[i]; return s; }\n}\n\nconst f = new Fenwick(5);\nf.update(2, 3); f.update(4, 1);\nconsole.log(f.query(4)); // 4",
           tests: [
-            { input: "const f=new Fenwick(3); f.update(0,5); f.query(0)", expected: "5" },
-            { input: "const f=new Fenwick(3); f.update(0,5); f.query(2)", expected: "5" },
+            {
+              input: "const f=new Fenwick(3); f.update(0,5); f.query(0)",
+              expected: "5",
+            },
+            {
+              input: "const f=new Fenwick(3); f.update(0,5); f.query(2)",
+              expected: "5",
+            },
           ],
         },
         {
@@ -81,7 +101,12 @@ export const advancedTopicsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Fenwick tree (CP-Algorithms)", url: "https://cp-algorithms.com/data_structures/fenwick.html" }],
+      sources: [
+        {
+          label: "Fenwick tree (CP-Algorithms)",
+          url: "https://cp-algorithms.com/data_structures/fenwick.html",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z and CP-Algorithms.",
     },
     {
@@ -116,7 +141,12 @@ export const advancedTopicsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "KMP (CP-Algorithms)", url: "https://cp-algorithms.com/string/kmp.html" }],
+      sources: [
+        {
+          label: "KMP (CP-Algorithms)",
+          url: "https://cp-algorithms.com/string/kmp.html",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z and CP-Algorithms.",
     },
   ],

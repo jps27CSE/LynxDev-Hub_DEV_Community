@@ -12,7 +12,11 @@ export const heapsModule: DsaModule = {
     "A heap gives O(1) access to the min/max and O(log n) insert/remove. It is the engine behind priority queues, schedulers, and Dijkstra.",
   chapters: [
     { slug: "heap-basics", title: "Heap basics", lessonSlug: "heap-basics" },
-    { slug: "heap-ops", title: "Heap operations", lessonSlug: "heap-operations" },
+    {
+      slug: "heap-ops",
+      title: "Heap operations",
+      lessonSlug: "heap-operations",
+    },
     { slug: "top-k", title: "Top-K problems", lessonSlug: "top-k" },
   ],
   lessons: [
@@ -34,7 +38,10 @@ export const heapsModule: DsaModule = {
           solution:
             "class MinHeap {\n  constructor() { this.h = []; }\n  push(x) {\n    this.h.push(x);\n    let i = this.h.length - 1;\n    while (i > 0 && this.h[i] < this.h[Math.floor((i - 1) / 2)]) {\n      const p = Math.floor((i - 1) / 2);\n      [this.h[i], this.h[p]] = [this.h[p], this.h[i]];\n      i = p;\n    }\n  }\n  pop() {\n    if (this.h.length === 0) return null;\n    const top = this.h[0];\n    this.h[0] = this.h.pop();\n    let i = 0;\n    while (true) {\n      const l = 2 * i + 1, r = 2 * i + 2;\n      let smallest = i;\n      if (l < this.h.length && this.h[l] < this.h[smallest]) smallest = l;\n      if (r < this.h.length && this.h[r] < this.h[smallest]) smallest = r;\n      if (smallest === i) break;\n      [this.h[i], this.h[smallest]] = [this.h[smallest], this.h[i]];\n      i = smallest;\n    }\n    return top;\n  }\n  peek() { return this.h[0]; }\n}\n\nconst h = new MinHeap();\nh.push(3); h.push(1); h.push(2);\nconsole.log(h.peek()); // 1",
           tests: [
-            { input: "const h=new MinHeap(); h.push(5); h.push(1); h.peek()", expected: "1" },
+            {
+              input: "const h=new MinHeap(); h.push(5); h.push(1); h.peek()",
+              expected: "1",
+            },
           ],
         },
         {
@@ -46,7 +53,9 @@ export const heapsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Heap (VisuAlgo)", url: "https://visualgo.net/en/heap" }],
+      sources: [
+        { label: "Heap (VisuAlgo)", url: "https://visualgo.net/en/heap" },
+      ],
       attribution: "Synthesis of Striver's A2Z heaps section.",
     },
     {
@@ -77,7 +86,9 @@ export const heapsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Heap (VisuAlgo)", url: "https://visualgo.net/en/heap" }],
+      sources: [
+        { label: "Heap (VisuAlgo)", url: "https://visualgo.net/en/heap" },
+      ],
       attribution: "Synthesis of Striver's A2Z heaps section.",
     },
     {
@@ -111,7 +122,9 @@ export const heapsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Heap problems (LeetCode)", url: "https://leetcode.com" }],
+      sources: [
+        { label: "Heap problems (LeetCode)", url: "https://leetcode.com" },
+      ],
       attribution: "Synthesis of Striver's A2Z heaps section.",
     },
   ],

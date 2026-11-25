@@ -4,7 +4,10 @@ import { getAllCategories } from "@/lib/interview-data";
 import { TOP_PROBLEMS } from "@/config/problems/top-problems";
 import { getSortedPosts } from "@/config/blog";
 import { getAllModuleSlugs, getModule } from "@/config/system-design/registry";
-import { getAllModuleSlugs as getAllDsaModuleSlugs, getModule as getDsaModule } from "@/config/dsa/registry";
+import {
+  getAllModuleSlugs as getAllDsaModuleSlugs,
+  getModule as getDsaModule,
+} from "@/config/dsa/registry";
 
 const BASE_URL = "https://lynxdev.io";
 

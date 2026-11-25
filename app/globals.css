@@ -53,6 +53,18 @@
   --color-sd-warn: var(--sd-warn);
   --color-sd-danger: var(--sd-danger);
   --color-sd-info: var(--sd-info);
+
+  /* DSA module accent palette (scoped via .cp-scope) */
+  --color-cp-accent: var(--cp-accent);
+  --color-cp-on-accent: var(--cp-on-accent);
+  --color-cp-accent-soft: var(--cp-accent-soft);
+  --color-cp-pass: var(--cp-pass);
+  --color-cp-fail: var(--cp-fail);
+  --color-cp-info: var(--cp-info);
+  --color-cp-panel: var(--cp-panel);
+  --color-cp-panel-ink: var(--cp-panel-ink);
+  --color-cp-panel-edge: var(--cp-panel-edge);
+  --color-cp-console: var(--cp-console);
 }
 
 :root {
@@ -141,6 +153,140 @@
   --sd-warn: oklch(0.82 0.14 75);
   --sd-danger: oklch(0.78 0.16 25);
   --sd-info: oklch(0.78 0.14 230);
+}
+
+/* ------------------------------------------------------------------ */
+/* DSA module — "judge console"                                        */
+/*                                                                    */
+/* Two registers, one palette. Reading surfaces stay on the app's      */
+/* normal background and type scale; practice surfaces (runner,        */
+/* animation arena, task workspace) drop to a deeper panel so a        */
+/* verdict reads as a result and not as decoration. Amber is the only  */
+/* accent: it means "you are here / this is active". Green and rose    */
+/* are reserved for verdicts, so a pass is information, not mood.      */
+/* ------------------------------------------------------------------ */
+
+.cp-scope {
+  --cp-accent: oklch(0.55 0.13 68);
+  --cp-on-accent: oklch(0.99 0.005 80);
+  --cp-accent-soft: oklch(0.95 0.035 80);
+  --cp-pass: oklch(0.5 0.14 155);
+  --cp-fail: oklch(0.53 0.2 25);
+  --cp-info: oklch(0.5 0.11 235);
+  /* Panel hex, not oklch: this surface must sit below the app's
+     #05060a shell, and a relative colour had no room left to be darker. */
+  --cp-panel: #f4f2ec;
+  --cp-panel-ink: #24211c;
+  --cp-panel-edge: rgba(24, 20, 12, 0.12);
+  /* Output well, one step below the panel. Tone, not black/40: an overlay
+     assumes the panel is dark and becomes unreadable on a light theme. */
+  --cp-console: #e8e4da;
+}
+
+.dark .cp-scope {
+  --cp-accent: oklch(0.83 0.14 82);
+  --cp-on-accent: oklch(0.2 0.03 70);
+  --cp-accent-soft: oklch(0.27 0.045 74);
+  --cp-pass: oklch(0.79 0.15 156);
+  --cp-fail: oklch(0.72 0.17 22);
+  --cp-info: oklch(0.8 0.1 230);
+  --cp-panel: #0a0c11;
+  --cp-panel-ink: #ccd0d9;
+  --cp-panel-edge: rgba(255, 255, 255, 0.1);
+  --cp-console: #06070b;
+}
+
+/* Reading measure. 68ch, not the 90+ch a full-width column gives you. */
+.cp-prose {
+  max-width: 68ch;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  color: color-mix(in oklab, var(--foreground) 86%, transparent);
+}
+.cp-prose > :last-child {
+  margin-bottom: 0;
+}
+.cp-prose p {
+  margin-bottom: 1.15em;
+}
+.cp-prose strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
+.cp-prose em {
+  font-style: italic;
+}
+.cp-prose a {
+  color: var(--cp-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.cp-prose code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  padding: 0.1em 0.34em;
+  border-radius: 0.3rem;
+  background: color-mix(in oklab, var(--foreground) 9%, transparent);
+  color: var(--foreground);
+}
+.cp-prose ul,
+.cp-prose ol {
+  margin-bottom: 1.15em;
+  padding-left: 1.35em;
+}
+.cp-prose ul {
+  list-style: disc;
+}
+.cp-prose ol {
+  list-style: decimal;
+}
+.cp-prose li {
+  margin-bottom: 0.4em;
+}
+.cp-prose li::marker {
+  color: var(--cp-accent);
+}
+.cp-prose h3,
+.cp-prose h4 {
+  margin: 1.6em 0 0.6em;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* The animation arena's dot grid — a workbench, not wallpaper. Only ever
+   applied to practice panels, never to a reading surface. */
+.cp-grid {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--cp-panel-ink) 16%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 20px 20px;
+  background-position: -1px -1px;
+}
+
+/* Numerals that line up in the syllabus ledger and the verdict table. */
+.cp-tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.cp-scope ::selection {
+  background: color-mix(in oklab, var(--cp-accent) 32%, transparent);
+  color: var(--foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-scope *,
+  .cp-scope *::before,
+  .cp-scope *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @keyframes scroll {

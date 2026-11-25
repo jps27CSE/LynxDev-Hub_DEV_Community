@@ -12,9 +12,17 @@ export const complexityAndMathsModule: DsaModule = {
   story:
     "Half of 'hard' problems are easy once you can count operations and spot a recurrence.",
   chapters: [
-    { slug: "counting-ops", title: "Counting operations", lessonSlug: "counting-ops" },
+    {
+      slug: "counting-ops",
+      title: "Counting operations",
+      lessonSlug: "counting-ops",
+    },
     { slug: "recurrences", title: "Recurrences", lessonSlug: "recurrences" },
-    { slug: "number-basics", title: "Number basics", lessonSlug: "number-basics" },
+    {
+      slug: "number-basics",
+      title: "Number basics",
+      lessonSlug: "number-basics",
+    },
   ],
   lessons: [
     {
@@ -45,7 +53,12 @@ export const complexityAndMathsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
+      sources: [
+        {
+          label: "Striver's A2Z DSA Sheet",
+          url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
+        },
+      ],
       attribution: "Synthesis of Sedgewick/Wayne and NeetCode.",
     },
     {
@@ -70,7 +83,12 @@ export const complexityAndMathsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
+      sources: [
+        {
+          label: "Striver's A2Z DSA Sheet",
+          url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
+        },
+      ],
       attribution: "Synthesis of CLRS / Stanford Algorithms.",
     },
     {
@@ -104,7 +122,12 @@ export const complexityAndMathsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
+      sources: [
+        {
+          label: "Striver's A2Z DSA Sheet",
+          url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z math section.",
     },
   ],

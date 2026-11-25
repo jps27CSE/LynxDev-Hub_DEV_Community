@@ -9,7 +9,9 @@ export function StackVisualizer({ state }: { state: State }) {
         <div
           key={i}
           className={`w-20 h-8 flex items-center justify-center rounded border text-sm font-mono ${
-            highlight === i ? "bg-emerald-500/20 border-emerald-500" : "bg-card border-border/60"
+            highlight === i
+              ? "bg-emerald-500/20 border-emerald-500"
+              : "bg-card border-border/60"
           }`}
         >
           {v}

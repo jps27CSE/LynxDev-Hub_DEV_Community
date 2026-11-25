@@ -11,8 +11,16 @@ export const recursionAndBacktrackingModule: DsaModule = {
   story:
     "Backtracking is DFS with an undo step. It is how you search a space of possibilities without committing to a bad branch.",
   chapters: [
-    { slug: "recursion-patterns", title: "Recursion patterns", lessonSlug: "recursion-patterns" },
-    { slug: "subsets-permutations", title: "Subsets & permutations", lessonSlug: "subsets-and-permutations" },
+    {
+      slug: "recursion-patterns",
+      title: "Recursion patterns",
+      lessonSlug: "recursion-patterns",
+    },
+    {
+      slug: "subsets-permutations",
+      title: "Subsets & permutations",
+      lessonSlug: "subsets-and-permutations",
+    },
     { slug: "backtracking", title: "Backtracking", lessonSlug: "backtracking" },
   ],
   lessons: [
@@ -47,7 +55,12 @@ export const recursionAndBacktrackingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Backtracking (VisuAlgo)", url: "https://visualgo.net/en/recursion" }],
+      sources: [
+        {
+          label: "Backtracking (VisuAlgo)",
+          url: "https://visualgo.net/en/recursion",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z recursion section.",
     },
     {
@@ -80,7 +93,9 @@ export const recursionAndBacktrackingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Backtracking (LeetCode)", url: "https://leetcode.com" }],
+      sources: [
+        { label: "Backtracking (LeetCode)", url: "https://leetcode.com" },
+      ],
       attribution: "Synthesis of Striver's A2Z.",
     },
     {
@@ -113,7 +128,9 @@ export const recursionAndBacktrackingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Backtracking (LeetCode)", url: "https://leetcode.com" }],
+      sources: [
+        { label: "Backtracking (LeetCode)", url: "https://leetcode.com" },
+      ],
       attribution: "Synthesis of Striver's A2Z.",
     },
   ],

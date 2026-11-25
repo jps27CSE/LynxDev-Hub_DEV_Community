@@ -64,7 +64,8 @@ export const foundationsModule: DsaModule = {
           url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
         },
       ],
-      attribution: "Synthesis of Striver's A2Z 'Learn the basics' and NeetCode's foundations.",
+      attribution:
+        "Synthesis of Striver's A2Z 'Learn the basics' and NeetCode's foundations.",
     },
     {
       slug: "measuring-cost",
@@ -112,7 +113,8 @@ export const foundationsModule: DsaModule = {
           url: "https://www.bigocheatsheet.com/",
         },
       ],
-      attribution: "Synthesis of Princeton Algorithms Part I (Sedgewick/Wayne) and NeetCode.",
+      attribution:
+        "Synthesis of Princeton Algorithms Part I (Sedgewick/Wayne) and NeetCode.",
     },
     {
       slug: "recursion-basics",

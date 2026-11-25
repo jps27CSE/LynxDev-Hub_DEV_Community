@@ -9,8 +9,18 @@ import {
 } from "../config/dsa/registry";
 
 test("dsa-registry: prototype-chain keys never resolve", () => {
-  for (const key of ["__proto__", "constructor", "toString", "hasOwnProperty", ""]) {
-    assert.equal(getModule(key), undefined, `getModule(${JSON.stringify(key)}) should be undefined`);
+  for (const key of [
+    "__proto__",
+    "constructor",
+    "toString",
+    "hasOwnProperty",
+    "",
+  ]) {
+    assert.equal(
+      getModule(key),
+      undefined,
+      `getModule(${JSON.stringify(key)}) should be undefined`,
+    );
   }
 });
 
@@ -22,7 +32,11 @@ test("dsa-registry: loadAllDsaModules returns an array", () => {
 test("dsa-registry: every module has unique lesson slugs", () => {
   for (const mod of loadAllDsaModules()) {
     const slugs = mod.lessons.map((l) => l.slug);
-    assert.equal(new Set(slugs).size, slugs.length, `duplicate lesson slug in ${mod.slug}`);
+    assert.equal(
+      new Set(slugs).size,
+      slugs.length,
+      `duplicate lesson slug in ${mod.slug}`,
+    );
   }
 });
 
@@ -30,14 +44,21 @@ test("dsa-registry: getAllModuleSlugs matches module count and order", () => {
   const modules = loadAllDsaModules();
   const slugs = getAllModuleSlugs();
   assert.equal(slugs.length, modules.length);
-  assert.deepEqual(slugs, modules.map((m) => m.slug));
+  assert.deepEqual(
+    slugs,
+    modules.map((m) => m.slug),
+  );
 });
 
 test("dsa-registry: getLesson round-trips for every registered lesson", () => {
   for (const mod of loadAllDsaModules()) {
     for (const lesson of mod.lessons) {
       const found = getLesson(mod.slug, lesson.slug);
-      assert.equal(found, lesson, `getLesson(${mod.slug}, ${lesson.slug}) mismatch`);
+      assert.equal(
+        found,
+        lesson,
+        `getLesson(${mod.slug}, ${lesson.slug}) mismatch`,
+      );
     }
   }
 });

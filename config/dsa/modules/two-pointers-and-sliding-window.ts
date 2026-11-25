@@ -12,8 +12,16 @@ export const twoPointersAndSlidingWindowModule: DsaModule = {
     "These two patterns turn O(n²) brute force into O(n) on arrays and strings. They are the backbone of medium-difficulty problems.",
   chapters: [
     { slug: "two-pointers", title: "Two pointers", lessonSlug: "two-pointers" },
-    { slug: "sliding-window", title: "Sliding window", lessonSlug: "sliding-window" },
-    { slug: "advanced-windows", title: "Advanced windows", lessonSlug: "advanced-windows" },
+    {
+      slug: "sliding-window",
+      title: "Sliding window",
+      lessonSlug: "sliding-window",
+    },
+    {
+      slug: "advanced-windows",
+      title: "Advanced windows",
+      lessonSlug: "advanced-windows",
+    },
   ],
   lessons: [
     {
@@ -52,7 +60,12 @@ export const twoPointersAndSlidingWindowModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "NeetCode two-pointer problems", url: "https://neetcode.io/practice" }],
+      sources: [
+        {
+          label: "NeetCode two-pointer problems",
+          url: "https://neetcode.io/practice",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z and NeetCode.",
     },
     {
@@ -76,20 +89,40 @@ export const twoPointersAndSlidingWindowModule: DsaModule = {
             {
               id: "f1",
               kind: "array",
-              caption: "Array [1,2,1,0,1,1,0], find longest subarray with at most 2 zeros. Window [0,0].",
-              state: { kind: "array", values: [1, 2, 1, 0, 1, 1, 0], range: [0, 0], pointers: [{ index: 0, label: "L" }, { index: 0, label: "R" }] },
+              caption:
+                "Array [1,2,1,0,1,1,0], find longest subarray with at most 2 zeros. Window [0,0].",
+              state: {
+                kind: "array",
+                values: [1, 2, 1, 0, 1, 1, 0],
+                range: [0, 0],
+                pointers: [
+                  { index: 0, label: "L" },
+                  { index: 0, label: "R" },
+                ],
+              },
             },
             {
               id: "f2",
               kind: "array",
               caption: "Expand R to index 3 (includes one zero). Window [0,3].",
-              state: { kind: "array", values: [1, 2, 1, 0, 1, 1, 0], range: [0, 3], highlight: [0, 1, 2, 3] },
+              state: {
+                kind: "array",
+                values: [1, 2, 1, 0, 1, 1, 0],
+                range: [0, 3],
+                highlight: [0, 1, 2, 3],
+              },
             },
             {
               id: "f3",
               kind: "array",
-              caption: "Expand R to index 6 (second zero). Window [0,6], zeros=2 OK.",
-              state: { kind: "array", values: [1, 2, 1, 0, 1, 1, 0], range: [0, 6], highlight: [0, 1, 2, 3, 4, 5, 6] },
+              caption:
+                "Expand R to index 6 (second zero). Window [0,6], zeros=2 OK.",
+              state: {
+                kind: "array",
+                values: [1, 2, 1, 0, 1, 1, 0],
+                range: [0, 6],
+                highlight: [0, 1, 2, 3, 4, 5, 6],
+              },
             },
           ],
         },
@@ -116,7 +149,12 @@ export const twoPointersAndSlidingWindowModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "NeetCode sliding window problems", url: "https://neetcode.io/practice" }],
+      sources: [
+        {
+          label: "NeetCode sliding window problems",
+          url: "https://neetcode.io/practice",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z and NeetCode.",
     },
     {
@@ -150,7 +188,12 @@ export const twoPointersAndSlidingWindowModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "NeetCode sliding window problems", url: "https://neetcode.io/practice" }],
+      sources: [
+        {
+          label: "NeetCode sliding window problems",
+          url: "https://neetcode.io/practice",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z and NeetCode.",
     },
   ],
@@ -158,7 +201,9 @@ export const twoPointersAndSlidingWindowModule: DsaModule = {
     brief:
       "Variable window: expand R, and shrink L while the constraint is violated. The start code never shrinks L. Fix it.",
     startState: {
-      data: { code: "for (let right = 0; right < s.length; right++) { set.add(s[right]); best = Math.max(best, right-left+1); }" },
+      data: {
+        code: "for (let right = 0; right < s.length; right++) { set.add(s[right]); best = Math.max(best, right-left+1); }",
+      },
       completedSteps: [],
       criteriaMet: [],
       attempts: 0,
@@ -166,7 +211,9 @@ export const twoPointersAndSlidingWindowModule: DsaModule = {
       updatedAt: new Date().toISOString(),
     },
     solutionState: {
-      data: { code: "for (let right = 0; right < s.length; right++) { while (set.has(s[right])) { set.delete(s[left]); left++; } set.add(s[right]); best = Math.max(best, right-left+1); }" },
+      data: {
+        code: "for (let right = 0; right < s.length; right++) { while (set.has(s[right])) { set.delete(s[left]); left++; } set.add(s[right]); best = Math.max(best, right-left+1); }",
+      },
       completedSteps: ["shrink"],
       criteriaMet: ["shrinks-left"],
       attempts: 1,
@@ -177,12 +224,16 @@ export const twoPointersAndSlidingWindowModule: DsaModule = {
       {
         id: "shrink",
         title: "Shrink while invalid",
-        brief: "Add a while loop that removes s[left] and increments left while the constraint holds.",
+        brief:
+          "Add a while loop that removes s[left] and increments left while the constraint holds.",
         hint: "The window must stay valid; never let a duplicate survive.",
         reveal: "while (set.has(s[right])) { set.delete(s[left]); left++; }",
         check: (s) => {
           const d = s.data as { code: string };
-          return { passed: d.code.includes("while (set.has"), progress: d.code.includes("while (set.has") ? "1/1" : "0/1" };
+          return {
+            passed: d.code.includes("while (set.has"),
+            progress: d.code.includes("while (set.has") ? "1/1" : "0/1",
+          };
         },
       },
     ],
@@ -195,7 +246,8 @@ export const twoPointersAndSlidingWindowModule: DsaModule = {
           const d = s.data as { code: string };
           return d.code.includes("while (set.has");
         },
-        explain: "Without shrinking, the window grows forever and counts duplicates.",
+        explain:
+          "Without shrinking, the window grows forever and counts duplicates.",
       },
     ],
   },

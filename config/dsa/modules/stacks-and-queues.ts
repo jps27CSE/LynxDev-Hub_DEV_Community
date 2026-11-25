@@ -13,7 +13,11 @@ export const stacksAndQueuesModule: DsaModule = {
   chapters: [
     { slug: "stack", title: "Stack", lessonSlug: "stack" },
     { slug: "queue", title: "Queue", lessonSlug: "queue" },
-    { slug: "monotonic", title: "Monotonic stack", lessonSlug: "monotonic-stack" },
+    {
+      slug: "monotonic",
+      title: "Monotonic stack",
+      lessonSlug: "monotonic-stack",
+    },
     { slug: "lru", title: "LRU cache", lessonSlug: "lru-cache" },
   ],
   lessons: [
@@ -59,7 +63,10 @@ export const stacksAndQueuesModule: DsaModule = {
           solution:
             "class MinStack {\n  constructor() { this.stack = []; this.mins = []; }\n  push(x) {\n    this.stack.push(x);\n    if (this.mins.length === 0 || x <= this.mins[this.mins.length - 1]) this.mins.push(x);\n  }\n  pop() {\n    const x = this.stack.pop();\n    if (x === this.mins[this.mins.length - 1]) this.mins.pop();\n    return x;\n  }\n  top() { return this.stack[this.stack.length - 1]; }\n  getMin() { return this.mins[this.mins.length - 1]; }\n}\n\nconst s = new MinStack();\ns.push(3); s.push(1); s.push(2);\nconsole.log(s.getMin()); // 1",
           tests: [
-            { input: "const s=new MinStack(); s.push(5); s.getMin()", expected: "5" },
+            {
+              input: "const s=new MinStack(); s.push(5); s.getMin()",
+              expected: "5",
+            },
           ],
         },
         {
@@ -71,7 +78,9 @@ export const stacksAndQueuesModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Stack (VisuAlgo)", url: "https://visualgo.net/en/list" }],
+      sources: [
+        { label: "Stack (VisuAlgo)", url: "https://visualgo.net/en/list" },
+      ],
       attribution: "Synthesis of Striver's A2Z stacks section.",
     },
     {
@@ -116,7 +125,11 @@ export const stacksAndQueuesModule: DsaModule = {
           solution:
             "class Queue {\n  constructor() { this.in = []; this.out = []; }\n  enqueue(x) { this.in.push(x); }\n  dequeue() {\n    if (this.out.length === 0) while (this.in.length) this.out.push(this.in.pop());\n    return this.out.pop();\n  }\n  front() {\n    if (this.out.length === 0) while (this.in.length) this.out.push(this.in.pop());\n    return this.out[this.out.length - 1];\n  }\n}\n\nconst q = new Queue();\nq.enqueue(1); q.enqueue(2);\nconsole.log(q.dequeue()); // 1",
           tests: [
-            { input: "const q=new Queue(); q.enqueue(1); q.enqueue(2); q.dequeue(); q.dequeue()", expected: "2" },
+            {
+              input:
+                "const q=new Queue(); q.enqueue(1); q.enqueue(2); q.dequeue(); q.dequeue()",
+              expected: "2",
+            },
           ],
         },
         {
@@ -128,7 +141,9 @@ export const stacksAndQueuesModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Queue (VisuAlgo)", url: "https://visualgo.net/en/list" }],
+      sources: [
+        { label: "Queue (VisuAlgo)", url: "https://visualgo.net/en/list" },
+      ],
       attribution: "Synthesis of Striver's A2Z queues section.",
     },
     {
@@ -162,7 +177,9 @@ export const stacksAndQueuesModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Monotonic stack (LeetCode)", url: "https://leetcode.com" }],
+      sources: [
+        { label: "Monotonic stack (LeetCode)", url: "https://leetcode.com" },
+      ],
       attribution: "Synthesis of Striver's A2Z stacks section.",
     },
     {
@@ -183,7 +200,11 @@ export const stacksAndQueuesModule: DsaModule = {
           solution:
             "class LRUCache {\n  constructor(capacity) { this.cap = capacity; this.map = new Map(); }\n  get(key) {\n    if (!this.map.has(key)) return -1;\n    const v = this.map.get(key);\n    this.map.delete(key);\n    this.map.set(key, v);\n    return v;\n  }\n  put(key, value) {\n    if (this.map.has(key)) this.map.delete(key);\n    this.map.set(key, value);\n    if (this.map.size > this.cap) {\n      const first = this.map.keys().next().value;\n      this.map.delete(first);\n    }\n  }\n}\n\nconst c = new LRUCache(2);\nc.put(1, 1); c.put(2, 2);\nconsole.log(c.get(1)); // 1",
           tests: [
-            { input: "const c=new LRUCache(1); c.put(1,1); c.put(2,2); c.get(1)", expected: "-1" },
+            {
+              input:
+                "const c=new LRUCache(1); c.put(1,1); c.put(2,2); c.get(1)",
+              expected: "-1",
+            },
           ],
         },
         {
@@ -195,7 +216,12 @@ export const stacksAndQueuesModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "LRU cache (LeetCode 146)", url: "https://leetcode.com/problems/lru-cache/" }],
+      sources: [
+        {
+          label: "LRU cache (LeetCode 146)",
+          url: "https://leetcode.com/problems/lru-cache/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z and LeetCode.",
     },
   ],

@@ -6,14 +6,19 @@ export const searchingModule: DsaModule = {
   part: 1,
   partTitle: "Core data structures",
   title: "Searching",
-  description: "Linear search, binary search, and searching on the answer space.",
+  description:
+    "Linear search, binary search, and searching on the answer space.",
   kind: "lesson+task",
   story:
     "A lookup that scans 10⁶ rows per request is 10⁶ operations you did not need to do.",
   chapters: [
     { slug: "linear", title: "Linear search", lessonSlug: "linear-search" },
     { slug: "binary", title: "Binary search", lessonSlug: "binary-search" },
-    { slug: "search-on-answer", title: "Search on answer", lessonSlug: "search-on-answer" },
+    {
+      slug: "search-on-answer",
+      title: "Search on answer",
+      lessonSlug: "search-on-answer",
+    },
   ],
   lessons: [
     {
@@ -46,7 +51,12 @@ export const searchingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
+      sources: [
+        {
+          label: "Striver's A2Z DSA Sheet",
+          url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z searching section.",
     },
     {
@@ -65,7 +75,8 @@ export const searchingModule: DsaModule = {
             {
               id: "f1",
               kind: "array",
-              caption: "Array [1,3,5,7,9,11]. Target 7. Range covers the whole array.",
+              caption:
+                "Array [1,3,5,7,9,11]. Target 7. Range covers the whole array.",
               state: {
                 kind: "array",
                 values: [1, 3, 5, 7, 9, 11],
@@ -77,7 +88,8 @@ export const searchingModule: DsaModule = {
             {
               id: "f2",
               kind: "array",
-              caption: "arr[mid]=5 < 7, so search the right half. New range [3,5].",
+              caption:
+                "arr[mid]=5 < 7, so search the right half. New range [3,5].",
               state: {
                 kind: "array",
                 values: [1, 3, 5, 7, 9, 11],
@@ -89,7 +101,8 @@ export const searchingModule: DsaModule = {
             {
               id: "f3",
               kind: "array",
-              caption: "arr[mid]=9 > 7, so search the left half. New range [3,3].",
+              caption:
+                "arr[mid]=9 > 7, so search the left half. New range [3,3].",
               state: {
                 kind: "array",
                 values: [1, 3, 5, 7, 9, 11],
@@ -133,7 +146,12 @@ export const searchingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
+      sources: [
+        {
+          label: "Striver's A2Z DSA Sheet",
+          url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z binary search section.",
     },
     {
@@ -167,7 +185,12 @@ export const searchingModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
+      sources: [
+        {
+          label: "Striver's A2Z DSA Sheet",
+          url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z binary search on answer.",
     },
   ],
@@ -183,7 +206,9 @@ export const searchingModule: DsaModule = {
       updatedAt: new Date().toISOString(),
     },
     solutionState: {
-      data: { code: "while (lo <= hi) { const mid = Math.floor((lo+hi)/2); ... }" },
+      data: {
+        code: "while (lo <= hi) { const mid = Math.floor((lo+hi)/2); ... }",
+      },
       completedSteps: ["fix-mid"],
       criteriaMet: ["mid-integer"],
       attempts: 1,

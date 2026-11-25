@@ -45,7 +45,14 @@ export function GraphVisualizer({ state }: { state: State }) {
         );
       })}
       <defs>
-        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <marker
+          id="arrow"
+          markerWidth="8"
+          markerHeight="8"
+          refX="6"
+          refY="3"
+          orient="auto"
+        >
           <path d="M0,0 L0,6 L6,3 z" fill="currentColor" />
         </marker>
       </defs>
@@ -59,7 +66,11 @@ export function GraphVisualizer({ state }: { state: State }) {
               cx={p.x}
               cy={p.y}
               r={16}
-              className={hi ? "fill-emerald-500/20 stroke-emerald-500" : "fill-card stroke-border"}
+              className={
+                hi
+                  ? "fill-emerald-500/20 stroke-emerald-500"
+                  : "fill-card stroke-border"
+              }
               strokeWidth={2}
             />
             <text

@@ -12,14 +12,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   /**
-   * The build-task workspace fills the viewport with resizable panels, so the
-   * fixed help button (bottom-right, 40px) lands on top of the right rail and
-   * hides the last columns of the results table. It is the only surface with
-   * no free corner, so it opts out instead of padding content out from under it.
+   * Two surfaces fill the viewport with their own scroll container and have no
+   * free corner for a fixed 40px button:
+   *
+   * - the system-design build task (resizable panels, no margin to spare),
+   * - the DSA lesson (a third column of contents links ends at the bottom-right
+   *   of the viewport, exactly where the button floats).
+   *
+   * They opt out instead of padding content out from under a control that has
+   * nothing to do with the page.
    */
-  const isFullViewportWorkspace = /\/system-design\/[^/]+\/task(?:\/|$)/.test(
-    pathname ?? "",
-  );
+  const isFullViewportWorkspace =
+    /\/system-design\/[^/]+\/task(?:\/|$)/.test(pathname ?? "") ||
+    /\/dsa\/[^/]+\/lesson\/[^/]+(?:\/|$)/.test(pathname ?? "");
 
   useEffect(() => {
     try {

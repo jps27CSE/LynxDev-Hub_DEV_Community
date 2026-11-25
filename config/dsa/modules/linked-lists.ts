@@ -6,14 +6,19 @@ export const linkedListsModule: DsaModule = {
   part: 1,
   partTitle: "Core data structures",
   title: "Linked Lists",
-  description: "Singly, doubly, circular lists; reverse; cycle detection; merge.",
+  description:
+    "Singly, doubly, circular lists; reverse; cycle detection; merge.",
   kind: "lesson+task",
   story:
     "When you need O(1) insert/delete at the front and don't need random access, a linked list beats an array.",
   chapters: [
     { slug: "basics", title: "Basics", lessonSlug: "basics" },
     { slug: "operations", title: "Operations", lessonSlug: "operations" },
-    { slug: "cycle-detection", title: "Cycle detection", lessonSlug: "cycle-detection" },
+    {
+      slug: "cycle-detection",
+      title: "Cycle detection",
+      lessonSlug: "cycle-detection",
+    },
     { slug: "merge", title: "Merge lists", lessonSlug: "merge-lists" },
   ],
   lessons: [
@@ -34,7 +39,15 @@ export const linkedListsModule: DsaModule = {
               id: "f1",
               kind: "linkedlist",
               caption: "List: 1 → 2 → 3 → null. Head points to node 1.",
-              state: { kind: "linkedlist", nodes: [{ value: 1, next: "2" }, { value: 2, next: "3" }, { value: 3 }], head: "1" },
+              state: {
+                kind: "linkedlist",
+                nodes: [
+                  { value: 1, next: "2" },
+                  { value: 2, next: "3" },
+                  { value: 3 },
+                ],
+                head: "1",
+              },
             },
           ],
         },
@@ -57,7 +70,12 @@ export const linkedListsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Linked list (VisuAlgo)", url: "https://visualgo.net/en/list" }],
+      sources: [
+        {
+          label: "Linked list (VisuAlgo)",
+          url: "https://visualgo.net/en/list",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z linked list section.",
     },
     {
@@ -91,7 +109,12 @@ export const linkedListsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Linked list (VisuAlgo)", url: "https://visualgo.net/en/list" }],
+      sources: [
+        {
+          label: "Linked list (VisuAlgo)",
+          url: "https://visualgo.net/en/list",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z linked list section.",
     },
     {
@@ -125,7 +148,12 @@ export const linkedListsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Floyd's cycle (VisuAlgo)", url: "https://visualgo.net/en/list" }],
+      sources: [
+        {
+          label: "Floyd's cycle (VisuAlgo)",
+          url: "https://visualgo.net/en/list",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z linked list section.",
     },
     {
@@ -159,7 +187,12 @@ export const linkedListsModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Merge lists (VisuAlgo)", url: "https://visualgo.net/en/list" }],
+      sources: [
+        {
+          label: "Merge lists (VisuAlgo)",
+          url: "https://visualgo.net/en/list",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z linked list section.",
     },
   ],
@@ -188,10 +221,14 @@ export const linkedListsModule: DsaModule = {
         title: "Rewire pointers",
         brief: "Use prev/curr/next to reverse links in place.",
         hint: "Save next, point curr.next to prev, advance all three.",
-        reveal: "const next = curr.next; curr.next = prev; prev = curr; curr = next;",
+        reveal:
+          "const next = curr.next; curr.next = prev; prev = curr; curr = next;",
         check: (s) => {
           const d = s.data as { approach: string };
-          return { passed: d.approach === "rewire-pointers", progress: d.approach === "rewire-pointers" ? "1/1" : "0/1" };
+          return {
+            passed: d.approach === "rewire-pointers",
+            progress: d.approach === "rewire-pointers" ? "1/1" : "0/1",
+          };
         },
       },
     ],

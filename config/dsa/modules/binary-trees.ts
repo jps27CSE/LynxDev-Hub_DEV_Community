@@ -3,8 +3,8 @@ import type { DsaModule } from "../types";
 export const binaryTreesModule: DsaModule = {
   slug: "binary-trees",
   order: 5,
-  part: 2,
-  partTitle: "Patterns",
+  part: 1,
+  partTitle: "Core data structures",
   title: "Binary Trees",
   description:
     "Tree representation, traversals, height, diameter, and lowest common ancestor.",
@@ -12,9 +12,17 @@ export const binaryTreesModule: DsaModule = {
   story:
     "Hierarchical data (org charts, file systems, DOM) is a tree. Knowing the traversals is knowing how to walk any of them.",
   chapters: [
-    { slug: "representation", title: "Representation", lessonSlug: "representation" },
+    {
+      slug: "representation",
+      title: "Representation",
+      lessonSlug: "representation",
+    },
     { slug: "traversals", title: "Traversals", lessonSlug: "traversals" },
-    { slug: "height-diameter", title: "Height & diameter", lessonSlug: "height-and-diameter" },
+    {
+      slug: "height-diameter",
+      title: "Height & diameter",
+      lessonSlug: "height-and-diameter",
+    },
   ],
   lessons: [
     {
@@ -45,7 +53,12 @@ export const binaryTreesModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
+      sources: [
+        {
+          label: "Striver's A2Z DSA Sheet",
+          url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z binary trees section.",
     },
     {
@@ -64,7 +77,8 @@ export const binaryTreesModule: DsaModule = {
             {
               id: "f1",
               kind: "tree",
-              caption: "Tree: root 2, left 1, right 3. In-order visits left, root, right.",
+              caption:
+                "Tree: root 2, left 1, right 3. In-order visits left, root, right.",
               state: {
                 kind: "tree",
                 nodes: [
@@ -144,7 +158,12 @@ export const binaryTreesModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
+      sources: [
+        {
+          label: "Striver's A2Z DSA Sheet",
+          url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z binary trees section.",
     },
     {
@@ -178,7 +197,12 @@ export const binaryTreesModule: DsaModule = {
           ],
         },
       ],
-      sources: [{ label: "Striver's A2Z DSA Sheet", url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" }],
+      sources: [
+        {
+          label: "Striver's A2Z DSA Sheet",
+          url: "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
+        },
+      ],
       attribution: "Synthesis of Striver's A2Z binary trees section.",
     },
   ],
@@ -226,7 +250,8 @@ export const binaryTreesModule: DsaModule = {
           const d = s.data as { order: string };
           return d.order === "left-root-right";
         },
-        explain: "In-order must visit left before root to yield sorted order on a BST.",
+        explain:
+          "In-order must visit left before root to yield sorted order on a BST.",
       },
     ],
   },
