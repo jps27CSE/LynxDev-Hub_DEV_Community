@@ -90,8 +90,8 @@ export const dynamicProgrammingModule: DsaModule = {
       ],
       sources: [
         {
-          label: "DP (Striver)",
-          url: "https://takeuforward.org/dynamic-programming/",
+          label: "Dynamic programming (Tech Interview Handbook)",
+          url: "https://www.techinterviewhandbook.org/algorithms/dynamic-programming/",
         },
       ],
       attribution: "Synthesis of Striver's A2Z DP section.",
@@ -128,8 +128,8 @@ export const dynamicProgrammingModule: DsaModule = {
       ],
       sources: [
         {
-          label: "DP (Striver)",
-          url: "https://takeuforward.org/dynamic-programming/",
+          label: "Dynamic programming (Tech Interview Handbook)",
+          url: "https://www.techinterviewhandbook.org/algorithms/dynamic-programming/",
         },
       ],
       attribution: "Synthesis of Striver's A2Z DP section.",
@@ -167,8 +167,8 @@ export const dynamicProgrammingModule: DsaModule = {
       ],
       sources: [
         {
-          label: "Knapsack (Striver)",
-          url: "https://takeuforward.org/dynamic-programming/",
+          label: "0/1 knapsack (GeeksforGeeks)",
+          url: "https://www.geeksforgeeks.org/0-1-knapsack-problem-dp-10/",
         },
       ],
       attribution: "Synthesis of Striver's A2Z DP section.",

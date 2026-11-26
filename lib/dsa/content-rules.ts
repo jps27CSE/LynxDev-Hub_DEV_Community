@@ -32,6 +32,76 @@ const VALID_VISUAL_KINDS = new Set<DsaFrame["kind"]>([
   "heap",
 ]);
 
+/* -------------------------------------------------------------------------- */
+/* Depth                                                                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A word floor is a proxy, not a proof. It separates a 60-word definition from
+ * a lesson that explains; it cannot separate an explanation from 900 words of
+ * repetition. The slice review is the real gate. This floor exists to stop the
+ * silent regression: a lesson rewritten down to four sentences in a later
+ * "cleanup" gets caught here instead of shipping.
+ */
+export const DEPTH_FLOOR = 650;
+export const DEPTH_TARGET = 900;
+
+/**
+ * The ratchet. A lesson listed here must meet the floor or the suite fails;
+ * an unlisted lesson warns instead, so unfinished work never makes the tree
+ * red. Keys are `<module>/<lesson>`.
+ *
+ * When this set contains every lesson, delete it and make the floor
+ * unconditional — a ratchet that outlives its purpose is just a list to
+ * forget.
+ */
+export const DEEPENED_LESSONS = new Set<string>([
+  "foundations/what-is-dsa",
+  "foundations/measuring-cost",
+  "foundations/recursion-basics",
+]);
+
+const PROSE_KINDS = new Set<DsaLessonSection["kind"]>([
+  "scenario",
+  "concept",
+  "compare",
+  "recap",
+]);
+
+/** Strips tags so a word count measures words and not markup. */
+export function countWords(html: string): number {
+  const text = html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&[a-z]+;|&#\d+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (text.length === 0) return 0;
+  return text.split(" ").length;
+}
+
+function sectionProse(section: DsaLessonSection): string {
+  switch (section.kind) {
+    case "scenario":
+    case "concept":
+    case "compare":
+      return section.body;
+    case "recap":
+      return section.points.join(" ");
+    default:
+      return "";
+  }
+}
+
+export function lessonWordCount(lesson: DsaLesson): number {
+  return lesson.sections.reduce(
+    (total, section) =>
+      PROSE_KINDS.has(section.kind)
+        ? total + countWords(sectionProse(section))
+        : total,
+    0,
+  );
+}
+
 export function collectChapterLeaves(
   chapters: DsaChapter[] | undefined,
   into: DsaChapter[] = [],
@@ -46,8 +116,12 @@ export function collectChapterLeaves(
   return into;
 }
 
-export function inspectModuleContent(module: DsaModule): ContentFinding[] {
+export function inspectModuleContent(
+  module: DsaModule,
+  deepened: ReadonlySet<string> = DEEPENED_LESSONS,
+): ContentFinding[] {
   const findings: ContentFinding[] = [];
+  const thin: string[] = [];
   const lessonSlugs = new Set(module.lessons.map((l) => l.slug));
   const leaves = collectChapterLeaves(module.chapters);
   const binding =
@@ -182,8 +256,92 @@ export function inspectModuleContent(module: DsaModule): ContentFinding[] {
         });
       }
     }
+
+    // Depth is checked only for lessons already converted. An unconverted
+    // lesson is collected for the module-level warning below instead, so a
+    // half-finished content pass never turns the suite red.
+    const key = `${module.slug}/${lesson.slug}`;
+    const words = lessonWordCount(lesson);
+    if (deepened.has(key)) {
+      if (words < DEPTH_FLOOR) {
+        findings.push({
+          level: "fail",
+          code: "lesson-depth",
+          message: `${key}: ${words} prose words, floor is ${DEPTH_FLOOR}`,
+        });
+      }
+      if (sources.length < 2) {
+        findings.push({
+          level: "fail",
+          code: "lesson-sources-thin",
+          message: `${key}: ${sources.length} source(s), a deep lesson needs at least 2`,
+        });
+      }
+      const explanatory = lesson.sections.filter(
+        (section) =>
+          section.kind === "scenario" ||
+          section.kind === "concept" ||
+          section.kind === "compare",
+      ).length;
+      if (explanatory < 3) {
+        findings.push({
+          level: "fail",
+          code: "lesson-theory-thin",
+          message: `${key}: ${explanatory} explanatory section(s), a deep lesson needs at least 3`,
+        });
+      }
+      const recap = lesson.sections.find((section) => section.kind === "recap");
+      const recapPoints = recap?.kind === "recap" ? recap.points.length : 0;
+      if (recapPoints < 3) {
+        findings.push({
+          level: "fail",
+          code: "recap-thin",
+          message: `${key}: recap has ${recapPoints} point(s), needs at least 3`,
+        });
+      }
+    } else {
+      thin.push(`${lesson.slug} (${words})`);
+    }
   }
 
+  if (thin.length > 0) {
+    const done = module.lessons.length - thin.length;
+    findings.push({
+      level: "warn",
+      code: "module-not-deepened",
+      message: `${module.slug}: ${done} of ${module.lessons.length} lessons deepened; thin: ${thin.join(", ")}`,
+    });
+  }
+
+  return findings;
+}
+
+/**
+ * The ledger is only a gate if its keys still name real lessons. A renamed or
+ * deleted lesson would otherwise leave the ledger guarding nothing, and the
+ * suite would stay green while depth quietly regressed.
+ */
+export function inspectDepthLedger(
+  modules: DsaModule[],
+  deepened: ReadonlySet<string> = DEEPENED_LESSONS,
+): ContentFinding[] {
+  const present = new Set<string>();
+  for (const module of modules) {
+    for (const lesson of module.lessons) {
+      present.add(`${module.slug}/${lesson.slug}`);
+    }
+  }
+
+  const findings: ContentFinding[] = [];
+  for (const key of deepened) {
+    if (!present.has(key)) {
+      findings.push({
+        level: "fail",
+        code: "depth-ledger-stale",
+        message: `${key}: listed as deepened, but no such lesson exists`,
+      });
+    }
+  }
   return findings;
 }
 

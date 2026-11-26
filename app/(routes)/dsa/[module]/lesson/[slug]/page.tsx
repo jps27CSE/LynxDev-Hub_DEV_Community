@@ -5,9 +5,9 @@ import DsaLessonView from "@/components/dsa/DsaLessonView";
 import {
   lessonNeighbours,
   lessonOrder,
-  lessonWordCount,
   readingMinutes,
 } from "@/lib/dsa/view-model";
+import { lessonWordCount } from "@/lib/dsa/content-rules";
 
 interface LessonPageProps {
   params: Promise<{ module: string; slug: string }>;

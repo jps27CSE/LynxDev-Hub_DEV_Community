@@ -61,7 +61,10 @@ export const triesModule: DsaModule = {
         },
       ],
       sources: [
-        { label: "Trie (VisuAlgo)", url: "https://visualgo.net/en/trie" },
+        {
+          label: "Trie (Princeton Algorithms, §5.2)",
+          url: "https://algs4.cs.princeton.edu/52trie/",
+        },
       ],
       attribution: "Synthesis of Striver's A2Z tries section.",
     },

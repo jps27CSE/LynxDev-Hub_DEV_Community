@@ -27,7 +27,7 @@ import type {
   DsaLessonSection,
   DsaModule,
 } from "@/config/dsa/types";
-import { collectChapterLeaves } from "./content-rules";
+import { collectChapterLeaves, lessonWordCount } from "./content-rules";
 
 /* -------------------------------------------------------------------------- */
 /* Reading cost                                                               */
@@ -35,47 +35,6 @@ import { collectChapterLeaves } from "./content-rules";
 
 /** Values chosen for prose, not for code — a code block is not 200 wpm of reading. */
 const WORDS_PER_MINUTE = 200;
-
-const PROSE_KINDS = new Set<DsaLessonSection["kind"]>([
-  "scenario",
-  "concept",
-  "compare",
-  "recap",
-]);
-
-/** Strips tags so a word count measures words and not markup. */
-export function countWords(html: string): number {
-  const text = html
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&[a-z]+;|&#\d+;/gi, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (text.length === 0) return 0;
-  return text.split(" ").length;
-}
-
-function sectionProse(section: DsaLessonSection): string {
-  switch (section.kind) {
-    case "scenario":
-    case "concept":
-    case "compare":
-      return section.body;
-    case "recap":
-      return section.points.join(" ");
-    default:
-      return "";
-  }
-}
-
-export function lessonWordCount(lesson: DsaLesson): number {
-  return lesson.sections.reduce(
-    (total, section) =>
-      PROSE_KINDS.has(section.kind)
-        ? total + countWords(sectionProse(section))
-        : total,
-    0,
-  );
-}
 
 /** Always at least 1: a lesson that says "1 min" is honest, "0 min" is broken. */
 export function readingMinutes(words: number): number {

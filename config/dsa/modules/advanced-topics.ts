@@ -58,8 +58,8 @@ export const advancedTopicsModule: DsaModule = {
       ],
       sources: [
         {
-          label: "Bit manipulation (Striver)",
-          url: "https://takeuforward.org/bit-manipulation/",
+          label: "Bit manipulation (CP-Algorithms)",
+          url: "https://cp-algorithms.com/algebra/bit-manipulation.html",
         },
       ],
       attribution: "Synthesis of Striver's A2Z bit manipulation section.",
@@ -143,8 +143,8 @@ export const advancedTopicsModule: DsaModule = {
       ],
       sources: [
         {
-          label: "KMP (CP-Algorithms)",
-          url: "https://cp-algorithms.com/string/kmp.html",
+          label: "Prefix function / KMP (CP-Algorithms)",
+          url: "https://cp-algorithms.com/string/prefix-function.html",
         },
       ],
       attribution: "Synthesis of Striver's A2Z and CP-Algorithms.",

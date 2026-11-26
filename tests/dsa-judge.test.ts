@@ -9,16 +9,15 @@ import {
   normalizeExpected,
 } from "../lib/dsa/judge";
 import {
-  countWords,
   lessonNeighbours,
   lessonOrder,
-  lessonWordCount,
   nextIncompleteLesson,
   progressRatio,
   readingMinutes,
   toLessonSummary,
   toModuleOverview,
 } from "../lib/dsa/view-model";
+import { countWords, lessonWordCount } from "../lib/dsa/content-rules";
 import { loadAllDsaModules } from "../config/dsa/registry";
 
 /* -------------------------------------------------------------------------- */

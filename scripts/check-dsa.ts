@@ -8,6 +8,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { getAllModuleSlugs, getModule } from "../config/dsa/registry";
 import {
+  DEEPENED_LESSONS,
+  DEPTH_FLOOR,
+  DEPTH_TARGET,
+  inspectDepthLedger,
   inspectModuleContent,
   inspectModuleOrder,
 } from "../lib/dsa/content-rules";
@@ -118,7 +122,8 @@ async function main(): Promise<void> {
   console.log("\n--- content model ---");
   for (const finding of [
     ...inspectModuleOrder(modules),
-    ...modules.flatMap(inspectModuleContent),
+    ...inspectDepthLedger(modules),
+    ...modules.flatMap((mod) => inspectModuleContent(mod)),
   ]) {
     if (finding.level === "fail") {
       fail(`[${finding.code}] ${finding.message}`);
@@ -127,6 +132,19 @@ async function main(): Promise<void> {
     }
   }
   ok("content model checked");
+
+  const totalLessons = modules.reduce((n, mod) => n + mod.lessons.length, 0);
+  const deepened = modules.reduce(
+    (n, mod) =>
+      n +
+      mod.lessons.filter((lesson) =>
+        DEEPENED_LESSONS.has(`${mod.slug}/${lesson.slug}`),
+      ).length,
+    0,
+  );
+  ok(
+    `depth: ${deepened} of ${totalLessons} lessons deepened (floor ${DEPTH_FLOOR}, target ${DEPTH_TARGET})`,
+  );
 
   // ---- config -> route (static) ----
   console.log("\n--- config -> route (must be STATIC) ---");
