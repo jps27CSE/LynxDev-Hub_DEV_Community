@@ -9,8 +9,8 @@ that teach the mechanism, the invariant, the cost derivation and the failure
 modes — and give every lesson 2–3 free sources that are specific to it and
 return 200.
 
-**Status:** Approved 2026-11-26. **Slice 0 implemented** (gate, dead links,
-foundations). Uncommitted pending manual test. Slices 1–7 pending.
+**Status:** Approved 2026-11-26. Slice 0 committed (`1840160`). **Slice 1
+implemented** (9 lessons). Uncommitted pending manual test. Slices 2–7 pending.
 
 **Builds on:** `.agent/plans/26-dsa-module.md` (routes, schema, engine, visual
 player). This plan changes content, one content-rule gate, and the word-count
@@ -610,3 +610,108 @@ Sources added (all curl 200 on 2026-11-26):
 3. Every deep lesson uses exactly 2 sources rather than 2–3. The block stays
    one line per source on desktop; a third link is added only when it says
    something the other two do not.
+
+### Slice 1 — Part 0/1 basics (2026-11-27)
+
+**Status:** implemented, verified, uncommitted. Awaiting manual test.
+
+#### 9.6 Lessons
+
+| Lesson | Words before | Words after | Sources | Sections | Before bytes | After bytes |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `counting-ops` | 62 | 959 | 2 | 8 | 50,138 | 69,069 |
+| `recurrences` | 64 | 986 | 2 | 8 | 46,036 | 70,242 |
+| `number-basics` | 62 | 937 | 3 | 8 | 50,064 | 70,148 |
+| `array-basics` | 85 | 877 | 2 | 8 | 50,892 | 67,579 |
+| `two-pointers` | 62 | 861 | 2 | 9 | 58,516 | 76,194 |
+| `prefix-sums` | 48 | 899 | 2 | 8 | 50,766 | 68,338 |
+| `linear-search` | 48 | 847 | 2 | 8 | 49,261 | 65,625 |
+| `binary-search` | 54 | 876 | 2 | 9 | 59,472 | 78,187 |
+| `search-on-answer` | 56 | 936 | 2 | 8 | 50,172 | 69,304 |
+
+**541 → 8,178 prose words** across the nine lessons (average 909). Every
+lesson has 5 explanatory sections (scenario + concept/compare), a 4-point
+recap, and a worked trace:
+
+- `counting-ops` counts a triangular loop and a halving loop, derives
+  `n(n+1)/2` and `⌈log₂ n⌉`, then covers worst/average/amortised cost and the
+  hidden loops in `includes`, `slice`, `splice` and string concatenation.
+- `recurrences` reads four recurrences off code, expands merge sort's
+  recursion tree, states the Master theorem with its regularity condition,
+  and shows why `T(n − 1)` and `T(n/3) + T(2n/3)` are outside its shape.
+- `number-basics` proves the gcd identity from common divisors, traces Euclid
+  on 48/18, marks the sieve from `p²`, and derives binary exponentiation from
+  the binary digits of the exponent.
+- `array-basics` derives `base + i·size`, prices the shifting insert/delete,
+  explains amortised append and UTF-16 string indexing, and states the
+  in-place reversal invariant.
+- `two-pointers` states the discard invariant, traces the target-9 and
+  target-100 cases, and contrasts the sorted `O(1)`-space scan with a hash
+  map's `O(n)` space.
+- `prefix-sums` defines the leading zero, derives `prefix[r + 1] − prefix[l]`,
+  prices build-once/query-many, and limits the technique to invertible
+  operations on static data.
+- `linear-search` proves the scan invariant, separates best/worst/average,
+  and prices the break-even against building a hash set once.
+- `binary-search` traces a hit and a miss, proves the `[lo, hi]` invariant,
+  derives `⌊log₂ n⌋ + 1`, and breaks the loop in five classic ways.
+- `search-on-answer` turns Koko into a monotone predicate, traces the
+  boundary search, proves the answer stays in `[lo, hi]`, and separates
+  minimum from maximum templates.
+
+Sources: **19 refs, 14 distinct URLs**, all `curl` 200 on 2026-11-27 —
+Princeton 1.4 and MIT 6.006 (counting), Cornell CS 3110 and VisuAlgo
+(recurrences), three CP-Algorithms pages (number theory), Open Data
+Structures ch. 2 (arrays, linear search), Tech Interview Handbook (arrays,
+two pointers, prefix sums), and GFG pages for two pointers, prefix sums,
+linear search and binary search.
+
+#### 9.7 Verification
+
+- `npx tsc --noEmit`: clean.
+- `npm test`: **754 pass, 0 fail** (same total as slice 0 — no new rule cases;
+  the judge executes the widened authored tests, including the new
+  `powMod(-2, 3, 5)` case).
+- `npm run build`: compiled; all nine lesson routes prerender.
+- `npm run check:dsa`: all checks passed for 18 modules, **14 warnings**
+  (17 → 14), `depth: 12 of 59 lessons deepened (floor 650, target 900)`.
+- `npm run format:check`: green.
+- **Mutation:** `DEPTH_FLOOR` 650 → 1000 produced 12 `lesson-depth` failures
+  across 3 test cases, naming every converted lesson; `content-rules.ts` was
+  restored byte-identically (sha256 `e7b3f265…ce71f0`).
+- **Rendered page** (`binary-search`, dark, headless Chrome):
+  - 375 / 1280 / 1600 px: `scrollWidth === clientWidth`, zero horizontal
+    overflow.
+  - 1600 px: rail visible, **9 entries**, every anchor resolves; prose 661 px.
+  - 1280 px: rail and mobile disclosure both hidden, prose 661 px.
+  - 375 px: mobile disclosure visible and lists 3 lessons, prose 337 px.
+  - Read time 4 min; both sources render with their domains.
+- **Page bytes:** +17.7–24.2 KB per lesson (10–19× the prose), measured by
+  building HEAD's three module files first, then the slice tree.
+
+#### 9.8 Deviations and observations
+
+1. **Cornell CS 3110 replaces MIT 6.042** for `recurrences`. The 6.042 course
+   page is a general index; the Cornell lecture is specifically recursion
+   trees and the Master method, which is what the lesson teaches.
+2. **A content audit before hand-off fixed four errors the gate cannot see.**
+   - `⌊log₂ n⌋ + 1` was off by one on exact powers of two and contradicted the
+     lesson's own trace; it is now `⌈log₂ n⌉`.
+   - Naive Fibonacci was described as having `2ⁿ` nodes; the call count is
+     `Θ(φⁿ)` (bounded by `2ⁿ`).
+   - The two-pointer proof for target 100 claimed five comparisons; four
+     discards are four comparisons.
+   - `powMod` returned a negative remainder for a negative base. The solution
+     now normalises into `[0, m)`, and `powMod(-2, 3, 5) = 2` is an authored
+     test.
+   The audit also completed the maximum-feasible template (upper midpoint;
+   `lo = mid` with a floor midpoint loops when `hi = lo + 1`), stated Koko's
+   `h ≥ piles.length` guarantee behind the upper bound, and added the
+   off-by-one warnings for `prefix[r + 1] − prefix[l]` and `left < right`.
+3. **No gate change.** Slice 1 only adds nine ledger keys; the floor, rules
+   and warning shape are slice 0's.
+4. **No videos this pass**, per decision 5. `two-pointers` and `binary-search`
+   keep their existing visual players.
+5. The nine lessons are 847–986 words. `linear-search` (847) is just under
+   the 850 working aim and `prefix-sums` (899) just under the 900 target;
+   both are above the floor and complete on content, so neither was padded.

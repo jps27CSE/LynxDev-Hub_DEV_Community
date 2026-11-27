@@ -56,9 +56,20 @@ export const DEPTH_TARGET = 900;
  * forget.
  */
 export const DEEPENED_LESSONS = new Set<string>([
+  // slice 0
   "foundations/what-is-dsa",
   "foundations/measuring-cost",
   "foundations/recursion-basics",
+  // slice 1
+  "complexity-and-maths/counting-ops",
+  "complexity-and-maths/recurrences",
+  "complexity-and-maths/number-basics",
+  "arrays-and-strings/array-basics",
+  "arrays-and-strings/two-pointers",
+  "arrays-and-strings/prefix-sums",
+  "searching/linear-search",
+  "searching/binary-search",
+  "searching/search-on-answer",
 ]);
 
 const PROSE_KINDS = new Set<DsaLessonSection["kind"]>([
