@@ -70,6 +70,15 @@ export const DEEPENED_LESSONS = new Set<string>([
   "searching/linear-search",
   "searching/binary-search",
   "searching/search-on-answer",
+  // slice 2
+  "sorting/elementary-sorts",
+  "sorting/merge-sort",
+  "sorting/quick-sort",
+  "sorting/linear-sorts",
+  "hashing/hash-functions",
+  "hashing/collisions",
+  "hashing/maps-and-sets",
+  "hashing/frequency-patterns",
 ]);
 
 const PROSE_KINDS = new Set<DsaLessonSection["kind"]>([

@@ -715,3 +715,102 @@ linear search and binary search.
 5. The nine lessons are 847–986 words. `linear-search` (847) is just under
    the 850 working aim and `prefix-sums` (899) just under the 900 target;
    both are above the floor and complete on content, so neither was padded.
+
+### Slice 2 — sorting and hashing (2026-11-28)
+
+**Status:** implemented, verified, uncommitted. Awaiting manual test.
+
+#### 9.9 Lessons
+
+| Lesson                 | Words before | Words after | Sources | Sections | Before bytes | After bytes |
+| ---------------------- | -----------: | ----------: | ------: | -------: | -----------: | ----------: |
+| `elementary-sorts`     |          133 |       1,087 |       2 |        8 |       60,430 |      71,460 |
+| `merge-sort`           |           60 |         912 |       2 |        8 |       50,940 |      68,595 |
+| `quick-sort`           |           59 |         919 |       2 |        8 |       50,908 |      69,191 |
+| `linear-sorts`         |           75 |         880 |       2 |        8 |       51,654 |      67,879 |
+| `hash-functions`       |           49 |       1,023 |       2 |        8 |       49,875 |      69,471 |
+| `collisions`           |           65 |         865 |       2 |        8 |       45,742 |      67,810 |
+| `maps-and-sets`        |           52 |         989 |       2 |        9 |       50,273 |      71,576 |
+| `frequency-patterns`   |           42 |         863 |       2 |        8 |       50,601 |      68,637 |
+
+**535 → 7,538 prose words** across the eight lessons (average 942). Every
+lesson has at least 5 prose sections, a 4-point recap, and a worked trace:
+
+- `elementary-sorts` traces insertion, selection and bubble sort on the same
+  array, derives comparisons as `(n − 1) + inversions`, and separates
+  selection's `n − 1` swaps from its fixed `n(n − 1)/2` comparisons.
+- `merge-sort` expands `T(n) = 2T(n/2) + Θ(n)` as a tree with `n` per level,
+  states the merge invariant, and shows that `<=` versus `<` is the whole
+  stability argument.
+- `quick-sort` traces Lomuto on `[5, 2, 4, 6, 1, 3]`, derives the balanced and
+  unbalanced recurrences, and prices the all-equal case at `Θ(n²)`.
+- `linear-sorts` traces counting sort on `[4, 2, 2, 8, 3, 3, 1]` and LSD radix
+  on `[13, 21, 32, 11]`, then derives the `Ω(n log n)` comparison bound they
+  escape.
+- `hash-functions` traces the polynomial hash on `"abc"` at `m = 10`, shows
+  why a sum of codes merges anagrams, and derives the birthday bound
+  `k ≈ 1.18√m` (about 77,000 keys for a 32-bit hash).
+- `collisions` traces chaining at `m = 5` versus `m = 7` and linear probing
+  at `m = 7`, then prices both with Knuth's probe formulas (1.5 / 2.5 probes
+  at `α = 0.5`, 5.5 / 50.5 at `α = 0.9`).
+- `maps-and-sets` separates `Map` from an object (key coercion, prototype
+  leakage, iteration order), states SameValueZero, and traces two-sum to
+  `[0, 1]` in two iterations.
+- `frequency-patterns` traces Boyer–Moore on `[2, 2, 1, 1, 1, 2, 2]`, shows
+  why the verification pass is mandatory, and demonstrates the ambiguous
+  `join("")` count signature with `"aaaaaaaaaaab"` versus `"abbbbbbbbbbb"`.
+
+Sources: **16 refs, 10 distinct URLs**, all `curl` 200 on 2026-11-28 —
+Princeton 2.1, 2.2, 2.3 and 5.1, VisuAlgo sorting, Open Data Structures
+ch. 11 and ch. 5, CP-Algorithms string hashing, VisuAlgo hash table, and the
+Tech Interview Handbook hash-table chapter.
+
+#### 9.10 Verification
+
+- `npx tsc --noEmit`: clean.
+- `npm test`: **754 pass, 0 fail**. The judge executed 58 authored cases
+  (15 → 58), including the anagram-versus-sum hash pair, the
+  `[2, "zero", "eight"]` collision case, and the two 12-character strings the
+  count signature must keep apart.
+- `npm run build`: compiled; all eight lesson routes prerender.
+- `npm run check:dsa`: all checks passed for 18 modules, **12 warnings**
+  (14 → 12), `depth: 20 of 59 lessons deepened (floor 650, target 900)`.
+- `npm run format:check`: green.
+- **Mutation:** `DEPTH_FLOOR` 650 → 1000 produced 18 `lesson-depth` failures
+  across 3 test cases, naming every converted lesson below 1000 words;
+  `content-rules.ts` was restored byte-identically
+  (sha256 `4088b798…4dc0f0`).
+- **Rendered page** (`elementary-sorts` and `maps-and-sets`, dark, headless
+  Chrome):
+  - 375 / 1280 / 1600 px: `scrollWidth === clientWidth`, zero horizontal
+    overflow on both.
+  - 1600 px: rail visible, 8 and 9 entries, every anchor resolves.
+  - 1280 px: rail hidden, no mobile disclosure.
+  - 375 px: mobile disclosure present, rail hidden.
+  - Read time 5 min; both sources render on both pages.
+- **Page bytes:** +11.0–22.1 KB per lesson, measured by building HEAD's
+  three files first, then the slice tree. The two files were restored
+  byte-identically (sha256 verified) and rebuilt; the second build reproduced
+  every byte count exactly.
+
+#### 9.11 Deviations and observations
+
+1. **`elementary-sorts`'s scenario was wrong on first draft.** It said late
+   events "land at the end" and then priced 200 of them as 200 shifts, but a
+   late event appended at the end creates one inversion per element it should
+   have preceded — up to `O(n)` each. Rewritten to "about 200 adjacent pairs
+   are out of place", which makes the shift count and the inversion count
+   agree.
+2. **`collisions` gained a code section** (it had none). A chained map with
+   `maxChain()` makes the clustering claim executable: keys `0` and `8` both
+   hash to bucket 0 in an 8-bucket table, and the test asserts chain length 2.
+3. **`maps-and-sets` gained a `compare` section** on Map versus sorted array
+   and `WeakMap`/`WeakSet`. It was at 796 words after the first draft, above
+   the floor but below target; the section adds a real trade-off rather than
+   padding.
+4. **Three lessons exceed the 900 target** (1,087, 1,023, 989). Each carries
+   a derivation the others do not — the decision-tree bound, the birthday
+   bound, and set algebra — so they were left long rather than trimmed into
+   assertions.
+5. **No gate change and no videos.** Slice 2 only adds eight ledger keys; the
+   floor, rules and warning shape are slice 0's.
